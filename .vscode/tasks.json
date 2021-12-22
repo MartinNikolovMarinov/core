@@ -2,31 +2,14 @@
     "tasks": [
         {
             "type": "cppbuild",
-            "label": "Build Project",
+            "label": "Build with Makefile",
             "command": "/usr/bin/make",
-            "args": [
-                "build"
-            ],
+            "args": [],
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}/build"
             },
             "group": {
                 "kind": "build",
-                "isDefault": true
-            },
-        },
-        {
-            "type": "cppbuild",
-            "label": "Build Test",
-            "command": "/usr/bin/make",
-            "args": [
-                "test"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "group": {
-                "kind": "test",
                 "isDefault": true
             },
         }

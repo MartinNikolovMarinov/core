@@ -11,6 +11,7 @@ set(src_files
     mem.cpp
     bits.cpp
     utf.cpp
+    utils.cpp
 )
 
 if(OS STREQUAL "linux" OR OS STREQUAL "osx")
@@ -45,7 +46,7 @@ set(COMMON_CFLAGS -nostdlib -Wno-unknown-pragmas)
 if(DEBUG)
     target_compile_options(${PROJECT_NAME} PRIVATE ${COMMON_CFLAGS} -O0 -g -Wall -Wno-unused)
     target_compile_definitions(${PROJECT_NAME} PRIVATE
-        -DCORE_LIBRARY_SHARED=${CORE_LIBRARY_SHARED}
+        "CORE_LIBRARY_SHARED=$<BOOL:${CORE_LIBRARY_SHARED}>" # turn CMake Boolean to 1 or 0
         -DCORE_LIBRARY_BUILD=1
         -DDEBUG=1
         -DUSE_ASSERT=1
@@ -53,7 +54,7 @@ if(DEBUG)
 else()
     target_compile_options(${PROJECT_NAME} PRIVATE ${COMMON_CFLAGS} -03)
     target_compile_definitions(${PROJECT_NAME} PRIVATE
-        -DCORE_LIBRARY_SHARED=${CORE_LIBRARY_SHARED}
+        "CORE_LIBRARY_SHARED=$<BOOL:${CORE_LIBRARY_SHARED}>" # turn CMake Boolean to 1 or 0
         -DCORE_LIBRARY_BUILD=1
         -DDEBUG=0
         -DUSE_ASSERT=0

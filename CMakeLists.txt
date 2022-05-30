@@ -37,11 +37,9 @@ message(STATUS "[INFO] Compiler: ${COMPILER}")
 message(STATUS "[INFO] Platform: ${OS}")
 message(STATUS "[INFO] Debug: ${DEBUG}")
 
-add_executable(${PROJECT_NAME}
-    main.cpp)
+add_executable(${PROJECT_NAME} main.cpp)
 
-target_link_libraries(${PROJECT_NAME}
-    core)
+target_link_libraries(${PROJECT_NAME} core)
 
 set(COMMON_CFLAGS -Wno-unknown-pragmas)
 
@@ -51,10 +49,9 @@ else()
     message(FATAL_ERROR "Unsupported compiler!")
 endif()
 
-option(CORE_LIBRARY_SHARED "Should core be build as a shared library" OFF)
+option(CORE_LIBRARY_SHARED "Should core be build as a shared library" OFF) # Off by default
 add_subdirectory(src)
 
 # Add the core library header files the the compiler include path.
 # This allows including them without specifiling exact path.
-target_include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/libs/core)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libs/core)

@@ -58,25 +58,24 @@ using namespace coretypes;
 #define __C_VFUNC__(name, n) __C_VFUNC_A__(name, n)
 #define C_VFUNC(func, ...) __C_VFUNC__(func, __C_NARG__(__VA_ARGS__)) (__VA_ARGS__)
 
-// Customizeble global assert handler function pointer:
-static bool(*global_assert_handler)(
-    const char* failedExpr,
-    const char* file, i32 line,
-    const char* errMsg) = nullptr;
+// Customizeble global assert handler:
+using GlobalAssertHandlerPtr = bool (*)(const char* failedExpr, const char* file, i32 line, const char* errMsg);
+CORE_API_EXPORT void SetGlobalAssertHandler(GlobalAssertHandlerPtr handler);
+CORE_API_EXPORT GlobalAssertHandlerPtr GetGlobalAssertHandler();
 
 #ifndef Assert
     // This macro will dereference null to force a crash,
     // unless the global_assert_handler is set and returns false.
     #define Assert(...) C_VFUNC(Assert, __VA_ARGS__)
     #define Assert1(expr) Assert2(expr, "")
-    #define Assert2(expr, msg)                                                                  \
-        if (!(expr)) {                                                                          \
-            if (core::global_assert_handler) {                                                  \
-                bool shouldCrash = core::global_assert_handler(#expr, __FILE__, __LINE__, msg); \
-                if (shouldCrash) *(volatile i32 *)0 = 0;                                        \
-            } else {                                                                            \
-                *(volatile i32 *)0 = 0;                                                         \
-            }                                                                                   \
+    #define Assert2(expr, msg)                                                                     \
+        if (!(expr)) {                                                                             \
+            if (core::GetGlobalAssertHandler()) {                                                  \
+                bool shouldCrash = core::GetGlobalAssertHandler()(#expr, __FILE__, __LINE__, msg); \
+                if (shouldCrash) *(volatile i32 *)0 = 0;                                           \
+            } else {                                                                               \
+                *(volatile i32 *)0 = 0;                                                            \
+            }                                                                                      \
         }
 #endif
 

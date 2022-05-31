@@ -101,6 +101,20 @@ template <typename T1, typename T2, typename T3, typename T4> struct Tuple<T1, T
 
 #pragma endregion Tuple
 
+#pragma region Defer
+
+/* Zero cost defer */
+#ifndef defer
+    struct CORE_API_EXPORT deferDummy {};
+    template <class F> struct deferrer { F f; ~deferrer() { f(); } };
+    template <class F> deferrer<F> operator*(core::deferDummy, F f) { return {f}; }
+    #define DEFER_(LINE) zz_defer##LINE
+    #define DEFER(LINE) DEFER_(LINE)
+    #define defer auto DEFER(__LINE__) = core::deferDummy{} *[&]()
+#endif
+
+#pragma endregion Defer
+
 #pragma region Intrinsics
 
 template<typename TUint> u32 LeadingZeros(TUint n);

@@ -19,12 +19,13 @@ u64 seedU64;
 const char alphaChars[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const i32 alphaCharsLen = sizeof(alphaChars) - 1; // alphaChars includes terminating '\0'
 
-u32 XORShift32(u32 state) {
-    state ^= state << 13;
-    state ^= state >> 17;
-    state ^= state << 5;
-    return state;
-}
+// If performance is critical we can use 32bit state.
+// u32 XORShift32(u32 state) {
+//     state ^= state << 13;
+//     state ^= state >> 17;
+//     state ^= state << 5;
+//     return state;
+// }
 
 u64 XORShift64(u64 state) {
     state ^= state << 13;

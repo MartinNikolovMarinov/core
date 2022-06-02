@@ -44,7 +44,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # Compiler flags for DEBUG and for RELEASE builds:
 set(COMMON_CFLAGS -nostdlib -Wno-unknown-pragmas)
 if(DEBUG)
-    target_compile_options(${PROJECT_NAME} PRIVATE ${COMMON_CFLAGS} -O0 -g -Wall -Wno-unused)
+    target_compile_options(${PROJECT_NAME} PRIVATE ${COMMON_CFLAGS} -O0 -g -Wall)
     target_compile_definitions(${PROJECT_NAME} PRIVATE
         "CORE_LIBRARY_SHARED=$<BOOL:${CORE_LIBRARY_SHARED}>" # turn CMake Boolean to 1 or 0
         -DCORE_LIBRARY_BUILD=1

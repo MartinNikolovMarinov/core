@@ -72,9 +72,9 @@ CORE_API_EXPORT GlobalAssertHandlerPtr GetGlobalAssertHandler();
         if (!(expr)) {                                                                             \
             if (core::GetGlobalAssertHandler()) {                                                  \
                 bool shouldCrash = core::GetGlobalAssertHandler()(#expr, __FILE__, __LINE__, msg); \
-                if (shouldCrash) *(volatile i32 *)0 = 0;                                           \
+                if (shouldCrash) *(volatile coretypes::i32 *)0 = 0;                                \
             } else {                                                                               \
-                *(volatile i32 *)0 = 0;                                                            \
+                *(volatile coretypes::i32 *)0 = 0;                                                 \
             }                                                                                      \
         }
 #endif
@@ -159,48 +159,6 @@ CORE_API_EXPORT u64      CptrIndexOf(const char *src, ptr_size srcLen, const cha
 CORE_API_EXPORT u64      CptrIndexOfCh(const char *src, ptr_size srcLen, char val);
 
 #pragma endregion Char Pointer
-
-#pragma region Error
-
-template<i32 CAP = 254>
-struct CORE_API_EXPORT Error {
-    Error() : errLen(0) {}
-    template<i32 N>
-    explicit Error(const char (&msg)[N]) { Reset(msg); }
-    explicit Error(const char* msg, ptr_size len) { Reset(msg, len); }
-
-    template<i32 N>
-    void Reset(const char (&msg)[N]) { Reset(msg, N); }
-    void Reset(const char* msg, ptr_size len) {
-        Assert(len < CAP, "provided len is larger than the errMsg buffer capacity!");
-        MemCopy(errMsg, msg, len);
-        errMsg[len] = '\0';
-        errLen = len + 1;
-    }
-
-    bool HasError() { return errLen > 0; }
-    Tuple<const char*, i32> Err() { return {errMsg, errLen}; }
-
-private:
-    char errMsg[CAP + 1];
-    i32 errLen;
-};
-
-#define TryOrReturn(expr)                   \
-    {                                       \
-        auto err = (expr);                  \
-        if (err.HasError()) { return ret; } \
-    }
-
-#define TryOrFail(expr)                               \
-    {                                                 \
-        auto err = (expr);                            \
-        if (err.HasError()) {                         \
-            Assert(!err.HasError(), err.Err().first); \
-        }                                             \
-    }
-
-#pragma endregion Error
 
 #pragma region Random
 

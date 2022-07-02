@@ -18,9 +18,7 @@ bool GlobalAssertHandler(
 }
 
 i32 main(i32 argc, const char *argv[]) {
-    core::global_assert_handler = &GlobalAssertHandler;
-    core::Error e("test");
-    e.Reset("ttttttttttttttt");
-    TryOrFail(e);
+    core::SetGlobalAssertHandler(&GlobalAssertHandler);
+    Assert(false);
     return 0;
 }

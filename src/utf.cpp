@@ -127,5 +127,4 @@ Tuple<i32, bool> RuneToBytes(const rune r, uchar* utf) {
     return { len, len > 0 };
 }
 
-
 } // namespace core

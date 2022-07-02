@@ -95,9 +95,9 @@ template <typename TFloat> CORE_API_EXPORT void FloatToBin(u8 bytes[sizeof(TFloa
 #pragma region Tuple
 
 template <typename...> struct CORE_API_EXPORT Tuple;
-template <typename T1, typename T2> struct Tuple<T1, T2> { T1 first; T2 second; };
-template <typename T1, typename T2, typename T3> struct Tuple<T1, T2, T3> { T1 first; T2 second; T3 third; };
-template <typename T1, typename T2, typename T3, typename T4> struct Tuple<T1, T2, T3, T4> { T1 first; T2 second; T3 third; T4 fourth; };
+template <typename T1, typename T2> struct Tuple<T1, T2> { T1 a; T2 b; };
+template <typename T1, typename T2, typename T3> struct Tuple<T1, T2, T3> { T1 a; T2 b; T3 c; };
+template <typename T1, typename T2, typename T3, typename T4> struct Tuple<T1, T2, T3, T4> { T1 a; T2 b; T3 c; T4 d; };
 
 #pragma endregion Tuple
 

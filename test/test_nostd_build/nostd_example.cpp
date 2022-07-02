@@ -16,33 +16,12 @@ void OS_exit(i32 _code) {
     for (;;) syscall(SYS_exit, reinterpret_cast<void*>(_code), 0, 0, 0, 0);
 }
 
-void testingDefer(int& a) {
+void testingDefer(i32& a) {
     defer { a++; };
 }
 
 i32 main(i32 _argc, const char** _argv, const char **_envp) {
-    core::Error e("t");
-    auto err = e.Err();
-    e.Reset("tt");
-    err = e.Err();
-    e.Reset("ttt");
-    err = e.Err();
-    e.Reset("tttt");
-    err = e.Err();
-    e.Reset("ttttt");
-    err = e.Err();
-    e.Reset("tttttt");
-    err = e.Err();
-    e.Reset("ttttttt");
-    err = e.Err();
-    e.Reset("tttttttt");
-    err = e.Err();
-    e.Reset("ttttttttt");
-    err = e.Err();
-    e.Reset("tttttttttt");
-    err = e.Err();
-
-    int x = 12;
+    i32 x = 12;
     testingDefer(x);
 
     OS_exit(x);

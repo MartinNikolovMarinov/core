@@ -6,23 +6,26 @@ set(src_files
     core.h
     types.h
 
-    char_ptr.cpp
-    intrin.cpp
-    ints.cpp
-    math.cpp
-    rnd.cpp
-    mem.cpp
     bits.cpp
+    bits.h
+    char_ptr.cpp
+    char_ptr.h
+    intrin.cpp
+    intrin.h
+    ints.cpp
+    ints.h
+    math.cpp
+    math.h
+    mem.cpp
+    mem.h
+    rnd.cpp
+    rnd.h
+    tuple.h
     utf.cpp
+    utf.h
     utils.cpp
+    utils.h
 )
-
-if(OS STREQUAL "linux" OR OS STREQUAL "osx")
-    # Add os specific files here:
-    # set(src_files ${src_files}
-    #    unix/os.cpp
-    # )
-endif()
 
 # Support building as both shared and static library:
 if(CORE_LIBRARY_SHARED)
@@ -40,8 +43,12 @@ else()
     add_library(${PROJECT_NAME} STATIC ${src_files})
 endif()
 
+set(COMMON_CFLAGS
+    -nostdlib
+    -Wall -Wextra
+    -Wno-unknown-pragmas)
+
 # Compiler flags for DEBUG and for RELEASE builds:
-set(COMMON_CFLAGS -nostdlib -Wno-unknown-pragmas)
 if(DEBUG)
     target_compile_options(${PROJECT_NAME} PRIVATE ${COMMON_CFLAGS} -O0 -g -Wall)
     target_compile_definitions(${PROJECT_NAME} PRIVATE

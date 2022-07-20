@@ -21,7 +21,7 @@ static constexpr u32 UTF8_CHUNK_DECODING_MASK = 0b111111;
 
 } // namespace
 
-bool IsValidUTF8Encoding(const uchar* utf, i32 len) {
+bool IsValidUTF8Encoding(const uchar* utf, u32 len) {
     bool res = false;
     switch(len) {
         case 0:
@@ -49,7 +49,7 @@ bool IsValidUTF8Encoding(const uchar* utf, i32 len) {
     return res;
 }
 
-Tuple<rune, bool> RuneFromBytes(const uchar* utf, i32 len) {
+Tuple<rune, bool> RuneFromBytes(const uchar* utf, u32 len) {
     Assert(utf != nullptr);
     if (IsValidUTF8Encoding(utf, len) == false) {
         return { 0, false };
@@ -90,10 +90,10 @@ Tuple<rune, bool> RuneFromBytes(const uchar* utf, i32 len) {
 }
 
 
-Tuple<i32, bool> RuneToBytes(const rune r, uchar* utf) {
+Tuple<u32, bool> RuneToBytes(const rune r, uchar* utf) {
     Assert(utf != nullptr);
 
-    i32 len = 0;
+    u32 len = 0;
     if (r <= rune(UTF8_MAX_1_BYTE_ENCODING)) len = 1;
     else if (r <= rune(UTF8_MAX_2_BYTE_ENCODING)) len = 2;
     else if (r <= rune(UTF8_MAX_3_BYTE_ENCODING)) len = 3;

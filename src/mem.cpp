@@ -1,9 +1,9 @@
-#include "core.h"
+#include "mem.h"
 
 namespace core
 {
 
-CORE_API_EXPORT void MemCopy(void *dest, const void *src, ptr_size len) {
+void MemCopy(void* dest, const void* src, ptr_size len) {
     // TODO: slow as shit use SSE! William Chan has a good implementation of a fast memcpy.
 
     char* ddest = reinterpret_cast<char*>(dest);
@@ -30,6 +30,15 @@ CORE_API_EXPORT void MemCopy(void *dest, const void *src, ptr_size len) {
         ddest[len-3] = ssrc[len-3];
         break;
     }
+}
+
+void* MemSet(void* dest, int c, ptr_size n) {
+    uchar* p = (uchar*)dest;
+    uchar x = c & 0xff;
+    while (n--) {
+        *p++ = x;
+    }
+    return dest;
 }
 
 } // namespace core

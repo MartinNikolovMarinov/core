@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.2)
 
-project(main)
+project(test)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
@@ -37,11 +37,14 @@ message(STATUS "[INFO] Compiler: ${COMPILER}")
 message(STATUS "[INFO] Platform: ${OS}")
 message(STATUS "[INFO] Debug: ${DEBUG}")
 
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} test.cpp)
 
 target_link_libraries(${PROJECT_NAME} core)
 
-set(COMMON_CFLAGS -Wno-unknown-pragmas)
+set(COMMON_CFLAGS
+    -std=c++17 -fno-exceptions
+    -Wall -Wextra -Wconversion
+    -Wno-unknown-pragmas)
 
 if (COMPILER STREQUAL "gcc" OR COMPILER STREQUAL "clang")
     target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE ${COMMON_CFLAGS} -O0 -std=c++17 -ggdb -fno-exceptions -Wno-unknown-pragmas)
@@ -50,8 +53,6 @@ else()
 endif()
 
 option(CORE_LIBRARY_SHARED "Should core be build as a shared library" OFF) # Off by default
-add_subdirectory(src)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-# Add the core library header files the the compiler include path.
-# This allows including them without specifiling exact path.
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libs/core)
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

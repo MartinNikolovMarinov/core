@@ -1,26 +1,7 @@
-#include "core.h"
+#include "char_ptr.h"
 
 namespace core
 {
-
-template<typename UInt>
-UInt DigitToCh(UInt digit) {  return (digit % 10) + '0'; }
-
-template<typename TInt>
-void IntToCptr(TInt n, char* out) {
-    static_assert(sizeof(n) <= 8, "Invalid TIint paramater.");
-    Assert(out != nullptr);
-    if (n < 0) {
-        *out++ = '-';
-        n = -n;
-    }
-    i32 dc = DigitCount(n);
-    for (i32 i = dc - 1; i >= 0; i--) {
-        i32 curr = (n / TInt(PowI64(10, i))) % 10;
-        *out++ = DigitToCh(curr);
-        dc--;
-    }
-}
 
 ptr_size CptrLen(const char* p) {
     // TODO: Should use x86 specific assembler instructions for fast strlen!

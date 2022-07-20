@@ -117,14 +117,14 @@ template <typename T1, typename T2, typename T3, typename T4> struct Tuple<T1, T
 
 #pragma region Intrinsics
 
-template<typename TUint> u32 LeadingZeros(TUint n);
-u64 GetCPUTicks();
+template<typename TUint> CORE_API_EXPORT u32 LeadingZeros(TUint n);
+CORE_API_EXPORT u64 GetCPUTicks();
 
 #pragma endregion Intrinsics
 
 #pragma region Math
 
-i64 PowI64(i64 n, i32 p);
+CORE_API_EXPORT i64 PowI64(i64 n, i32 p);
 
 #pragma endregion Math
 
@@ -190,9 +190,9 @@ CORE_API_EXPORT void RandCptr(char* out, ptr_size len);
 
 #pragma region UTF
 
-bool IsValidUTF8Encoding(const uchar* utf, i32 len);
-Tuple<rune, bool> RuneFromBytes(const uchar* utf, i32 len);
-Tuple<i32, bool> RuneToBytes(const rune rune, uchar* utf);
+CORE_API_EXPORT bool IsValidUTF8Encoding(const uchar* utf, i32 len);
+CORE_API_EXPORT Tuple<rune, bool> RuneFromBytes(const uchar* utf, i32 len);
+CORE_API_EXPORT Tuple<i32, bool> RuneToBytes(const rune rune, uchar* utf);
 
 #pragma endregion UTF
 } // namespace core

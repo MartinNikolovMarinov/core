@@ -56,11 +56,11 @@ static constexpr i32 STDOUT = 1;
 static constexpr i32 STDERR = 2;
 
 // Storage Sizes
-static constexpr i64 BYTE     = ((i64)1);
-static constexpr i64 KILOBYTE = ((i64)(1000 * BYTE));
-static constexpr i64 MEGABYTE = ((i64)(1000 * KILOBYTE));
-static constexpr i64 GIGABYTE = ((i64)(1000 * MEGABYTE));
-static constexpr i64 TERABYTE = ((i64)(1000 * GIGABYTE));
+static constexpr u64 BYTE     = ((u64)1);
+static constexpr u64 KILOBYTE = ((u64)(1000 * BYTE));
+static constexpr u64 MEGABYTE = ((u64)(1000 * KILOBYTE));
+static constexpr u64 GIGABYTE = ((u64)(1000 * MEGABYTE));
+static constexpr u64 TERABYTE = ((u64)(1000 * GIGABYTE));
 
 // Duration constants in ns
 static constexpr u64 NANOSECOND  = ((u64)1);                    //                 1ns

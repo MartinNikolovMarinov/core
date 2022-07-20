@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.2)
 project(core)
 
 set(src_files
+    core.h
+    types.h
+
     char_ptr.cpp
     intrin.cpp
     ints.cpp
@@ -36,10 +39,6 @@ else()
     message(STATUS "Building core as a static library")
     add_library(${PROJECT_NAME} STATIC ${src_files})
 endif()
-
-# Adds the core library header files to the compiler include path.
-# This allows including them without specifiling the exact path on the file system.
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Compiler flags for DEBUG and for RELEASE builds:
 set(COMMON_CFLAGS -nostdlib -Wno-unknown-pragmas)

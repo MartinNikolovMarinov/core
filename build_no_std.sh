@@ -12,8 +12,13 @@ SRC='
     ./src/utils.cpp
 '
 
+# IMPORTANT:
+# When compiling with -nostdlib you need -ffreestanding, otherwise the compiler might use stdlib functions to perform optimizations.
+# This can have the effect of significanltly reducing performance.
+# Use nostdlib in cases where you know exactly what you are doing!
+
 g++ -DDEBUG=1 -DUSE_ASSERT=1 \
--nostdlib -O2 -std=c++17 -fno-exceptions \
+-nostdlib -O2 -std=c++17 -ffreestanding -fno-exceptions \
 -Wall -Wno-unknown-pragmas -Wno-unused \
 bootstrap.S -o build/test_no_std test_no_std.cpp ${SRC}
 

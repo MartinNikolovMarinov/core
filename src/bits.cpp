@@ -12,11 +12,8 @@ bool LSNBits(u8 v, u8 bitSeq, u8 n) {
 
 bool MSNBits(u8 v, u8 bitSeq, u8 n) {
     u8 shift = (sizeof(u8) * 8) - n;
-    u8 mask = u8((MAX_U8 << shift));
-    v = (v & mask) >> shift;
-    bool ret = v == bitSeq;
+    bool ret = (v >> shift) == bitSeq;
     return ret;
 }
 
 } // namespace core
-

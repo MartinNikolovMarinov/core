@@ -33,8 +33,9 @@ void MemCopy(void* dest, const void* src, ptr_size len) {
 }
 
 void* MemSet(void* dest, int c, ptr_size n) {
-    uchar* p = (uchar*)dest;
-    uchar x = c & 0xff;
+    // TODO: most naive and slow implementation of memset.
+    uchar* p = reinterpret_cast<uchar*>(dest);
+    uchar x = uchar(c);
     while (n--) {
         *p++ = x;
     }

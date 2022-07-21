@@ -43,11 +43,11 @@ target_link_libraries(${PROJECT_NAME} core)
 
 set(COMMON_CFLAGS
     -std=c++17 -fno-exceptions
-    -Wall -Wextra -Wconversion
+    -Wall -Wextra
     -Wno-unknown-pragmas)
 
 if (COMPILER STREQUAL "gcc" OR COMPILER STREQUAL "clang")
-    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE ${COMMON_CFLAGS} -O0 -std=c++17 -ggdb -fno-exceptions -Wno-unknown-pragmas)
+    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE ${COMMON_CFLAGS} -O0 -g -ggdb)
 else()
     message(FATAL_ERROR "Unsupported compiler!")
 endif()

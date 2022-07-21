@@ -50,9 +50,7 @@ T CheckTuple(core::Tuple<T, bool> t, const char* msg = "") {
     return t.a;
 }
 
-#include "test/t-bits.cpp"
-#include "test/t-rnd.cpp"
-#include "test/t-rune.cpp"
+#include "test/run_tests.cpp"
 
 i32 main(i32, const char**, const char **) {
     core::SetGlobalAssertHandler([](const char* failedExpr, const char* file, i32 line, const char* errMsg) {
@@ -81,9 +79,7 @@ i32 main(i32, const char**, const char **) {
     if (OS_UNIX == 1)    { WriteLine("[OS] OS_UNIX\n"); }
     if (OS_UNKNOWN == 1) { WriteLine("[OS] OS_UNKNOWN\n"); }
 
-    RunTestSuite(RunBitsTestsSuite);
-    RunTestSuite(RunRndTestsSuite);
-    RunTestSuite(RunRuneTestsSuite);
+    RunAllTests();
 
     WriteLine("\n");
     WriteLine("\x1b[32m\x1b[1mTests OK\x1b[0m\n");

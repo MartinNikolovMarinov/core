@@ -44,13 +44,13 @@ else()
 endif()
 
 set(COMMON_CFLAGS
-    -nostdlib
+    -nostdlib -fno-exceptions
     -Wall -Wextra
     -Wno-unknown-pragmas)
 
 # Compiler flags for DEBUG and for RELEASE builds:
 if(DEBUG)
-    target_compile_options(${PROJECT_NAME} PRIVATE ${COMMON_CFLAGS} -O0 -g -Wall)
+    target_compile_options(${PROJECT_NAME} PRIVATE ${COMMON_CFLAGS} -O0 -g -ggdb)
     target_compile_definitions(${PROJECT_NAME} PRIVATE
         "CORE_LIBRARY_SHARED=$<BOOL:${CORE_LIBRARY_SHARED}>" # turn CMake Boolean to 1 or 0
         -DCORE_LIBRARY_BUILD=1

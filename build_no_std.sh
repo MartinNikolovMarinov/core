@@ -13,7 +13,7 @@ SRC='
 '
 
 g++ -DDEBUG=1 -DUSE_ASSERT=1 \
--nostdlib -O0 -ggdb -g -std=c++17 -fno-exceptions \
+-nostdlib -O2 -std=c++17 -fno-exceptions \
 -Wall -Wno-unknown-pragmas -Wno-unused \
 bootstrap.S -o build/test_no_std test_no_std.cpp ${SRC}
 

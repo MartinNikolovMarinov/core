@@ -115,7 +115,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clan
     )
 
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    message(FATAL_ERROR "mTODO: MSVC support not implemented yet")
+    message(FATAL_ERROR "TODO: MSVC support not implemented yet")
 else()
     message(FATAL_ERROR "Unsupported compiler")
 endif()

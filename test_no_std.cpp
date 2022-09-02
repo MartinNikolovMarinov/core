@@ -50,7 +50,7 @@ T CheckTuple(core::Tuple<T, bool> t, const char* msg = "") {
     return t.a;
 }
 
-#include "test/run_tests.cpp"
+#include "test/run_tests_no_std.cpp"
 
 i32 main(i32, const char**, const char **) {
     core::SetGlobalAssertHandler([](const char* failedExpr, const char* file, i32 line, const char* errMsg) {

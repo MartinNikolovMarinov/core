@@ -1,4 +1,5 @@
 #include <core.h>
+#include <platform/plt.h>
 
 #include <iostream>
 
@@ -21,6 +22,7 @@ T CheckTuple(core::Tuple<T, bool> t, const char* msg = "") {
 }
 
 #include "test/run_tests.cpp"
+#include "test/std/run_std_tests.cpp"
 
 i32 main() {
     core::SetGlobalAssertHandler([](const char* failedExpr, const char* file, i32 line, const char* errMsg) {
@@ -43,6 +45,7 @@ i32 main() {
     if (OS_UNKNOWN == 1) { std::cout << "[OS] OS_UNKNOWN" << std::endl; }
 
     RunAllTests();
+    RunAllSTDTests();
 
     std::cout << '\n';
     std::cout << "\x1b[32m\x1b[1mTests OK\x1b[0m\n";

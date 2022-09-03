@@ -1,8 +1,11 @@
 #include <plt.h>
 
 #include <errno.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 // NOTE: POSIX requires that errno is threadsafe!
 
@@ -35,6 +38,15 @@ PltErr OsDeallocPages(void *addr, ptr_size size) {
     }
 
     return PltErr::Ok;
+}
+
+CORE_API_EXPORT core::Tuple<FileDesc, PltErr> OsOpen(const char* path, u64 flag, u64 mode) {
+    i32 ret = open(path, flag, mode);
+    if (ret < 0) {
+        return {0, errno};
+    }
+
+    return { FileDesc{(void*)(u64)ret}, PltErr::Ok };
 }
 
 core::Tuple<i64, PltErr> OsRead(FileDesc fd, void* buf, u64 size) {

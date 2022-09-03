@@ -43,7 +43,8 @@ struct FileDesc {
     u64 ToU64() { return (u64)desc; }
 };
 
-CORE_API_EXPORT core::Tuple<i64, PltErr> OsRead(FileDesc fd, void* buf, u64 size);
-CORE_API_EXPORT PltErr                   OsClose(FileDesc fd);
+CORE_API_EXPORT core::Tuple<FileDesc, PltErr> OsOpen(const char* path, u64 flag, u64 mode);
+CORE_API_EXPORT core::Tuple<i64, PltErr>      OsRead(FileDesc fd, void* buf, u64 size);
+CORE_API_EXPORT PltErr                        OsClose(FileDesc fd);
 
 } // namespace core::plt

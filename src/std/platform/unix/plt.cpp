@@ -1,11 +1,12 @@
-#include <platform/plt.h>
+#include <plt.h>
 
-#include <sys/mman.h>
 #include <errno.h>
+#include <unistd.h>
+#include <sys/mman.h>
 
 // NOTE: POSIX requires that errno is threadsafe!
 
-namespace plt
+namespace core::plt
 {
 
 core::Tuple<void*, PltErr> OsAllocPages(ptr_size size) {
@@ -26,12 +27,33 @@ PltErr OsDeallocPages(void *addr, ptr_size size) {
     if (addr == nullptr) {
         return PltErr::DeallocNullAddr;
     }
+
     i32 ret = munmap(addr, size);
     if (ret < 0) {
         // munmap returns -1 on error and sets errno
         return errno;
     }
+
     return PltErr::Ok;
 }
 
-} // namespace plt
+core::Tuple<i64, PltErr> OsRead(FileDesc fd, void* buf, u64 size) {
+    i64 ret = read(i32(fd.ToU64()), buf, size);
+    if (ret < 0) {
+        return {0, errno};
+    }
+
+    return {ret, PltErr::Ok};
+}
+
+
+PltErr OsClose(FileDesc fd) {
+    i32 ret = close(i32(fd.ToU64()));
+    if (ret < 0) {
+        return errno;
+    }
+
+    return PltErr::Ok;
+}
+
+} // namespace core::plt

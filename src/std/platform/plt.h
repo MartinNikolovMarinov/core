@@ -3,7 +3,7 @@
 #include <API.h>
 #include <core.h>
 
-namespace plt
+namespace core::plt
 {
 
 using namespace coretypes;
@@ -35,4 +35,15 @@ CORE_API_EXPORT PltErr                     OsDeallocPages(void *addr, ptr_size s
 CORE_API_EXPORT core::Tuple<u64, PltErr> UnixTimeStampInMs();
 CORE_API_EXPORT void                     ThreadSleep(u64 ms);
 
-} // namespace plt
+struct FileDesc {
+    // Holds the OS specific file descriptor.
+    // On Linux it's a file descriptor and on Windows it's a HANDLE.
+    void* desc;
+
+    u64 ToU64() { return (u64)desc; }
+};
+
+CORE_API_EXPORT core::Tuple<i64, PltErr> OsRead(FileDesc fd, void* buf, u64 size);
+CORE_API_EXPORT PltErr                   OsClose(FileDesc fd);
+
+} // namespace core::plt

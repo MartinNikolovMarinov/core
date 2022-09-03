@@ -1,5 +1,5 @@
 #include <core.h>
-#include <platform/plt.h>
+#include <plt.h>
 
 #include <iostream>
 

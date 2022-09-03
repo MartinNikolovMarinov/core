@@ -1,10 +1,10 @@
-#include <platform/plt.h>
+#include <plt.h>
 
 #include <errno.h>
 #include <sys/time.h>
 #include <unistd.h> // for usleep
 
-namespace plt
+namespace core::plt
 {
 
 core::Tuple<u64, PltErr> UnixTimeStampInMs() {
@@ -22,4 +22,4 @@ void ThreadSleep(u64 ms) {
     usleep(ms * 1000);
 }
 
-} // namespace plt
+} // namespace core::plt

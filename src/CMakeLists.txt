@@ -55,6 +55,8 @@ set(src_files
     utf.h
     utils.cpp
     utils.h
+
+    std/error/core_error.h
 )
 
 # OS specific source files:
@@ -89,7 +91,9 @@ endif()
 # Include Directories:
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/std
+    ${CMAKE_CURRENT_SOURCE_DIR}/std/platform
+    ${CMAKE_CURRENT_SOURCE_DIR}/std/io
+    ${CMAKE_CURRENT_SOURCE_DIR}/std/error
 )
 
 # Compiler options:

@@ -1,11 +1,11 @@
-#include <platform/plt.h>
+#include <plt.h>
 
 #include <windows.h>
 #include <errhandlingapi.h>
 
 // NOTE: GetLastError() is thread safe!
 
-namespace plt
+namespace core::plt
 {
 
 core::Tuple<void*, PltErr> OsAllocPages(ptr_size _size) {
@@ -28,4 +28,4 @@ PltErr OsDeallocPages(void *_addr, ptr_size _size) {
     return PltErr::Ok;
 }
 
-} // namespace plt
+} // namespace core::plt

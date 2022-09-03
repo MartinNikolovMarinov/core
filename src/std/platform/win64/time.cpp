@@ -1,9 +1,9 @@
-#include <platform/plt.h>
+#include <plt.h>
 
 #include <windows.h>
 #include <errhandlingapi.h>
 
-namespace plt
+namespace core::plt
 {
 
 core::Tuple<u64, PltErr> UnixTimeStampInMs() {
@@ -41,4 +41,4 @@ void ThreadSleep(u64 ms) {
     Sleep((DWORD)_ms);
 }
 
-} // namespace plt
+} // namespace core::plt

@@ -28,6 +28,9 @@ struct File {
     // Allow move
     File(File&& other) : m_file(std::move(other.m_file)), m_buf(std::move(other.m_buf)) {}
 
+    // Get the buffer directly
+    std::vector<u8>& Buff() { return m_buf; }
+
     // Read
     struct ReadResponse {
         ReadResponse() : m_n(0), m_err(error::Error()) {}
@@ -61,9 +64,11 @@ struct File {
 private:
     plt::FileDesc m_file;
     std::vector<u8> m_buf;
+    // TODO: keep track of current fd position
 };
 
 [[nodiscard]] error::ErrorValue<File> OpenFile(std::string_view path, u64 flag, u64 mode);
+[[nodiscard]] error::Error ReadFileFull(std::string_view path, u64 flag, u64 mode, std::vector<u8>& out);
 
 } // namespace core::fs
 

@@ -35,6 +35,7 @@ struct CORE_API_EXPORT ErrorValue {
     ErrorValue(ErrorValue&& other) : val(std::move(other.val)), err(std::move(other.err)) {}
 
     bool IsErr() const { return err.IsErr(); }
+    Error Err() const { return err; }
 
     T val;
     Error err;

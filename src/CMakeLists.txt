@@ -57,6 +57,10 @@ set(src_files
     utils.h
 
     std/error/core_error.h
+    std/fs/fs.cpp
+    std/fs/fs.h
+    std/io/io.h
+    std/platform/plt.h
 )
 
 # OS specific source files:
@@ -94,6 +98,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/std/platform
     ${CMAKE_CURRENT_SOURCE_DIR}/std/io
     ${CMAKE_CURRENT_SOURCE_DIR}/std/error
+    ${CMAKE_CURRENT_SOURCE_DIR}/std/fs
 )
 
 # Compiler options:
@@ -101,7 +106,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clan
     # Common flags:
     target_compile_options(${PROJECT_NAME} PRIVATE
         -fno-exceptions
-        -Wall -Wextra -Wno-unknown-pragmas
+        -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-function
     )
     if (CORE_DEBUG)
         # Debug flags:

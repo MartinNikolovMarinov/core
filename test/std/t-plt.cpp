@@ -1,29 +1,29 @@
 void GetTimeTest() {
-    auto res = core::plt::UnixTimeStampInMs();
-    Assert(res.b.isOk());
-    Assert(res.a > 0);
+    auto res = core::plt::OsUnixTimeStampInMs();
+    Assert(!res.IsErr());
+    Assert(res.val > 0);
 }
 
 void ThreadSleepTest() {
-    core::plt::ThreadSleep(100);
+    core::plt::OsThreadSleep(100);
 }
 
 void OsAllocDeAllocPagesTest() {
     auto res = core::plt::OsAllocPages(1024);
-    Assert(res.b.isOk());
-    Assert(res.a != nullptr);
+    Assert(!res.IsErr());
+    Assert(res.val != nullptr);
 
     auto resLarge = core::plt::OsAllocPages(core::TERABYTE * 10000);
-    Assert(!resLarge.b.isOk(), "should fail when allcation is too large");
-    Assert(resLarge.a == nullptr, "should return nullptr when allocation fails");
+    Assert(resLarge.IsErr(), "should fail when allcation is too large");
+    Assert(resLarge.val == nullptr, "should return nullptr when allocation fails");
 
-    auto deallocErr = core::plt::OsDeallocPages(res.a, 1024);
-    Assert(deallocErr.isOk());
-    deallocErr = core::plt::OsDeallocPages(res.a, 0);
-    Assert(!deallocErr.isOk(), "deallocation of size 0 should fail");
+    auto deallocErr = core::plt::OsDeallocPages(res.val, 1024);
+    Assert(!deallocErr.IsErr());
+    deallocErr = core::plt::OsDeallocPages(res.val, 0);
+    Assert(deallocErr.IsErr(), "deallocation of size 0 should fail");
     deallocErr = core::plt::OsDeallocPages(nullptr, 1024);
-    Assert(core::plt::PltErr::DeallocNullAddr == deallocErr.code, "deallocation of nullptr should fail");
-    Assert(deallocErr.code == core::plt::PltErr::DeallocNullAddr, "error code equality check should work bi-directionally");
+    Assert(core::plt::OsDeallocNullAddrErr == deallocErr.code, "deallocation of nullptr should fail");
+    Assert(deallocErr.code == core::plt::OsDeallocNullAddrErr, "error code equality check should work bi-directionally");
 }
 
 void RunPltTestSuite() {

@@ -6,7 +6,7 @@
 namespace core::plt
 {
 
-core::Tuple<u64, PltErr> UnixTimeStampInMs() {
+core::Tuple<u64, PltErr> OsUnixTimeStampInMs() {
     SYSTEMTIME systemTime;
     GetSystemTime(&systemTime);
 
@@ -37,7 +37,7 @@ core::Tuple<u64, PltErr> UnixTimeStampInMs() {
     return {timeNowMs, 0};
 }
 
-void ThreadSleep(u64 ms) {
+void OsThreadSleep(u64 ms) {
     Sleep((DWORD)_ms);
 }
 

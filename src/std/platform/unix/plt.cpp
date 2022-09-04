@@ -12,7 +12,7 @@
 namespace core::plt
 {
 
-core::Tuple<void*, PltErr> OsAllocPages(ptr_size size) {
+PltErrValue<void*> OsAllocPages(ptr_size size) {
     // flags - memory is private copy-on-write and is not backed by a file, i.e. anonymous
     i32 flags = ( MAP_PRIVATE | MAP_ANONYMOUS );
     // port - memory is mapped for reading and for writing.
@@ -20,15 +20,15 @@ core::Tuple<void*, PltErr> OsAllocPages(ptr_size size) {
 
     void* addr = mmap(nullptr, size, prot, flags, 0, 0);
     if (addr == MAP_FAILED || addr == nullptr) {
-        return {nullptr, errno};
+        return { nullptr, errno };
     }
 
-    return {addr, PltErr::Ok};
+    return { std::move(addr), PltErr::Ok };
 }
 
 PltErr OsDeallocPages(void *addr, ptr_size size) {
     if (addr == nullptr) {
-        return PltErr::DeallocNullAddr;
+        return OsDeallocNullAddrErr;
     }
 
     i32 ret = munmap(addr, size);
@@ -40,24 +40,23 @@ PltErr OsDeallocPages(void *addr, ptr_size size) {
     return PltErr::Ok;
 }
 
-CORE_API_EXPORT core::Tuple<FileDesc, PltErr> OsOpen(const char* path, u64 flag, u64 mode) {
+PltErrValue<FileDesc> OsOpen(const char* path, u64 flag, u64 mode) {
     i32 ret = open(path, flag, mode);
     if (ret < 0) {
-        return {0, errno};
+        return { {}, errno };
     }
 
     return { FileDesc{(void*)(u64)ret}, PltErr::Ok };
 }
 
-core::Tuple<i64, PltErr> OsRead(FileDesc fd, void* buf, u64 size) {
+PltErrValue<i64> OsRead(FileDesc fd, void* buf, u64 size) {
     i64 ret = read(i32(fd.ToU64()), buf, size);
     if (ret < 0) {
-        return {0, errno};
+        return { 0, errno };
     }
 
-    return {ret, PltErr::Ok};
+    return { std::move(ret), PltErr::Ok };
 }
-
 
 PltErr OsClose(FileDesc fd) {
     i32 ret = close(i32(fd.ToU64()));

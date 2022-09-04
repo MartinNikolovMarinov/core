@@ -48,7 +48,7 @@ File::ErrorFile OpenFile(std::string_view path, u64 flag, u64 mode) {
     }
     plt::FileDesc fd = openRes.val;
     File file(std::move(fd));
-    return { std::move(fd), {} };
+    return { std::move(file), {} };
 }
 
 [[nodiscard]] File::Error ReadFileFull(std::string_view path, u64 flag, u64 mode, std::vector<u8>& out) {

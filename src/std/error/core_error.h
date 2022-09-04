@@ -14,7 +14,7 @@ using namespace coretypes;
 struct CORE_API_EXPORT Error {
     std::string msg;
 
-    Error() : msg(nullptr) {}
+    Error() : msg({}) {}
     Error(std::string_view msg) : msg(msg) {}
     Error(const Error& other) : msg(other.msg) {}
     Error(Error&& other) : msg(std::move(other.msg)) {}

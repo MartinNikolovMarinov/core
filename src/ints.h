@@ -3,6 +3,7 @@
 #include "API.h"
 #include "types.h"
 #include "intrin.h"
+#include "mem.h"
 
 namespace core
 {
@@ -58,6 +59,21 @@ CORE_API_EXPORT u32 DigitCount(TUint n) {
     u32 digits = maxdigits[usedBits];
     if (n < static_cast<TUint>(powers[digits - 1])) digits--;
     return digits;
+}
+
+namespace
+{
+static const char* hexDigits = "0123456789ABCDEF";
+} // namespace
+
+// The out argument must have enough space to hold the result!
+// You can use somthing like - "char out[sizeof(TInt)] = {};"
+template <typename TInt>
+void IntToHex(TInt v, char* out, u64 hexLen = (sizeof(TInt) << 1)) {
+    static_assert(sizeof(v) <= 8 || sizeof(v) > 64, "Invalid TInt paramater.");
+    for (size_t i = 0, j = (hexLen - 1) * 4; i < hexLen; i++, j-=4) {
+        out[i] = hexDigits[(v >> j) & 0x0f];
+    }
 }
 
 } // namespace core

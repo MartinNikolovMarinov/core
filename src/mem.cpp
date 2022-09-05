@@ -32,7 +32,7 @@ void MemCopy(void* dest, const void* src, ptr_size len) {
     }
 }
 
-void* MemSet(void* dest, int c, ptr_size n) {
+void* MemSet(void* dest, i32 c, ptr_size n) {
     // TODO: most naive and slow implementation of memset.
     uchar* p = reinterpret_cast<uchar*>(dest);
     uchar x = uchar(c);

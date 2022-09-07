@@ -1,5 +1,6 @@
 #pragma once
 
+#include <API.h>
 #include <types.h>
 #include <core_error.h>
 #include <plt.h>
@@ -12,7 +13,7 @@ namespace core::fs
 
 using namespace coretypes;
 
-struct File {
+struct CORE_API_EXPORT File {
     using Error = core::error::Error;
     using ErrorFile = core::error::ErrorValue<File, Error>;
 
@@ -69,8 +70,8 @@ private:
     // TODO: keep track of current fd position
 };
 
-[[nodiscard]] File::ErrorFile OpenFile(std::string_view path, u64 flag, u64 mode);
-[[nodiscard]] File::Error     ReadFileFull(std::string_view path, u64 flag, u64 mode, std::vector<u8>& out);
+[[nodiscard]] File::ErrorFile CORE_API_EXPORT OpenFile(std::string_view path, u64 flag, u64 mode);
+[[nodiscard]] File::Error     CORE_API_EXPORT ReadFileFull(std::string_view path, u64 flag, u64 mode, std::vector<u8>& out);
 
 } // namespace core::fs
 

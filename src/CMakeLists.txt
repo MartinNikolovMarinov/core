@@ -12,6 +12,7 @@ if (NOT DEFINED CORE_DEBUG)
 endif()
 
 # OS check:
+# TODO: Use CMAKE_SYSTEM_NAME for the OS check!
 if(WIN32 OR MSVC OR MSYS OR MINGW)
     set(OS "windows")
 elseif(APPLE)

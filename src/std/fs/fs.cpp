@@ -11,9 +11,9 @@ struct File::ReadResponse {
 private:
     // All the crazy friends are here.
     friend struct File;
-    template<typename TRes> friend u64          core::io::N(const TRes& res);
-    template<typename TRes> friend bool         core::io::IsErr(const TRes& res);
-    template<typename TRes> friend error::Error core::io::Err(const TRes& res);
+    template<typename TRes> friend u64   core::io::N(const TRes& res);
+    template<typename TRes> friend bool  core::io::IsErr(const TRes& res);
+    template<typename TRes> friend Error core::io::Err(const TRes& res);
 
     i64   N()     const { return m_n; }
     bool  IsErr() const { return m_err.IsErr(); }
@@ -30,11 +30,12 @@ File::ReadResponse File::Read(void* out, u64 size) {
 
     u64 bytesToRead = std::min(m_buf.size(), size);
     auto rr = plt::OsRead(m_file, m_buf.data(), bytesToRead);
-    if (rr.IsErr()) {
+    if (rr.err.IsErr()) {
         ret.m_err = error::Error(std::string("failed to read file reason: ") + strerror(rr.err.Err()));
         ret.m_n = 0;
         return ret;
     }
+
     i64 readBytes = rr.val;
     if (readBytes == 0) {
         ret.m_err = {ERR_EOF};
@@ -53,11 +54,11 @@ struct File::CloseResponse {
 
 private:
     friend struct File;
-    template<typename TRes> friend bool         core::io::IsErr(const TRes& res);
-    template<typename TRes> friend error::Error core::io::Err(const TRes& res);
+    template<typename TRes> friend bool  core::io::IsErr(const TRes& res);
+    template<typename TRes> friend Error core::io::Err(const TRes& res);
 
-    bool IsErr() const { return m_err.IsErr(); }
-    Error Err()  const { return m_err; }
+    bool  IsErr() const { return m_err.IsErr(); }
+    Error Err()   const { return m_err; }
 
     Error m_err;
 };
@@ -73,7 +74,7 @@ File::CloseResponse File::Close() {
 
 File::ErrorFile OpenFile(std::string_view path, u64 flag, u64 mode) {
     auto openRes =  plt::OsOpen(path.data(), flag, mode);
-    if (openRes.IsErr()) {
+    if (openRes.err.IsErr()) {
         auto errMsg =  std::string("failed to open file: \"") + path.data() +
                        std::string("\"; reason: ") + std::strerror(openRes.err.Err());
         return { {}, { errMsg }};
@@ -85,15 +86,16 @@ File::ErrorFile OpenFile(std::string_view path, u64 flag, u64 mode) {
 
 [[nodiscard]] File::Error ReadFileFull(std::string_view path, u64 flag, u64 mode, std::vector<u8>& out) {
     auto openRes = core::fs::OpenFile(path, flag, mode);
-    if (openRes.IsErr()) return openRes.Err();
+    if (openRes.err.IsErr()) return openRes.err;
 
     File file = std::move(openRes.val);
     u8 buf[File::DEFAULT_BUF_SIZE];
     while (true) {
         auto readRes = core::io::Read<File, File::ReadResponse>(file, buf, File::DEFAULT_BUF_SIZE);
         if (core::io::IsErr(readRes)) {
-            if (core::io::Err(readRes).msg == File::ERR_EOF) break;
-            return core::io::Err(readRes);
+            core::error::Error readErr = core::io::Err(readRes);
+            if (readErr.Err() == File::ERR_EOF) break;
+            return readErr;
         }
 
         i64 n = core::io::N(readRes);
@@ -112,15 +114,14 @@ File::ErrorFile OpenFile(std::string_view path, u64 flag, u64 mode) {
 namespace core::io
 {
 
-// Read Interface:
-template<> bool                         IsErr(const ReadResponse& res)               { return res.IsErr(); }
-template<> core::error::Error           Err(const ReadResponse& res)                 { return res.Err(); }
-template<> u64                          N(const ReadResponse& res)                   { return res.N(); }
-template<> core::fs::File::ReadResponse Read(core::fs::File& r, void* buf, u64 size) { return r.Read(buf, size); }
+template<> ReadResponse       Read(core::fs::File& r, void* buf, u64 size) { return r.Read(buf, size); }
+template<> u64                N(const ReadResponse& res)                   { return res.N(); }
+template<> bool               IsErr(const ReadResponse& res)               { return res.IsErr(); }
+template<> core::error::Error Err(const ReadResponse& res)                 { return res.Err(); }
 
-// Close Interface:
-template<> bool                          IsErr(const CloseResponse& res) { return res.IsErr(); }
-template<> core::error::Error            Err(const CloseResponse& res)   { return res.Err(); }
-template<> core::fs::File::CloseResponse Close(core::fs::File& c)        { return c.Close(); }
+template<> CloseResponse Close(core::fs::File& c)             { return c.Close(); }
+template<> bool               IsErr(const CloseResponse& res) { return res.IsErr(); }
+template<> core::error::Error Err(const CloseResponse& res)   { return res.Err(); }
+
 
 } // namsepcae core::io

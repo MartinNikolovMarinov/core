@@ -6,7 +6,7 @@
 namespace core::plt
 {
 
-core::Tuple<u64, PltErr> OsUnixTimeStampInMs() {
+PltErrValue<u64> OsUnixTimeStampInMs() {
     SYSTEMTIME systemTime;
     GetSystemTime(&systemTime);
 

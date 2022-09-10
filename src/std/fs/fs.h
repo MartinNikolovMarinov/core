@@ -14,7 +14,7 @@ namespace core::fs
 using namespace coretypes;
 
 struct CORE_API_EXPORT File {
-    using Error = core::error::Error;
+    using Error     = core::error::Error;
     using ErrorFile = core::error::ErrorValue<File, Error>;
 
     static constexpr u32 DEFAULT_BUF_SIZE = 1024;
@@ -53,21 +53,22 @@ private:
 
 } // namespace core::fs
 
+// IO interfaces:
 namespace core::io
 {
 
 using ReadResponse  = core::fs::File::ReadResponse;
 using CloseResponse = core::fs::File::CloseResponse;
 
-// Read Interface:
-template<> bool                         IsErr(const ReadResponse& res);
-template<> core::error::Error           Err(const ReadResponse& res);
-template<> u64                          N(const ReadResponse& res);
-template<> core::fs::File::ReadResponse Read(core::fs::File& r, void* buf, u64 size);
+// Read interface:
+template<> ReadResponse       CORE_API_EXPORT Read(core::fs::File& r, void* buf, u64 size) noexcept;
+template<> u64                CORE_API_EXPORT N(const ReadResponse& res)                   noexcept;
+template<> bool               CORE_API_EXPORT IsErr(const ReadResponse& res)               noexcept;
+template<> core::error::Error CORE_API_EXPORT Err(const ReadResponse& res)                 noexcept;
 
-// Close Interface:
-template<> bool                          IsErr(const CloseResponse& res);
-template<> core::error::Error            Err(const CloseResponse& res);
-template<> core::fs::File::CloseResponse Close(core::fs::File& c);
+// Close interface:
+template<> CloseResponse      CORE_API_EXPORT Close(core::fs::File& c)        noexcept;
+template<> bool               CORE_API_EXPORT IsErr(const CloseResponse& res) noexcept;
+template<> core::error::Error CORE_API_EXPORT Err(const CloseResponse& res)   noexcept;
 
 } // namsepcae core::io

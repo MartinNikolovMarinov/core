@@ -12,46 +12,49 @@ namespace core::error
 using namespace coretypes;
 
 struct CORE_API_EXPORT Error {
-    std::string msg;
 
-    Error() : msg({}) {}
-    Error(std::string_view msg) : msg(msg) {}
-    Error(const Error& other) : msg(other.msg) {}
-    Error(Error&& other) : msg(std::move(other.msg)) {}
+    Error()                     : m_msg({}) {}
+    Error(std::string_view msg) : m_msg(msg) {}
+    Error(const Error& other)   : m_msg(other.m_msg) {}
+    Error(Error&& other)        : m_msg(std::move(other.m_msg)) {}
 
     Error& operator=(const Error& other) {
-        msg = other.msg;
+        m_msg = other.m_msg;
         return *this;
     }
 
-    bool IsErr()             const { return !msg.empty(); }
-    const std::string& Err() const { return msg; }
+    bool  IsErr()          const { return !m_msg.empty(); }
+    const std::string& Err() const { return m_msg; }
+
+private:
+    std::string m_msg;
 };
 
 struct CORE_API_EXPORT ErrorInt {
     static constexpr i32 Ok = 0;
 
-    i32 code;
-
-    constexpr ErrorInt() : code(ErrorInt::Ok) {}
-    constexpr ErrorInt(i32 code) : code(code) {}
-    constexpr ErrorInt(const ErrorInt& other) : code(other.code) {}
-    constexpr ErrorInt(ErrorInt&& other) : code(std::move(other.code)) {}
+    constexpr ErrorInt()                      : m_code(ErrorInt::Ok) {}
+    constexpr ErrorInt(i32 code)              : m_code(code) {}
+    constexpr ErrorInt(const ErrorInt& other) : m_code(other.m_code) {}
+    constexpr ErrorInt(ErrorInt&& other)      : m_code(std::move(other.m_code)) {}
 
     constexpr ErrorInt& operator=(const ErrorInt& other) {
-        code = other.code;
+        m_code = other.m_code;
         return *this;
     }
 
-    constexpr bool IsErr() const { return code != ErrorInt::Ok; }
-    constexpr i32  Err()   const { return code; }
+    bool IsErr() const { return m_code != ErrorInt::Ok; }
+    i32  Err()     const { return m_code; }
 
-    constexpr explicit operator i32() const { return code; }
+    constexpr explicit operator i32() const { return m_code; }
+
+    friend constexpr bool operator==(i32 a, ErrorInt b)      { return a == b.m_code; }
+    friend constexpr bool operator==(ErrorInt a, i32 b)      { return b == a; }
+    friend constexpr bool operator==(ErrorInt a, ErrorInt b) { return a.m_code == b.m_code; }
+
+private:
+    i32 m_code;
 };
-
-constexpr bool operator==(i32 a, ErrorInt b)      { return a == b.code; }
-constexpr bool operator==(ErrorInt a, i32 b)      { return b == a; }
-constexpr bool operator==(ErrorInt a, ErrorInt b) { return a.code == b.code; }
 
 template<typename T, typename TErr>
 struct CORE_API_EXPORT ErrorValue {
@@ -68,9 +71,6 @@ struct CORE_API_EXPORT ErrorValue {
         err = other.err;
         return *this;
     }
-
-    bool  IsErr()     const { return err.IsErr(); }
-    const TErr& Err() const { return err; }
 };
 
 } // namespace core::error

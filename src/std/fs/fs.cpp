@@ -5,6 +5,24 @@
 namespace core::fs
 {
 
+struct File::ReadResponse {
+    ReadResponse() : m_n(0), m_err(Error()) {}
+
+private:
+    // All the crazy friends are here.
+    friend struct File;
+    template<typename TRes> friend u64          core::io::N(const TRes& res);
+    template<typename TRes> friend bool         core::io::IsErr(const TRes& res);
+    template<typename TRes> friend error::Error core::io::Err(const TRes& res);
+
+    i64   N()     const { return m_n; }
+    bool  IsErr() const { return m_err.IsErr(); }
+    Error Err()   const { return m_err; }
+
+    i64 m_n;
+    Error m_err;
+};
+
 File::ReadResponse File::Read(void* out, u64 size) {
     File::ReadResponse ret;
     if (size == 0) return ret;
@@ -29,6 +47,20 @@ File::ReadResponse File::Read(void* out, u64 size) {
     ret.m_n = readBytes;
     return ret;
 }
+
+struct File::CloseResponse {
+    CloseResponse() : m_err(Error()) {}
+
+private:
+    friend struct File;
+    template<typename TRes> friend bool         core::io::IsErr(const TRes& res);
+    template<typename TRes> friend error::Error core::io::Err(const TRes& res);
+
+    bool IsErr() const { return m_err.IsErr(); }
+    Error Err()  const { return m_err; }
+
+    Error m_err;
+};
 
 File::CloseResponse File::Close() {
     File::CloseResponse ret;
@@ -59,20 +91,36 @@ File::ErrorFile OpenFile(std::string_view path, u64 flag, u64 mode) {
     u8 buf[File::DEFAULT_BUF_SIZE];
     while (true) {
         auto readRes = core::io::Read<File, File::ReadResponse>(file, buf, File::DEFAULT_BUF_SIZE);
-        if (readRes.IsErr()) {
-            if (readRes.Err().msg == File::ERR_EOF) break;
-            return readRes.Err();
+        if (core::io::IsErr(readRes)) {
+            if (core::io::Err(readRes).msg == File::ERR_EOF) break;
+            return core::io::Err(readRes);
         }
 
-        i64 n = readRes.N();
+        i64 n = core::io::N(readRes);
         out.insert(out.end(), buf, buf + n);
     }
 
-    if (auto closeRes = core::io::Close<File, File::CloseResponse>(file); closeRes.IsErr()) {
-        return closeRes.Err();
+    if (auto closeRes = core::io::Close<File, File::CloseResponse>(file); core::io::IsErr(closeRes)) {
+        return core::io::Err(closeRes);
     }
 
     return {};
 }
 
 } // namespace core::fs
+
+namespace core::io
+{
+
+// Read Interface:
+template<> bool                         IsErr(const ReadResponse& res)               { return res.IsErr(); }
+template<> core::error::Error           Err(const ReadResponse& res)                 { return res.Err(); }
+template<> u64                          N(const ReadResponse& res)                   { return res.N(); }
+template<> core::fs::File::ReadResponse Read(core::fs::File& r, void* buf, u64 size) { return r.Read(buf, size); }
+
+// Close Interface:
+template<> bool                          IsErr(const CloseResponse& res) { return res.IsErr(); }
+template<> core::error::Error            Err(const CloseResponse& res)   { return res.Err(); }
+template<> core::fs::File::CloseResponse Close(core::fs::File& c)        { return c.Close(); }
+
+} // namsepcae core::io

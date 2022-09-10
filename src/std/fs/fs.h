@@ -35,33 +35,11 @@ struct CORE_API_EXPORT File {
     std::vector<u8>& Buff() { return m_buf; }
 
     // Read
-    struct ReadResponse {
-        ReadResponse() : m_n(0), m_err(Error()) {}
-
-        bool IsErr() const { return m_err.IsErr(); }
-        Error Err() const { return m_err; }
-        i64 N() const { return m_n; }
-
-    private:
-        friend struct File;
-        i64 m_n;
-        Error m_err;
-    };
-
+    struct ReadResponse;
     [[nodiscard]] ReadResponse Read(void* out, u64 size);
 
     // Close
-    struct CloseResponse {
-        CloseResponse() : m_err(Error()) {}
-
-        bool IsErr() const { return m_err.IsErr(); }
-        Error Err()  const { return m_err; }
-
-    private:
-        friend struct File;
-        Error m_err;
-    };
-
+    struct CloseResponse;
     [[nodiscard]] CloseResponse Close();
 
 private:
@@ -78,12 +56,18 @@ private:
 namespace core::io
 {
 
-template<> bool                  IsErr(const core::fs::File::ReadResponse& res)  { return res.IsErr(); }
-template<> core::fs::File::Error Err(const core::fs::File::ReadResponse& res)    { return res.Err(); }
-template<> u64                   N(const core::fs::File::ReadResponse& res)      { return res.N(); }
+using ReadResponse  = core::fs::File::ReadResponse;
+using CloseResponse = core::fs::File::CloseResponse;
 
-template<> core::fs::File::ReadResponse Read(core::fs::File& r, void* buf, u64 size) { return r.Read(buf, size); }
+// Read Interface:
+template<> bool                         IsErr(const ReadResponse& res);
+template<> core::error::Error           Err(const ReadResponse& res);
+template<> u64                          N(const ReadResponse& res);
+template<> core::fs::File::ReadResponse Read(core::fs::File& r, void* buf, u64 size);
 
-template<> core::fs::File::CloseResponse Close(core::fs::File& c) { return c.Close(); }
+// Close Interface:
+template<> bool                          IsErr(const CloseResponse& res);
+template<> core::error::Error            Err(const CloseResponse& res);
+template<> core::fs::File::CloseResponse Close(core::fs::File& c);
 
 } // namsepcae core::io

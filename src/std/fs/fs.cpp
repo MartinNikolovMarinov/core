@@ -5,31 +5,13 @@
 namespace core::fs
 {
 
-struct File::ReadResponse {
-    ReadResponse() : m_n(0), m_err(Error()) {}
-
-private:
-    // All the crazy friends are here.
-    friend struct File;
-    template<typename TRes> friend u64   core::io::N(const TRes& res);
-    template<typename TRes> friend bool  core::io::IsErr(const TRes& res);
-    template<typename TRes> friend Error core::io::Err(const TRes& res);
-
-    i64   N()     const { return m_n; }
-    bool  IsErr() const { return m_err.IsErr(); }
-    Error Err()   const { return m_err; }
-
-    i64 m_n;
-    Error m_err;
-};
-
-File::ReadResponse File::Read(void* out, u64 size) {
-    File::ReadResponse ret;
+File::FileResponse File::Read(void* out, u64 size) {
+    File::FileResponse ret;
     if (size == 0) return ret;
-    if (m_buf.empty()) m_buf.resize(File::DEFAULT_BUF_SIZE);
 
-    u64 bytesToRead = std::min(m_buf.size(), size);
-    auto rr = plt::OsRead(m_file, m_buf.data(), bytesToRead);
+    u8 buf[m_bufSize];
+    i64 bytesToRead = m_bufSize < size ? m_bufSize : size;
+    auto rr = plt::OsRead(m_file, buf, bytesToRead);
     if (rr.err.IsErr()) {
         ret.m_err = error::Error(std::string("failed to read file reason: ") + strerror(rr.err.Err()));
         ret.m_n = 0;
@@ -38,33 +20,46 @@ File::ReadResponse File::Read(void* out, u64 size) {
 
     i64 readBytes = rr.val;
     if (readBytes == 0) {
-        ret.m_err = {ERR_EOF};
+        ret.m_err = { File::ERR_EOF };
         ret.m_n = 0;
         return ret;
     }
 
-    if (out != nullptr) std::memcpy(out, m_buf.data(), readBytes);
+    if (out != nullptr) core::MemCopy(out, buf, readBytes);
     ret.m_err = {};
     ret.m_n = readBytes;
     return ret;
 }
 
-struct File::CloseResponse {
-    CloseResponse() : m_err(Error()) {}
+File::FileResponse File::Write(const void* in, u64 size) {
+    File::FileResponse ret;
+    if (size == 0) return ret;
+    if (in == nullptr) return ret;
 
-private:
-    friend struct File;
-    template<typename TRes> friend bool  core::io::IsErr(const TRes& res);
-    template<typename TRes> friend Error core::io::Err(const TRes& res);
+    u8 buf[m_bufSize];
+    i64 bytesToWrite = m_bufSize < size ? m_bufSize : size;
+    core::MemCopy(buf, in, bytesToWrite);
+    auto wr = plt::OsWrite(m_file, buf, bytesToWrite);
+    if (wr.err.IsErr()) {
+        ret.m_err = error::Error(std::string("failed to write file reason: ") + strerror(wr.err.Err()));
+        ret.m_n = 0;
+        return ret;
+    }
 
-    bool  IsErr() const { return m_err.IsErr(); }
-    Error Err()   const { return m_err; }
+    i64 writtenBytes = wr.val;
+    if (writtenBytes != bytesToWrite) {
+        ret.m_err = { File::ERR_PARTIAL_WRITE };
+        ret.m_n = writtenBytes;
+        return ret;
+    }
 
-    Error m_err;
-};
+    ret.m_err = {};
+    ret.m_n = writtenBytes;
+    return ret;
+}
 
-File::CloseResponse File::Close() {
-    File::CloseResponse ret;
+File::FileResponse File::Close() {
+    File::FileResponse ret;
     if (auto err = plt::OsClose(m_file); err.IsErr()) {
         ret.m_err = error::Error(std::string("failed to close file reason: ") + strerror(err.Err()));
         return ret;
@@ -84,14 +79,25 @@ File::ErrorFile OpenFile(std::string_view path, u64 flag, u64 mode) {
     return { std::move(file), {} };
 }
 
-[[nodiscard]] File::Error ReadFileFull(std::string_view path, u64 flag, u64 mode, std::vector<u8>& out) {
+File::Error ReadFileFull(std::string_view path, u64 flag, u64 mode, File::DataBuffer& out) {
     auto openRes = core::fs::OpenFile(path, flag, mode);
     if (openRes.err.IsErr()) return openRes.err;
-
     File file = std::move(openRes.val);
-    u8 buf[File::DEFAULT_BUF_SIZE];
+    return ReadFileFull(file, out);
+}
+
+File::Error WriteFileFull(std::string_view path, u64 flag, u64 mode, const File::DataBuffer& in) {
+    auto openRes = core::fs::OpenFile(path, flag, mode);
+    if (openRes.err.IsErr()) return openRes.err;
+    if (in.empty()) return {};
+    File file = std::move(openRes.val);
+    return WriteFileFull(file, in);
+}
+
+File::Error ReadFileFull(File& file, File::DataBuffer& out) {
+    u8 buf[file.m_bufSize];
     while (true) {
-        auto readRes = core::io::Read<File, File::ReadResponse>(file, buf, File::DEFAULT_BUF_SIZE);
+        auto readRes = core::io::Read(file, buf, file.m_bufSize);
         if (core::io::IsErr(readRes)) {
             core::error::Error readErr = core::io::Err(readRes);
             if (readErr.Err() == File::ERR_EOF) break;
@@ -102,26 +108,28 @@ File::ErrorFile OpenFile(std::string_view path, u64 flag, u64 mode) {
         out.insert(out.end(), buf, buf + n);
     }
 
-    if (auto closeRes = core::io::Close<File, File::CloseResponse>(file); core::io::IsErr(closeRes)) {
+    if (auto closeRes = core::io::Close(file); core::io::IsErr(closeRes)) {
         return core::io::Err(closeRes);
     }
 
     return {};
 }
 
+File::Error WriteFileFull(File& file, const File::DataBuffer& in) {
+    auto it = in.begin();
+    while(true) {
+        auto size = std::distance(it, in.end());
+        auto writeRes = core::io::Write(file, it.base(), size);
+        if (core::io::IsErr(writeRes)) {
+            core::error::Error writeErr = core::io::Err(writeRes);
+            return writeErr;
+        }
+
+        i64 n = core::io::N(writeRes);
+        Assert(it.base() + n > in.end().base(), "BUG: wrote more bytes than expected");
+        it += n;
+    }
+    return {};
+}
+
 } // namespace core::fs
-
-namespace core::io
-{
-
-template<> ReadResponse       Read(core::fs::File& r, void* buf, u64 size) { return r.Read(buf, size); }
-template<> u64                N(const ReadResponse& res)                   { return res.N(); }
-template<> bool               IsErr(const ReadResponse& res)               { return res.IsErr(); }
-template<> core::error::Error Err(const ReadResponse& res)                 { return res.Err(); }
-
-template<> CloseResponse Close(core::fs::File& c)             { return c.Close(); }
-template<> bool               IsErr(const CloseResponse& res) { return res.IsErr(); }
-template<> core::error::Error Err(const CloseResponse& res)   { return res.Err(); }
-
-
-} // namsepcae core::io

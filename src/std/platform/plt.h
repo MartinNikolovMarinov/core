@@ -30,6 +30,7 @@ struct FileDesc {
 
 CORE_API_EXPORT PltErrValue<FileDesc> OsOpen(const char* path, u64 flag, u64 mode);
 CORE_API_EXPORT PltErrValue<i64>      OsRead(FileDesc fd, void* buf, u64 size);
+CORE_API_EXPORT PltErrValue<i64>      OsWrite(FileDesc fd, const void* buf, u64 size);
 CORE_API_EXPORT PltErr                OsClose(FileDesc fd);
 
 } // namespace core::plt

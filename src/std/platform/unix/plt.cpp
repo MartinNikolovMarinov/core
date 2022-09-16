@@ -58,6 +58,15 @@ PltErrValue<i64> OsRead(FileDesc fd, void* buf, u64 size) {
     return { std::move(ret), PltErr::Ok };
 }
 
+PltErrValue<i64> OsWrite(FileDesc fd, const void* buf, u64 size) {
+    i64 ret = write(i32(fd.ToU64()), buf, size);
+    if (ret < 0) {
+        return { 0, errno };
+    }
+
+    return { std::move(ret), PltErr::Ok };
+}
+
 PltErr OsClose(FileDesc fd) {
     i32 ret = close(i32(fd.ToU64()));
     if (ret < 0) {

@@ -23,7 +23,7 @@ struct CORE_API_EXPORT Error {
         return *this;
     }
 
-    bool  IsErr()          const { return !m_msg.empty(); }
+    bool  IsErr()            const { return !m_msg.empty(); }
     const std::string& Err() const { return m_msg; }
 
 private:
@@ -44,7 +44,7 @@ struct CORE_API_EXPORT ErrorInt {
     }
 
     bool IsErr() const { return m_code != ErrorInt::Ok; }
-    i32  Err()     const { return m_code; }
+    i32  Err()   const { return m_code; }
 
     constexpr explicit operator i32() const { return m_code; }
 

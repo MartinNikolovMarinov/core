@@ -63,6 +63,7 @@ set(src_files
     std/io/io.h
     std/platform/plt.h
     std/math/vec.h
+    std/traits/traits.h
 )
 
 # OS specific source files:
@@ -102,6 +103,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/std/error
     ${CMAKE_CURRENT_SOURCE_DIR}/std/fs
     ${CMAKE_CURRENT_SOURCE_DIR}/std/math
+    ${CMAKE_CURRENT_SOURCE_DIR}/std/traits
 )
 
 # Compiler options:

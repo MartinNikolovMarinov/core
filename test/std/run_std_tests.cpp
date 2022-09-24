@@ -1,7 +1,9 @@
 #include "t-plt.cpp"
 #include "t-core_error.cpp"
+#include "t-vector.cpp"
 
 void RunAllSTDTests() {
     RunTestSuite(RunPltTestSuite);
     RunTestSuite(CoreErrorTestSute);
+    RunTestSuite(VectorTestSuite);
 }

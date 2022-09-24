@@ -7,8 +7,14 @@ project(core)
 if (NOT DEFINED CORE_LIBRARY_SHARED)
     set(CORE_LIBRARY_SHARED OFF)
 endif()
+
 if (NOT DEFINED CORE_DEBUG)
-    set(CORE_DEBUG OFF)
+    if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")
+        # Build Type not set, defaulting to Relese...
+        set(CORE_DEBUG OFF)
+    else()
+        set(CORE_DEBUG ON)
+    endif()
 endif()
 
 # OS check:

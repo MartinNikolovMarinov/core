@@ -116,6 +116,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     # Common flags:
     target_compile_options(${PROJECT_NAME} PRIVATE
+        -std=c++17
         -fno-exceptions
         -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-function
     )
@@ -126,18 +127,29 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clan
         # Release flags:
         target_compile_options(${PROJECT_NAME} PRIVATE -O3)
     endif()
-
-    # Definitions:
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        "CORE_LIBRARY_SHARED=$<BOOL:${CORE_LIBRARY_SHARED}>" # turn CMake Boolean to 1 or 0
-        -DCORE_LIBRARY_BUILD=1
-        "CORE_DEBUG=$<BOOL:${CORE_DEBUG}>"
-    )
-
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    message(FATAL_ERROR "TODO: MSVC support not implemented yet")
+    # Common flags:
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        -std:c++17
+        -nologo -FC -EHa
+        -W4
+    )
+    if (CORE_DEBUG)
+        # Debug flags:
+        target_compile_options(${PROJECT_NAME} PRIVATE -Zi -Od -Oi)
+    else()
+        # Release flags:
+        target_compile_options(${PROJECT_NAME} PRIVATE -O2)
+    endif()
 else()
     message(FATAL_ERROR "Unsupported compiler")
 endif()
+
+# Definitions:
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    "CORE_LIBRARY_SHARED=$<BOOL:${CORE_LIBRARY_SHARED}>" # turn CMake Boolean to 1 or 0
+    -DCORE_LIBRARY_BUILD=1
+    "CORE_DEBUG=$<BOOL:${CORE_DEBUG}>"
+)
 
 message(STATUS "[CORE] ---------------------------------------------")

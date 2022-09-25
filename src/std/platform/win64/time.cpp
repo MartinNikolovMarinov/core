@@ -15,7 +15,7 @@ PltErrValue<u64> OsUnixTimeStampInMs() {
     FILETIME fileTime;
     BOOL ret = SystemTimeToFileTime(&systemTime, &fileTime);
     if (ret != 1)  {
-        return {0, GetLastError()};
+        return { 0, GetLastError() };
     }
 
     u64 timeNowIn100thNanoseconds;
@@ -34,11 +34,11 @@ PltErrValue<u64> OsUnixTimeStampInMs() {
     // To convert the strange time now in 100th of nanoseconds we divide by 10000 !
     // How very magical, yet somehow actually correct.
     u64 timeNowMs = timeNowIn100thNanoseconds / 10000;
-    return {timeNowMs, 0};
+    return { std::move(timeNowMs), 0 };
 }
 
 void OsThreadSleep(u64 ms) {
-    Sleep((DWORD)_ms);
+    Sleep((DWORD)ms);
 }
 
 } // namespace core::plt

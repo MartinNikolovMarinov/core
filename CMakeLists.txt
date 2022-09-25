@@ -16,6 +16,14 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clan
         -std=c++17 -fno-exceptions
         -Wall -Wextra -Wno-unknown-pragmas
     )
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE
+        -std:c++17
+        -Zi -Od -Oi
+        -nologo -FC
+        -EHa
+        -W4
+    )
 else()
     message(FATAL_ERROR "Unsupported compiler!")
 endif()

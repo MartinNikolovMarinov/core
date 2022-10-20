@@ -70,6 +70,7 @@ set(src_files
     std/platform/plt.h
     std/math/vec.h
     std/traits/traits.h
+    std/sync/once.h
 )
 
 # OS specific source files:
@@ -110,6 +111,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/std/fs
     ${CMAKE_CURRENT_SOURCE_DIR}/std/math
     ${CMAKE_CURRENT_SOURCE_DIR}/std/traits
+    ${CMAKE_CURRENT_SOURCE_DIR}/std/sync
 )
 
 # Compiler options:

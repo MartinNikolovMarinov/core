@@ -1,5 +1,7 @@
 #pragma once
 
+#include "system_checks.h"
+
 #include "API.h"
 #include "types.h"
 

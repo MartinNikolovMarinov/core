@@ -1,3 +1,6 @@
+#include <io.h>
+#include <core_error.h>
+
 struct _FatStrErrorImpl {
     using Error = core::error::Error;
 

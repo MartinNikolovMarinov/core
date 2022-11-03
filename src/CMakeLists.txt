@@ -71,6 +71,8 @@ set(src_files
     std/math/vec.h
     std/traits/traits.h
     std/sync/once.h
+    std/alloc/alloc.h
+    std/alloc/static_bump_alloc.h
 )
 
 # OS specific source files:
@@ -112,6 +114,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/std/math
     ${CMAKE_CURRENT_SOURCE_DIR}/std/traits
     ${CMAKE_CURRENT_SOURCE_DIR}/std/sync
+    ${CMAKE_CURRENT_SOURCE_DIR}/std/alloc
 )
 
 # Compiler options:

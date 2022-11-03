@@ -1,8 +1,4 @@
 #include <core.h>
-#include <plt.h>
-#include <io.h>
-#include <vec.h>
-#include <core_error.h>
 
 #include <iostream>
 

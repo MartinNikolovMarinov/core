@@ -1,3 +1,5 @@
+#include <plt.h>
+
 void GetTimeTest() {
     auto res = core::plt::OsUnixTimeStampInMs();
     Assert(!res.err.IsErr());

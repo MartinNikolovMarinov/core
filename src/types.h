@@ -26,7 +26,7 @@ using u64      = uint64_t;
 using f32      = float;
 using f64      = double;
 using uchar    = unsigned char;
-using ptr_size = size_t;
+using ptr_size = intptr_t;
 using rune     = char32_t; // Runes represent a single UTF-32 encoded character.
 
 // Max unsigned integer constants

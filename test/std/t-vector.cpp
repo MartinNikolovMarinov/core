@@ -1,3 +1,5 @@
+#include <vec.h>
+
 using namespace core::math;
 
 void VectorEqualsTest() {

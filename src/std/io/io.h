@@ -4,6 +4,9 @@
 #include <types.h>
 #include <core_error.h>
 
+/**
+ * This file declares the core io interface.
+*/
 namespace core::io
 {
 

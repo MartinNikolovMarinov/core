@@ -62,6 +62,8 @@ struct CORE_API_EXPORT ErrorValue {
     TErr err;
 
     ErrorValue() = default;
+    ErrorValue(T&& val) : val(std::move(val)) {}
+    ErrorValue(TErr&& err) : err(std::move(err)) {}
     ErrorValue(T&& val, TErr&& err) : val(std::move(val)), err(std::move(err)) {}
     ErrorValue(const ErrorValue& other) : val(other.val), err(other.err) {}
     ErrorValue(ErrorValue&& other) : val(std::move(other.val)), err(std::move(other.err)) {}
@@ -71,6 +73,8 @@ struct CORE_API_EXPORT ErrorValue {
         err = other.err;
         return *this;
     }
+
+    bool IsErr() const { return err.IsErr(); }
 };
 
 } // namespace core::error

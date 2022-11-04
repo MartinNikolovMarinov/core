@@ -70,4 +70,4 @@ static constexpr u64 SECOND      = ((u64)(1000 * MILLISECOND)); //     1_000_000
 static constexpr u64 MINUTE      = ((u64)(60 * SECOND));        //    60_000_000_000ns
 static constexpr u64 HOUR        = ((u64)(60 * MINUTE));        // 3_600_000_000_000ns
 
-} // namespace core
+} // namespace coretypes

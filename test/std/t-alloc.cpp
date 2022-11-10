@@ -1,7 +1,9 @@
 #include <alloc.h>
 #include <static_bump_alloc.h>
+#include <std_alloc.h>
 
-#include <cstddef>
+#include <string>
+#include <string_view>
 
 void StaticBumpAllcatorTest() {
     core::alloc::StaticBumpAllocator<32> salloc;
@@ -59,6 +61,45 @@ void StaticBumpAllcatorTest() {
     Assert(core::alloc::UsedMem(salloc) == 0);
 }
 
+void StdAllocatorTest() {
+    core::alloc::StdAllocator stdAlloc;
+    void* bytes = stdAlloc.Alloc(100);
+    Assert(bytes != nullptr);
+
+    // OOM test
+    static i32 oomCount = 0;
+    stdAlloc.OnOutOfMemory([](void*) { oomCount++; });
+    bytes = stdAlloc.Alloc(10000000000000);
+    Assert(bytes == nullptr);
+    Assert(oomCount == 1);
+
+    // Everything should still work OOM:
+    bytes = stdAlloc.Alloc(30);
+    Assert(bytes != nullptr);
+
+    struct Person {
+        std::string name;
+        i32 age;
+        Person(std::string_view name, i32 age) : name(name), age(age) {}
+    };
+    Person* person = nullptr;
+    person = stdAlloc.Construct<Person>(person, "Pesho", 20);
+    Assert(person != nullptr);
+    Assert(person->name == "Pesho");
+    Assert(person->age == 20);
+
+    ptr_size used = stdAlloc.UsedMem();
+    Assert(used == 100 + 30 + sizeof(Person));
+    stdAlloc.Free(person);
+    used = stdAlloc.UsedMem();
+    Assert(used == 100 + 30);
+
+    stdAlloc.Clear();
+    used = stdAlloc.UsedMem();
+    Assert(used == 0);
+}
+
 void AllocTestSuite() {
     RunTest(StaticBumpAllcatorTest);
+    RunTest(StdAllocatorTest);
 }

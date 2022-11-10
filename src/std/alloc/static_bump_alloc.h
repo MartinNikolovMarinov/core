@@ -14,7 +14,7 @@ struct CORE_API_EXPORT StaticBumpAllocator {
 
     static constexpr ptr_size Cap = TCap;
 
-    StaticBumpAllocator() {
+    constexpr StaticBumpAllocator() noexcept {
         m_startAddr = &m_data[0];
         m_used = 0;
     }
@@ -25,7 +25,7 @@ struct CORE_API_EXPORT StaticBumpAllocator {
     StaticBumpAllocator(StaticBumpAllocator&&) = delete;
     StaticBumpAllocator& operator=(StaticBumpAllocator&&) = delete;
 
-    void* Alloc(ptr_size size) {
+    void* Alloc(ptr_size size) noexcept {
         size = core::Align(size);
         if (m_used + size > Cap) return nullptr; // OOM
         void* p = reinterpret_cast<void*>(&m_data[m_used]);
@@ -33,23 +33,21 @@ struct CORE_API_EXPORT StaticBumpAllocator {
         return p;
     }
 
-    void Free(void*) {}
+    constexpr void Free(void*) noexcept {}
 
     template<typename T, typename ...Args>
-    T* Construct(T* out, Args... args) {
+    constexpr T* Construct(T* out, Args... args) noexcept {
         void* p = Alloc(sizeof(T));
         if (p != nullptr) out = new (p) T(std::forward<Args>(args)...);
         return out;
     }
 
-    void Clear() {
+    constexpr void Clear() noexcept {
         core::MemSet(m_data, 0, Cap);
         m_used = 0;
     }
 
-    ptr_size UsedMem() {
-        return m_used;
-    }
+    constexpr ptr_size UsedMem() noexcept { return m_used; }
 
 private:
     u8 m_data[Cap];

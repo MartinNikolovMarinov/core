@@ -10,6 +10,7 @@ using namespace coretypes;
 
 CORE_API_EXPORT void MemCopy(void* dest, const void* src, ptr_size len);
 CORE_API_EXPORT void* MemSet(void* dest, i32 c, ptr_size n);
+CORE_API_EXPORT i32 MemCmp(const void* s1, const void* s2, ptr_size n);
 
 /**
  * @brief Aligns an integer to the next multiple of the given alignment.

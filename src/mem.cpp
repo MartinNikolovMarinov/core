@@ -42,4 +42,16 @@ void* MemSet(void* dest, i32 c, ptr_size n) {
     return dest;
 }
 
+i32 MemCmp(const void* s1, const void* s2, ptr_size n) {
+    // TODO: do faster
+    const uchar* p1 = reinterpret_cast<const uchar*>(s1);
+    const uchar* p2 = reinterpret_cast<const uchar*>(s2);
+    while (n--) {
+        if (*p1 != *p2) return *p1 - *p2;
+        ++p1;
+        ++p2;
+    }
+    return 0;
+}
+
 } // namespace core

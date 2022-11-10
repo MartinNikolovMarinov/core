@@ -73,6 +73,8 @@ set(src_files
     std/sync/once.h
     std/alloc/alloc.h
     std/alloc/static_bump_alloc.h
+    std/alloc/std_alloc.h
+    std/alloc/std_alloc.cpp
 )
 
 # OS specific source files:

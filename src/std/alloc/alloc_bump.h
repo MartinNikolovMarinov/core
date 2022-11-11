@@ -1,7 +1,9 @@
 #pragma once
 
 #include <API.h>
-#include "types.h"
+#include <core.h>
+
+#include <utility>
 
 namespace core::alloc
 {
@@ -26,7 +28,7 @@ struct CORE_API_EXPORT StaticBumpAllocator {
     StaticBumpAllocator& operator=(StaticBumpAllocator&&) = delete;
 
     void* Alloc(ptr_size size) noexcept {
-        size = core::Align(size);
+        size = Align(size);
         if (m_used + size > Cap) return nullptr; // OOM
         void* p = reinterpret_cast<void*>(&m_data[m_used]);
         m_used += size;
@@ -43,7 +45,7 @@ struct CORE_API_EXPORT StaticBumpAllocator {
     }
 
     constexpr void Clear() noexcept {
-        core::MemSet(m_data, 0, Cap);
+        MemSet(m_data, 0, Cap);
         m_used = 0;
     }
 

@@ -1,8 +1,7 @@
-#include "std_alloc.h"
+#include "alloc_std.h"
 
 namespace core::alloc
 {
-
 
 StdAllocator::StdAllocator() noexcept : m_onOOM(nullptr) {}
 
@@ -18,7 +17,7 @@ void* StdAllocator::Alloc(ptr_size size) noexcept {
         return nullptr;
     }
 
-    auto block = static_cast<AllocedBlock*>(std::malloc(sizeof(AllocedBlock)));\
+    auto block = static_cast<AllocedBlock*>(std::malloc(sizeof(AllocedBlock)));
     if (block == nullptr) {
         std::free(addr); // give up on this memory
         if (m_onOOM != nullptr) m_onOOM(nullptr);

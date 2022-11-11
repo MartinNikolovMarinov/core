@@ -50,6 +50,7 @@ set(src_files
     intrin.h
     ints.cpp
     ints.h
+    io_interface.h
     math.cpp
     math.h
     mem.cpp
@@ -66,15 +67,15 @@ set(src_files
     std/error/core_error.h
     std/fs/fs.cpp
     std/fs/fs.h
-    std/io/io.h
     std/platform/plt.h
     std/math/vec.h
     std/traits/traits.h
     std/sync/once.h
     std/alloc/alloc.h
-    std/alloc/static_bump_alloc.h
-    std/alloc/std_alloc.h
-    std/alloc/std_alloc.cpp
+    std/alloc/alloc_std.h
+    std/alloc/alloc_std.cpp
+    std/alloc/alloc_interface.h
+    std/alloc/alloc_bump.h
 )
 
 # OS specific source files:

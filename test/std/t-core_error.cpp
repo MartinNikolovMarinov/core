@@ -1,4 +1,3 @@
-#include <io.h>
 #include <core_error.h>
 
 struct _FatStrErrorImpl {
@@ -13,10 +12,10 @@ struct _FatStrErrorImpl {
 void ErrorInterfaceUsageTest() {
     static constexpr std::string_view testErrMsg = "Error message";
     _FatStrErrorImpl fatStrError;
-    Assert(!core::io::IsErr(fatStrError));
+    Assert(!core::IsErr(fatStrError));
     fatStrError.e = testErrMsg;
-    Assert(core::io::IsErr(fatStrError));
-    Assert(core::io::Err(fatStrError).Err() == testErrMsg);
+    Assert(core::IsErr(fatStrError));
+    Assert(core::Err(fatStrError).Err() == testErrMsg);
 }
 
 void CoreErrorTestSute() {

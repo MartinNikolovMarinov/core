@@ -54,7 +54,10 @@ Tuple<rune, bool> RuneFromBytes(const uchar* utf, u32 len) {
     if (IsValidUTF8Encoding(utf, len) == false) {
         return { 0, false };
     }
+    return RuneFromBytesSkipCheck(utf, len);
+}
 
+Tuple<rune, bool> RuneFromBytesSkipCheck(const uchar* utf, u32 len) {
     rune r = 0;
     const u32 ubpec = UTF8_BYTES_PER_ENCODED_CHUNK;
 

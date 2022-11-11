@@ -1,35 +1,36 @@
 #include <alloc.h>
-#include <static_bump_alloc.h>
-#include <std_alloc.h>
 
 #include <string>
 #include <string_view>
 
-void StaticBumpAllcatorTest() {
-    core::alloc::StaticBumpAllocator<32> salloc;
-    ptr_size curExpectedAllocSize = 0;
-    Assert(core::alloc::UsedMem(salloc) == curExpectedAllocSize);
+using namespace core;
+using namespace alloc;
 
-    u32* a = reinterpret_cast<u32*>(core::alloc::Alloc(salloc, sizeof(u32)));
-    curExpectedAllocSize += core::Align(sizeof(u32));
+void StaticBumpAllcatorTest() {
+    StaticBumpAllocator<32> salloc;
+    ptr_size curExpectedAllocSize = 0;
+    Assert(UsedMem(salloc) == curExpectedAllocSize);
+
+    u32* a = reinterpret_cast<u32*>(Alloc(salloc, sizeof(u32)));
+    curExpectedAllocSize += Align(sizeof(u32));
     Assert(a != nullptr);
-    Assert(core::alloc::UsedMem(salloc) == curExpectedAllocSize);
+    Assert(UsedMem(salloc) == curExpectedAllocSize);
     *a = 1;
 
     // Static Allocator free does nothing but complies to the alloc interface !
-    core::alloc::Free(salloc, a);
-    Assert(core::alloc::UsedMem(salloc) == core::Align(sizeof(u32)));
+    Free(salloc, a);
+    Assert(UsedMem(salloc) == Align(sizeof(u32)));
 
-    u8* b = reinterpret_cast<u8*>(core::alloc::Alloc(salloc, sizeof(u8)));
-    curExpectedAllocSize += core::Align(sizeof(u8));
+    u8* b = reinterpret_cast<u8*>(Alloc(salloc, sizeof(u8)));
+    curExpectedAllocSize += Align(sizeof(u8));
     Assert(b != nullptr);
-    Assert(core::alloc::UsedMem(salloc) == curExpectedAllocSize);
+    Assert(UsedMem(salloc) == curExpectedAllocSize);
     *b = 2;
 
-    u16* c = reinterpret_cast<u16*>(core::alloc::Alloc(salloc, sizeof(u16) * 3));
-    curExpectedAllocSize += core::Align(sizeof(u16) * 3);
+    u16* c = reinterpret_cast<u16*>(Alloc(salloc, sizeof(u16) * 3));
+    curExpectedAllocSize += Align(sizeof(u16) * 3);
     Assert(c != nullptr);
-    Assert(core::alloc::UsedMem(salloc) == curExpectedAllocSize);
+    Assert(UsedMem(salloc) == curExpectedAllocSize);
     c[0] = 3;
     c[1] = 4;
     c[2] = 5;
@@ -40,12 +41,12 @@ void StaticBumpAllcatorTest() {
         u16 e2;
     };
 
-    Example* e = core::alloc::Construct(salloc, (Example*)(nullptr), u8(6), u16(7));
-    curExpectedAllocSize += core::Align(sizeof(Example));
+    Example* e = Construct(salloc, (Example*)(nullptr), u8(6), u16(7));
+    curExpectedAllocSize += Align(sizeof(Example));
     Assert(e != nullptr);
-    Assert(core::alloc::UsedMem(salloc) == curExpectedAllocSize);
+    Assert(UsedMem(salloc) == curExpectedAllocSize);
 
-    u8* d = reinterpret_cast<u8*>(core::alloc::Alloc(salloc, sizeof(u8) * 4));
+    u8* d = reinterpret_cast<u8*>(Alloc(salloc, sizeof(u8) * 4));
     Assert(d == nullptr, "Out of memory should be reached here!");
 
     // Check that non of the allocated memory has been unintentionally overwritten.
@@ -57,19 +58,19 @@ void StaticBumpAllcatorTest() {
     Assert(e->e1 == 6);
     Assert(e->e2 == 7);
 
-    core::alloc::Clear(salloc);
-    Assert(core::alloc::UsedMem(salloc) == 0);
+    Clear(salloc);
+    Assert(UsedMem(salloc) == 0);
 }
 
 void StdAllocatorTest() {
-    core::alloc::StdAllocator stdAlloc;
-    void* bytes = stdAlloc.Alloc(100);
+    StdAllocator stdAlloc;
+    void* bytes = Alloc(stdAlloc, 100);
     Assert(bytes != nullptr);
 
     // OOM test
     static i32 oomCount = 0;
     stdAlloc.OnOutOfMemory([](void*) { oomCount++; });
-    bytes = stdAlloc.Alloc(10000000000000);
+    bytes = Alloc(stdAlloc, 10000000000000);
     Assert(bytes == nullptr);
     Assert(oomCount == 1);
 
@@ -83,7 +84,7 @@ void StdAllocatorTest() {
         Person(std::string_view name, i32 age) : name(name), age(age) {}
     };
     Person* person = nullptr;
-    person = stdAlloc.Construct<Person>(person, "Pesho", 20);
+    person = Construct(stdAlloc, person, "Pesho", 20);
     Assert(person != nullptr);
     Assert(person->name == "Pesho");
     Assert(person->age == 20);

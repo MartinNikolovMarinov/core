@@ -97,19 +97,19 @@ File::Error WriteFileFull(std::string_view path, u64 flag, u64 mode, const File:
 File::Error ReadFileFull(File& file, File::DataBuffer& out) {
     u8 buf[file.m_bufSize];
     while (true) {
-        auto readRes = core::io::Read(file, buf, file.m_bufSize);
-        if (core::io::IsErr(readRes)) {
-            core::error::Error readErr = core::io::Err(readRes);
+        auto readRes = core::Read(file, buf, file.m_bufSize);
+        if (core::IsErr(readRes)) {
+            core::error::Error readErr = core::Err(readRes);
             if (readErr.Err() == File::ERR_EOF) break;
             return readErr;
         }
 
-        i64 n = core::io::N(readRes);
+        i64 n = core::N(readRes);
         out.insert(out.end(), buf, buf + n);
     }
 
-    if (auto closeRes = core::io::Close(file); core::io::IsErr(closeRes)) {
-        return core::io::Err(closeRes);
+    if (auto closeRes = core::Close(file); core::IsErr(closeRes)) {
+        return core::Err(closeRes);
     }
 
     return {};
@@ -119,13 +119,13 @@ File::Error WriteFileFull(File& file, const File::DataBuffer& in) {
     auto it = in.begin();
     while(true) {
         auto size = std::distance(it, in.end());
-        auto writeRes = core::io::Write(file, it.base(), size);
-        if (core::io::IsErr(writeRes)) {
-            core::error::Error writeErr = core::io::Err(writeRes);
+        auto writeRes = core::Write(file, it.base(), size);
+        if (core::IsErr(writeRes)) {
+            core::error::Error writeErr = core::Err(writeRes);
             return writeErr;
         }
 
-        i64 n = core::io::N(writeRes);
+        i64 n = core::N(writeRes);
         Assert(it.base() + n > in.end().base(), "BUG: wrote more bytes than expected");
         it += n;
     }

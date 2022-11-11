@@ -7,7 +7,7 @@
 /**
  * This file declares the core io interface.
 */
-namespace core::io
+namespace core
 {
 
 using namespace coretypes;
@@ -22,7 +22,8 @@ using namespace coretypes;
  * @param[in] size The size of the buffer
  * @return A TRes which should implement error::IsErr and error::Err
 */
-template<typename TR> CORE_API_EXPORT auto Read(TR& reader, void* buf, u64 size) noexcept -> decltype(reader.Read(buf, size)) {
+template<typename TR>
+CORE_API_EXPORT auto Read(TR& reader, void* buf, u64 size) noexcept -> decltype(reader.Read(buf, size)) {
     return reader.Read(buf, size);
 }
 
@@ -36,7 +37,8 @@ template<typename TR> CORE_API_EXPORT auto Read(TR& reader, void* buf, u64 size)
  * @param[in] size The size of the buffer
  * @return A TRes which should implement error::IsErr and error::Err
 */
-template<typename TW> CORE_API_EXPORT auto Write(TW& writer, const void* buf, u64 size) noexcept -> decltype(writer.Write(buf, size)) {
+template<typename TW>
+CORE_API_EXPORT auto Write(TW& writer, const void* buf, u64 size) noexcept -> decltype(writer.Write(buf, size)) {
     return writer.Write(buf, size);
 }
 
@@ -46,7 +48,8 @@ template<typename TW> CORE_API_EXPORT auto Write(TW& writer, const void* buf, u6
  * @param[in] closer The closer
  * @return A TRes which should implement error::IsErr and error::Err
 */
-template<typename TC> CORE_API_EXPORT auto Close(TC& closer) noexcept -> decltype(closer.Close()) {
+template<typename TC>
+CORE_API_EXPORT auto Close(TC& closer) noexcept -> decltype(closer.Close()) {
     return closer.Close();
 }
 
@@ -57,7 +60,8 @@ template<typename TC> CORE_API_EXPORT auto Close(TC& closer) noexcept -> decltyp
  * @param[in] res The result from another io function
  * @return The number of bytes read/written
 */
-template<typename TRes> CORE_API_EXPORT u64 N(const TRes& res) noexcept {
+template<typename TRes>
+CORE_API_EXPORT u64 N(const TRes& res) noexcept {
     return res.N();
 }
 
@@ -68,7 +72,8 @@ template<typename TRes> CORE_API_EXPORT u64 N(const TRes& res) noexcept {
  * @param[in] res The result from another io function
  * @return True if the io function failed, false otherwise
 */
-template<typename TRes> CORE_API_EXPORT bool IsErr(const TRes& res) noexcept {
+template<typename TRes>
+CORE_API_EXPORT bool IsErr(const TRes& res) noexcept {
     return res.IsErr();
 }
 
@@ -81,7 +86,8 @@ template<typename TRes> CORE_API_EXPORT bool IsErr(const TRes& res) noexcept {
  * @param[in] res The result from another io function
  * @return The error if the io function failed, undefined behavior otherwise
 */
-template<typename TRes> CORE_API_EXPORT core::error::Error Err(const TRes& res) noexcept {
+template<typename TRes>
+CORE_API_EXPORT core::error::Error Err(const TRes& res) noexcept {
     return res.Err();
 }
 

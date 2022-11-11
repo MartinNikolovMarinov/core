@@ -4,7 +4,6 @@
 #include <core.h>
 #include <core_error.h>
 #include <plt.h>
-#include <io.h>
 
 #include <vector>
 #include <string_view>

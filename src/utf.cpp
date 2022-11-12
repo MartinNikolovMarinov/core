@@ -1,4 +1,6 @@
-#include "core.h"
+#include <utf.h>
+#include <bits.h>
+#include <utils.h>
 
 namespace core
 {
@@ -49,15 +51,15 @@ bool IsValidUTF8Encoding(const uchar* utf, u32 len) {
     return res;
 }
 
-Tuple<rune, bool> RuneFromBytes(const uchar* utf, u32 len) {
+core::Expected<rune, bool> RuneFromBytes(const uchar* utf, u32 len) {
     Assert(utf != nullptr);
     if (IsValidUTF8Encoding(utf, len) == false) {
-        return { 0, false };
+        return false;
     }
     return RuneFromBytesSkipCheck(utf, len);
 }
 
-Tuple<rune, bool> RuneFromBytesSkipCheck(const uchar* utf, u32 len) {
+rune RuneFromBytesSkipCheck(const uchar* utf, u32 len) {
     rune r = 0;
     const u32 ubpec = UTF8_BYTES_PER_ENCODED_CHUNK;
 
@@ -89,11 +91,10 @@ Tuple<rune, bool> RuneFromBytesSkipCheck(const uchar* utf, u32 len) {
         }
     }
 
-    return { r, true };
+    return r;
 }
 
-
-Tuple<u32, bool> RuneToBytes(const rune r, uchar* utf) {
+u32 RuneToBytes(const rune r, uchar* utf) {
     Assert(utf != nullptr);
 
     u32 len = 0;
@@ -127,7 +128,7 @@ Tuple<u32, bool> RuneToBytes(const rune r, uchar* utf) {
             break;
     }
 
-    return { len, len > 0 };
+    return len;
 }
 
 } // namespace core

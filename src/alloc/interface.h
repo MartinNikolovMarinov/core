@@ -2,6 +2,7 @@
 
 #include <API.h>
 #include <types.h>
+#include <utils.h>
 
 /**
  * This file declares the core memory allocation interface.
@@ -38,7 +39,7 @@ CORE_API_EXPORT void* Alloc(A& allocator, ptr_size size) noexcept {
 */
 template<typename A, typename T, typename ...Args>
 CORE_API_EXPORT T* Construct(A& allocator, T* out, Args&&... args) noexcept {
-    return allocator.Construct(out, std::forward<Args>(args)...);
+    return allocator.Construct(out, core::Forward<Args>(args)...);
 }
 
 /**

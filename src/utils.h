@@ -1,7 +1,12 @@
-#include "core.h"
+#pragma once
+
+#include <API.h>
+#include <types.h>
 
 namespace core
 {
+
+using namespace coretypes;
 
 // General Macro Magic for matching different macros for different number of arguments:
 #define __C_RSEQ_N__() 10,9,8,7,6,5,4,3,2,1,0
@@ -33,7 +38,7 @@ CORE_API_EXPORT GlobalAssertHandlerPtr GetGlobalAssertHandler();
         }
 #endif
 
-/* Zero cost defer */
+// Zero cost defer:
 #ifndef defer
     struct CORE_API_EXPORT deferDummy {};
     template <class F> struct deferrer { F f; ~deferrer() { f(); } };
@@ -42,5 +47,30 @@ CORE_API_EXPORT GlobalAssertHandlerPtr GetGlobalAssertHandler();
     #define DEFER(LINE) DEFER_(LINE)
     #define defer auto DEFER(__LINE__) = core::deferDummy{} *[&]()
 #endif
+
+// Move and Forward implementations copied from the standard library:
+
+template<typename T> struct RemoveRef      { typedef T type; };
+template<typename T> struct RemoveRef<T&>  { typedef T type; };
+template<typename T> struct RemoveRef<T&&> { typedef T type; };
+
+template<typename T>
+constexpr typename RemoveRef<T>::type && Move(T && arg) noexcept {
+    return static_cast<typename RemoveRef<T>::type &&>(arg);
+}
+
+template<typename T> struct IsLValueRef     { static constexpr bool value = false; };
+template<typename T> struct IsLValueRef<T&> { static constexpr bool value = true; };
+
+template<typename T>
+constexpr T&& Forward(typename RemoveRef<T>::type & arg) noexcept {
+    return static_cast<T&&>(arg);
+}
+
+template<typename T>
+constexpr T&& Forward(typename RemoveRef<T>::type && arg) noexcept {
+    static_assert(!IsLValueRef<T>::value, "invalid rvalue to lvalue conversion");
+    return static_cast<T&&>(arg);
+}
 
 } // namespace core

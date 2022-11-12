@@ -1,4 +1,4 @@
-#include <plt.h>
+#include "../plt.h"
 
 #include <errno.h>
 #include <fcntl.h>

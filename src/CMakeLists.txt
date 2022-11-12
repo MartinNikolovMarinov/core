@@ -46,13 +46,13 @@ set(src_files
     bits.h
     char_ptr.cpp
     char_ptr.h
-    intrin.cpp
-    intrin.h
+    expected.h
+    intrinsic.cpp
+    intrinsic.h
     ints.cpp
     ints.h
-    io_interface.h
-    math.cpp
-    math.h
+    mathematics.cpp
+    mathematics.h
     mem.cpp
     mem.h
     rnd.cpp
@@ -64,18 +64,20 @@ set(src_files
     utils.cpp
     utils.h
 
+    alloc/bump.h
+    alloc/interface.h
+    ds/interface.h
+    io/interface.h
+
+    std/alloc/std.cpp
+    std/alloc/std.h
     std/error/core_error.h
     std/fs/fs.cpp
     std/fs/fs.h
-    std/platform/plt.h
     std/math/vec.h
-    std/traits/traits.h
+    std/platform/plt.h
     std/sync/once.h
-    std/alloc/alloc.h
-    std/alloc/alloc_std.h
-    std/alloc/alloc_std.cpp
-    std/alloc/alloc_interface.h
-    std/alloc/alloc_bump.h
+    std/traits/traits.h
 )
 
 # OS specific source files:
@@ -110,14 +112,6 @@ endif()
 # Include Directories:
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/std/platform
-    ${CMAKE_CURRENT_SOURCE_DIR}/std/io
-    ${CMAKE_CURRENT_SOURCE_DIR}/std/error
-    ${CMAKE_CURRENT_SOURCE_DIR}/std/fs
-    ${CMAKE_CURRENT_SOURCE_DIR}/std/math
-    ${CMAKE_CURRENT_SOURCE_DIR}/std/traits
-    ${CMAKE_CURRENT_SOURCE_DIR}/std/sync
-    ${CMAKE_CURRENT_SOURCE_DIR}/std/alloc
 )
 
 # Compiler options:

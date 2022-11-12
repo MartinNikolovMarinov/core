@@ -1,4 +1,4 @@
-#include "math.h"
+#include <mathematics.h>
 
 namespace core
 {

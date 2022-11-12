@@ -1,4 +1,4 @@
-#include "intrin.h"
+#include <intrinsic.h>
 
 #if COMPILER_MSVC
 #include <intrin.h>

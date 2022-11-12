@@ -1,9 +1,8 @@
 #pragma once
 
 #include <API.h>
-#include <core.h>
-
-#include <utility>
+#include <types.h>
+#include <utils.h>
 
 namespace core::alloc
 {
@@ -40,7 +39,7 @@ struct CORE_API_EXPORT StaticBumpAllocator {
     template<typename T, typename ...Args>
     constexpr T* Construct(T* out, Args... args) noexcept {
         void* p = Alloc(sizeof(T));
-        if (p != nullptr) out = new (p) T(std::forward<Args>(args)...);
+        if (p != nullptr) out = new (p) T(core::Forward<Args>(args)...);
         return out;
     }
 

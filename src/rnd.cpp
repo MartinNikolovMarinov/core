@@ -1,6 +1,6 @@
-#include "rnd.h"
-#include "intrin.h"
-#include "char_ptr.h"
+#include <rnd.h>
+#include <intrinsic.h>
+#include <char_ptr.h>
 
 namespace core
 {

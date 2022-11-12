@@ -44,12 +44,6 @@ void WriteLine(const char* data) {
     WriteLine(#suite);                           \
     WriteLine("\n");
 
-template<typename T>
-T CheckTuple(core::Tuple<T, bool> t, const char* msg = "") {
-    Assert(t.b, msg);
-    return t.a;
-}
-
 #include "test/run_tests.cpp"
 
 i32 main(i32, const char**, const char **) {

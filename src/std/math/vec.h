@@ -1,7 +1,7 @@
 #pragma once
 
 #include <types.h>
-#include <traits.h>
+#include <std/traits/traits.h>
 
 #include <cmath>
 #include <type_traits>

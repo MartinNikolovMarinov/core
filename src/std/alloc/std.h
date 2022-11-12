@@ -1,10 +1,9 @@
 #pragma once
 
 #include <API.h>
-#include <core.h>
+#include <types.h>
 
 #include <cstdlib>
-#include <utility>
 
 namespace core::alloc
 {
@@ -89,7 +88,7 @@ private:
 
 }
 
-// TODO: allow std allocator to be used without the allocation counting slowness. It should be just for debugging.
+// FIXME: allow std allocator to be used without the allocation counting slowness. It should be just for debugging.
 
 struct CORE_API_EXPORT StdAllocator {
     StdAllocator() noexcept;
@@ -108,7 +107,7 @@ struct CORE_API_EXPORT StdAllocator {
     template<typename T, typename ...Args>
     T* Construct(T* out, Args... args) noexcept {
         void* p = Alloc(sizeof(T));
-        if (p != nullptr) out = new (p) T(std::forward<Args>(args)...);
+        if (p != nullptr) out = new (p) T(core::forward<Args>(args)...);
         return out;
     }
 

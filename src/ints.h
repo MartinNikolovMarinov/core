@@ -1,9 +1,9 @@
 #pragma once
 
-#include "API.h"
-#include "types.h"
-#include "intrin.h"
-#include "mem.h"
+#include <API.h>
+#include <types.h>
+#include <intrinsic.h>
+#include <mem.h>
 
 namespace core
 {

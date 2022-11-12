@@ -4,6 +4,10 @@ SRC='
     ./src/*.cpp
 '
 
+INCLUDES='
+    -I ./src
+'
+
 # IMPORTANT:
 # When compiling with -nostdlib you need -ffreestanding, otherwise the compiler might use stdlib functions to perform optimizations.
 # This can have the effect of significanltly reducing performance.
@@ -16,6 +20,7 @@ echo ""
 g++ -DDEBUG=1 -DUSE_ASSERT=1 \
 -nostdlib -O2 -std=c++17 -ffreestanding -fno-exceptions \
 -Wall -Wno-unknown-pragmas -Wno-unused \
+$INCLUDES \
 bootstrap.S -o build/test_no_std test_no_std.cpp ${SRC}
 
 objdump -M intel -S build/test_no_std > build/test_no_std.S

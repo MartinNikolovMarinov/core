@@ -10,15 +10,9 @@ using namespace coretypes;
     std::cout << "\t[TEST \x1b[32mPASSED\x1b[0m] " << #test << std::endl;
 
 #define RunTestSuite(suite)                                                 \
-    std::cout << "[SUITE] " << #suite << std::endl;                         \
+    std::cout << "[SUITE RUNNING] " << #suite << std::endl;                         \
     suite();                                                                \
     std::cout << "[SUITE \x1b[32mPASSED\x1b[0m] " << #suite << std::endl;
-
-template<typename T>
-T CheckTuple(core::Tuple<T, bool> t, const char* msg = "") {
-    Assert(t.b, msg);
-    return t.a;
-}
 
 #include "test/run_tests.cpp"
 #include "test/std/run_std_tests.cpp"
@@ -50,3 +44,4 @@ i32 main() {
     std::cout << "\x1b[32m\x1b[1mTests OK\x1b[0m\n";
     return 0;
 }
+

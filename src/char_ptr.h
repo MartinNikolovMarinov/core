@@ -1,10 +1,10 @@
 #pragma once
 
-#include "API.h"
-#include "types.h"
-#include "utils.h"
-#include "math.h"
-#include "ints.h"
+#include <API.h>
+#include <types.h>
+#include <utils.h>
+#include <mathematics.h>
+#include <ints.h>
 
 namespace core
 {

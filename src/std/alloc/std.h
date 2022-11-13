@@ -2,6 +2,7 @@
 
 #include <API.h>
 #include <types.h>
+#include <utils.h>
 
 #include <cstdlib>
 
@@ -107,7 +108,7 @@ struct CORE_API_EXPORT StdAllocator {
     template<typename T, typename ...Args>
     T* Construct(T* out, Args... args) noexcept {
         void* p = Alloc(sizeof(T));
-        if (p != nullptr) out = new (p) T(core::forward<Args>(args)...);
+        if (p != nullptr) out = new (p) T(core::Forward<Args>(args)...);
         return out;
     }
 

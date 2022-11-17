@@ -27,7 +27,7 @@ struct CORE_API_EXPORT StaticBumpAllocator {
     StaticBumpAllocator& operator=(StaticBumpAllocator&&) = delete;
 
     void* Alloc(ptr_size size) noexcept {
-        size = Align(size);
+        size = core::Align(size);
         if (m_used + size > Cap) return nullptr; // OOM
         void* p = reinterpret_cast<void*>(&m_data[m_used]);
         m_used += size;
@@ -44,7 +44,7 @@ struct CORE_API_EXPORT StaticBumpAllocator {
     }
 
     constexpr void Clear() noexcept {
-        MemSet(m_data, 0, Cap);
+        core::MemSet(m_data, 0, Cap);
         m_used = 0;
     }
 

@@ -4,15 +4,15 @@ namespace core
 {
 namespace
 {
-static GlobalAssertHandlerPtr global_assert_handler = nullptr;
+GlobalAssertHandlerPtr gAssertHandler = nullptr;
 } // namespace
 
 void SetGlobalAssertHandler(GlobalAssertHandlerPtr handler) {
-    global_assert_handler = handler;
+    gAssertHandler = handler;
 }
 
 GlobalAssertHandlerPtr GetGlobalAssertHandler() {
-    return global_assert_handler;
+    return gAssertHandler;
 }
 
 } // namespace core

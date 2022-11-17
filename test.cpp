@@ -4,15 +4,15 @@
 
 using namespace coretypes;
 
-// #define RunTest(test)                                                       \
-//     std::cout << "\t[TEST RUNNING] " << #test << '\n';                      \
-//     test();                                                                 \
-//     std::cout << "\t[TEST \x1b[32mPASSED\x1b[0m] " << #test << std::endl;
+#define RunTest(test)                                                       \
+    std::cout << "\t[TEST RUNNING] " << #test << '\n';                      \
+    test();                                                                 \
+    std::cout << "\t[TEST \x1b[32mPASSED\x1b[0m] " << #test << std::endl;
 
-// #define RunTestSuite(suite)                                                 \
-//     std::cout << "[SUITE RUNNING] " << #suite << std::endl;                         \
-//     suite();                                                                \
-//     std::cout << "[SUITE \x1b[32mPASSED\x1b[0m] " << #suite << std::endl;
+#define RunTestSuite(suite)                                                 \
+    std::cout << "[SUITE RUNNING] " << #suite << std::endl;                 \
+    suite();                                                                \
+    std::cout << "[SUITE \x1b[32mPASSED\x1b[0m] " << #suite << std::endl;
 
 // #include "test/run_tests.cpp"
 // #include "test/std/run_std_tests.cpp"
@@ -53,10 +53,44 @@ using namespace coretypes;
 //        BUT I might need to be able to switch between allocators at runtime, which won't be possible.
 //        Or maybe I don't actually care about that ?
 
-template<typename T>
+// template <typename TAlloc>
+// TAlloc GetDefaultAllocator() {
+//     static core::alloc::StdAllocator stdalloc;
+//     return stdalloc;
+// }
+
+using DefaultAllocator = core::alloc::StdAllocator;
+constexpr u32 ALLOC_REGISTRY_SIZE = 2;
+void *gAllocRegistry[ALLOC_REGISTRY_SIZE];
+
+template <i32 TAllocId>
+auto* GetAllocator() {
+    if constexpr (TAllocId == 0) {
+        return reinterpret_cast<DefaultAllocator*>(gAllocRegistry[0]);
+    }
+    else if constexpr (TAllocId == 1) {
+        return reinterpret_cast<core::alloc::StaticBumpAllocator<1048>*>(gAllocRegistry[1]);
+    }
+    else {
+        static_assert(TAllocId < ALLOC_REGISTRY_SIZE, "Invalid allocator id");
+        return DefaultAllocator();
+    }
+}
+
+void SetAllocator(i32 allocId, void *alloc) {
+    gAllocRegistry[allocId] = alloc;
+}
+
+template<typename T, i32 TAllocId = 0>
 struct Arr {
 
     Arr() : data(nullptr), len(0), cap(0) {};
+
+    void Testing() {
+        if (data == nullptr) {
+            data = reinterpret_cast<T*>(core::alloc::Alloc(*GetAllocator<TAllocId>(), sizeof(T) * 10));
+        }
+    }
 
 private:
     T* data;
@@ -66,6 +100,19 @@ private:
 
 #include <vector>
 
-int main(int argc, char const *argv[]) {
+int main() {
+    SetAllocator(0, new DefaultAllocator());
+    SetAllocator(1, new core::alloc::StaticBumpAllocator<1048>());
+
+    Arr<i32> darr = Arr<i32>();
+    darr.Testing();
+
+    Arr<i32, 1> sarr = Arr<i32, 1>();
+    sarr.Testing();
+
+    constexpr i32 test = sizeof(Arr<i32>);
+    std::cout << test << std::endl;
+    constexpr i32 test2 = sizeof(std::vector<i32>);
+    std::cout << test2 << std::endl;
     return 0;
 }

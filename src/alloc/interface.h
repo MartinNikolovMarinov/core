@@ -26,6 +26,10 @@ template<typename A>
 CORE_API_EXPORT void* Alloc(A& allocator, ptr_size size) noexcept {
     return allocator.Alloc(size);
 }
+template<typename A>
+CORE_API_EXPORT void* Alloc(A&& allocator, ptr_size size) noexcept {
+    return allocator.Alloc(size);
+}
 
 /**
  * @brief Implementing this interface allows generic programming over alloc::Construct.
@@ -41,6 +45,10 @@ template<typename A, typename T, typename ...Args>
 CORE_API_EXPORT T* Construct(A& allocator, T* out, Args&&... args) noexcept {
     return allocator.Construct(out, core::Forward<Args>(args)...);
 }
+template<typename A, typename T, typename ...Args>
+CORE_API_EXPORT T* Construct(A&& allocator, T* out, Args&&... args) noexcept {
+    return allocator.Construct(out, core::Forward<Args>(args)...);
+}
 
 /**
  * @brief Implementing this interface allows generic programming over alloc::Free.
@@ -54,6 +62,10 @@ template<typename A>
 CORE_API_EXPORT void Free(A& allocator, void* addr) noexcept {
     allocator.Free(addr);
 }
+template<typename A>
+CORE_API_EXPORT void Free(A&& allocator, void* addr) noexcept {
+    allocator.Free(addr);
+}
 
 /**
  * @brief Implementing this interface allows generic programming over alloc::Clear.
@@ -65,6 +77,10 @@ CORE_API_EXPORT void Free(A& allocator, void* addr) noexcept {
 */
 template<typename A>
 CORE_API_EXPORT void Clear(A& allocator) noexcept {
+    allocator.Clear();
+}
+template<typename A>
+CORE_API_EXPORT void Clear(A&& allocator) noexcept {
     allocator.Clear();
 }
 
@@ -82,5 +98,14 @@ template<typename A>
 CORE_API_EXPORT ptr_size UsedMem(A& allocator) noexcept {
     return allocator.UsedMem();
 }
+template<typename A>
+CORE_API_EXPORT ptr_size UsedMem(A&& allocator) noexcept {
+    return allocator.UsedMem();
+}
+
+// Customizeble global assert handler:
+CORE_API_EXPORT void SetGlobalAssertHandler(GlobalAssertHandlerPtr handler);
+CORE_API_EXPORT GlobalAssertHandlerPtr GetGlobalAssertHandler();
+
 
 } // namespace core::alloc

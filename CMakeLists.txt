@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.2)
 project(test)
 
 # Global CMake options:
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Generates compile_commands.json
 
@@ -13,12 +13,11 @@ add_executable(${PROJECT_NAME} test.cpp)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE
         -O0 -g -ggdb
-        -std=c++17 -fno-exceptions
+        -fno-exceptions
         -Wall -Wextra -Wno-unknown-pragmas
     )
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE
-        -std:c++17
         -Zi -Od -Oi
         -nologo -FC
         -EHa

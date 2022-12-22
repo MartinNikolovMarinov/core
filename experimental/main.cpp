@@ -1,7 +1,6 @@
-#include "core.h"
+#include "better_tuple.cpp"
 
-using namespace core;
-
-i32 main(i32, const char **) {
+i32 main(i32, char**) {
+    tuple_usage();
     return 0;
 }

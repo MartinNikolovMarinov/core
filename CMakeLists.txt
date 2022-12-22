@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.2)
 project(test)
 
 # Global CMake options:
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Generates compile_commands.json
 
@@ -34,3 +34,9 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # Inlcude path:
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+# Experimental ---------------------------------------------------------------------------------------------------------
+add_executable(experimental_main experimental/main.cpp)
+option(CORE_LIBRARY_SHARED "" ON)
+target_link_libraries(experimental_main core)
+target_include_directories(experimental_main PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)

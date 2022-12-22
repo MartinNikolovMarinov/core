@@ -8,7 +8,7 @@
             "name": "Debug Main GCC",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/test",
+            "program": "${workspaceFolder}/build/experimental_main",
             "args": [
                 "testing example is thiss" // example args
             ],

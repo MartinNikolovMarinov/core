@@ -1,3 +1,5 @@
+#include "API.h"
+
 #include "useful_casting.h"
 #include "move_and_forward.h"
 
@@ -7,10 +9,10 @@ namespace core {
 
 using namespace coretypes;
 
-template <typename...> struct tuple;
+template <typename...> CORE_API_EXPORT struct tuple;
 
 template <typename T1>
-struct tuple<T1> {
+struct CORE_API_EXPORT tuple<T1> {
     template <i32 TIdx>
     constexpr auto& get() {
         if constexpr (TIdx == 0) return v1;
@@ -35,7 +37,7 @@ private:
 };
 
 template <typename T1, typename T2>
-struct tuple<T1, T2> {
+struct CORE_API_EXPORT tuple<T1, T2> {
     template <i32 TIdx>
     constexpr auto& get() {
         if      constexpr (TIdx == 0) return v1;
@@ -59,7 +61,7 @@ private:
 };
 
 template <typename T1, typename T2, typename T3>
-struct tuple<T1, T2, T3> {
+struct CORE_API_EXPORT tuple<T1, T2, T3> {
     template <i32 TIdx>
     constexpr auto& get() {
         if      constexpr (TIdx == 0) return v1;
@@ -86,7 +88,7 @@ private:
 };
 
 template <typename T1, typename T2, typename T3, typename T4>
-struct tuple<T1, T2, T3, T4> {
+struct CORE_API_EXPORT tuple<T1, T2, T3, T4> {
     template <i32 TIdx>
     constexpr auto& get() {
         if      constexpr (TIdx == 0) return v1;
@@ -116,7 +118,7 @@ private:
 };
 
 template <typename...TArgs>
-constexpr tuple<TArgs...> create_tuple(TArgs&&... args) {
+constexpr CORE_API_EXPORT tuple<TArgs...> create_tuple(TArgs&&... args) {
     return tuple<TArgs...>(core::forward<TArgs>(args)...);
 }
 

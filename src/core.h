@@ -5,6 +5,7 @@
 #include "types.h"
 
 #include "alloc.h"
+#include "arr.h"
 #include "bits.h"
 #include "char_ptr.h"
 #include "core_math.h"

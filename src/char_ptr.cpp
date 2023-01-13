@@ -14,7 +14,7 @@ i32 cptr_cmp(const char* a, const char* b) {
     return cptr_cmp(reinterpret_cast<const uchar *>(a), reinterpret_cast<const uchar *>(b));
 }
 i32 cptr_cmp(const uchar* a, const uchar* b) {
-    // FIXME: Crazy unsafe !!
+    // FIXME: Should implement a safe version of this !!
     // TODO: This can be done much faster with SIMD or some other specifc x86 instruction.
     if (a == nullptr && b == nullptr) return 0;
     else if (a == nullptr) return 1;

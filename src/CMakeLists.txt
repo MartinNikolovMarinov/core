@@ -63,6 +63,11 @@ set(src_files
     utf.h
     utf.cpp
     alloc.h
+    arr.h
+
+    std/core.h
+    std/alloc_std.h
+    std/alloc_std.cpp
 )
 
 # OS specific source files:

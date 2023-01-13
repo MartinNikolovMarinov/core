@@ -1,3 +1,5 @@
+#pragma once
+
 #include <API.h>
 #include <types.h>
 #include <utils.h>

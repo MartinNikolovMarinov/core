@@ -1,11 +1,9 @@
 #include <mem.h>
 
-namespace core
-{
+namespace core {
 
-void MemCopy(void* dest, const void* src, ptr_size len) {
+void memcopy(void* dest, const void* src, ptr_size len) {
     // TODO: slow as shit use SSE! William Chan has a good implementation of a fast memcpy.
-
     char* ddest = reinterpret_cast<char*>(dest);
     const char* ssrc = reinterpret_cast<const char*>(src);
     ptr_size remain = len % 4;
@@ -32,7 +30,7 @@ void MemCopy(void* dest, const void* src, ptr_size len) {
     }
 }
 
-void* MemSet(void* dest, i32 c, ptr_size n) {
+void* memset(void* dest, i32 c, ptr_size n) {
     // TODO: most naive and slow implementation of memset.
     uchar* p = reinterpret_cast<uchar*>(dest);
     uchar x = uchar(c);
@@ -42,7 +40,7 @@ void* MemSet(void* dest, i32 c, ptr_size n) {
     return dest;
 }
 
-i32 MemCmp(const void* s1, const void* s2, ptr_size n) {
+i32 memcmp(const void* s1, const void* s2, ptr_size n) {
     // TODO: do faster
     const uchar* p1 = reinterpret_cast<const uchar*>(s1);
     const uchar* p2 = reinterpret_cast<const uchar*>(s2);

@@ -2,9 +2,8 @@
 
 /*
     IMPORTANT:
-    It's best to avoid adding any includes to this file to avoid cyclic dependencies,
-    because it is literarily included in every other file.
-    Also, this file is not in the core namespace on purpose.
+    It's best to avoid adding any includes to this file to avoid cyclic dependencies, because it is literarily included
+    in every other file. Also, this file is not in the core namespace on purpose.
 */
 
 // Include system defaults.
@@ -12,8 +11,7 @@
 #include <stddef.h>
 #include <uchar.h>
 
-namespace coretypes
-{
+namespace coretypes {
 
 using i8       = int8_t;
 using i16      = int16_t;

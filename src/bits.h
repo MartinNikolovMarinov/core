@@ -4,18 +4,17 @@
 #include <types.h>
 #include <mem.h>
 
-namespace core
-{
+namespace core {
 
 using namespace coretypes;
 
 // Least Significant N Bits are equal to bitSeq
-CORE_API_EXPORT bool LSNBits(u8 v, u8 bitSeq, u8 n);
+CORE_API_EXPORT bool lsn_bits(u8 v, u8 bitSeq, u8 n);
 // Most Significant N Bits are equal to bitSeq
-CORE_API_EXPORT bool MSNBits(u8 v, u8 bitSeq, u8 n);
+CORE_API_EXPORT bool msn_bits(u8 v, u8 bitSeq, u8 n);
 
 template <typename TUint>
-CORE_API_EXPORT TUint SwapByteOrder(TUint n) {
+CORE_API_EXPORT TUint swap_byte_order(TUint n) {
     if constexpr (sizeof(TUint) == 2) {
         u16 swapped = (n >> 8) | (n << 8);
         return swapped;
@@ -35,11 +34,11 @@ CORE_API_EXPORT TUint SwapByteOrder(TUint n) {
 }
 
 template <typename TFloat>
-CORE_API_EXPORT void FloatToBin(u8 bytes[sizeof(TFloat)], TFloat v) {
+CORE_API_EXPORT void float_to_bin(u8 bytes[sizeof(TFloat)], TFloat v) {
     static_assert((sizeof(TFloat) == 4 || sizeof(TFloat) == 8), "Invalid TFloat argument.");
     union { TFloat a; u8 bytes[sizeof(TFloat)]; } floatUnion;
     floatUnion.a = v;
-    MemCopy(bytes, floatUnion.bytes, sizeof(TFloat));
+    core::memcopy(bytes, floatUnion.bytes, sizeof(TFloat));
 }
 
 } // namespace core

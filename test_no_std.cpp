@@ -1,5 +1,4 @@
 #include "src/core.h"
-
 #include <sys/syscall.h> // incuded for system call numbers
 
 // NOTE: unistd.h cannot be used because it requires the standard library.
@@ -21,61 +20,61 @@ u64 OS_write(i64 fd, const char* data, u64 nbytes) {
     return res;
 }
 
-void WriteLine(const char* data) {
-    u64 ret = OS_write(1, data, core::CptrLen(data));
+void write_line(const char* data) {
+    u64 ret = OS_write(1, data, core::cptr_len(data));
     if (ret <= 0) OS_exit(1);
 }
 
-#define RunTest(test)                             \
-    WriteLine("\t[TEST RUNNING] ");               \
-    WriteLine(#test);                             \
-    WriteLine("\n");                              \
-    test();                                       \
-    WriteLine("\t[TEST \x1b[32mPASSED\x1b[0m] "); \
-    WriteLine(#test);                             \
-    WriteLine("\n");
+#define RunTest(test)                              \
+    write_line("\t[TEST RUNNING] ");               \
+    write_line(#test);                             \
+    write_line("\n");                              \
+    test();                                        \
+    write_line("\t[TEST \x1b[32mPASSED\x1b[0m] "); \
+    write_line(#test);                             \
+    write_line("\n");
 
-#define RunTestSuite(suite)                      \
-    WriteLine("[SUITE RUNNING] ");               \
-    WriteLine(#suite);                           \
-    WriteLine("\n");                             \
-    suite();                                     \
-    WriteLine("[SUITE \x1b[32mPASSED\x1b[0m] "); \
-    WriteLine(#suite);                           \
-    WriteLine("\n");
+#define RunTestSuite(suite)                       \
+    write_line("[SUITE RUNNING] ");               \
+    write_line(#suite);                           \
+    write_line("\n");                             \
+    suite();                                      \
+    write_line("[SUITE \x1b[32mPASSED\x1b[0m] "); \
+    write_line(#suite);                           \
+    write_line("\n");
 
 #include "test/run_tests.cpp"
 
-i32 main(i32, const char**, const char **) {
-    core::SetGlobalAssertHandler([](const char* failedExpr, const char* file, i32 line, const char* errMsg) {
-        WriteLine("[ASSERTION] [EXPR]: ");
-        WriteLine(failedExpr);
-        WriteLine(" [FILE]: ");
-        WriteLine(file);
-        WriteLine(" [LINE]: ");
+i32 main(i32, const char**) {
+     core::set_global_assert_handler([](const char* failedExpr, const char* file, i32 line, const char* errMsg) {
+        write_line("[ASSERTION] [EXPR]: ");
+        write_line(failedExpr);
+        write_line(" [FILE]: ");
+        write_line(file);
+        write_line(" [LINE]: ");
         char lineBuf[50];
-        core::MemSet(lineBuf, 0, 50);
-        core::IntToCptr<i32>(line, lineBuf);
-        WriteLine(lineBuf);
-        WriteLine(" [MSG]: ");
-        WriteLine(errMsg);
-        WriteLine("\n");
+        core::memset(lineBuf, 0, 50);
+        core::int_to_cptr<i32>(line, lineBuf);
+        write_line(lineBuf);
+        write_line(" [MSG]: ");
+        write_line(errMsg);
+        write_line("\n");
         return false;
     });
 
-    if (COMPILER_CLANG == 1)   { WriteLine("[COMPILER] COMPILER_CLANG\n"); }
-    if (COMPILER_GCC == 1)     { WriteLine("[COMPILER] COMPILER_GCC\n"); }
-    if (COMPILER_MSVC == 1)    { WriteLine("[COMPILER] COMPILER_MSVC\n"); }
-    if (COMPILER_UNKNOWN == 1) { WriteLine("[COMPILER] COMPILER_UNKNOWN\n"); }
+    if (COMPILER_CLANG == 1)   { write_line("[COMPILER] COMPILER_CLANG\n"); }
+    if (COMPILER_GCC == 1)     { write_line("[COMPILER] COMPILER_GCC\n"); }
+    if (COMPILER_MSVC == 1)    { write_line("[COMPILER] COMPILER_MSVC\n"); }
+    if (COMPILER_UNKNOWN == 1) { write_line("[COMPILER] COMPILER_UNKNOWN\n"); }
 
-    if (OS_WIN == 1)     { WriteLine("[OS] OS_WIN\n"); }
-    if (OS_LINUX == 1)   { WriteLine("[OS] OS_LINUX\n"); }
-    if (OS_UNIX == 1)    { WriteLine("[OS] OS_UNIX\n"); }
-    if (OS_UNKNOWN == 1) { WriteLine("[OS] OS_UNKNOWN\n"); }
+    if (OS_WIN == 1)     { write_line("[OS] OS_WIN\n"); }
+    if (OS_LINUX == 1)   { write_line("[OS] OS_LINUX\n"); }
+    if (OS_UNIX == 1)    { write_line("[OS] OS_UNIX\n"); }
+    if (OS_UNKNOWN == 1) { write_line("[OS] OS_UNKNOWN\n"); }
 
-    RunAllTests();
+    run_all_tests();
 
-    WriteLine("\n");
-    WriteLine("\x1b[32m\x1b[1mTests OK\x1b[0m\n");
+    write_line("\n");
+    write_line("\x1b[32m\x1b[1mTests OK\x1b[0m\n");
     return 0;
 }

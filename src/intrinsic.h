@@ -1,20 +1,17 @@
 #pragma once
 
-#include <system_checks.h>
-
 #include <API.h>
+#include <system_checks.h>
 #include <types.h>
 
-namespace core
-{
+namespace core {
 
 using namespace coretypes;
 
-namespace
-{
+namespace {
 
 template<typename TUint>
-u32 LeadingZerosFallback(TUint n) {
+u32 leading_zeros_fallback(TUint n) {
     u32 leadingZeroes = sizeof(n) * 8;
     for (i32 i = 0; i < sizeof(n) * 8; i++) {
         leadingZeroes--;
@@ -26,7 +23,7 @@ u32 LeadingZerosFallback(TUint n) {
 } // namespace
 
 template<typename TUint>
-CORE_API_EXPORT u32 LeadingZeros(TUint n) {
+CORE_API_EXPORT u32 leading_zeroes(TUint n) {
     static_assert(sizeof(n) <= 8, "Invalid TUint paramater.");
     if (n == 0) return 0;
 
@@ -43,10 +40,10 @@ CORE_API_EXPORT u32 LeadingZeros(TUint n) {
         return u32(__lzcnt64(n));
     }
 #else
-    return LeadingZerosFallback(n);
+    return leading_zeros_fallback(n);
 #endif
 }
 
-CORE_API_EXPORT u64 GetCPUTicks();
+CORE_API_EXPORT u64 get_cpu_ticks();
 
 } // namespace core

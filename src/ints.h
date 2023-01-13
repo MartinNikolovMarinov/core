@@ -5,18 +5,11 @@
 #include <intrinsic.h>
 #include <mem.h>
 
-namespace core
-{
+namespace core {
 
 using namespace coretypes;
 
-CORE_API_EXPORT bool IsInRange(u32 min, u32 n, u32 max);
-CORE_API_EXPORT bool IsInRangeInc(u32 min, u32 n, u32 max);
-CORE_API_EXPORT bool IsInRange(i32 min, i32 n, i32 max);
-CORE_API_EXPORT bool IsInRangeInc(i32 min, i32 n, i32 max);
-
-namespace
-{
+namespace {
 
 // Lookup tables for DigitCount:
 static u64 powers[] = {
@@ -52,9 +45,9 @@ static u32 maxdigits[] = {
 } // namespace
 
 template <typename TUint>
-CORE_API_EXPORT u32 DigitCount(TUint n) {
+CORE_API_EXPORT u32 digit_count(TUint n) {
     static_assert(sizeof(n) <= 8, "Invalid TUint paramater.");
-    u32 leadingZeroes = LeadingZeros(n);
+    u32 leadingZeroes = leading_zeroes(n);
     u32 usedBits = (sizeof(n) * 8) - u32(leadingZeroes);
     u32 digits = maxdigits[usedBits];
     if (n < static_cast<TUint>(powers[digits - 1])) digits--;
@@ -67,9 +60,9 @@ static const char* hexDigits = "0123456789ABCDEF";
 } // namespace
 
 // The out argument must have enough space to hold the result!
-// You can use somthing like - "char out[sizeof(TInt)] = {};"
+// You can use somthing like - "char out[sizeof(TInt)];"~
 template <typename TInt>
-void IntToHex(TInt v, char* out, u64 hexLen = (sizeof(TInt) << 1)) {
+CORE_API_EXPORT void int_to_hex(TInt v, char* out, u64 hexLen = (sizeof(TInt) << 1)) {
     static_assert(sizeof(v) <= 8 || sizeof(v) > 64, "Invalid TInt paramater.");
     for (size_t i = 0, j = (hexLen - 1) * 4; i < hexLen; i++, j-=4) {
         out[i] = hexDigits[(v >> j) & 0x0f];

@@ -39,57 +39,42 @@ message(STATUS "[CORE] Shared:   ${CORE_LIBRARY_SHARED}")
 # Source files list:
 set(src_files
     API.h
-    core.h
-    types.h
-
-    bits.cpp
-    bits.h
-    char_ptr.cpp
-    char_ptr.h
-    expected.h
-    intrinsic.cpp
-    intrinsic.h
-    ints.cpp
-    ints.h
-    mathematics.cpp
-    mathematics.h
-    mem.cpp
-    mem.h
-    rnd.cpp
-    rnd.h
     system_checks.h
-    tuple.h
-    utf.cpp
-    utf.h
-    utils.cpp
+    types.h
+    core.h
+
+    intrinsic.h
+    intrinsic.cpp
     utils.h
-
-    alloc/bump.h
-    alloc/interface.h
-    ds/interface.h
-    io/interface.h
-
-    std/alloc/std.cpp
-    std/alloc/std.h
-    std/error/core_error.h
-    std/fs/fs.cpp
-    std/fs/fs.h
-    std/math/vec.h
-    std/platform/plt.h
-    std/sync/once.h
-    std/traits/traits.h
+    utils.cpp
+    tuple.h
+    core_math.h
+    core_math.cpp
+    mem.h
+    mem.cpp
+    ints.h
+    char_ptr.h
+    char_ptr.cpp
+    rnd.h
+    rnd.cpp
+    bits.h
+    bits.cpp
+    expected.h
+    utf.h
+    utf.cpp
+    alloc.h
 )
 
 # OS specific source files:
 if(OS STREQUAL "linux")
     set(src_files ${src_files}
-        std/platform/unix/plt.cpp
-        std/platform/unix/time.cpp
+        # std/platform/unix/plt.cpp
+        # std/platform/unix/time.cpp
     )
 elseif(OS STREQUAL "windows")
     set(src_files ${src_files}
-        std/platform/win64/plt.cpp
-        std/platform/win64/time.cpp
+        # std/platform/win64/plt.cpp
+        # std/platform/win64/time.cpp
     )
 endif()
 

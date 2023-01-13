@@ -1,78 +1,75 @@
 // TODO: Test invalid input cases!
 
-void ConvertingUTF8SequenceToUTF32Rune_OneBit_Test()
-{
+void converting_utf8_sequence_to_utf32_rune_one_bit() {
     uchar d[10];
-    core::MemSet(d, 0, 10);
+    core::memset(d, 0, 10);
     uchar d2[10];
-    core::MemSet(d2, 0, 10);
+    core::memset(d2, 0, 10);
     rune r;
     u32 len;
 
     // 0 is NULL, which is the MINUMUM 1 byte encoded character.
     d[0] = 0;
-    r = core::RuneFromBytes((uchar *)d, 1).ValueOrDie();
+    r = core::rune_from_bytes((uchar *)d, 1).value_or_die();
     Assert(r == 0);
-    len = core::RuneToBytes(r, (uchar *)d2);
+    len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 1);
-    Assert(core::CptrCmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, d2) == 0);
 
     // 127 is DELETE, which is the the MAXIMUM 1 byte encoded character.
     d[0] = 127;
-    r = core::RuneFromBytes((uchar *)d, 1).ValueOrDie();
+    r = core::rune_from_bytes((uchar *)d, 1).value_or_die();
     Assert(r == 127);
-    len = core::RuneToBytes(r, (uchar *)d2);
+    len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 1);
-    Assert(core::CptrCmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, d2) == 0);
 }
 
-void ConvertingUTF8SequenceToUTF32Rune_TwoBit_Test()
-{
+void converting_utf8_sequence_to_utf32_rune_two_bit() {
     // NOTE: from 128 to 2047 use 2 bytes.
 
     uchar d[10];
-    core::MemSet(d, 0, 10);
+    core::memset(d, 0, 10);
     uchar d2[10];
-    core::MemSet(d2, 0, 10);
+    core::memset(d2, 0, 10);
     rune r;
     u32 len;
 
     // 194, 128 is , which is the MINIMUM 2 byte encoded character.
     d[0] = 194;
     d[1] = 128;
-    r = core::RuneFromBytes((uchar *)d, 2).ValueOrDie();
+    r = core::rune_from_bytes((uchar *)d, 2).value_or_die();
     Assert(r == 128);
-    len = core::RuneToBytes(r, (uchar *)d2);
+    len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 2);
-    Assert(core::CptrCmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, d2) == 0);
 
     // д symbol
     d[0] = 208;
     d[1] = 180;
-    r = core::RuneFromBytes((uchar *)d, 2).ValueOrDie();
+    r = core::rune_from_bytes((uchar *)d, 2).value_or_die();
     Assert(r == 1076);
-    len = core::RuneToBytes(r, (uchar *)d2);
+    len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 2);
-    Assert(core::CptrCmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, d2) == 0);
 
     // 223, 191 is ߿ , which is the MAXIMUM 2 byte encoded character.
     d[0] = 223;
     d[1] = 191;
-    r = core::RuneFromBytes((uchar *)d, 2).ValueOrDie();
+    r = core::rune_from_bytes((uchar *)d, 2).value_or_die();
     Assert(r == 2047);
-    len = core::RuneToBytes(r, (uchar *)d2);
+    len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 2);
-    Assert(core::CptrCmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, d2) == 0);
 }
 
-void ConvertingUTF8SequenceToUTF32Rune_ThreeBit_Test()
-{
+void converting_utf8_sequence_to_utf32_rune_three_bit() {
     // NOTE: from 2048 to 65535 use 3 bytes
 
     uchar d[10];
-    core::MemSet(d, 0, 10);
+    core::memset(d, 0, 10);
     uchar d2[10];
-    core::MemSet(d2, 0, 10);
+    core::memset(d2, 0, 10);
     rune r;
     u32 len;
 
@@ -80,31 +77,30 @@ void ConvertingUTF8SequenceToUTF32Rune_ThreeBit_Test()
     d[0] = 224;
     d[1] = 160;
     d[2] = 128;
-    r = core::RuneFromBytes((uchar *)d, 3).ValueOrDie();
+    r = core::rune_from_bytes((uchar *)d, 3).value_or_die();
     Assert(r == 2048);
-    len = core::RuneToBytes(r, (uchar *)d2);
+    len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 3);
-    Assert(core::CptrCmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, d2) == 0);
 
     // 239, 191, 191 is not used, but it is the MAXIMUM possible 3 byte encoding!
     d[0] = 239;
     d[1] = 191;
     d[2] = 191;
-    r = core::RuneFromBytes((uchar *)d, 3).ValueOrDie();
+    r = core::rune_from_bytes((uchar *)d, 3).value_or_die();
     Assert(r == 65535);
-    len = core::RuneToBytes(r, (uchar *)d2);
+    len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 3);
-    Assert(core::CptrCmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, d2) == 0);
 }
 
-void ConvertingUTF8SequenceToUTF32Rune_FourBit_Test()
-{
+void converting_utf8_sequence_to_utf32_rune_four_bit() {
     // NOTE: from 65535 to MAX use 4 bytes
 
     uchar d[10];
-    core::MemSet(d, 0, 10);
+    core::memset(d, 0, 10);
     uchar d2[10];
-    core::MemSet(d2, 0, 10);
+    core::memset(d2, 0, 10);
     rune r;
     u32 len;
 
@@ -113,38 +109,38 @@ void ConvertingUTF8SequenceToUTF32Rune_FourBit_Test()
     d[1] = 144;
     d[2] = 128;
     d[3] = 128;
-    r = core::RuneFromBytes((uchar *)d, 4).ValueOrDie();
+    r = core::rune_from_bytes((uchar *)d, 4).value_or_die();
     Assert(r == 65536);
-    len = core::RuneToBytes(r, (uchar *)d2);
+    len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 4);
-    Assert(core::CptrCmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, d2) == 0);
 
     // poop emoji:
     d[0] = 240;
     d[1] = 159;
     d[2] = 146;
     d[3] = 169;
-    r = core::RuneFromBytes((uchar *)d, 4).ValueOrDie();
+    r = core::rune_from_bytes((uchar *)d, 4).value_or_die();
     Assert(r == 128169);
-    len = core::RuneToBytes(r, (uchar *)d2);
+    len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 4);
-    Assert(core::CptrCmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, d2) == 0);
 
     // 247, 191, 191, 191 is not used, but it is the MAXIMUM possible 4 byte encoding!
     d[0] = 247;
     d[1] = 191;
     d[2] = 191;
     d[3] = 191;
-    r = core::RuneFromBytes((uchar *)d, 4).ValueOrDie();
+    r = core::rune_from_bytes((uchar *)d, 4).value_or_die();
     Assert(r == 2097151);
-    len = core::RuneToBytes(r, (uchar *)d2);
+    len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 4);
-    Assert(core::CptrCmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, d2) == 0);
 }
 
-void RunRuneTestsSuite() {
-    RunTest(ConvertingUTF8SequenceToUTF32Rune_OneBit_Test);
-    RunTest(ConvertingUTF8SequenceToUTF32Rune_TwoBit_Test);
-    RunTest(ConvertingUTF8SequenceToUTF32Rune_ThreeBit_Test);
-    RunTest(ConvertingUTF8SequenceToUTF32Rune_FourBit_Test);
+void run_rune_tests_suite() {
+    RunTest(converting_utf8_sequence_to_utf32_rune_one_bit);
+    RunTest(converting_utf8_sequence_to_utf32_rune_two_bit);
+    RunTest(converting_utf8_sequence_to_utf32_rune_three_bit);
+    RunTest(converting_utf8_sequence_to_utf32_rune_four_bit);
 }

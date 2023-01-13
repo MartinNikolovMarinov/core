@@ -2,11 +2,9 @@
 #include <bits.h>
 #include <utils.h>
 
-namespace core
-{
+namespace core {
 
-namespace
-{
+namespace {
 
 static constexpr u32 UTF8_2_BYTE_ENCODING_MASK = 0b11000000;
 static constexpr u32 UTF8_3_BYTE_ENCODING_MASK = 0b11100000;
@@ -23,43 +21,43 @@ static constexpr u32 UTF8_CHUNK_DECODING_MASK = 0b111111;
 
 } // namespace
 
-bool IsValidUTF8Encoding(const uchar* utf, u32 len) {
+bool is_valid_utf8_encoding(const uchar* utf, u32 len) {
     bool res = false;
     switch(len) {
         case 0:
             res = true;
             break;
         case 1:
-            res = MSNBits(utf[0], 0, 1) && (u8)utf[0] <= MAX_I8;
+            res = msn_bits(utf[0], 0, 1) && (u8)utf[0] <= MAX_I8;
             break;
         case 2:
-            res = MSNBits(utf[0], 0b110, 3) &&
-                  MSNBits(utf[1], 0b10, 2);
+            res = msn_bits(utf[0], 0b110, 3) &&
+                  msn_bits(utf[1], 0b10, 2);
             break;
         case 3:
-            res = MSNBits(utf[0], 0b1110, 4) &&
-                  MSNBits(utf[1], 0b10, 2) &&
-                  MSNBits(utf[2], 0b10, 2);
+            res = msn_bits(utf[0], 0b1110, 4) &&
+                  msn_bits(utf[1], 0b10, 2) &&
+                  msn_bits(utf[2], 0b10, 2);
             break;
         case 4:
-            res = MSNBits(utf[0], 0b11110, 5) &&
-                  MSNBits(utf[1], 0b10, 2) &&
-                  MSNBits(utf[2], 0b10, 2) &&
-                  MSNBits(utf[3], 0b10, 2);
+            res = msn_bits(utf[0], 0b11110, 5) &&
+                  msn_bits(utf[1], 0b10, 2) &&
+                  msn_bits(utf[2], 0b10, 2) &&
+                  msn_bits(utf[3], 0b10, 2);
             break;
     }
     return res;
 }
 
-core::Expected<rune, bool> RuneFromBytes(const uchar* utf, u32 len) {
+core::expected<rune, bool> rune_from_bytes(const uchar* utf, u32 len) {
     Assert(utf != nullptr);
-    if (IsValidUTF8Encoding(utf, len) == false) {
+    if (is_valid_utf8_encoding(utf, len) == false) {
         return false;
     }
-    return RuneFromBytesSkipCheck(utf, len);
+    return rune_from_bytes_skip_check(utf, len);
 }
 
-rune RuneFromBytesSkipCheck(const uchar* utf, u32 len) {
+rune rune_from_bytes_skip_check(const uchar* utf, u32 len) {
     rune r = 0;
     const u32 ubpec = UTF8_BYTES_PER_ENCODED_CHUNK;
 
@@ -94,7 +92,7 @@ rune RuneFromBytesSkipCheck(const uchar* utf, u32 len) {
     return r;
 }
 
-u32 RuneToBytes(const rune r, uchar* utf) {
+u32 rune_to_bytes(const rune r, uchar* utf) {
     Assert(utf != nullptr);
 
     u32 len = 0;

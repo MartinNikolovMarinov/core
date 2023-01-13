@@ -1,4 +1,4 @@
-void LeastSignificantNBitsTests() {
+void least_significatn_N_bits() {
     struct TestTable { u8 value; u8 bitSeq; u8 n; bool expected; };
 
     const i32 testCount = 20;
@@ -29,12 +29,12 @@ void LeastSignificantNBitsTests() {
     testTable[19] = { 0b11111000, 0b11111, 5, false };
 
     for (i32 i = 0; i < testCount; i++) {
-        bool got = core::LSNBits(testTable[i].value, testTable[i].bitSeq, testTable[i].n);
+        bool got = core::lsn_bits(testTable[i].value, testTable[i].bitSeq, testTable[i].n);
         Assert(got == testTable[i].expected);
     }
 }
 
-void MostSignificantNBitsTests() {
+void most_sifnificant_n_bists() {
     struct TestTable { u8 value; u8 bitSeq; u8 n; bool expected; };
 
     constexpr i32 testCount = 53;
@@ -105,12 +105,12 @@ void MostSignificantNBitsTests() {
     testTable[52] = { 0b10100000, 0b101, 3, true };
 
     for (i32 i = 0; i < testCount; i++) {
-        bool got = core::MSNBits(testTable[i].value, testTable[i].bitSeq, testTable[i].n);
+        bool got = core::msn_bits(testTable[i].value, testTable[i].bitSeq, testTable[i].n);
         Assert(got == testTable[i].expected);
     }
 }
 
-void RunBitsTestsSuite() {
-    RunTest(LeastSignificantNBitsTests);
-    RunTest(MostSignificantNBitsTests);
+void run_bits_tests_suite() {
+    RunTest(least_significatn_N_bits);
+    RunTest(most_sifnificant_n_bists);
 }

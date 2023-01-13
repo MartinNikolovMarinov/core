@@ -3,8 +3,7 @@
 #include <API.h>
 #include <types.h>
 
-namespace core
-{
+namespace core {
 
 using namespace coretypes;
 
@@ -20,16 +19,16 @@ using namespace coretypes;
  *   be checked for validity. If, for example, a min value is bigger
  *   that max value the behaviour is undefined.
 */
-CORE_API_EXPORT void RandInit();
-CORE_API_EXPORT void RandInit(u64 seed);
-CORE_API_EXPORT u32  RandU32();
-CORE_API_EXPORT u32  RandU32(u32 min, u32 max);
-CORE_API_EXPORT u64  RandU64();
-CORE_API_EXPORT u64  RandU64(u64 min, u64 max);
-CORE_API_EXPORT i32  RandI32();
-CORE_API_EXPORT i32  RandI32(i32 min, i32 max);
-CORE_API_EXPORT i64  RandI64();
-CORE_API_EXPORT i64  RandI64(i64 min, i64 max);
-CORE_API_EXPORT void RandCptr(char* out, ptr_size len);
+CORE_API_EXPORT void rnd_init();
+CORE_API_EXPORT void rnd_init(u64 seed);
+CORE_API_EXPORT u32  rnd_u32();
+CORE_API_EXPORT u32  rnd_u32(u32 min, u32 max);
+CORE_API_EXPORT u64  rnd_u64();
+CORE_API_EXPORT u64  rnd_u64(u64 min, u64 max);
+CORE_API_EXPORT i32  rnd_i32();
+CORE_API_EXPORT i32  rnd_i32(i32 min, i32 max);
+CORE_API_EXPORT i64  rnd_i64();
+CORE_API_EXPORT i64  rnd_i64(i64 min, i64 max);
+CORE_API_EXPORT void rnd_cptr(char* out, ptr_size len);
 
 } // namespace core

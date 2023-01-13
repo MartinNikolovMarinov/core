@@ -1,10 +1,9 @@
-#pragma once
-
 #include <API.h>
 #include <types.h>
 
-namespace core
-{
+#pragma once
+
+namespace core {
 
 using namespace coretypes;
 
@@ -18,58 +17,58 @@ using namespace coretypes;
 #define C_VFUNC(func, ...) __C_VFUNC__(func, __C_NARG__(__VA_ARGS__)) (__VA_ARGS__)
 
 // Customizeble global assert handler:
-using GlobalAssertHandlerPtr = bool (*)(const char* failedExpr, const char* file, i32 line, const char* errMsg);
-CORE_API_EXPORT void SetGlobalAssertHandler(GlobalAssertHandlerPtr handler);
-CORE_API_EXPORT GlobalAssertHandlerPtr GetGlobalAssertHandler();
+using global_assert_handler_ptr = bool (*)(const char* failedExpr, const char* file, i32 line, const char* errMsg);
+CORE_API_EXPORT void set_global_assert_handler(global_assert_handler_ptr handler);
+CORE_API_EXPORT global_assert_handler_ptr get_global_assert_handler();
 
 #ifndef Assert
     // This macro will dereference null to force a crash,
     // unless the global assert handler is set and returns false.
     #define Assert(...) C_VFUNC(Assert, __VA_ARGS__)
     #define Assert1(expr) Assert2(expr, "")
-    #define Assert2(expr, msg)                                                                     \
-        if (!(expr)) {                                                                             \
-            if (core::GetGlobalAssertHandler()) {                                                  \
-                bool shouldCrash = core::GetGlobalAssertHandler()(#expr, __FILE__, __LINE__, msg); \
-                if (shouldCrash) *(volatile coretypes::i32 *)0 = 0;                                \
-            } else {                                                                               \
-                *(volatile coretypes::i32 *)0 = 0;                                                 \
-            }                                                                                      \
+    #define Assert2(expr, msg)                                                                        \
+        if (!(expr)) {                                                                                \
+            if (core::get_global_assert_handler()) {                                                  \
+                bool shouldCrash = core::get_global_assert_handler()(#expr, __FILE__, __LINE__, msg); \
+                if (shouldCrash) *(volatile coretypes::i32 *)0 = 0;                                   \
+            } else {                                                                                  \
+                *(volatile coretypes::i32 *)0 = 0;                                                    \
+            }                                                                                         \
         }
 #endif
 
 // Zero cost defer:
 #ifndef defer
-    struct CORE_API_EXPORT deferDummy {};
+    struct CORE_API_EXPORT defer_dummy {};
     template <class F> struct deferrer { F f; ~deferrer() { f(); } };
-    template <class F> deferrer<F> operator*(core::deferDummy, F f) { return {f}; }
+    template <class F> deferrer<F> operator*(core::defer_dummy, F f) { return {f}; }
     #define DEFER_(LINE) zz_defer##LINE
     #define DEFER(LINE) DEFER_(LINE)
     #define defer auto DEFER(__LINE__) = core::deferDummy{} *[&]()
 #endif
 
-// Move and Forward implementations copied from the standard library:
+// Move and forward implementations copied from the standard library:
 
-template<typename T> struct RemoveRef      { typedef T type; };
-template<typename T> struct RemoveRef<T&>  { typedef T type; };
-template<typename T> struct RemoveRef<T&&> { typedef T type; };
+template<typename T> struct CORE_API_EXPORT remove_ref      { typedef T type; };
+template<typename T> struct CORE_API_EXPORT remove_ref<T&>  { typedef T type; };
+template<typename T> struct CORE_API_EXPORT remove_ref<T&&> { typedef T type; };
 
 template<typename T>
-constexpr typename RemoveRef<T>::type && Move(T && arg) noexcept {
-    return static_cast<typename RemoveRef<T>::type &&>(arg);
+CORE_API_EXPORT constexpr typename remove_ref<T>::type && move(T && arg) {
+    return static_cast<typename remove_ref<T>::type &&>(arg);
 }
 
-template<typename T> struct IsLValueRef     { static constexpr bool value = false; };
-template<typename T> struct IsLValueRef<T&> { static constexpr bool value = true; };
+template<typename T> struct CORE_API_EXPORT is_L_value     { static constexpr bool value = false; };
+template<typename T> struct CORE_API_EXPORT is_L_value<T&> { static constexpr bool value = true; };
 
 template<typename T>
-constexpr T&& Forward(typename RemoveRef<T>::type & arg) noexcept {
+constexpr CORE_API_EXPORT T&& forward(typename remove_ref<T>::type & arg) {
     return static_cast<T&&>(arg);
 }
 
 template<typename T>
-constexpr T&& Forward(typename RemoveRef<T>::type && arg) noexcept {
-    static_assert(!IsLValueRef<T>::value, "invalid rvalue to lvalue conversion");
+constexpr CORE_API_EXPORT T&& forward(typename remove_ref<T>::type && arg) {
+    static_assert(!is_L_value<T>::value, "invalid rvalue to lvalue conversion");
     return static_cast<T&&>(arg);
 }
 

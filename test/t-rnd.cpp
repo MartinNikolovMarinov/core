@@ -1,4 +1,4 @@
-void RndSignedIntegersTests() {
+void rnd_signed_integers() {
     struct TestTable { i32 min; i32 max; i32 itterCount; };
 
     constexpr i32 testCount = 12;
@@ -19,14 +19,14 @@ void RndSignedIntegersTests() {
 
     for (i32 i = 0; i < testCount; i++) {
         for (i32 j = 0; j < testTable[i].itterCount; j++) {
-            i32 v = core::RandI32(testTable[i].min, testTable[i].max);
+            i32 v = core::rnd_i32(testTable[i].min, testTable[i].max);
             Assert(v >= testTable[i].min);
             Assert(v <= testTable[i].max);
         }
     }
 }
 
-void RndRawStrTests() {
+void rnd_raw_str() {
     struct TestTable { ptr_size size; i32 itterCount; };
 
     constexpr i32 testCount = 1;
@@ -36,12 +36,12 @@ void RndRawStrTests() {
     for (i32 i = 0; i < testCount; i++) {
         char buf[5000];
         for (i32 j = 0; j < testTable[i].itterCount; j++) {
-            core::RandCptr(buf, testTable[i].size);
+            core::rnd_cptr(buf, testTable[i].size);
         }
     }
 }
 
-void RunRndTestsSuite() {
-    RunTest(RndSignedIntegersTests);
-    RunTest(RndRawStrTests);
+void run_rnd_tests_suite() {
+    RunTest(rnd_signed_integers);
+    RunTest(rnd_raw_str);
 }

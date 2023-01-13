@@ -6,10 +6,9 @@
 #include <x86intrin.h>
 #endif
 
-namespace core
-{
+namespace core {
 
-u64 GetCPUTicks() {
+u64 get_cpu_ticks() {
     return __rdtsc();
 }
 

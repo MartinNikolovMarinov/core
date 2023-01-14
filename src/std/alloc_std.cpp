@@ -6,17 +6,18 @@ namespace core {
 
 namespace {
 
-struct std_allocator_state {
-    // TODO: Add optional stats gathering here.
-    ptr_size usedMem = 0;
-};
-
-std_allocator_state g_std_allocator_state;
+std_allocator::on_oom_fp g_std_allocator_oom_cb = [](void*) { Assert(false, "ran out of memory"); };
 
 }
 
 void* std_allocator::alloc(ptr_size size) noexcept {
-    return std::malloc(size);
+    void* ret = std::malloc(size);
+    if (ret == nullptr) {
+        if (g_std_allocator_oom_cb != nullptr) {
+            g_std_allocator_oom_cb(nullptr);
+        }
+    }
+    return ret;
 }
 
 void std_allocator::free(void* ptr) noexcept {
@@ -24,7 +25,11 @@ void std_allocator::free(void* ptr) noexcept {
 }
 
 ptr_size std_allocator::used_mem() noexcept {
-    return g_std_allocator_state.usedMem;
+    return 0;
+}
+
+void std_allocator::on_out_of_memory(on_oom_fp cb) noexcept {
+    g_std_allocator_oom_cb = cb;
 }
 
 }

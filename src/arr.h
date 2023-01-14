@@ -16,7 +16,7 @@ using namespace coretypes;
 // FIXME: Think about the iterator response. It should be some global enum, but are the values reasonable?
 enum CORE_API_EXPORT iter_response { ReadBeforeBegin, ReadPastEnd };
 
-template<typename T, typename TAllocator> // FIXME: set a default allocator somehow.
+template<typename T, typename TAllocator>
 struct CORE_API_EXPORT arr {
     using data_type      = T;
     using size_type      = u64;
@@ -27,6 +27,7 @@ struct CORE_API_EXPORT arr {
     constexpr arr(data_type *data, size_type cap, size_type len) : m_data(data), m_cap(cap), m_len(len) {
         Assert(m_cap >= m_len);
     }
+    constexpr ~arr() { free(); }
 
     constexpr const char* allocator_name() const { return TAllocator::allocator_name(); }
     constexpr size_type   cap()            const { return m_cap; }
@@ -34,6 +35,13 @@ struct CORE_API_EXPORT arr {
     constexpr data_type*  data()           const { return m_data; }
     constexpr bool        empty()          const { return m_len == 0; }
     constexpr void        clear()                { m_len = 0; }
+
+    constexpr void free() {
+        clear();
+        m_cap = 0;
+        allocator_type::free(m_data);
+        m_data = nullptr;
+    }
 
     constexpr data_type& at(size_type idx)         { Assert(idx <= m_len); return m_data[idx]; }
     constexpr data_type& operator[](size_type idx) { return at(idx); }

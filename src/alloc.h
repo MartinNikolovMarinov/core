@@ -56,4 +56,12 @@ const char* CORE_API_EXPORT allocator_name() noexcept {
     return A::allocator_name();
 }
 
+/**
+ * @brief Sets the callback for the case of running out of memory. Thread safety is not guaranteed.
+*/
+template<typename A>
+void CORE_API_EXPORT on_out_of_memory(typename A::on_oom_fp cb) noexcept {
+    A::on_out_of_memory(cb);
+}
+
 } // namespace core

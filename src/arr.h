@@ -19,17 +19,22 @@ enum CORE_API_EXPORT iter_response { ReadBeforeBegin, ReadPastEnd };
 template<typename T, typename TAllocator>
 struct CORE_API_EXPORT arr {
     using data_type      = T;
-    using size_type      = u64;
+    using size_type      = ptr_size;
     using allocator_type = TAllocator;
 
     constexpr arr() : m_data(nullptr), m_cap(0), m_len(0) {}
-    constexpr arr(data_type *data, size_type len) : m_data(data), m_cap(len), m_len(len) {}
-    constexpr arr(data_type *data, size_type cap, size_type len) : m_data(data), m_cap(cap), m_len(len) {
+    constexpr arr(size_type len) : m_cap(len), m_len(len) {
+        m_data = reinterpret_cast<data_type *>(allocator_type::alloc(m_cap * sizeof(data_type)));
+        Assert(m_data != nullptr);
+    }
+    constexpr arr(size_type cap, size_type len) : m_cap(cap), m_len(len) {
+        m_data = reinterpret_cast<data_type *>(allocator_type::alloc(m_cap * sizeof(data_type)));
+        Assert(m_data != nullptr);
         Assert(m_cap >= m_len);
     }
-    constexpr ~arr() { free(); }
+    ~arr() { free(); }
 
-    constexpr const char* allocator_name() const { return TAllocator::allocator_name(); }
+    constexpr const char* allocator_name() const { return allocator_type::allocator_name(); }
     constexpr size_type   cap()            const { return m_cap; }
     constexpr size_type   len()            const { return m_len; }
     constexpr data_type*  data()           const { return m_data; }
@@ -54,11 +59,20 @@ struct CORE_API_EXPORT arr {
         return *this;
     }
 
+    constexpr arr& fill(const data_type& val) {
+        if (val == 0) {
+            core::memset(m_data, 0, m_len * sizeof(data_type));
+            return *this;
+        }
+        for (size_type i = 0; i < m_len; ++i) {
+            m_data[i] = val;
+        }
+        return *this;
+    }
+
     constexpr void resize(size_type newCap) {
         if (newCap == 0) {
-            m_len = 0;
-            m_cap = 0;
-            allocator_type::free(m_data);
+            free();
             return;
         }
         if (newCap <= m_cap) {
@@ -67,6 +81,7 @@ struct CORE_API_EXPORT arr {
             return;
         }
 
+        // reallocate
         data_type* newData = reinterpret_cast<data_type *>(allocator_type::alloc(newCap * sizeof(data_type)));
         Assert(newData != nullptr); // TODO: handle OOM
         if (m_data != nullptr) {

@@ -4,6 +4,7 @@
 #include "system_checks.h"
 #include "types.h"
 
+#include "alloc_bump.h"
 #include "alloc.h"
 #include "arr.h"
 #include "bits.h"

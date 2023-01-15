@@ -4,6 +4,8 @@
 #include <types.h>
 #include <utils.h>
 
+#include <new> // this somehow does not require us to link with the standard library.
+
 namespace core {
 
 using namespace coretypes;
@@ -18,24 +20,24 @@ void* CORE_API_EXPORT alloc(ptr_size size) noexcept {
 }
 
 /**
+ * @brief The implementation of construct should call the constructor of T with the given args.
+ *        NOTE: This interface is quite clunky and should be used only for the implementation of some core data
+ *        structures.
+*/
+template<typename A, typename T, typename ...Args>
+T* CORE_API_EXPORT construct(A& allocator, T* out, Args&&... args) noexcept {
+    void* p = allocator.alloc(sizeof(T));
+    if (p != nullptr) out = new (p) T(core::forward<Args>(args)...);
+    return out;
+}
+
+/**
  * @brief The implementation of used_mem should return the amount of memory used by the allocator.
  *        NOTE: The overall size may be larger than what the user has asked for, due to memory alignment.
 */
 template<typename A>
 ptr_size CORE_API_EXPORT used_mem() noexcept {
     return A::used_mem();
-}
-
-/**
- * @brief The implementation of construct should call the constructor of T with the given args.
- *        NOTE: This interface is quite clunky and should be used only for the implementation of some core data
- *        structures.
-*/
-template<typename A, typename T, typename ...Args>
-T* CORE_API_EXPORT construct(A, T* out, Args&&... args) noexcept {
-    void* p = A::alloc(sizeof(T));
-    if (p != nullptr) out = new (p) T(core::forward<Args>(args)...);
-    return out;
 }
 
 /**
@@ -54,14 +56,6 @@ void CORE_API_EXPORT free(void* ptr) noexcept {
 template<typename A>
 const char* CORE_API_EXPORT allocator_name() noexcept {
     return A::allocator_name();
-}
-
-/**
- * @brief Sets the callback for the case of running out of memory. Thread safety is not guaranteed.
-*/
-template<typename A>
-void CORE_API_EXPORT on_out_of_memory(typename A::on_oom_fp cb) noexcept {
-    A::on_out_of_memory(cb);
 }
 
 } // namespace core

@@ -25,27 +25,27 @@ void write_line(const char* data) {
     if (ret <= 0) OS_exit(1);
 }
 
-#define RunTest(test)                              \
+#define RunTest(test, ...)                         \
     write_line("\t[TEST RUNNING] ");               \
     write_line(#test);                             \
     write_line("\n");                              \
-    test();                                        \
+    test(__VA_ARGS__);                             \
     write_line("\t[TEST \x1b[32mPASSED\x1b[0m] "); \
     write_line(#test);                             \
     write_line("\n");
 
-#define RunTestSuite(suite)                       \
+#define RunTestSuite(suite, ...)                  \
     write_line("[SUITE RUNNING] ");               \
     write_line(#suite);                           \
     write_line("\n");                             \
-    suite();                                      \
+    suite(__VA_ARGS__);                           \
     write_line("[SUITE \x1b[32mPASSED\x1b[0m] "); \
     write_line(#suite);                           \
     write_line("\n");
 
 #include "test/run_tests.cpp"
 
-i32 main(i32, const char**) {
+i32 main(i32, const char**, const char**) {
      core::set_global_assert_handler([](const char* failedExpr, const char* file, i32 line, const char* errMsg) {
         write_line("[ASSERTION] [EXPR]: ");
         write_line(failedExpr);

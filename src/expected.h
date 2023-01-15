@@ -4,6 +4,8 @@
 #include <types.h>
 #include <utils.h>
 
+#include <new> // this somehow does not require us to link with the standard library.
+
 namespace core {
 
 using namespace coretypes;

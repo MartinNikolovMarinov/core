@@ -64,6 +64,7 @@ set(src_files
     utf.cpp
     alloc.h
     arr.h
+    alloc_bump.h
 
     std/core.h
     std/alloc_std.h

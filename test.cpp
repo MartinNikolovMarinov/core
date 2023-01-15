@@ -4,14 +4,14 @@
 
 using namespace coretypes;
 
-#define RunTest(test)                                                       \
+#define RunTest(test, ...)                                                  \
     std::cout << "\t[TEST RUNNING] " << #test << '\n';                      \
-    test();                                                                 \
+    test(__VA_ARGS__);                                                      \
     std::cout << "\t[TEST \x1b[32mPASSED\x1b[0m] " << #test << std::endl;
 
-#define RunTestSuite(suite)                                                 \
+#define RunTestSuite(suite, ...)                                            \
     std::cout << "[SUITE RUNNING] " << #suite << std::endl;                 \
-    suite();                                                                \
+    suite(__VA_ARGS__);                                                     \
     std::cout << "[SUITE \x1b[32mPASSED\x1b[0m] " << #suite << std::endl;
 
 #include "test/run_tests.cpp"

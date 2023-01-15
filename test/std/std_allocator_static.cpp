@@ -1,7 +1,5 @@
-// FIXME: use std allocator that counts allocations and frees to make sure tested data structures are freed properly!
-
 struct std_allocator_static {
-    static core::std_allocator stdAlloc;
+    static core::std_stats_allocator stdAlloc;
 
     static void* alloc(ptr_size size) noexcept {
         return stdAlloc.alloc(size);
@@ -20,4 +18,4 @@ struct std_allocator_static {
     }
 };
 
-core::std_allocator std_allocator_static::stdAlloc;
+core::std_stats_allocator std_allocator_static::stdAlloc;

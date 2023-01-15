@@ -8,30 +8,35 @@ namespace core {
 
 using namespace coretypes;
 
-struct CORE_API_EXPORT std_allocator {
+namespace details { struct allocated_block_list; }
+
+struct CORE_API_EXPORT std_stats_allocator {
     using on_oom_fp = void(*)(void* userData);
 
     static constexpr on_oom_fp defaultOOMfp = [](void*) { Assert(false, "ran out of memory"); };
 
     static constexpr const char* allocator_name() { return "standard library allocator"; }
 
-    constexpr std_allocator(on_oom_fp cb = defaultOOMfp) : m_oomCb(cb) {};
+    std_stats_allocator(on_oom_fp cb = defaultOOMfp);
 
     // no copy
-    std_allocator(const std_allocator&) = delete;
-    std_allocator& operator=(const std_allocator&) = delete;
+    std_stats_allocator(const std_stats_allocator&) = delete;
+    std_stats_allocator& operator=(const std_stats_allocator&) = delete;
 
     // no move
-    std_allocator(std_allocator&&) = delete;
-    std_allocator& operator=(std_allocator&&) = delete;
+    std_stats_allocator(std_stats_allocator&&) = delete;
+    std_stats_allocator& operator=(std_stats_allocator&&) = delete;
 
     void* alloc(ptr_size size) noexcept;
 
     void free(void* ptr) noexcept;
 
+    void clear() noexcept;
+
     ptr_size used_mem() noexcept;
 
     const on_oom_fp m_oomCb;
+    details::allocated_block_list* m_allocatedBlocks;
 };
 
 }

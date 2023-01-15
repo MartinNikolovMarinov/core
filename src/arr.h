@@ -7,7 +7,6 @@
 #include <mem.h>
 
 // FIXME: Check the asm that the arr code generates. It should be a very cheap abstraction if it's done right.
-// FIXME: Test the code with a custom allocators.
 
 namespace core {
 
@@ -83,7 +82,7 @@ struct CORE_API_EXPORT arr {
 
         // reallocate
         data_type* newData = reinterpret_cast<data_type *>(allocator_type::alloc(newCap * sizeof(data_type)));
-        Assert(newData != nullptr); // TODO: handle OOM
+        Assert(newData != nullptr);
         if (m_data != nullptr) {
             core::memcopy(newData, m_data, m_len * sizeof(data_type));
             allocator_type::free(m_data);

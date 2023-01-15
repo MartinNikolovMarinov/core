@@ -6,7 +6,7 @@ namespace core {
 
 void* std_allocator::alloc(ptr_size size) noexcept {
     void* ret = std::malloc(size);
-    if (ret == nullptr && m_oom_cb != nullptr) m_oom_cb(nullptr);
+    if (ret == nullptr && m_oomCb != nullptr) m_oomCb(nullptr);
     return ret;
 }
 

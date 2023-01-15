@@ -20,7 +20,7 @@ struct CORE_API_EXPORT bump_allocator {
 
     static constexpr const char* allocator_name() { return "bump allocator"; }
 
-    constexpr bump_allocator(on_oom_fp cb = defaultOOMfp) : m_oom_cb(cb) {
+    constexpr bump_allocator(on_oom_fp cb = defaultOOMfp) : m_oomCb(cb) {
         clear();
     }
 
@@ -35,7 +35,7 @@ struct CORE_API_EXPORT bump_allocator {
     constexpr void* alloc(ptr_size size) noexcept {
         size = core::align(size);
         if (m_used + size > maxCap) {
-            m_oom_cb(nullptr);
+            m_oomCb(nullptr);
             return nullptr;
         }
         void* p = reinterpret_cast<void*>(&m_data[m_used]);
@@ -55,7 +55,7 @@ struct CORE_API_EXPORT bump_allocator {
     u8 m_data[maxCap];
     const u8* m_startAddr;
     ptr_size m_used; // in bytes
-    const on_oom_fp m_oom_cb;
+    const on_oom_fp m_oomCb;
 };
 
 }

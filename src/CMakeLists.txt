@@ -69,6 +69,8 @@ set(src_files
     std/core.h
     std/alloc_std.h
     std/alloc_std.cpp
+    std/alloc_std_stats.h
+    std/alloc_std_stats.cpp
 )
 
 # OS specific source files:

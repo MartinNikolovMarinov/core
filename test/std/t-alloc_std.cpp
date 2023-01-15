@@ -27,7 +27,7 @@ void on_oom_std_allocator() {
     testOOMCount = 0; // just in case
 
     [[maybe_unused]] void* data = stdAlloc.alloc(0x7fffffffffffffff);
-    Assert(testOOMCount > 0);
+    Assert(testOOMCount == 1);
 }
 
 void run_std_allocator_tests_suite() {
@@ -36,7 +36,11 @@ void run_std_allocator_tests_suite() {
 
      // Array with std allocator tests:
     RunTest(initialize_arr<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
     RunTest(resize_arr<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
     RunTest(fill_arr<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
     RunTest(append_arr<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
 }

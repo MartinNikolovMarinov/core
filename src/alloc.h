@@ -23,12 +23,12 @@ void* CORE_API_EXPORT alloc(ptr_size size) noexcept {
  * @brief The implementation of construct should call the constructor of T with the given args.
  *        NOTE: This interface is quite clunky and should be used only for the implementation of some core data
  *        structures.
+ *        TODO: Cand this be improved?
 */
 template<typename A, typename T, typename ...Args>
-T* CORE_API_EXPORT construct(A& allocator, T* out, Args&&... args) noexcept {
+T* CORE_API_EXPORT construct(A& allocator, T&&, Args&&... args) noexcept {
     void* p = allocator.alloc(sizeof(T));
-    if (p != nullptr) out = new (p) T(core::forward<Args>(args)...);
-    return out;
+    return new (p) T(core::forward<Args>(args)...);
 }
 
 /**

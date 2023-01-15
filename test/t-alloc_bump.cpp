@@ -15,7 +15,7 @@ void basic_bump_allocator_case() {
     };
 
     test_struct* ts = nullptr;
-    ts = core::construct(bumpAllocator, ts, 42, 0.1f);
+    ts = core::construct(bumpAllocator, test_struct{}, 42, 0.1f);
     Assert(ts != nullptr);
     Assert(ts->a == 42);
     Assert(ts->b == 0.1f);

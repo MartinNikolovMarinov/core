@@ -59,10 +59,6 @@ struct CORE_API_EXPORT arr {
     }
 
     constexpr arr& fill(const data_type& val) {
-        if (val == 0) {
-            core::memset(m_data, 0, m_len * sizeof(data_type));
-            return *this;
-        }
         for (size_type i = 0; i < m_len; ++i) {
             m_data[i] = val;
         }

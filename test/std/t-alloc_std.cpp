@@ -6,15 +6,15 @@ void basic_std_allocator_case() {
     Assert(core::cptr_len(stdAlloc.allocator_name()) > 0);
     stdAlloc.free(data);
 
-    struct Test {
+    struct test_struct {
         i32 a;
         f32 b;
 
-        Test() : a(0), b(0.0f) {}
-        Test(i32 a, f32 b) : a(a), b(b) {}
+        test_struct() : a(0), b(0.0f) {}
+        test_struct(i32 a, f32 b) : a(a), b(b) {}
     };
 
-    Test* ts = nullptr;
+    test_struct* ts = nullptr;
     ts = core::construct(stdAlloc, ts, 42, 0.1f);
     Assert(ts != nullptr);
     Assert(ts->a == 42);
@@ -22,12 +22,12 @@ void basic_std_allocator_case() {
 }
 
 void on_oom_std_allocator() {
-    static i32 g_test_oom_count = 0;
-    core::std_allocator stdAlloc([](void*) { g_test_oom_count++; });
-    g_test_oom_count = 0; // just in case
+    static i32 testOOMCount = 0;
+    core::std_allocator stdAlloc([](void*) { testOOMCount++; });
+    testOOMCount = 0; // just in case
 
     [[maybe_unused]] void* data = stdAlloc.alloc(0x7fffffffffffffff);
-    Assert(g_test_oom_count > 0);
+    Assert(testOOMCount > 0);
 }
 
 void run_std_allocator_tests_suite() {

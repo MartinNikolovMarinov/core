@@ -8,6 +8,7 @@
 #include "t-rune.cpp"
 #include "t-arr.cpp"
 #include "t-alloc_bump.cpp"
+#include "t-expected.cpp"
 
 void run_all_tests() {
     RunTestSuite(run_tuple_tests_suite);
@@ -16,4 +17,5 @@ void run_all_tests() {
     RunTestSuite(run_ints_tests_suite);
     RunTestSuite(run_rune_tests_suite);
     RunTestSuite(run_bump_allocator_tests_suite);
+    RunTestSuite(run_expected_tests_suite);
 }

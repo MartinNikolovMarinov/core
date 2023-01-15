@@ -51,12 +51,12 @@ void fill_arr() {
     }
 
     // fill with struct
-    struct Test {
+    struct test_struct {
         i32 a;
         f64 b;
     };
-    core::arr<Test*, TAllocator> arr2(10);
-    Test t = { 1, 2.0 };
+    core::arr<test_struct*, TAllocator> arr2(10);
+    test_struct t = { 1, 2.0 };
 
     arr2.fill(&t);
     for (i32 i = 0; i < arr2.len(); ++i) {

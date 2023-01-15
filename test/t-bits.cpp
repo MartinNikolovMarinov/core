@@ -1,8 +1,8 @@
 void least_significatn_N_bits() {
-    struct TestTable { u8 value; u8 bitSeq; u8 n; bool expected; };
+    struct test_case { u8 value; u8 bitSeq; u8 n; bool expected; };
 
     const i32 testCount = 20;
-    TestTable testTable[testCount];
+    test_case testTable[testCount];
 
     testTable[0] = { 0b0, 0b0, 1, true };
     testTable[1] = { 0b1, 0b1, 1, true };
@@ -35,10 +35,10 @@ void least_significatn_N_bits() {
 }
 
 void most_sifnificant_n_bists() {
-    struct TestTable { u8 value; u8 bitSeq; u8 n; bool expected; };
+    struct test_case { u8 value; u8 bitSeq; u8 n; bool expected; };
 
     constexpr i32 testCount = 53;
-    TestTable testTable[testCount];
+    test_case testTable[testCount];
 
     testTable[0] = { 0b10000000, 0b1, 1, true };
 

@@ -1,8 +1,8 @@
 void rnd_signed_integers() {
-    struct TestTable { i32 min; i32 max; i32 itterCount; };
+    struct test_case { i32 min; i32 max; i32 itterCount; };
 
     constexpr i32 testCount = 12;
-    TestTable testTable[testCount];
+    test_case testTable[testCount];
 
     testTable[0] = { 0, 1000, 5000 };
     testTable[1] = { -1000, 0, 5000 };
@@ -27,10 +27,10 @@ void rnd_signed_integers() {
 }
 
 void rnd_raw_str() {
-    struct TestTable { ptr_size size; i32 itterCount; };
+    struct test_case { ptr_size size; i32 itterCount; };
 
     constexpr i32 testCount = 1;
-    TestTable testTable[testCount];
+    test_case testTable[testCount];
     testTable[0] = { 5, 5000 };
 
     for (i32 i = 0; i < testCount; i++) {

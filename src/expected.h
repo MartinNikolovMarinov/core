@@ -10,8 +10,6 @@ namespace core {
 
 using namespace coretypes;
 
-// FIXME: write tests for this !
-
 // NOTE: Using an unexpected_t wrapper allows the expected struct to be used with the same type for both error and value.
 template <typename E>
 struct unexpected_t {
@@ -24,7 +22,6 @@ unexpected_t<E> unexpected(E&& e) { return unexpected_t<E>(core::forward<E>(e));
 
 template <typename T, typename TErr>
 struct CORE_API_EXPORT expected {
-
     constexpr expected(T&& value)  : m_value(core::forward<T>(value)), m_hasValue(true) {}
     template <typename TErr2>
     expected(unexpected_t<TErr2>&& wrapper) : m_err(core::move(wrapper.err)), m_hasValue(false) {}
@@ -57,6 +54,7 @@ struct CORE_API_EXPORT expected {
     }
 
 private:
+
     union { T m_value; TErr m_err; };
     bool m_hasValue;
 };

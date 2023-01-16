@@ -73,6 +73,7 @@ set(src_files
     std/alloc_std_stats.cpp
     std/traits.h
     std/vec.h
+    std/once.h
 
     std/plt/plt.h
 )

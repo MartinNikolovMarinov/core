@@ -71,6 +71,9 @@ set(src_files
     std/alloc_std.cpp
     std/alloc_std_stats.h
     std/alloc_std_stats.cpp
+    std/traits.h
+    std/vec.h
+
     std/plt/plt.h
 )
 

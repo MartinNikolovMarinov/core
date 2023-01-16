@@ -1,12 +1,11 @@
 #include "allocator_bump_static.cpp"
+#include "ds_arr_generic_test_functions.cpp"
 
-// NOTE: order matters
 #include "t-tuple.cpp"
 #include "t-rnd.cpp"
 #include "t-bits.cpp"
 #include "t-ints.cpp"
 #include "t-rune.cpp"
-#include "t-arr.cpp"
 #include "t-alloc_bump.cpp"
 #include "t-expected.cpp"
 

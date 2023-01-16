@@ -71,18 +71,17 @@ set(src_files
     std/alloc_std.cpp
     std/alloc_std_stats.h
     std/alloc_std_stats.cpp
+    std/plt/plt.h
 )
 
 # OS specific source files:
 if(OS STREQUAL "linux")
     set(src_files ${src_files}
-        # std/platform/unix/plt.cpp
-        # std/platform/unix/time.cpp
+        std/plt/unix/unix_plt.cpp
     )
 elseif(OS STREQUAL "windows")
     set(src_files ${src_files}
-        # std/platform/win64/plt.cpp
-        # std/platform/win64/time.cpp
+        std/platform/win64/win64_plt.cpp
     )
 endif()
 

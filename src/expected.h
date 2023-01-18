@@ -4,7 +4,8 @@
 #include <types.h>
 #include <utils.h>
 
-#include <new> // this somehow does not require us to link with the standard library.
+// TODO: Including new might break the nostdlib build on some systems?
+#include <new>
 
 namespace core {
 

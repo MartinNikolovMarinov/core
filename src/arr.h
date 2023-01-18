@@ -41,6 +41,7 @@ struct CORE_API_EXPORT arr {
     constexpr void        clear()                { m_len = 0; }
 
     constexpr void free() {
+        if (m_data == nullptr) return;
         clear();
         m_cap = 0;
         allocator_type::free(m_data);

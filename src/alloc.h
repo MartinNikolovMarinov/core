@@ -4,7 +4,8 @@
 #include <types.h>
 #include <utils.h>
 
-#include <new> // this somehow does not require us to link with the standard library.
+// TODO: Including new might break the nostdlib build on some systems?
+#include <new>
 
 namespace core {
 
@@ -21,9 +22,6 @@ void* CORE_API_EXPORT alloc(ptr_size size) noexcept {
 
 /**
  * @brief The implementation of construct should call the constructor of T with the given args.
- *        NOTE: This interface is quite clunky and should be used only for the implementation of some core data
- *        structures.
- *        TODO: Cand this be improved?
 */
 template<typename A, typename T, typename ...Args>
 T* CORE_API_EXPORT construct(A& allocator, T&&, Args&&... args) noexcept {

@@ -8,7 +8,7 @@ namespace core {
 
 using namespace coretypes;
 
-template <typename...> CORE_API_EXPORT struct tuple;
+template <typename...> struct tuple;
 
 template <typename T1>
 struct CORE_API_EXPORT tuple<T1> {

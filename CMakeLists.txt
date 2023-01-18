@@ -14,7 +14,6 @@ add_executable(${PROJECT_NAME} test.cpp)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE
         -O0 -g -ggdb
-        -fno-exceptions
         -Wall -Wextra -Wno-unknown-pragmas
     )
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")

@@ -3,7 +3,7 @@ void expected_basic_case() {
     Assert(e1.has_value());
     Assert(!e1.has_err());
     Assert(e1.value() == 10);
-    Assert(e1.value_or_die() == 10);
+    Assert(ValueOrDie(e1) == 10);
 
     core::expected<i32, const char*> e2(core::unexpected("bad"));
     Assert(!e2.has_value());
@@ -35,7 +35,7 @@ void expected_with_same_type() {
     Assert(e1.has_value());
     Assert(!e1.has_err());
     Assert(e1.value() == 10);
-    Assert(e1.value_or_die() == 10);
+    Assert(ValueOrDie(e1) == 10);
 
     struct test_struct {
         u64 a;
@@ -64,7 +64,7 @@ void expected_used_in_a_function() {
         else             return v + 2;
     };
 
-    Assert(f(5).value_or_die() == 5 + 2);
+    Assert(ValueOrDie(f(5)) == 5 + 2);
     Assert(f(0).has_err());
     Assert(core::cptr_cmp(f(0).err(), errMsg2) == 0);
     Assert(f(-1).has_err());

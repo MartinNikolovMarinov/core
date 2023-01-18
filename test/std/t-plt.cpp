@@ -22,18 +22,14 @@ void os_alloc_de_alloc_pages_test() {
     {
         auto deallocErr = core::os_dealloc_pages(res.value(), 1024);
         Assert(!deallocErr.has_err());
-        Assert(deallocErr.has_value());
-        Assert(deallocErr.value() == 0);
     }
     {
         auto deallocErr = core::os_dealloc_pages(res.value(), 0);
         Assert(deallocErr.has_err(), "deallocation of size 0 should fail");
-        Assert(!deallocErr.has_value());
     }
     {
         auto deallocErr = core::os_dealloc_pages(nullptr, 1024);
         Assert(deallocErr.has_err());
-        Assert(!deallocErr.has_value());
         Assert(deallocErr.err() == core::OS_DEALLOC_NULL_ADDR_ERR, "error code equality check should work bi-directionally");
     }
 }

@@ -67,15 +67,15 @@ set(src_files
     alloc_bump.h
 
     std/core.h
-    std/alloc_std.h
-    std/alloc_std.cpp
-    std/alloc_std_stats.h
     std/alloc_std_stats.cpp
+    std/alloc_std_stats.h
+    std/alloc_std.cpp
+    std/alloc_std.h
+    std/fs.h
+    std/once.h
+    std/plt.h
     std/traits.h
     std/vec.h
-    std/once.h
-
-    std/plt/plt.h
 )
 
 # OS specific source files:

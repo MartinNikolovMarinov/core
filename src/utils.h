@@ -46,7 +46,7 @@ CORE_API_EXPORT global_assert_handler_ptr get_global_assert_handler();
     template <class F> deferrer<F> operator*(core::defer_dummy, F f) { return {f}; }
     #define DEFER_(LINE) zz_defer##LINE
     #define DEFER(LINE) DEFER_(LINE)
-    #define defer auto DEFER(__LINE__) = core::deferDummy{} *[&]()
+    #define defer auto DEFER(__LINE__) = core::defer_dummy{} *[&]()
 #endif
 
 // Move and forward implementations copied from the standard library:

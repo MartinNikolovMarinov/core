@@ -91,7 +91,7 @@ private:
 };
 
 #define Check(expr) (expr).check()
-#define ValueOrDie(expr) std::move(Check(expr).value())
+#define ValueOrDie(expr) core::move(Check(expr).value())
 
 #define ValueOrReturn(expr, v) {       \
     auto __ret = (expr);               \

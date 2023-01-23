@@ -12,9 +12,6 @@ namespace core {
 
 using namespace coretypes;
 
-// FIXME: Think about the iterator response. It should be some global enum, but are the values reasonable?
-enum CORE_API_EXPORT iter_response { ReadBeforeBegin, ReadPastEnd };
-
 template<typename T, typename TAllocator>
 struct CORE_API_EXPORT arr {
     using data_type      = T;
@@ -87,23 +84,6 @@ struct CORE_API_EXPORT arr {
         m_data = newData;
         m_cap = newCap;
     }
-
-    // FIXME: the iterator implementation might need a bit more though put into it.
-    struct iter {
-        size_type idx;
-        arr* array;
-        core::expected<data_type*, core::iter_response> next() {
-            if (idx >= array->len()) return core::unexpected(core::iter_response::ReadPastEnd);
-            return &array->m_data[idx++];
-        }
-        core::expected<data_type*, core::iter_response> prev() {
-            if (idx <= 0) return core::unexpected(core::iter_response::ReadBeforeBegin);
-            return &array->m_data[idx--];
-        }
-    };
-
-    constexpr iter begin() { return iter{0, this}; }
-    constexpr iter end()   { return iter{m_len, this}; }
 
 private:
     data_type *m_data;

@@ -1,5 +1,3 @@
-// FIXME: Test iterator logic once it is trough trough and finished.
-
 template<typename TAllocator>
 void initialize_arr() {
     core::arr<i32, TAllocator> arr;

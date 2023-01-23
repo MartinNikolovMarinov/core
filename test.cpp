@@ -22,7 +22,7 @@ using namespace coretypes;
 // FIXME: write this in a proper test.
 // FIXME: Test with empty files. There seems to be some issue that.
 void tmp_file_test() {
-    using file = core::file<std_allocator_static>;
+    using file = core::file<core::FS_DEFAULT_BLOCK_SIZE>;
 
     file f;
     // defer { Check(f2.close()); }; // this will fail because f2 might have already deleted the file.

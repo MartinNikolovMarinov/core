@@ -7,6 +7,7 @@
 #include <mem.h>
 
 // FIXME: Check the asm that the arr code generates. It should be a very cheap abstraction if it's done right.
+// FIXME: I need some better way of specifing a default allocator for the array type.
 
 namespace core {
 

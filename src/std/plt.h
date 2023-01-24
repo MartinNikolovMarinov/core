@@ -29,10 +29,20 @@ struct CORE_API_EXPORT file_desc {
 };
 
 CORE_API_EXPORT expected<file_desc, plt_err_code> os_open(const char* path, u64 flag, u64 mode);
-CORE_API_EXPORT expected<plt_err_code>            os_read(file_desc fd, void* buf, u64 size, i64& bytesRead);
-CORE_API_EXPORT expected<plt_err_code>            os_write(file_desc fd, const void* buf, u64 size, i64& bytesWritten);
-CORE_API_EXPORT expected<plt_err_code>            os_close(file_desc fd);
-CORE_API_EXPORT expected<plt_err_code>            os_rmfile(const char* path);
-CORE_API_EXPORT expected<plt_err_code>            os_rmdir(const char* path);
+/**
+ * @brief This function reads from a given file descriptor and stores the read data in the buffer.
+ *        If bytesRead equal to 0 means "end of file".
+ *
+ * @param fd The file descriptor.
+ * @param buf The buffer to use for storage.
+ * @param size The size of the data to read.
+ * @param bytesRead The size of the data that was read.
+ * @return The result of the read operation.
+ */
+CORE_API_EXPORT expected<plt_err_code> os_read(file_desc fd, void* buf, u64 size, i64& bytesRead);
+CORE_API_EXPORT expected<plt_err_code> os_write(file_desc fd, const void* buf, u64 size, i64& bytesWritten);
+CORE_API_EXPORT expected<plt_err_code> os_close(file_desc fd);
+CORE_API_EXPORT expected<plt_err_code> os_rmfile(const char* path);
+CORE_API_EXPORT expected<plt_err_code> os_rmdir(const char* path);
 
 } // namespace core

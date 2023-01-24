@@ -22,6 +22,10 @@
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
+                },
+                {
+                    "description": "Skip std",
+                    "text": "-interpreter-exec console \"skip -rfu ^std::\"" // Skip everything in std
                 }
             ],
             "preLaunchTask": "Build with Makefile",

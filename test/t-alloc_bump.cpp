@@ -43,4 +43,6 @@ void run_bump_allocator_tests_suite() {
     bump_allocator_static<254>::clear();
     RunTest(append_arr<bump_allocator_static<254>>);
     bump_allocator_static<254>::clear();
+    RunTest(move_and_copy_arr<bump_allocator_static<254>>);
+    bump_allocator_static<254>::clear();
 }

@@ -84,6 +84,13 @@ std_stats_allocator::std_stats_allocator(on_oom_fp cb)
     : m_oomCb(cb)
     , m_allocatedBlocks(new details::allocated_block_list()) {}
 
+std_stats_allocator::~std_stats_allocator() {
+    clear();
+    if (m_allocatedBlocks) {
+        delete m_allocatedBlocks;
+    }
+}
+
 void* std_stats_allocator::alloc(ptr_size size) noexcept {
     using details::alloced_block;
 

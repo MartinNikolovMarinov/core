@@ -19,6 +19,7 @@ void basic_std_allocator_case() {
     Assert(ts != nullptr);
     Assert(ts->a == 42);
     Assert(ts->b == 0.1f);
+    stdAlloc.free(ts);
 }
 
 void on_oom_std_allocator() {
@@ -96,5 +97,7 @@ void run_std_allocator_tests_suite() {
     RunTest(fill_arr<std_allocator_static>);
     Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
     RunTest(append_arr<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+    RunTest(move_and_copy_arr<std_allocator_static>);
     Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
 }

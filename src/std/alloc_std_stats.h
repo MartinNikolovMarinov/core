@@ -18,6 +18,7 @@ struct CORE_API_EXPORT std_stats_allocator {
     static constexpr const char* allocator_name() { return "standard library allocator"; }
 
     std_stats_allocator(on_oom_fp cb = defaultOOMfp);
+    ~std_stats_allocator();
 
     // no copy
     std_stats_allocator(const std_stats_allocator&) = delete;

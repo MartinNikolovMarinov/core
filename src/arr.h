@@ -29,7 +29,31 @@ struct CORE_API_EXPORT arr {
         Assert(m_data != nullptr);
         Assert(m_cap >= m_len);
     }
+    constexpr arr(const arr& other) : m_cap(other.m_cap), m_len(other.m_len) {
+        m_data = reinterpret_cast<data_type *>(allocator_type::alloc(m_cap * sizeof(data_type)));
+        Assert(m_data != nullptr);
+        core::memcopy(m_data, other.m_data, m_len * sizeof(data_type));
+    }
+    constexpr arr(arr&& other) : m_data(other.m_data), m_cap(other.m_cap), m_len(other.m_len) {
+        other.m_data = nullptr;
+        other.m_cap = 0;
+        other.m_len = 0;
+    }
     ~arr() { free(); }
+
+    // Ensist on move for equals operator. Prevent coping unintentionally using = !
+    constexpr arr& operator=(const arr& other) = delete;
+    constexpr arr& operator=(arr&& other) {
+        if (this == &other) return *this;
+        free(); // very important to free before assigning new data.
+        m_data = other.m_data;
+        m_cap = other.m_cap;
+        m_len = other.m_len;
+        other.m_data = nullptr;
+        other.m_cap = 0;
+        other.m_len = 0;
+        return *this;
+    }
 
     constexpr const char* allocator_name() const { return allocator_type::allocator_name(); }
     constexpr size_type   cap()            const { return m_cap; }
@@ -37,6 +61,11 @@ struct CORE_API_EXPORT arr {
     constexpr data_type*  data()           const { return m_data; }
     constexpr bool        empty()          const { return m_len == 0; }
     constexpr void        clear()                { m_len = 0; }
+
+    constexpr arr<T, TAllocator> copy() {
+        arr<T, TAllocator> result(*this);
+        return result;
+    }
 
     constexpr void free() {
         if (m_data == nullptr) return;
@@ -65,10 +94,10 @@ struct CORE_API_EXPORT arr {
     }
 
     constexpr void resize(size_type newCap) {
-        if (newCap == 0) {
-            free();
-            return;
-        }
+        // if (newCap == 0) {
+        //     free();
+        //     return;
+        // }
         if (newCap <= m_cap) {
             m_len = m_len > newCap ? newCap : m_len;
             m_cap = newCap;

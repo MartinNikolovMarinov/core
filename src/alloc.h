@@ -56,4 +56,9 @@ const char* CORE_API_EXPORT allocator_name() noexcept {
     return A::allocator_name();
 }
 
+/**
+ * @brief This macro should be overriden by the user to specify the default allocator to use.
+*/
+#define CORE_DEFAULT_ALLOCATOR() void
+
 } // namespace core

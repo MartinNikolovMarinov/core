@@ -7,13 +7,12 @@
 #include <mem.h>
 
 // FIXME: Check the asm that the arr code generates. It should be a very cheap abstraction if it's done right.
-// FIXME: I need some better way of specifing a default allocator for the array type.
 
 namespace core {
 
 using namespace coretypes;
 
-template<typename T, typename TAllocator>
+template<typename T, typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
 struct CORE_API_EXPORT arr {
     using data_type      = T;
     using size_type      = ptr_size;
@@ -94,10 +93,6 @@ struct CORE_API_EXPORT arr {
     }
 
     constexpr void resize(size_type newCap) {
-        // if (newCap == 0) {
-        //     free();
-        //     return;
-        // }
         if (newCap <= m_cap) {
             m_len = m_len > newCap ? newCap : m_len;
             m_cap = newCap;

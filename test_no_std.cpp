@@ -25,28 +25,30 @@ void write_line(const char* data) {
     if (ret <= 0) OS_exit(1);
 }
 
-#define RunTest(test, ...)                         \
-    write_line("\t[TEST RUNNING] ");               \
-    write_line(#test);                             \
-    write_line("\n");                              \
-    test(__VA_ARGS__);                             \
-    write_line("\t[TEST \x1b[32mPASSED\x1b[0m] "); \
-    write_line(#test);                             \
+#define RunTest(test, ...)                                       \
+    write_line("\t[TEST RUNNING] ");                             \
+    write_line(ANSI_BOLD(#test));                                \
+    write_line("\n");                                            \
+    test(__VA_ARGS__);                                           \
+    write_line("\t[TEST " ANSI_BOLD(ANSI_GREEN("PASSED")) "] "); \
+    write_line(ANSI_BOLD(#test));                                \
     write_line("\n");
 
-#define RunTestSuite(suite, ...)                  \
-    write_line("[SUITE RUNNING] ");               \
-    write_line(#suite);                           \
-    write_line("\n");                             \
-    suite(__VA_ARGS__);                           \
-    write_line("[SUITE \x1b[32mPASSED\x1b[0m] "); \
-    write_line(#suite);                           \
+#define RunTestSuite(suite, ...)                                \
+    write_line("[SUITE RUNNING] ");                             \
+    write_line(ANSI_BOLD(#suite));                              \
+    write_line("\n");                                           \
+    suite(__VA_ARGS__);                                         \
+    write_line("[SUITE " ANSI_BOLD(ANSI_GREEN("PASSED")) "] "); \
+    write_line(ANSI_BOLD(#suite));                              \
     write_line("\n");
 
 #include "test/run_tests.cpp"
 
 i32 main(i32, const char**, const char**) {
      core::set_global_assert_handler([](const char* failedExpr, const char* file, i32 line, const char* errMsg) {
+        write_line(ANSI_RED_START());
+        write_line(ANSI_BOLD_START());
         write_line("[ASSERTION] [EXPR]: ");
         write_line(failedExpr);
         write_line(" [FILE]: ");
@@ -59,7 +61,8 @@ i32 main(i32, const char**, const char**) {
         write_line(" [MSG]: ");
         write_line(errMsg);
         write_line("\n");
-        return false;
+        write_line(ANSI_RESET());
+        return true;
     });
 
     if (COMPILER_CLANG == 1)   { write_line("[COMPILER] COMPILER_CLANG\n"); }
@@ -76,6 +79,7 @@ i32 main(i32, const char**, const char**) {
     run_all_tests();
 
     write_line("\n");
-    write_line("\x1b[32m\x1b[1mTests OK\x1b[0m\n");
+    write_line(ANSI_BOLD(ANSI_GREEN("Tests OK")));
+    write_line("\n");
     return 0;
 }

@@ -65,6 +65,7 @@ set(src_files
     alloc.h
     arr.h
     alloc_bump.h
+    ansi_escape_codes.h
 
     std/core.h
     std/alloc_std_stats.cpp

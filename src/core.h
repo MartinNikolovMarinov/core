@@ -6,6 +6,7 @@
 
 #include "alloc_bump.h"
 #include "alloc.h"
+#include "ansi_escape_codes.h"
 #include "arr.h"
 #include "bits.h"
 #include "char_ptr.h"

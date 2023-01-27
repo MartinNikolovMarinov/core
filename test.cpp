@@ -4,26 +4,28 @@
 
 using namespace coretypes;
 
-#define RunTest(test, ...)                                                  \
-    std::cout << "\t[TEST RUNNING] " << #test << '\n';                      \
-    test(__VA_ARGS__);                                                      \
-    std::cout << "\t[TEST \x1b[32mPASSED\x1b[0m] " << #test << std::endl;
+#define RunTest(test, ...)                                                                               \
+    std::cout << "\t[TEST RUNNING] " << ANSI_BOLD(#test) << '\n';                                        \
+    test(__VA_ARGS__);                                                                                   \
+    std::cout << "\t[TEST " << ANSI_BOLD(ANSI_GREEN("PASSED")) << "] " << ANSI_BOLD(#test) << std::endl;
 
-#define RunTestSuite(suite, ...)                                            \
-    std::cout << "[SUITE RUNNING] " << #suite << std::endl;                 \
-    suite(__VA_ARGS__);                                                     \
-    std::cout << "[SUITE \x1b[32mPASSED\x1b[0m] " << #suite << std::endl;
+#define RunTestSuite(suite, ...)                                                                         \
+    std::cout << "[SUITE RUNNING] " << ANSI_BOLD(#suite) << std::endl;                                   \
+    suite(__VA_ARGS__);                                                                                  \
+    std::cout << "[SUITE " << ANSI_BOLD(ANSI_GREEN("PASSED")) << "] " << ANSI_BOLD(#suite) << std::endl;
 
 #include "test/run_tests.cpp"
 #include "test/std/run_tests.cpp"
 
 i32 main(i32, const char **) {
     core::set_global_assert_handler([](const char* failedExpr, const char* file, i32 line, const char* errMsg) {
-        std::cout << "[ASSERTION] [EXPR]: " << failedExpr
-                << " [FILE]: " << file
-                << " [LINE]: " << line
-                << " [MSG]: " << errMsg
-                << std::endl; // flush stream!
+        std::cout << ANSI_RED_START() << ANSI_BOLD_START()
+                  << "[ASSERTION] [EXPR]: " << failedExpr
+                  << " [FILE]: " << file
+                  << " [LINE]: " << line
+                  << " [MSG]: " << errMsg
+                  << ANSI_RESET()
+                  << std::endl; // flush stream!
         throw std::runtime_error("Assertion failed!");
         return false;
     });
@@ -46,6 +48,6 @@ i32 main(i32, const char **) {
     run_all_std_tests();
 
     std::cout << '\n';
-    std::cout << "\x1b[32m\x1b[1mTests OK\x1b[0m\n";
+    std::cout << ANSI_BOLD(ANSI_GREEN("Tests OK")) << std::endl;
     return 0;
 }

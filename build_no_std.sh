@@ -10,6 +10,7 @@ INCLUDES="-I $(pwd)/src"
 
 echo -e "Compiling the following files: $(ls $SRC)\n"
 
+# NOTE: Add the -g options and set the optiomization level to -O0 to debug the code!
 g++ -DCORE_DEBUG=1 \
 -nostdlib -O2 -std=c++17 -ffreestanding -fno-exceptions \
 -Wall -Wno-unknown-pragmas -Wno-unused \

@@ -13,6 +13,8 @@ add_executable(${PROJECT_NAME}
 
     keyboard.h
     keyboard.cpp
+    mouse.h
+    mouse.cpp
 )
 
 # Compilation options:

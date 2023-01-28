@@ -195,6 +195,19 @@ key_info key_info::create_from_glfw(i32 key, i32 scancode, i32 action) {
     return info;
 }
 
+
+bool key_info::is_pressed() {
+    return action.type == keyboard_action::Type::KEY_PRESS;
+}
+
+bool key_info::is_release() {
+    return action.type == keyboard_action::Type::KEY_RELEASE;
+}
+
+bool key_info::is_repeat() {
+    return action.type == keyboard_action::Type::KEY_REPEAT;
+}
+
 std::string key_info::to_string() {
     std::string result = "key_info: { ";
     result += "value: " + std::to_string(value) + ", ";
@@ -231,23 +244,33 @@ core::rune& keyboard::get_text_input() {
     return textInput;
 }
 
+void keyboard::clear() {
+    // Keys that were released last frame are unset this frame.
+    for (i32 i = 0; i < GLFW_KEY_LAST; i++) {
+        if (keys[i].is_release()) {
+            keys[i].action.type = keyboard_action::Type::NONE;
+        }
+    }
+    // There is exactly one utf-8 rune as text input per frame, so clear it ant wait for the next one.
+    textInput = core::rune{0};
+}
+
 std::string keyboard::to_string() {
     std::string result = "Keyboard: { ";
     result += "keys: [ ";
     for (i32 i = 0; i < GLFW_KEY_LAST; i++) {
-        if (keys[i].action.type == keyboard_action::Type::KEY_PRESS ||
-            keys[i].action.type == keyboard_action::Type::KEY_REPEAT
-        ) {
+        if (keys[i].action.type != keyboard_action::Type::NONE) {
             result += keys[i].to_string();
             if (i != GLFW_KEY_LAST - 1) result += ", ";
         }
     }
     result += " ], ";
     result += "modifiers: " + std::string(modifiers.to_cptr()) + ", ";
-    uchar uftChar[4];
-    core::rune_to_bytes(textInput, uftChar);
-    result += "textInput: " + std::string((char*)uftChar);
+    char utfChar[4];
+    core::rune_to_bytes(textInput, (uchar*)utfChar);
+    result += "textInput: " + std::string(utfChar);
     result += " }";
+    result += '\n';
     return result;
 }
 

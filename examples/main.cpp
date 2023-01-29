@@ -1,15 +1,7 @@
-#include "keyboard.h"
-#include "mouse.h"
-
-#include <core.h>
-#include <std/core.h>
-
-#include <GLFW/glfw3.h>
+#include "unity_build.h"
 
 #include <iostream>
 #include <chrono>
-
-using namespace coretypes;
 
 // GLOBAL STATE:
 static keyboard g_keyboard;
@@ -22,20 +14,25 @@ static std::chrono::time_point<std::chrono::high_resolution_clock> g_lastWindowD
 
 i32 main() {
     if (!glfwInit()) {
-        std::cout << "Failed to initialize GLFW" << std::endl;
+        std::cerr << "Failed to initialize GLFW" << std::endl;
         return -1;
     }
+    defer { glfwTerminate(); };
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow* window = glfwCreateWindow(800, 600, "Example Window", nullptr, nullptr);
     if (!window) {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
+        std::cerr << "Failed to create GLFW window" << std::endl;
         return -1;
     }
     glfwMakeContextCurrent(window);
+
+    if (auto err = glewInit(); err != GLEW_OK) {
+        std::cerr << "Failed to initialize GLEW reason: " << glewGetErrorString(err) << std::endl;
+        return -1;
+    }
 
     glfwSetInputMode(window, GLFW_LOCK_KEY_MODS, GLFW_TRUE);
 
@@ -170,6 +167,5 @@ i32 main() {
         }
     }
 
-    glfwTerminate();
     return 0;
 }

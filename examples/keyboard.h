@@ -1,10 +1,8 @@
 #pragma once
 
-#include <core.h>
-
-#include <GLFW/glfw3.h>
-
 #include <string>
+
+#include <core.h>
 
 using namespace coretypes;
 

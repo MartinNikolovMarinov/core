@@ -14,11 +14,11 @@ template<i32 Dim, typename T> struct vec;
 template<typename TDst, i32 Dim, typename TSrc>
 constexpr void vadd(vec<Dim, TDst>& dst, const TSrc& src) {
     if constexpr (std::is_arithmetic_v<TSrc>) {
-        for (i32 i = 0; i < dst.size(); ++i) {
+        for (i32 i = 0; i < dst.dimmentions(); ++i) {
             dst[i] += static_cast<TDst>(src);
         }
     } else {
-        for (i32 i = 0; i < dst.size(); ++i) {
+        for (i32 i = 0; i < dst.dimmentions(); ++i) {
             dst[i] += static_cast<TDst>(src[i]);
         }
     }
@@ -27,11 +27,11 @@ constexpr void vadd(vec<Dim, TDst>& dst, const TSrc& src) {
 template<typename TDst, i32 Dim, typename TSrc>
 constexpr void vsub(vec<Dim, TDst>& dst, const TSrc& src) {
     if constexpr (std::is_arithmetic_v<TSrc>) {
-        for (i32 i = 0; i < dst.size(); ++i) {
+        for (i32 i = 0; i < dst.dimmentions(); ++i) {
             dst[i] -= static_cast<TDst>(src);
         }
     } else {
-        for (i32 i = 0; i < dst.size(); ++i) {
+        for (i32 i = 0; i < dst.dimmentions(); ++i) {
             dst[i] -= static_cast<TDst>(src[i]);
         }
     }
@@ -40,11 +40,11 @@ constexpr void vsub(vec<Dim, TDst>& dst, const TSrc& src) {
 template<typename TDst, i32 Dim, typename TSrc>
 constexpr void vmul(vec<Dim, TDst>& dst, const TSrc& src) {
     if constexpr (std::is_arithmetic_v<TSrc>) {
-        for (i32 i = 0; i < dst.size(); ++i) {
+        for (i32 i = 0; i < dst.dimmentions(); ++i) {
             dst[i] *= static_cast<TDst>(src);
         }
     } else {
-        for (i32 i = 0; i < dst.size(); ++i) {
+        for (i32 i = 0; i < dst.dimmentions(); ++i) {
             dst[i] *= static_cast<TDst>(src[i]);
         }
     }
@@ -53,12 +53,12 @@ constexpr void vmul(vec<Dim, TDst>& dst, const TSrc& src) {
 template<typename TDst, i32 Dim, typename TSrc>
 constexpr void vdiv(vec<Dim, TDst>& dst, const TSrc& src) {
     if constexpr (std::is_arithmetic_v<TSrc>) {
-        for (i32 i = 0; i < dst.size(); ++i) {
+        for (i32 i = 0; i < dst.dimmentions(); ++i) {
             Assert(static_cast<TDst>(src) != 0, "Division by zero"); // TODO: this assert is costly. Should have an assert that only runs in debug mode.
             dst[i] /= static_cast<TDst>(src);
         }
     } else {
-        for (i32 i = 0; i < dst.size(); ++i) {
+        for (i32 i = 0; i < dst.dimmentions(); ++i) {
             Assert(static_cast<TDst>(src[i]) != 0, "Division by zero"); // TODO: this assert is costly. Should have an assert that only runs in debug mode.
             dst[i] /= static_cast<TDst>(src[i]);
         }
@@ -68,7 +68,7 @@ constexpr void vdiv(vec<Dim, TDst>& dst, const TSrc& src) {
 template<typename T, i32 Dim>
 constexpr f64 vlength(const vec<Dim, T>& v) {
     f64 ret = 0;
-    for (i32 i = 0; i < v.size(); ++i) {
+    for (i32 i = 0; i < v.dimmentions(); ++i) {
         ret += static_cast<f64>(v[i]) * static_cast<f64>(v[i]);
     }
     ret = std::sqrt(ret);
@@ -77,7 +77,7 @@ constexpr f64 vlength(const vec<Dim, T>& v) {
 
 template<typename T, i32 Dim>
 constexpr void vnegate(vec<Dim, T>& v) {
-    for (i32 i = 0; i < v.size(); ++i) {
+    for (i32 i = 0; i < v.dimmentions(); ++i) {
         v[i] = -v[i];
     }
 }
@@ -85,7 +85,7 @@ constexpr void vnegate(vec<Dim, T>& v) {
 template<typename T1, typename T2, i32 Dim>
 constexpr f64 vdot(const vec<Dim, T1>& v1, const vec<Dim, T2>& v2) {
     f64 ret = 0;
-    for (i32 i = 0; i < v1.size(); ++i) {
+    for (i32 i = 0; i < v1.dimmentions(); ++i) {
         ret += v1[i] * static_cast<T1>(v2[i]);
     }
     return ret;
@@ -94,16 +94,16 @@ constexpr f64 vdot(const vec<Dim, T1>& v1, const vec<Dim, T2>& v2) {
 template<typename T1, typename T2, i32 Dim>
 constexpr vec<Dim, T1> vcross(const vec<Dim, T1>& v1, const vec<Dim, T2>& v2) {
     vec<Dim, T1> ret;
-    for (i32 i = 0; i < v1.size(); ++i) {
-        ret[i] = v1[(i + 1) % v1.size()] * v2[(i + 2) % v1.size()] -
-                 v1[(i + 2) % v1.size()] * v2[(i + 1) % v1.size()];
+    for (i32 i = 0; i < v1.dimmentions(); ++i) {
+        ret[i] = v1[(i + 1) % v1.dimmentions()] * v2[(i + 2) % v1.dimmentions()] -
+                 v1[(i + 2) % v1.dimmentions()] * v2[(i + 1) % v1.dimmentions()];
     }
     return ret;
 }
 
 template<typename T1, typename T2, i32 Dim>
 constexpr bool vequals(const vec<Dim, T1>& v1, const vec<Dim, T2>& v2) {
-    for (i32 i = 0; i < v1.size(); ++i) {
+    for (i32 i = 0; i < v1.dimmentions(); ++i) {
         if (v1[i] != static_cast<T1>(v2[i])) return false;
     }
     return true;
@@ -111,7 +111,7 @@ constexpr bool vequals(const vec<Dim, T1>& v1, const vec<Dim, T2>& v2) {
 
 template<typename T1, typename T2, i32 Dim>
 constexpr bool vsafeequals(const vec<Dim, T1>& v1, const vec<Dim, T2>& v2, T1 epsilon) {
-    for (i32 i = 0; i < v1.size(); ++i) {
+    for (i32 i = 0; i < v1.dimmentions(); ++i) {
         if (std::abs(v1[i] - static_cast<T1>(v2[i])) > epsilon) return false;
     }
     return true;
@@ -122,7 +122,7 @@ constexpr vec<Dim, T> vnorm(const vec<Dim, T>& v) {
     f64 len = vlength(v);
     if (len == 0) return v.zero();
     vec<Dim, T> ret = v;
-    for (i32 i = 0; i < v.size(); ++i) {
+    for (i32 i = 0; i < v.dimmentions(); ++i) {
         ret[i] /= static_cast<T>(len);
     }
     return ret;
@@ -133,6 +133,8 @@ struct vec {
     static_assert(std::is_trivial_v<T>, "T must be trivial");
     static_assert(std::is_arithmetic_v<T>, "T must be arithmetic type");
     static_assert(Dim > 0, "Dim must be greater than 0");
+
+    static constexpr i32 dimmentions() { return Dim; }
 
     T data[Dim] = {};
 
@@ -177,8 +179,6 @@ struct vec {
     template<i32 D = Dim, typename std::enable_if<(D > 2), i32>::type = 0> constexpr T b() { return data[2]; }
     template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr T w() { return data[3]; }
     template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr T a() { return data[3]; }
-
-    constexpr i32 size() const { return Dim; }
 
     constexpr T& operator[](i32 i) {
         Assert(i >= 0 && i < Dim, "Index out of bounds");

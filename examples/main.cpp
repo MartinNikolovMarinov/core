@@ -53,7 +53,8 @@ struct Mesh {
         u32 vbo;
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, m.m_vertices.len() * sizeof(f32) * 3, nullptr, vl.usage.usage_Gl());
+        auto bufferDataSize = m.m_vertices.len() * sizeof(core::vec2f);
+        glBufferData(GL_ARRAY_BUFFER, bufferDataSize, m.m_vertices.data(), vl.usage.usage_Gl());
         return m;
     }
 
@@ -266,7 +267,7 @@ void prepare_state_for_next_frame() {
 
     // Clear the screen:
     auto& cc = g_appState.clearColor;
-    glClearColor(cc.r(), cc.g(), cc.b(), cc.a());
+    glClearColor(cc.r(), cc.g(), cc.b(), cc.a()); // TODO: don't set this on every frame.
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
@@ -314,23 +315,31 @@ i32 main() {
 
     // TODO: Vertices are in clip space coordinates, aka. normalized device coordinates (NDC).
     //       Vertex points should be stored in UI space or whatever space the UI is in.
-    core::arr<core::vec2f> exampleTriangleVertices(3);
+    core::arr<core::vec2f> exampleTriangleVertices(0, 3);
     exampleTriangleVertices.append(core::v(-0.5f, -0.5f))
                            .append(core::v( 0.5f, -0.5f))
                            .append(core::v( 0.0f,  0.5f));
     Mesh::Usage usage = { Mesh::Usage::Access::STATIC, Mesh::Usage::AccessType::DRAW };
     Mesh::VertexLayout vl = { 0, 0, usage };
     auto mesh = Mesh::create(core::move(vl), core::move(exampleTriangleVertices));
+    mesh.bind();
+
+    // Linking vertex attributes:
+    constexpr ptr_size stride = sizeof(core::vec2f);
+    glVertexAttribPointer(0, core::vec2f::dimmentions(), GL_FLOAT, GL_FALSE, stride, (void*)0);
+    glEnableVertexAttribArray(0);
 
     while(!glfwWindowShouldClose(window)) {
-        if (should_render()) {
-            program.use();
-            mesh.bind();
-
-            glfwSwapBuffers(window);
-        }
-
         prepare_state_for_next_frame();
+
+        // TODO: temporary comment out the should render check.
+        // if (should_render()) {
+        program.use();
+        mesh.bind();
+        glDrawArrays(GL_TRIANGLES, 0, mesh.vertex_count());
+        // }
+
+        glfwSwapBuffers(window);
 
         // Poll/Wait events:
         // glfwPollEvents();

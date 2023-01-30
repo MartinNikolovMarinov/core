@@ -11,6 +11,12 @@ void initialize_arr() {
     Assert(arr2.cap() == 10);
     Assert(arr2.data() != nullptr);
     Assert(!arr2.empty());
+
+    core::arr<i32, TAllocator> arr3(10, 20);
+    Assert(arr3.len() == 10);
+    Assert(arr3.cap() == 20);
+    Assert(arr3.data() != nullptr);
+    Assert(!arr3.empty());
 }
 
 template<typename TAllocator>

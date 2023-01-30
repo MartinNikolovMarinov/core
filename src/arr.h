@@ -23,7 +23,7 @@ struct CORE_API_EXPORT arr {
         m_data = reinterpret_cast<data_type *>(allocator_type::alloc(m_cap * sizeof(data_type)));
         Assert(m_data != nullptr);
     }
-    constexpr arr(size_type cap, size_type len) : m_cap(cap), m_len(len) {
+    constexpr arr(size_type len, size_type cap) : m_cap(cap), m_len(len) {
         m_data = reinterpret_cast<data_type *>(allocator_type::alloc(m_cap * sizeof(data_type)));
         Assert(m_data != nullptr);
         Assert(m_cap >= m_len);

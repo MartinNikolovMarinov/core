@@ -1,0 +1,3 @@
+[submodule "examples/lib/fmt"]
+	path = examples/lib/fmt
+	url = https://github.com/fmtlib/fmt.git

@@ -27,6 +27,11 @@ else()
     message(FATAL_ERROR "Unsupported compiler!")
 endif()
 
+# fmt library:
+target_link_libraries(${PROJECT_NAME} PRIVATE fmt)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/fmt)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lib/fmt/include)
+
 # OPENGL:
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
@@ -36,7 +41,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${OPENGL_INCLUDE_DIRS})
 
 # Glew:
 find_package(GLEW REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${GLEW_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${GLEW_LIBRARIES})
 message(STATUS "[SANDBOX] Linking with GLEW: ${GLEW_LIBRARIES}")
 target_include_directories(${PROJECT_NAME} PRIVATE ${GLEW_INCLUDE_DIRS})
 

@@ -3,6 +3,83 @@
 #include <iostream>
 #include <chrono>
 
+struct Mesh {
+    struct Usage {
+        enum Access : u32 {
+            STATIC = 0,
+            DYNAMIC = 1,
+            STREAM = 2,
+        };
+        enum AccessType : u32 {
+            DRAW = 0,
+            READ = 1,
+            COPY = 2,
+        };
+
+        Access a;
+        AccessType t;
+
+        u32 usage_Gl() const {
+            u32 ret = -1;
+            if (a == Access::STATIC) {
+                if (t == AccessType::DRAW) ret = GL_STATIC_DRAW;
+                if (t == AccessType::READ) ret = GL_STATIC_READ;
+                if (t == AccessType::COPY) ret = GL_STATIC_COPY;
+            }
+            if (a == Access::DYNAMIC) {
+                if (t == AccessType::DRAW) ret = GL_DYNAMIC_DRAW;
+                if (t == AccessType::READ) ret = GL_DYNAMIC_READ;
+                if (t == AccessType::COPY) ret = GL_DYNAMIC_COPY;
+            }
+            if (a == Access::STREAM) {
+                if (t == AccessType::DRAW) ret = GL_STREAM_DRAW;
+                if (t == AccessType::READ) ret = GL_STREAM_READ;
+                if (t == AccessType::COPY) ret = GL_STREAM_COPY;
+            }
+            return ret;
+        }
+    };
+
+    struct VertexLayout {
+        u32 stride;
+        u32 offset;
+        Usage usage;
+    };
+
+    static Mesh create(const Mesh::VertexLayout& vl, core::arr<core::vec2f>&& vertices) {
+        Mesh m;
+        m.m_vertices = core::move(vertices);
+
+        u32 vbo;
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, m.m_vertices.len() * sizeof(f32) * 3, nullptr, vl.usage.usage_Gl());
+        return m;
+    }
+
+    void destroy() const {
+        glDeleteBuffers(1, &m_vboId);
+    }
+
+    i32 vertex_count() const {
+        return m_vertices.len();
+    }
+
+    void bind() const {
+        static u32 lastBoundVboId = 0; // cash the last bound vbo.
+        if (lastBoundVboId == m_vboId) return;
+        glBindBuffer(GL_ARRAY_BUFFER, m_vboId);
+        lastBoundVboId = m_vboId;
+    }
+
+private:
+    // TODO: Do I actually need to store indices in the mesh when I will only render in 2d?
+    //       Is this struct a mesh if it has not indices or normals? Kinda looks like a vertex buffer.
+    //       Should I even be storing the vertices in this struct, or should I just store the vbo id?
+    core::arr<core::vec2f> m_vertices;
+    u32 m_vboId;
+};
+
 enum app_exit_codes : i32 {
     APP_EXIT_SUCCESS = 0,
     APP_EXIT_FAILED_TO_INIT = -1,
@@ -194,6 +271,8 @@ void prepare_state_for_next_frame() {
 }
 
 i32 main() {
+    init_core();
+
     g_appState = {}; // Zero out the global state.
     g_appState.windowStateChange = true; // Force a render on the first frame.
     g_appState.windowWidth = 800;
@@ -214,8 +293,40 @@ i32 main() {
         return APP_EXIT_FAILED_TO_INIT;
     }
 
+    // Create opengl program:
+    const char* vertexShaderSource = R"(
+        #version 330 core
+        layout (location = 0) in vec3 aPos;
+
+        void main() {
+            gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+        }
+    )";
+    const char* fragmentShaderSource = R"(
+        #version 330 core
+        out vec4 FragColor;
+
+        void main() {
+            FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+        }
+    )";
+    ShaderProg program = ValueOrDie(ShaderProg::create(vertexShaderSource, fragmentShaderSource));
+
+    // TODO: Vertices are in clip space coordinates, aka. normalized device coordinates (NDC).
+    //       Vertex points should be stored in UI space or whatever space the UI is in.
+    core::arr<core::vec2f> exampleTriangleVertices(3);
+    exampleTriangleVertices.append(core::v(-0.5f, -0.5f))
+                           .append(core::v( 0.5f, -0.5f))
+                           .append(core::v( 0.0f,  0.5f));
+    Mesh::Usage usage = { Mesh::Usage::Access::STATIC, Mesh::Usage::AccessType::DRAW };
+    Mesh::VertexLayout vl = { 0, 0, usage };
+    auto mesh = Mesh::create(core::move(vl), core::move(exampleTriangleVertices));
+
     while(!glfwWindowShouldClose(window)) {
         if (should_render()) {
+            program.use();
+            mesh.bind();
+
             glfwSwapBuffers(window);
         }
 

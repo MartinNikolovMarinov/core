@@ -169,14 +169,14 @@ struct vec {
         return ret;
     }
 
-    template<i32 D = Dim, typename std::enable_if<(D > 0), int>::type = 0> constexpr T x() { return data[0]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 0), int>::type = 0> constexpr T r() { return data[0]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 1), int>::type = 0> constexpr T y() { return data[1]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 1), int>::type = 0> constexpr T g() { return data[1]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 2), int>::type = 0> constexpr T z() { return data[2]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 2), int>::type = 0> constexpr T b() { return data[2]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 3), int>::type = 0> constexpr T w() { return data[3]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 3), int>::type = 0> constexpr T a() { return data[3]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 0), i32>::type = 0> constexpr T x() { return data[0]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 0), i32>::type = 0> constexpr T r() { return data[0]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 1), i32>::type = 0> constexpr T y() { return data[1]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 1), i32>::type = 0> constexpr T g() { return data[1]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 2), i32>::type = 0> constexpr T z() { return data[2]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 2), i32>::type = 0> constexpr T b() { return data[2]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr T w() { return data[3]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr T a() { return data[3]; }
 
     constexpr i32 size() const { return Dim; }
 
@@ -242,9 +242,9 @@ struct vec {
     #pragma region overloads increment and decrement
 
     constexpr vec<Dim, T>& operator++()   { inc(); return *this; }
-    constexpr vec<Dim, T> operator++(int) { vec<Dim, T> ret = *this; inc(); return ret; }
+    constexpr vec<Dim, T> operator++(i32) { vec<Dim, T> ret = *this; inc(); return ret; }
     constexpr vec<Dim, T>& operator--()   { dec(); return *this; }
-    constexpr vec<Dim, T> operator--(int) { vec<Dim, T> ret = *this; dec(); return ret; }
+    constexpr vec<Dim, T> operator--(i32) { vec<Dim, T> ret = *this; dec(); return ret; }
 
     #pragma endregion
 
@@ -357,5 +357,25 @@ constexpr auto v(Args... args) {
 template<typename T> using vec2 = vec<2, T>;
 template<typename T> using vec3 = vec<3, T>;
 template<typename T> using vec4 = vec<4, T>;
+
+using vec2b = vec2<bool>;
+using vec3b = vec3<bool>;
+using vec4b = vec4<bool>;
+
+using vec2i = vec2<i32>;
+using vec3i = vec3<i32>;
+using vec4i = vec4<i32>;
+
+using vec2u = vec2<u32>;
+using vec3u = vec3<u32>;
+using vec4u = vec4<u32>;
+
+using vec2f = vec2<f32>;
+using vec3f = vec3<f32>;
+using vec4f = vec4<f32>;
+
+using vec2d = vec2<f64>;
+using vec3d = vec3<f64>;
+using vec4d = vec4<f64>;
 
 } // namespace core

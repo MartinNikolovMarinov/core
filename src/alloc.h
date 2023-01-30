@@ -58,7 +58,12 @@ const char* CORE_API_EXPORT allocator_name() noexcept {
 
 /**
  * @brief This macro should be overriden by the user to specify the default allocator to use.
+ *        If it is not overriden, the default template type for most data structures will fail to compile.
 */
-#define CORE_DEFAULT_ALLOCATOR() void
+#ifndef CORE_DEFAULT_ALLOCATOR
+    // TODO: raise a compiler warning if this is not overriden. Of course, that is not very trivial so just ignore this
+    //       for now.
+    #define CORE_DEFAULT_ALLOCATOR() void
+#endif
 
 } // namespace core

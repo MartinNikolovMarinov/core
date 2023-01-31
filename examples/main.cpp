@@ -1,6 +1,5 @@
 #include "unity_build.h"
 
-#include <iostream>
 #include <chrono>
 
 enum app_exit_codes : i32 {
@@ -25,7 +24,7 @@ static AppState g_appState;
 
 GLFWwindow* init_glfw_window(i32 width, i32 height, const char* title) {
     if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW" << std::endl;
+        fmt::print(stderr, "Failed to initialize GLFW\n");
         return nullptr;
     }
 
@@ -39,7 +38,7 @@ GLFWwindow* init_glfw_window(i32 width, i32 height, const char* title) {
 
     GLFWwindow* window = glfwCreateWindow(width, height, title, nullptr, nullptr);
     if (!window) {
-        std::cerr << "Failed to create GLFW window" << std::endl;
+        fmt::print(stderr, "Failed to create GLFW window\n");
         return nullptr;
     }
     glfwMakeContextCurrent(window);
@@ -58,7 +57,7 @@ void init_glfw_event_handlers(GLFWwindow* window) {
     // Error handler
 
     glfwSetErrorCallback([](i32, const char* description) {
-        std::cerr << "GLFW Error: " << description << std::endl;
+        fmt::print(stderr, "GLFW error: {}\n", description);
     });
 
     // Keyboard event handlers
@@ -111,10 +110,10 @@ void init_glfw_event_handlers(GLFWwindow* window) {
 
     glfwSetDropCallback(window, [](GLFWwindow*, i32 count, const char** paths) {
         // TODO: save this to the global state.
-        std::cout << "Dropped " << count << " files:" << '\n';
-        std::cout << "Paths:" << '\n';
+        fmt::print("Dropped {} files.\n", count);
+        fmt::print("Paths:\n");
         for (i32 i = 0; i < count; ++i) {
-            std::cout << paths[i] << std::endl;
+            fmt::print("  {}\n", paths[i]);
         }
         g_appState.mouseStateChange = true;
     });
@@ -122,7 +121,7 @@ void init_glfw_event_handlers(GLFWwindow* window) {
     // Window event handlers
 
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow*, i32 width, i32 height) {
-        std::cout << "Window Resize to: " << width << ", " << height << std::endl;
+        fmt::print("Window Resize to: {}, {}\n", width, height);
         g_appState.windowWidth = width;
         g_appState.windowHeight = height;
         glViewport(0, 0, width, height);
@@ -134,35 +133,35 @@ void init_glfw_event_handlers(GLFWwindow* window) {
         auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(now - g_appState.lastWindowDragTime);
         if (diff.count() > 50) {
             // Throttle window drag events to avoid spam rendering.
-            std::cout << "Window dragged to: " << xpos << ", " << ypos << std::endl;
+            fmt::print("Window dragged to: {}, {}\n", xpos, ypos);
             g_appState.lastWindowDragTime = std::chrono::high_resolution_clock::now();
             g_appState.windowStateChange = true;
         }
     });
 
     glfwSetWindowCloseCallback(window, [](GLFWwindow* window) {
-        std::cout << "Window close requested" << std::endl;
+        fmt::print("Window close requested\n");
         glfwSetWindowShouldClose(window, true);
         g_appState.windowStateChange = true;
     });
 
     glfwSetWindowFocusCallback(window, [](GLFWwindow*, i32 focused) {
-        std::cout << "Window " << (focused == 0 ? "unfocused" : "focused") << std::endl;
+        fmt::print("Window focus changed to: {}\n", focused ? "true" : "false");
         g_appState.windowStateChange = true;
     });
 
     glfwSetWindowMaximizeCallback(window, [](GLFWwindow*, i32 maximized) {
-        std::cout << "Window " << (maximized == 0 ? "unmaximized" : "maximized") << std::endl;
+        fmt::print("Window maximized changed to: {}\n", maximized ? "true" : "false");
         g_appState.windowStateChange = true;
     });
 
     glfwSetWindowContentScaleCallback(window, [](GLFWwindow*, f32 xscale, f32 yscale) {
-        std::cout << "Window content scale: " << xscale << ", " << yscale << std::endl;
+        fmt::print("Window content scale: {}, {}\n", xscale, yscale);
         g_appState.windowStateChange = true;
     });
 
     glfwSetWindowRefreshCallback(window, [](GLFWwindow*) {
-        std::cout << "Window refresh requested" << std::endl;
+        fmt::print("Window refresh requested\n");
         g_appState.windowStateChange = true;
     });
 }
@@ -225,25 +224,27 @@ i32 main() {
 
     // Init glew after we have a window:
     if (auto err = glewInit(); err != GLEW_OK) {
-        std::cerr << "Failed to initialize GLEW reason: " << glewGetErrorString(err) << std::endl;
+        const char* errStr = reinterpret_cast<const char*>(glewGetErrorString(err));
+        fmt::print(stderr, "Failed to initialize GLEW reason: {}\n", errStr);
         return APP_EXIT_FAILED_TO_INIT;
     }
 
     // Create opengl program:
     const char* vertexShaderSource = R"(
         #version 330 core
-        layout (location = 0) in vec3 position;
+        layout (location = 0) in vec3 in_pos;
 
         void main() {
-            gl_Position = vec4(position.x, position.y, position.z, 1.0);
+            gl_Position = vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
         }
     )";
     const char* fragmentShaderSource = R"(
         #version 330 core
-        out vec4 fragColor;
+        out vec4 out_fragColor;
+        uniform vec4 u_color;
 
         void main() {
-            fragColor = vec4(1.0, 0.0, 0.0, 1.0);
+            out_fragColor = u_color;
         }
     )";
     ShaderProg program = ValueOrDie(ShaderProg::create(vertexShaderSource, fragmentShaderSource));
@@ -260,7 +261,7 @@ i32 main() {
     vl.stride = sizeof(core::vec2f);
     vl.offset = 0;
     vl.usage = { Mesh2D::Usage::Access::STATIC, Mesh2D::Usage::AccessType::DRAW };
-    vl.posAttribId = glGetAttribLocation(program.prog_id(), "position");
+    vl.posAttribId = ValueOrDie(program.get_attrib_location("in_pos"));
     auto mesh = Mesh2D::create(vl, core::move(vertices));
     defer { mesh.destroy(); };
 
@@ -272,6 +273,7 @@ i32 main() {
             // clear
             glClear(GL_COLOR_BUFFER_BIT);
             // render objects
+            Check(program.set_uniform_v("u_color", core::v(0.0f, 0.0f, 1.0f, 1.0f)));
             render_mesh(mesh);
             // swap buffers
             glfwSwapBuffers(window);
@@ -284,10 +286,10 @@ i32 main() {
         glfwWaitEvents();
 
         if (g_appState.keyboardStateChange) {
-            std::cout << g_appState.keyboardState.to_string();
+            fmt::print("{}", g_appState.keyboardState.to_string());
         }
         if (g_appState.mouseStateChange) {
-            std::cout << g_appState.mouseState.to_string();
+            fmt::print("{}", g_appState.mouseState.to_string());
         }
     }
 

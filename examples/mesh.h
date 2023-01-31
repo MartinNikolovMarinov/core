@@ -27,7 +27,7 @@ struct Mesh2D {
     struct VertexLayout {
         u32 stride;
         u32 offset;
-        u32 posAttribId;
+        i32 posAttribId;
         Usage usage;
     };
 

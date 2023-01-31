@@ -72,7 +72,7 @@ i32 main(i32, const char**, const char**) {
 
     if (OS_WIN == 1)     { write_line("[OS] OS_WIN\n"); }
     if (OS_LINUX == 1)   { write_line("[OS] OS_LINUX\n"); }
-    if (OS_UNIX == 1)    { write_line("[OS] OS_UNIX\n"); }
+    if (OS_MAC == 1)     { write_line("[OS] OS_MAC\n"); }
     if (OS_UNKNOWN == 1) { write_line("[OS] OS_UNKNOWN\n"); }
 
     write_line("\nRUNNING COMMONG TESTS\n\n");

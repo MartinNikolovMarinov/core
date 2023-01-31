@@ -49,6 +49,10 @@ CORE_API_EXPORT global_assert_handler_ptr get_global_assert_handler();
     #define defer auto DEFER(__LINE__) = core::defer_dummy{} *[&]()
 #endif
 
+// Use this for static_asserts that are part of a if constexpr expression.
+template <class... T>
+constexpr bool always_false = false;
+
 // Move and forward implementations copied from the standard library:
 
 template<typename T> struct CORE_API_EXPORT remove_ref      { typedef T type; };

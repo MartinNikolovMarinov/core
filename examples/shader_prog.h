@@ -11,7 +11,11 @@
 using namespace coretypes;
 
 struct ShaderProg {
+    // TODO: using a string as the error type is a bit crazy, but it's ok for debugging.
     using error_type = std::string;
+
+    static core::expected<ShaderProg, error_type> create(std::string_view vertexShaderSrc,
+                                                         std::string_view fragShaderSrc);
 
     ShaderProg() = default;
 
@@ -23,9 +27,9 @@ struct ShaderProg {
     void use()     { glUseProgram(m_id); }
 
     template <i32 Dim, typename T>
-    void uniform(std::string_view name, core::vec<Dim, T>& v) {
+    core::expected<error_type> set_uniform_v(std::string_view name, core::vec<Dim, T>& v) {
         i32 loc = glGetUniformLocation(m_id, name.data());
-        Assert(loc >= 0, "Failed to get uniform location");
+        if (loc < 0) return core::unexpected(fmt::format("Failed to get uniform location for {}", name));
         if constexpr (std::is_same_v<T, f32>) {
             if      constexpr (Dim == 2) glUniform2fv(loc, 1, reinterpret_cast<f32*>(&v.data[0]));
             else if constexpr (Dim == 3) glUniform3fv(loc, 1, reinterpret_cast<f32*>(&v.data[0]));
@@ -42,22 +46,28 @@ struct ShaderProg {
             else if constexpr (Dim == 4) glUniform4uiv(loc, 1, reinterpret_cast<u32*>(&v.data[0]));
         }
         else {
-            Assert(false, "Unsupported type");
+            static_assert(core::always_false<T>, "Unsupported type"); // honestly I hate c++ :D
         }
+        return {};
+    }
+
+    template <i32 Dim, typename T>
+    core::expected<error_type> set_uniform_v(std::string_view name, core::vec<Dim, T>&& v) {
+        return set_uniform_v(name, v);
     }
 
     template <typename T>
-    void uniform(std::string_view name, T val) {
+    core::expected<error_type> set_uniform(std::string_view name, T val) {
         i32 loc = glGetUniformLocation(m_id, name.data());
-        Assert(loc > 0, "Failed to get uniform location");
+        if (loc < 0) return core::unexpected(fmt::format("Failed to get uniform location for {}", name));
         if constexpr      (std::is_same_v<T, f32>) glUniform1f(loc, val);
         else if constexpr (std::is_same_v<T, i32>) glUniform1i(loc, val);
         else if constexpr (std::is_same_v<T, u32>) glUniform1ui(loc, val);
-        else Assert(false, "Unsupported type");
+        else    static_assert(core::always_false<T>, "Unsupported type");
+        return {};
     }
 
-    static core::expected<ShaderProg, error_type> create(std::string_view vertexShaderSrc,
-                                                         std::string_view fragShaderSrc);
+    core::expected<i32, error_type> get_attrib_location(std::string_view name);
 
 private:
     u32 m_id;

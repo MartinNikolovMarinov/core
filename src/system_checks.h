@@ -32,11 +32,11 @@
     #define OS_LINUX 0
 #endif
 #if defined(__APPLE__) || defined(__MACH__)
-    #define OS_UNIX 1
+    #define OS_MAC 1
 #else
-    #define OS_UNIX 0
+    #define OS_MAC 0
 #endif
-#if OS_WIN == 0 && OS_LINUX == 0 && OS_UNIX == 0
+#if OS_WIN == 0 && OS_LINUX == 0 && OS_MAC == 0
     #define OS_UNKNOWN 1
 #else
     #define OS_UNKNOWN 0

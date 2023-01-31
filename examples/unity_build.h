@@ -9,6 +9,8 @@
 
 #include "shader_prog.h"
 #include "shader_prog.cpp"
+#include "mesh.h"
+#include "mesh.cpp"
 #include "keyboard.h"
 #include "keyboard.cpp"
 #include "mouse.h"

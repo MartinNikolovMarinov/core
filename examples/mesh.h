@@ -1,8 +1,5 @@
 #pragma once
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-
 #include <core.h>
 #include <std/core.h>
 
@@ -30,16 +27,18 @@ struct Mesh2D {
     struct VertexLayout {
         u32 stride;
         u32 offset;
+        u32 posAttribId;
         Usage usage;
     };
 
     static Mesh2D create(const Mesh2D::VertexLayout& vl, core::arr<core::vec2f>&& vertices);
 
-    void destroy() const;
-
+    u32 vbo_id() const;
+    u32 vao_id() const;
+    const core::arr<core::vec2f>& vertices() const;
     i32 vertex_count() const;
 
-    void bind() const;
+    void destroy() const;
 
 private:
     // TODO: Do I actually need to store indices in the mesh when I will only render in 2d?

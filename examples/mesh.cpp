@@ -1,5 +1,7 @@
 #include "mesh.h"
 
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 u32 Mesh2D::Usage::usage_Gl() const {
     u32 ret = -1;
@@ -24,26 +26,35 @@ u32 Mesh2D::Usage::usage_Gl() const {
 Mesh2D Mesh2D::create(const Mesh2D::VertexLayout& vl, core::arr<core::vec2f>&& vertices) {
     Mesh2D m;
     m.m_vertices = core::move(vertices);
+    m.m_vboId = -1;
+    m.m_vaoId = -1;
 
-    u32 vbo;
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    auto bufferDataSize = m.m_vertices.len() * sizeof(core::vec2f);
+    // Create VBO
+    glGenBuffers(1, &m.m_vboId);
+    glBindBuffer(GL_ARRAY_BUFFER, m.m_vboId);
+    ptr_size bufferDataSize = m.m_vertices.len() * sizeof(core::vec2f);
     glBufferData(GL_ARRAY_BUFFER, bufferDataSize, m.m_vertices.data(), vl.usage.usage_Gl());
+
+    // Create VAO
+    glGenVertexArrays(1, &m.m_vaoId);
+    glBindVertexArray(m.m_vaoId);
+
+    // Link vertex attributes
+    constexpr ptr_size stride = sizeof(core::vec2f);
+    constexpr ptr_size dimmentions = core::vec2f::dimmentions();
+    glVertexAttribPointer(vl.posAttribId, dimmentions, GL_FLOAT, GL_FALSE, stride, (void*)0);
+    glEnableVertexAttribArray(vl.posAttribId);
+
     return m;
 }
 
+u32 Mesh2D::vbo_id() const { return m_vboId; }
+u32 Mesh2D::vao_id() const { return m_vaoId; }
+const core::arr<core::vec2f>& Mesh2D::vertices() const { return m_vertices; }
+i32 Mesh2D::vertex_count() const { return m_vertices.len(); }
+
 void Mesh2D::destroy() const {
     glDeleteBuffers(1, &m_vboId);
+    glDeleteVertexArrays(1, &m_vaoId);
 }
 
-i32 Mesh2D::vertex_count() const {
-    return m_vertices.len();
-}
-
-void Mesh2D::bind() const {
-    static u32 lastBoundVboId = 0; // cache the last bound vbo.
-    if (lastBoundVboId == m_vboId) return;
-    glBindBuffer(GL_ARRAY_BUFFER, m_vboId);
-    lastBoundVboId = m_vboId;
-}

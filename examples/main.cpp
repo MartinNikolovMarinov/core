@@ -178,17 +178,32 @@ bool should_render() {
     return shouldRender;
 }
 
-void prepare_state_for_next_frame() {
+void prepare_input_state_for_next_frame() {
     g_appState.keyboardStateChange = false;
     g_appState.mouseStateChange = false;
     g_appState.windowStateChange = false;
     g_appState.keyboardState.clear();
     g_appState.mouseState.clear();
+}
 
-    // Clear the screen:
-    auto& cc = g_appState.clearColor;
-    glClearColor(cc.r(), cc.g(), cc.b(), cc.a()); // TODO: don't set this on every frame.
-    glClear(GL_COLOR_BUFFER_BIT);
+void render_mesh(Mesh2D& mesh) {
+    // Bind mesh:
+    {
+        // cache the last bound vbo and vao.
+        static u32 lastBoundVboId = core::MAX_U32;
+        static u32 lastBoundVaoId = core::MAX_U32;
+
+        if (lastBoundVboId != mesh.vbo_id()) {
+            glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo_id());
+            lastBoundVboId = mesh.vbo_id();
+        }
+        if (lastBoundVaoId != mesh.vao_id()) {
+            glBindVertexArray(mesh.vao_id());
+            lastBoundVaoId = mesh.vao_id();
+        }
+    }
+
+    glDrawArrays(GL_TRIANGLES, 0, mesh.vertex_count());
 }
 
 i32 main() {
@@ -214,46 +229,6 @@ i32 main() {
         return APP_EXIT_FAILED_TO_INIT;
     }
 
-//     // TODO: Vertices are in clip space coordinates, aka. normalized device coordinates (NDC).
-//     //       Vertex points should be stored in UI space or whatever space the UI is in.
-//     core::arr<core::vec2f> exampleTriangleVertices(0, 3);
-//     exampleTriangleVertices.append(core::v(-0.5f, -0.5f))
-//                            .append(core::v( 0.5f, -0.5f))
-//                            .append(core::v( 0.0f,  0.5f));
-//     Mesh::Usage usage = { Mesh::Usage::Access::STATIC, Mesh::Usage::AccessType::DRAW };
-//     Mesh::VertexLayout vl = { 0, 0, usage };
-//     auto mesh = Mesh::create(core::move(vl), core::move(exampleTriangleVertices));
-//     mesh.bind();
-
-//     // Linking vertex attributes:
-//     constexpr ptr_size stride = sizeof(core::vec2f);
-//     glVertexAttribPointer(0, core::vec2f::dimmentions(), GL_FLOAT, GL_FALSE, stride, (void*)0);
-//     glEnableVertexAttribArray(0);
-
-//     while(!glfwWindowShouldClose(window)) {
-//         prepare_state_for_next_frame();
-
-//         // TODO: temporary comment out the should render check.
-//         // if (should_render()) {
-//         program.use();
-//         mesh.bind();
-//         glDrawArrays(GL_TRIANGLES, 0, mesh.vertex_count());
-//         // }
-
-//         glfwSwapBuffers(window);
-
-//         // Poll/Wait events:
-//         // glfwPollEvents();
-//         glfwWaitEvents();
-
-//         if (g_appState.keyboardStateChange) {
-//             std::cout << g_appState.keyboardState.to_string();
-//         }
-//         if (g_appState.mouseStateChange) {
-//             std::cout << g_appState.mouseState.to_string();
-//         }
-//     }
-
     // Create opengl program:
     const char* vertexShaderSource = R"(
         #version 330 core
@@ -272,6 +247,8 @@ i32 main() {
         }
     )";
     ShaderProg program = ValueOrDie(ShaderProg::create(vertexShaderSource, fragmentShaderSource));
+    defer { program.destroy(); };
+    program.use();
 
     // TODO: Vertices are in clip space coordinates, aka. normalized device coordinates (NDC).
     //       Vertex points should be stored in UI space or whatever space the UI is in.
@@ -279,32 +256,38 @@ i32 main() {
     vertices.append(core::v( 0.0f,  0.5f))
             .append(core::v( 0.5f, -0.5f))
             .append(core::v(-0.5f, -0.5f));
-    GLuint vbo = 0;
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(core::vec2f) * vertices.len(), vertices.data(), GL_STATIC_DRAW);
+    Mesh2D::VertexLayout vl;
+    vl.stride = sizeof(core::vec2f);
+    vl.offset = 0;
+    vl.usage = { Mesh2D::Usage::Access::STATIC, Mesh2D::Usage::AccessType::DRAW };
+    vl.posAttribId = glGetAttribLocation(program.prog_id(), "position");
+    auto mesh = Mesh2D::create(vl, core::move(vertices));
+    defer { mesh.destroy(); };
 
-    GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    GLint posAttrib = glGetAttribLocation(program.prog_id(), "position");
-    constexpr ptr_size stride = sizeof(core::vec2f);
-    constexpr ptr_size dimmentions = core::vec2f::dimmentions();
-    glVertexAttribPointer(posAttrib, dimmentions, GL_FLOAT, GL_FALSE, stride, (void*)0);
-    glEnableVertexAttribArray(posAttrib);
+    auto& cc = g_appState.clearColor;
+    glClearColor(cc.r(), cc.g(), cc.b(), cc.a());
 
     while(!glfwWindowShouldClose(window)) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        program.use();
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBindVertexArray(vao);
-        glDrawArrays(GL_TRIANGLES, 0, vertices.len());
-        glfwSwapBuffers(window);
+        if (should_render()) {
+            // clear
+            glClear(GL_COLOR_BUFFER_BIT);
+            // render objects
+            render_mesh(mesh);
+            // swap buffers
+            glfwSwapBuffers(window);
+        }
 
-        glfwPollEvents();
-        if(glfwGetKey(window, GLFW_KEY_ESCAPE)) {
-            glfwSetWindowShouldClose(window, 1);
+        prepare_input_state_for_next_frame();
+
+        // Poll/Wait events:
+        // glfwPollEvents();
+        glfwWaitEvents();
+
+        if (g_appState.keyboardStateChange) {
+            std::cout << g_appState.keyboardState.to_string();
+        }
+        if (g_appState.mouseStateChange) {
+            std::cout << g_appState.mouseState.to_string();
         }
     }
 

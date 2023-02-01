@@ -1,9 +1,9 @@
-#include "mesh.h"
+#include "shape.h"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-u32 Mesh2D::Usage::usage_Gl() const {
+u32 Shape2D::Usage::usage_Gl() const {
     u32 ret = -1;
     if (a == Access::STATIC) {
         if (t == AccessType::DRAW) ret = GL_STATIC_DRAW;
@@ -23,8 +23,8 @@ u32 Mesh2D::Usage::usage_Gl() const {
     return ret;
 }
 
-Mesh2D Mesh2D::create(const Mesh2D::VertexLayout& vl, core::arr<core::vec2f>&& vertices) {
-    Mesh2D m;
+Shape2D Shape2D::create(const Shape2D::VertexLayout& vl, core::arr<core::vec2f>&& vertices) {
+    Shape2D m;
     m.m_vertices = core::move(vertices);
     m.m_vboId = -1;
     m.m_vaoId = -1;
@@ -48,12 +48,12 @@ Mesh2D Mesh2D::create(const Mesh2D::VertexLayout& vl, core::arr<core::vec2f>&& v
     return m;
 }
 
-u32 Mesh2D::vbo_id() const { return m_vboId; }
-u32 Mesh2D::vao_id() const { return m_vaoId; }
-const core::arr<core::vec2f>& Mesh2D::vertices() const { return m_vertices; }
-i32 Mesh2D::vertex_count() const { return m_vertices.len(); }
+u32 Shape2D::vbo_id() const { return m_vboId; }
+u32 Shape2D::vao_id() const { return m_vaoId; }
+const core::arr<core::vec2f>& Shape2D::vertices() const { return m_vertices; }
+i32 Shape2D::vertex_count() const { return m_vertices.len(); }
 
-void Mesh2D::destroy() const {
+void Shape2D::destroy() const {
     glDeleteBuffers(1, &m_vboId);
     glDeleteVertexArrays(1, &m_vaoId);
 }

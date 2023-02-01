@@ -1,4 +1,16 @@
-#include "unity_build.h"
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
+#include <fmt/format.h>
+
+// IMPORTANT: The init_core.h should be included before anything else has the chance to include core.h.
+#include "init_core.h"
+
+#include "grid.h"
+#include "keyboard.h"
+#include "mouse.h"
+#include "shader_prog.h"
+#include "shape.h"
 
 #include <chrono>
 
@@ -21,6 +33,9 @@ struct AppState {
     const char* windowTitle;
 };
 static AppState g_appState;
+
+static constexpr Grid2D g_clipSpaceGrid  = { core::v(-1, -1), core::v(1, 1) };
+static constexpr Grid2D g_worldSpaceGrid = { core::v(0, 0),   core::v(1000, 1000) };
 
 GLFWwindow* init_glfw_window(i32 width, i32 height, const char* title) {
     if (!glfwInit()) {
@@ -185,27 +200,26 @@ void prepare_input_state_for_next_frame() {
     g_appState.mouseState.clear();
 }
 
-void render_mesh(Mesh2D& mesh) {
-    // Bind mesh:
+void render_shape(Shape2D& shape) {
+    // Bind shape:
     {
         // cache the last bound vbo and vao.
         static u32 lastBoundVboId = core::MAX_U32;
         static u32 lastBoundVaoId = core::MAX_U32;
 
-        if (lastBoundVboId != mesh.vbo_id()) {
-            glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo_id());
-            lastBoundVboId = mesh.vbo_id();
+        if (lastBoundVboId != shape.vbo_id()) {
+            glBindBuffer(GL_ARRAY_BUFFER, shape.vbo_id());
+            lastBoundVboId = shape.vbo_id();
         }
-        if (lastBoundVaoId != mesh.vao_id()) {
-            glBindVertexArray(mesh.vao_id());
-            lastBoundVaoId = mesh.vao_id();
+        if (lastBoundVaoId != shape.vao_id()) {
+            glBindVertexArray(shape.vao_id());
+            lastBoundVaoId = shape.vao_id();
         }
     }
-
-    glDrawArrays(GL_TRIANGLES, 0, mesh.vertex_count());
+    glDrawArrays(GL_TRIANGLES, 0, shape.vertex_count());
 }
 
-i32 main() {
+i32 main(i32, char const**) {
     init_core();
 
     g_appState = {}; // Zero out the global state.
@@ -257,13 +271,13 @@ i32 main() {
     vertices.append(core::v( 0.0f,  0.5f))
             .append(core::v( 0.5f, -0.5f))
             .append(core::v(-0.5f, -0.5f));
-    Mesh2D::VertexLayout vl;
+    Shape2D::VertexLayout vl;
     vl.stride = sizeof(core::vec2f);
     vl.offset = 0;
-    vl.usage = { Mesh2D::Usage::Access::STATIC, Mesh2D::Usage::AccessType::DRAW };
+    vl.usage = { Shape2D::Usage::Access::STATIC, Shape2D::Usage::AccessType::DRAW };
     vl.posAttribId = ValueOrDie(program.get_attrib_location("in_pos"));
-    auto mesh = Mesh2D::create(vl, core::move(vertices));
-    defer { mesh.destroy(); };
+    auto triangleShape = Shape2D::create(vl, core::move(vertices));
+    defer { triangleShape.destroy(); };
 
     auto& cc = g_appState.clearColor;
     glClearColor(cc.r(), cc.g(), cc.b(), cc.a());
@@ -274,7 +288,7 @@ i32 main() {
             glClear(GL_COLOR_BUFFER_BIT);
             // render objects
             Check(program.set_uniform_v("u_color", core::v(0.0f, 0.0f, 1.0f, 1.0f)));
-            render_mesh(mesh);
+            render_shape(triangleShape);
             // swap buffers
             glfwSwapBuffers(window);
         }

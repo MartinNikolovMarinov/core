@@ -1,11 +1,10 @@
 #pragma once
 
-#include <core.h>
-#include <std/core.h>
+#include "init_core.h"
 
 using namespace coretypes;
 
-struct Mesh2D {
+struct Shape2D {
     struct Usage {
         enum Access : u32 {
             STATIC = 0,
@@ -31,7 +30,7 @@ struct Mesh2D {
         Usage usage;
     };
 
-    static Mesh2D create(const Mesh2D::VertexLayout& vl, core::arr<core::vec2f>&& vertices);
+    static Shape2D create(const Shape2D::VertexLayout& vl, core::arr<core::vec2f>&& vertices);
 
     u32 vbo_id() const;
     u32 vao_id() const;
@@ -41,9 +40,9 @@ struct Mesh2D {
     void destroy() const;
 
 private:
-    // TODO: Do I actually need to store indices in the mesh when I will only render in 2d?
-    //       Is this struct a mesh if it has not indices or normals? Kinda looks like a vertex buffer.
-    //       Should I even be storing the vertices in this struct, or should I just store the vbo id?
+    // TODO: Do I actually need to store indices in the shape when I will only render in 2d?
+    //       I think I do. Because rendering line strips, circles and some more complex objects
+    //       will duplicate a lot of vertices. Leaving it for later.
     core::arr<core::vec2f> m_vertices;
     u32 m_vboId;
     u32 m_vaoId;

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <GL/glew.h>
+#include "init_core.h"
 
-#include <core.h>
-#include <std/core.h>
+#include <GL/glew.h>
+#include <fmt/format.h>
 
 #include <string>
 #include <string_view>

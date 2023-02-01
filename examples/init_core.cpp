@@ -4,19 +4,19 @@
 #include <fmt/color.h>
 
 void* std_allocator_static::alloc(ptr_size size) noexcept {
-    return stdAlloc.alloc(size);
+    return g_stdAlloc.alloc(size);
 }
 
 void std_allocator_static::free(void* ptr) noexcept {
-    stdAlloc.free(ptr);
+    g_stdAlloc.free(ptr);
 }
 
 ptr_size std_allocator_static::used_mem() noexcept {
-    return stdAlloc.used_mem();
+    return g_stdAlloc.used_mem();
 }
 
 const char* std_allocator_static::allocator_name() noexcept {
-    return stdAlloc.allocator_name();
+    return g_stdAlloc.allocator_name();
 }
 
 void init_core() {

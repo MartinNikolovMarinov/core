@@ -135,6 +135,7 @@ struct vec {
     static_assert(Dim > 0, "Dim must be greater than 0");
 
     static constexpr i32 dimmentions() { return Dim; }
+    using type = T;
 
     T data[Dim] = {};
 
@@ -179,6 +180,15 @@ struct vec {
     template<i32 D = Dim, typename std::enable_if<(D > 2), i32>::type = 0> constexpr T b() { return data[2]; }
     template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr T w() { return data[3]; }
     template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr T a() { return data[3]; }
+
+    template<i32 D = Dim, typename std::enable_if<(D > 0), i32>::type = 0> constexpr T x() const { return data[0]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 0), i32>::type = 0> constexpr T r() const { return data[0]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 1), i32>::type = 0> constexpr T y() const { return data[1]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 1), i32>::type = 0> constexpr T g() const { return data[1]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 2), i32>::type = 0> constexpr T z() const { return data[2]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 2), i32>::type = 0> constexpr T b() const { return data[2]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr T w() const { return data[3]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr T a() const { return data[3]; }
 
     constexpr T& operator[](i32 i) {
         Assert(i >= 0 && i < Dim, "Index out of bounds");
@@ -351,6 +361,15 @@ constexpr auto v(Args... args) {
     using commonT = template_args_common_type<Args...>;
     static_assert(template_args_are_of_type_v<commonT, Args...>, "All arguments must be the same type");
     auto ret = vec<sizeof...(Args), commonT>(args...);
+    return ret;
+}
+
+template<typename TVec, typename TVec2>
+constexpr TVec v_conv(const TVec2& v) {
+    TVec ret;
+    for (i32 i = 0; i < TVec2::dimmentions(); i++) {
+        ret[i] = static_cast<typename TVec2::type>(v[i]);
+    }
     return ret;
 }
 

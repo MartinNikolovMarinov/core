@@ -1,8 +1,8 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
+#include "init_core.h"
 
-#include <core.h>
+#include <GLFW/glfw3.h>
 
 #include <string>
 

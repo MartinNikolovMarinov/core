@@ -39,6 +39,13 @@ CORE_API_EXPORT global_assert_handler_ptr get_global_assert_handler();
         }
 #endif
 
+#ifndef Panic
+    // This macro will dereference null to force a crash.
+    // The message will not be printed, it is only there to help the developer when using a debugger.
+    // Tip: Use this for unrecoverable errors.
+    #define Panic(expr, msg) if(!expr) *(volatile coretypes::i32 *)0 = 0
+#endif
+
 // Zero cost defer:
 #ifndef defer
     struct CORE_API_EXPORT defer_dummy {};

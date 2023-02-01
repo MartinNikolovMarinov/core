@@ -1,8 +1,8 @@
 #pragma once
 
-#include "keyboard.h"
+#include "init_core.h"
 
-#include <core.h>
+#include "keyboard.h"
 
 using namespace coretypes;
 

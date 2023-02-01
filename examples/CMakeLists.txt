@@ -8,7 +8,21 @@ set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Generates compile_commands.json
 
 # Create executable:
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME}
+    main.cpp
+
+    grid.h
+    init_core.cpp
+    init_core.h
+    keyboard.h
+    keyboard.cpp
+    mouse.h
+    mouse.cpp
+    shader_prog.h
+    shader_prog.cpp
+    shape.h
+    shape.cpp
+)
 
 # Compilation options:
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -32,7 +46,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE fmt)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/fmt)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lib/fmt/include)
 
-# OPENGL:
+# OpenGL:
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE ${OPENGL_LIBRARIES})
@@ -49,7 +63,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${GLEW_INCLUDE_DIRS})
 find_package(glfw3 CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 
-# Core library related:
+# Core library:
 option(CORE_LIBRARY_SHARED "" ON)
 target_link_libraries(${PROJECT_NAME} PRIVATE core)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../src ${CMAKE_CURRENT_BINARY_DIR}/core)

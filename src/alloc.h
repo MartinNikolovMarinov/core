@@ -21,7 +21,7 @@ void* CORE_API_EXPORT alloc(ptr_size size) noexcept {
 }
 
 /**
- * @brief The implementation of construct should call the constructor of T with the given args.
+ * @brief Uses the allocator to allocate memory and calls the constructor of T with the given args.
 */
 template<typename A, typename T, typename ...Args>
 T* CORE_API_EXPORT construct(A& allocator, T&&, Args&&... args) noexcept {
@@ -31,7 +31,7 @@ T* CORE_API_EXPORT construct(A& allocator, T&&, Args&&... args) noexcept {
 
 /**
  * @brief The implementation of used_mem should return the amount of memory used by the allocator.
- *        NOTE: The overall size may be larger than what the user has asked for, due to memory alignment.
+ *        The overall size may be larger than what the user has asked for, due to memory alignment.
 */
 template<typename A>
 ptr_size CORE_API_EXPORT used_mem() noexcept {
@@ -39,9 +39,9 @@ ptr_size CORE_API_EXPORT used_mem() noexcept {
 }
 
 /**
- * @brief Frees allocated memory at the given address. Freeing nullptr is a no-op, but should not crash. Freeing and
- *        address that was not allocated by the allocator is undefined behavior.
- *        NOTE: Some allocation algorithms may not be able to free memory.
+ * @brief Frees allocated memory at the given address. Freeing nullptr is a no-op, but should not crash. Freeing an
+ *        address that was not allocated by the allocator is undefined behavior. Some allocation algorithms may not be
+ *        able to free memory.
 */
 template<typename A>
 void CORE_API_EXPORT free(void* ptr) noexcept {
@@ -61,8 +61,8 @@ const char* CORE_API_EXPORT allocator_name() noexcept {
  *        If it is not overriden, the default template type for most data structures will fail to compile.
 */
 #ifndef CORE_DEFAULT_ALLOCATOR
-    // TODO: raise a compiler warning if this is not overriden. Of course, that is not very trivial so just ignore this
-    //       for now.
+    // TODO: Raise a compiler warning if this is not overriden. Of course, that is not very trivial so just ignore this
+    //       for now by providing a default void type.
     #define CORE_DEFAULT_ALLOCATOR() void
 #endif
 

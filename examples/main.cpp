@@ -47,6 +47,7 @@ GLFWwindow* init_glfw_window(i32 width, i32 height, const char* title) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 #ifdef OS_MAC
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
@@ -265,22 +266,41 @@ i32 main(i32, char const**) {
     defer { program.destroy(); };
     program.use();
 
-    // TODO: Vertices are in clip space coordinates, aka. normalized device coordinates (NDC).
-    //       Vertex points should be stored in UI space or whatever space the UI is in.
-    core::arr<core::vec2f> vertices(0, 3);
-    vertices.append(core::v( 0.0f,  0.5f))
-            .append(core::v( 0.5f, -0.5f))
-            .append(core::v(-0.5f, -0.5f));
+    core::arr<core::vec2f> rectVerts(0, 6);
+    rectVerts.append(core::v(250.0f, 750.0f))
+             .append(core::v(250.0f, 250.0f))
+             .append(core::v(750.0f, 750.0f))
+             .append(core::v(750.0f, 750.0f))
+             .append(core::v(250.0f, 250.0f))
+             .append(core::v(750.0f, 250.0f));
+
+    // core::rotate_right(rectVerts, core::v(500.0f, 500.0f), core::deg_to_rad(5.0f));
+    core::rotate(rectVerts, core::v(500.0f, 500.0f), core::deg_to_rad(5.0f));
+
+    // FIXME: ok at what point should this happen?
+    //        Why not do it in the shader?
+    //        Well maybe a bit later, because it is much easier to debug in cpu code.
+    for (ptr_size i = 0; i < rectVerts.len(); ++i) {
+        rectVerts[i] = convert_vec_using_grid(rectVerts[i], g_worldSpaceGrid, g_clipSpaceGrid);
+    }
+
     Shape2D::VertexLayout vl;
     vl.stride = sizeof(core::vec2f);
     vl.offset = 0;
     vl.usage = { Shape2D::Usage::Access::STATIC, Shape2D::Usage::AccessType::DRAW };
     vl.posAttribId = ValueOrDie(program.get_attrib_location("in_pos"));
-    auto triangleShape = Shape2D::create(vl, core::move(vertices));
-    defer { triangleShape.destroy(); };
+    auto rectShape = Shape2D::create(vl, core::move(rectVerts));
+    defer { rectShape.destroy(); };
 
     auto& cc = g_appState.clearColor;
     glClearColor(cc.r(), cc.g(), cc.b(), cc.a());
+
+    constexpr bool debugWireFrameMode = false;
+    if constexpr (debugWireFrameMode) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    } else {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
 
     while(!glfwWindowShouldClose(window)) {
         if (should_render()) {
@@ -288,7 +308,7 @@ i32 main(i32, char const**) {
             glClear(GL_COLOR_BUFFER_BIT);
             // render objects
             Check(program.set_uniform_v("u_color", core::v(0.0f, 0.0f, 1.0f, 1.0f)));
-            render_shape(triangleShape);
+            render_shape(rectShape);
             // swap buffers
             glfwSwapBuffers(window);
         }

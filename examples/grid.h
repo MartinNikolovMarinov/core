@@ -7,6 +7,10 @@ using namespace coretypes;
 struct Grid2D {
     core::vec2i min;
     core::vec2i max;
+
+    constexpr core::vec2i center() {
+        return (min + max) / 2;
+    }
 };
 
 constexpr core::vec2f convert_vec_using_grid(const core::vec2f& src, const Grid2D& from, const Grid2D& to) {

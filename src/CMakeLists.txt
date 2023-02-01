@@ -49,7 +49,6 @@ set(src_files
     utils.cpp
     tuple.h
     core_math.h
-    core_math.cpp
     mem.h
     mem.cpp
     ints.h
@@ -73,6 +72,7 @@ set(src_files
     std/plt.h
     std/traits.h
     std/vec.h
+    std/transforms.h
 
     std/allocators/alloc_std_stats.cpp
     std/allocators/alloc_std_stats.h

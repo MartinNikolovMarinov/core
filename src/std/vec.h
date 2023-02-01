@@ -204,15 +204,15 @@ struct vec {
 
     constexpr void negate() { vnegate(*this); }
 
-    template<typename U>  constexpr void add(const vec<Dim, T>& other) { vadd(*this, other); }
+    template<typename U>  constexpr void add(const vec<Dim, U>& other) { vadd(*this, other); }
     template<typename TA> constexpr void add(TA v)                     { vadd(*this, v); }
                           constexpr void inc()                         { add(1); }
 
-    template<typename U>  constexpr void sub(const vec<Dim, T>& other) { vsub(*this, other); }
+    template<typename U>  constexpr void sub(const vec<Dim, U>& other) { vsub(*this, other); }
     template<typename TA> constexpr void sub(TA v)                     { vsub(*this, v); }
                           constexpr void dec()                         { sub(1); }
 
-    template<typename U>  constexpr void mul(const vec<Dim, T>& other) { vmul(*this, other); }
+    template<typename U>  constexpr void mul(const vec<Dim, U>& other) { vmul(*this, other); }
     template<typename TA> constexpr void mul(TA v)                     { vmul(*this, v); }
     template<typename TA> constexpr void scale(TA v)                   { mul(v); }
 
@@ -233,9 +233,13 @@ struct vec {
 
     template<typename U>
     constexpr bool operator==(const vec<Dim, U>& other) const { return equals(other); }
+    template<typename U>
+    constexpr bool operator==(U v) const { return equals(vec<Dim, U>(v)); }
 
     template<typename U>
     constexpr bool operator!=(const vec<Dim, U>& other) const { return !equals(other); }
+    template<typename U>
+    constexpr bool operator!=(U v) const { return !equals(vec<Dim, U>(v)); }
 
     #pragma endregion
 
@@ -261,9 +265,13 @@ struct vec {
     #pragma region overloads assignment operators
 
     constexpr vec<Dim, T>& operator+=(const vec<Dim, T>& other) { add(other); return *this; }
+    constexpr vec<Dim, T>& operator+=(T v)                      { add(v); return *this; }
     constexpr vec<Dim, T>& operator-=(const vec<Dim, T>& other) { sub(other); return *this; }
+    constexpr vec<Dim, T>& operator-=(T v)                      { sub(v); return *this; }
     constexpr vec<Dim, T>& operator*=(const vec<Dim, T>& other) { mul(other); return *this; }
+    constexpr vec<Dim, T>& operator*=(T v)                      { mul(v); return *this; }
     constexpr vec<Dim, T>& operator/=(const vec<Dim, T>& other) { div(other); return *this; }
+    constexpr vec<Dim, T>& operator/=(T v)                      { div(v); return *this; }
 
     #pragma endregion
 

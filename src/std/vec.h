@@ -313,7 +313,9 @@ struct vec {
     template<typename U>
     [[nodiscard]] friend constexpr vec<Dim, T> operator-(U v1, const vec<Dim, T>& v2) {
         vec<Dim, T> ret = v2;
-        ret.sub(v1);
+        for (i32 i = 0; i < ret.dimmentions(); ++i) {
+            ret[i] = -(ret[i] - static_cast<T>(v1));
+        }
         return ret;
     }
 
@@ -357,7 +359,9 @@ struct vec {
     template<typename U>
     [[nodiscard]] friend constexpr vec<Dim, T> operator/(U v1, const vec<Dim, T>& v2) {
         vec<Dim, T> ret = v2;
-        ret.div(v1);
+        for (i32 i = 0; i < ret.dimmentions(); ++i) {
+            ret[i] = static_cast<T>(v1) / ret[i];
+        }
         return ret;
     }
 

@@ -40,6 +40,14 @@ void vector_add_sub_mul_div_test() {
         a.div(b); Assert(a.equals(core::v(1, 2)));
     }
     {
+        auto a = core::v(1, 2);
+        auto b = core::v(3, 4);
+        Assert(a + b == core::v(4, 6));
+        Assert(a + b - b == core::v(1, 2));
+        Assert(a * b == core::v(3, 8));
+        Assert(a * b / b == core::v(1, 2));
+    }
+    {
         core::vec3<i32> a { 1, 2, 3 };
         core::vec3<i32> b { 3, 4, 5 };
         a.add(b); Assert(a.equals(core::v(4, 6, 8)));
@@ -48,12 +56,28 @@ void vector_add_sub_mul_div_test() {
         a.div(b); Assert(a.equals(core::v(1, 2, 3)));
     }
     {
+        auto a = core::v(1, 2, 3);
+        auto b = core::v(3, 4, 5);
+        Assert(a + b == core::v(4, 6, 8));
+        Assert(a + b - b == core::v(1, 2, 3));
+        Assert(a * b == core::v(3, 8, 15));
+        Assert(a * b / b == core::v(1, 2, 3));
+    }
+    {
         auto a = core::v(1, 2, 3, 4);
         auto b = core::v(3, 4, 5, 6);
         a.add(b); Assert(a.equals(core::v(4, 6, 8, 10)));
         a.sub(b); Assert(a.equals(core::v(1, 2, 3, 4)));
         a.mul(b); Assert(a.equals(core::v(3, 8, 15, 24)));
         a.div(b); Assert(a.equals(core::v(1, 2, 3, 4)));
+    }
+    {
+        auto a = core::v(1, 2, 3, 4);
+        auto b = core::v(3, 4, 5, 6);
+        Assert(a + b == core::v(4, 6, 8, 10));
+        Assert(a + b - b == core::v(1, 2, 3, 4));
+        Assert(a * b == core::v(3, 8, 15, 24));
+        Assert(a * b / b == core::v(1, 2, 3, 4));
     }
     {
         core::vec2<f32> a = core::v(1.0f, 2.0f);
@@ -81,6 +105,20 @@ void vector_add_sub_mul_div_test() {
         Assert(a.equals(-b));
         b = -b;
         Assert(b.equals(a));
+    }
+    {
+        auto a = core::v(1, 2);
+        Assert(a + 1 == core::v(2, 3));
+        Assert(a - 1 == core::v(0, 1));
+        Assert(a * 2 == core::v(2, 4));
+        Assert(a / 2 == core::v(0, 1));
+        Assert(1 + a == core::v(2, 3));
+        Assert(1 - a == core::v(0, -1));
+        Assert(2 * a == core::v(2, 4));
+        Assert(2 / (a + core::v(1, 0)) == core::v(1, 1));
+        Assert(4 / a == core::v(4, 2));
+        Assert(8 / a == core::v(8, 4));
+        Assert(8 / a / a == core::v(8, 2));
     }
 }
 

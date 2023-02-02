@@ -30,12 +30,17 @@ struct Shape2D {
         Usage usage;
     };
 
-    static Shape2D create(const Shape2D::VertexLayout& vl, core::arr<core::vec2f>&& vertices);
+    static Shape2D create(const Shape2D::VertexLayout& vl,
+                          const core::vec4f& fillColor,
+                          f32 zIndex,
+                          core::arr<core::vec2f>&& vertices);
 
     u32 vbo_id() const;
     u32 vao_id() const;
+    f32 z_index() const;
     const core::arr<core::vec2f>& vertices() const;
     i32 vertex_count() const;
+    const core::vec4f& fill_color() const;
 
     void destroy() const;
 
@@ -44,6 +49,8 @@ private:
     //       I think I do. Because rendering line strips, circles and some more complex objects
     //       will duplicate a lot of vertices. Leaving it for later.
     core::arr<core::vec2f> m_vertices;
+    core::vec4f m_fillColor;
     u32 m_vboId;
     u32 m_vaoId;
+    f32 m_zIndex;
 };

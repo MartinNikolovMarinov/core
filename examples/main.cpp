@@ -34,8 +34,8 @@ struct AppState {
 };
 static AppState g_appState;
 
-static constexpr Grid2D g_clipSpaceGrid  = { core::v(-1, -1), core::v(1, 1) };
-static constexpr Grid2D g_worldSpaceGrid = { core::v(0, 0),   core::v(1000, 1000) };
+static constexpr Grid2D g_clipSpaceGrid  = { core::v(-1.0f, -1.0f), core::v(1.0f, 1.0f) };
+static constexpr Grid2D g_worldSpaceGrid = { core::v(0.0f, 0.0f), core::v(1000.0f, 1000.0f) };
 
 GLFWwindow* init_glfw_window(i32 width, i32 height, const char* title) {
     if (!glfwInit()) {
@@ -51,6 +51,7 @@ GLFWwindow* init_glfw_window(i32 width, i32 height, const char* title) {
 #ifdef OS_MAC
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
     GLFWwindow* window = glfwCreateWindow(width, height, title, nullptr, nullptr);
     if (!window) {
@@ -184,6 +185,18 @@ void init_glfw_event_handlers(GLFWwindow* window) {
 
 void init_openGL() {
     glViewport(0, 0, g_appState.windowWidth, g_appState.windowHeight);
+
+    auto& cc = g_appState.clearColor;
+    glClearColor(cc.r(), cc.g(), cc.b(), cc.a());
+
+    constexpr bool debugWireFrameMode = false;
+    if constexpr (debugWireFrameMode) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    } else {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
+    glEnable(GL_MULTISAMPLE);
 }
 
 bool should_render() {
@@ -201,7 +214,7 @@ void prepare_input_state_for_next_frame() {
     g_appState.mouseState.clear();
 }
 
-void render_shape(Shape2D& shape) {
+void render_shape(ShaderProg& guiShader, Shape2D& shape) {
     // Bind shape:
     {
         // cache the last bound vbo and vao.
@@ -217,6 +230,8 @@ void render_shape(Shape2D& shape) {
             lastBoundVaoId = shape.vao_id();
         }
     }
+
+    Check(guiShader.set_uniform_v("u_color", shape.fill_color()));
     glDrawArrays(GL_TRIANGLES, 0, shape.vertex_count());
 }
 
@@ -244,16 +259,36 @@ i32 main(i32, char const**) {
         return APP_EXIT_FAILED_TO_INIT;
     }
 
+    init_openGL();
+
     // Create opengl program:
-    const char* vertexShaderSource = R"(
+    const char* vertexGUIShaderSource = R"(
         #version 330 core
         layout (location = 0) in vec3 in_pos;
 
+        uniform vec2 u_worldSpaceGridMin;
+        uniform vec2 u_worldSpaceGridMax;
+
+        vec2 convertVecUsingGrid(vec2 src, vec2 fromMin, vec2 fromMax, vec2 toMin, vec2 toMax) {
+            vec2 fromRange = fromMax - fromMin;
+            vec2 toRange = toMax - toMin;
+            vec2 relativeLoc = (src - fromMin) / fromRange;
+            vec2 ret = relativeLoc * toRange + toMin;
+            return ret;
+        }
+
         void main() {
-            gl_Position = vec4(in_pos.x, in_pos.y, in_pos.z, 1.0);
+            const vec2 clipSpaceGridMin = vec2(-1.0, 1.0); // OpenGL flips the y axis.
+            const vec2 clipSpaceGridMax = vec2(1.0, -1.0);
+
+            vec2 clipSpacePos = convertVecUsingGrid(in_pos.xy,
+                                                    u_worldSpaceGridMin, u_worldSpaceGridMax,
+                                                    clipSpaceGridMin, clipSpaceGridMax);
+
+            gl_Position = vec4(clipSpacePos.xy, 1.0, 1.0);
         }
     )";
-    const char* fragmentShaderSource = R"(
+    const char* fragmentGUIShaderSource = R"(
         #version 330 core
         out vec4 out_fragColor;
         uniform vec4 u_color;
@@ -262,53 +297,70 @@ i32 main(i32, char const**) {
             out_fragColor = u_color;
         }
     )";
-    ShaderProg program = ValueOrDie(ShaderProg::create(vertexShaderSource, fragmentShaderSource));
-    defer { program.destroy(); };
-    program.use();
+    ShaderProg guiShader = ValueOrDie(ShaderProg::create(vertexGUIShaderSource, fragmentGUIShaderSource));
+    defer { guiShader.destroy(); };
+    guiShader.use();
 
-    core::arr<core::vec2f> rectVerts(0, 6);
-    rectVerts.append(core::v(250.0f, 750.0f))
-             .append(core::v(250.0f, 250.0f))
-             .append(core::v(750.0f, 750.0f))
-             .append(core::v(750.0f, 750.0f))
-             .append(core::v(250.0f, 250.0f))
-             .append(core::v(750.0f, 250.0f));
+    // Example Rect
+    Shape2D rectShape;
+    {
+        core::arr<core::vec2f> rectVerts(0, 6);
+        rectVerts.append(core::v(250.0f, 750.0f))
+                .append(core::v(250.0f, 250.0f))
+                .append(core::v(750.0f, 750.0f))
+                .append(core::v(750.0f, 750.0f))
+                .append(core::v(250.0f, 250.0f))
+                .append(core::v(750.0f, 250.0f));
 
-    // core::rotate_right(rectVerts, core::v(500.0f, 500.0f), core::deg_to_rad(5.0f));
-    core::rotate(rectVerts, core::v(500.0f, 500.0f), core::deg_to_rad(5.0f));
+        // FIXME: TMP rotation testing code:
+        // core::rotate_right(rectVerts, core::v(500.0f, 500.0f), core::deg_to_rad(5.0f));
+        core::rotate(rectVerts, core::v(500.0f, 500.0f), core::deg_to_rad(5.0f));
 
-    // FIXME: ok at what point should this happen?
-    //        Why not do it in the shader?
-    //        Well maybe a bit later, because it is much easier to debug in cpu code.
-    for (ptr_size i = 0; i < rectVerts.len(); ++i) {
-        rectVerts[i] = convert_vec_using_grid(rectVerts[i], g_worldSpaceGrid, g_clipSpaceGrid);
+        Shape2D::VertexLayout vl;
+        vl.stride = sizeof(core::vec2f);
+        vl.offset = 0;
+        vl.usage = { Shape2D::Usage::Access::STATIC, Shape2D::Usage::AccessType::DRAW };
+        vl.posAttribId = ValueOrDie(guiShader.get_attrib_location("in_pos"));
+        rectShape = Shape2D::create(vl, core::v(1.0f, 0.0f, 0.0f, 1.0f), 1000.f, core::move(rectVerts));
     }
-
-    Shape2D::VertexLayout vl;
-    vl.stride = sizeof(core::vec2f);
-    vl.offset = 0;
-    vl.usage = { Shape2D::Usage::Access::STATIC, Shape2D::Usage::AccessType::DRAW };
-    vl.posAttribId = ValueOrDie(program.get_attrib_location("in_pos"));
-    auto rectShape = Shape2D::create(vl, core::move(rectVerts));
     defer { rectShape.destroy(); };
 
-    auto& cc = g_appState.clearColor;
-    glClearColor(cc.r(), cc.g(), cc.b(), cc.a());
+    Shape2D triangleShape;
+    {
+        core::arr<core::vec2f> triangleVerts(0, 3);
+        triangleVerts.append(core::v(500.0f, 0.0f))
+                     .append(core::v(0.0f, 1000.0f))
+                     .append(core::v(1000.0f, 1000.0f));
 
-    constexpr bool debugWireFrameMode = false;
-    if constexpr (debugWireFrameMode) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    } else {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        // FIXME: TMP rotation testing code:
+        // core::rotate_right(triangleVerts, core::v(500.0f, 500.0f), core::deg_to_rad(30.0f));
+
+        Shape2D::VertexLayout vl;
+        vl.stride = sizeof(core::vec2f);
+        vl.offset = 0;
+        vl.usage = { Shape2D::Usage::Access::STATIC, Shape2D::Usage::AccessType::DRAW };
+        vl.posAttribId = ValueOrDie(guiShader.get_attrib_location("in_pos"));
+        triangleShape = Shape2D::create(vl, core::v(0.0f, 0.0f, 1.0f, 1.0f), 999.f, core::move(triangleVerts));
     }
+    defer { triangleShape.destroy(); };
 
     while(!glfwWindowShouldClose(window)) {
         if (should_render()) {
             // clear
             glClear(GL_COLOR_BUFFER_BIT);
             // render objects
-            Check(program.set_uniform_v("u_color", core::v(0.0f, 0.0f, 1.0f, 1.0f)));
-            render_shape(rectShape);
+            Check(guiShader.set_uniform_v("u_worldSpaceGridMin", g_worldSpaceGrid.min));
+            Check(guiShader.set_uniform_v("u_worldSpaceGridMax", g_worldSpaceGrid.max));
+            // TODO: implement z index ordering for rendering every shape. Shapes probably need to exist in the global state or whaterver.
+            if (rectShape.z_index() < triangleShape.z_index()) {
+                render_shape(guiShader, rectShape);
+                render_shape(guiShader, triangleShape);
+            }
+            else {
+                render_shape(guiShader, triangleShape);
+                render_shape(guiShader, rectShape);
+            }
+
             // swap buffers
             glfwSwapBuffers(window);
         }

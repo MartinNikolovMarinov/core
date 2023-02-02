@@ -23,11 +23,16 @@ u32 Shape2D::Usage::usage_Gl() const {
     return ret;
 }
 
-Shape2D Shape2D::create(const Shape2D::VertexLayout& vl, core::arr<core::vec2f>&& vertices) {
+Shape2D Shape2D::create(const Shape2D::VertexLayout& vl,
+                        const core::vec4f& fillColor,
+                        f32 zIndex,
+                        core::arr<core::vec2f>&& vertices) {
     Shape2D m;
     m.m_vertices = core::move(vertices);
     m.m_vboId = -1;
     m.m_vaoId = -1;
+    m.m_zIndex = zIndex;
+    m.m_fillColor = fillColor;
 
     // Create VBO
     glGenBuffers(1, &m.m_vboId);
@@ -50,8 +55,10 @@ Shape2D Shape2D::create(const Shape2D::VertexLayout& vl, core::arr<core::vec2f>&
 
 u32 Shape2D::vbo_id() const { return m_vboId; }
 u32 Shape2D::vao_id() const { return m_vaoId; }
+f32 Shape2D::z_index() const { return m_zIndex; }
 const core::arr<core::vec2f>& Shape2D::vertices() const { return m_vertices; }
 i32 Shape2D::vertex_count() const { return m_vertices.len(); }
+const core::vec4f& Shape2D::fill_color() const { return m_fillColor; }
 
 void Shape2D::destroy() const {
     glDeleteBuffers(1, &m_vboId);

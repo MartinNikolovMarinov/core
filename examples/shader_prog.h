@@ -27,23 +27,23 @@ struct ShaderProg {
     void use()     { glUseProgram(m_id); }
 
     template <i32 Dim, typename T>
-    core::expected<error_type> set_uniform_v(std::string_view name, core::vec<Dim, T>& v) {
+    core::expected<error_type> set_uniform_v(std::string_view name, const core::vec<Dim, T>& v) {
         i32 loc = glGetUniformLocation(m_id, name.data());
         if (loc < 0) return core::unexpected(fmt::format("Failed to get uniform location for {}", name));
         if constexpr (std::is_same_v<T, f32>) {
-            if      constexpr (Dim == 2) glUniform2fv(loc, 1, reinterpret_cast<f32*>(&v.data[0]));
-            else if constexpr (Dim == 3) glUniform3fv(loc, 1, reinterpret_cast<f32*>(&v.data[0]));
-            else if constexpr (Dim == 4) glUniform4fv(loc, 1, reinterpret_cast<f32*>(&v.data[0]));
+            if      constexpr (Dim == 2) glUniform2fv(loc, 1, reinterpret_cast<const f32*>(&v.data[0]));
+            else if constexpr (Dim == 3) glUniform3fv(loc, 1, reinterpret_cast<const f32*>(&v.data[0]));
+            else if constexpr (Dim == 4) glUniform4fv(loc, 1, reinterpret_cast<const f32*>(&v.data[0]));
         }
         else if constexpr (std::is_same_v<T, i32>) {
-            if      constexpr (Dim == 2) glUniform2iv(loc, 1, reinterpret_cast<i32*>(&v.data[0]));
-            else if constexpr (Dim == 3) glUniform3iv(loc, 1, reinterpret_cast<i32*>(&v.data[0]));
-            else if constexpr (Dim == 4) glUniform4iv(loc, 1, reinterpret_cast<i32*>(&v.data[0]));
+            if      constexpr (Dim == 2) glUniform2iv(loc, 1, reinterpret_cast<const i32*>(&v.data[0]));
+            else if constexpr (Dim == 3) glUniform3iv(loc, 1, reinterpret_cast<const i32*>(&v.data[0]));
+            else if constexpr (Dim == 4) glUniform4iv(loc, 1, reinterpret_cast<const i32*>(&v.data[0]));
         }
         else if constexpr (std::is_same_v<T, u32>) {
-            if      constexpr (Dim == 2) glUniform2uiv(loc, 1, reinterpret_cast<u32*>(&v.data[0]));
-            else if constexpr (Dim == 3) glUniform3uiv(loc, 1, reinterpret_cast<u32*>(&v.data[0]));
-            else if constexpr (Dim == 4) glUniform4uiv(loc, 1, reinterpret_cast<u32*>(&v.data[0]));
+            if      constexpr (Dim == 2) glUniform2uiv(loc, 1, reinterpret_cast<const u32*>(&v.data[0]));
+            else if constexpr (Dim == 3) glUniform3uiv(loc, 1, reinterpret_cast<const u32*>(&v.data[0]));
+            else if constexpr (Dim == 4) glUniform4uiv(loc, 1, reinterpret_cast<const u32*>(&v.data[0]));
         }
         else {
             static_assert(core::always_false<T>, "Unsupported type"); // honestly I hate c++ :D
@@ -52,7 +52,7 @@ struct ShaderProg {
     }
 
     template <i32 Dim, typename T>
-    core::expected<error_type> set_uniform_v(std::string_view name, core::vec<Dim, T>&& v) {
+    core::expected<error_type> set_uniform_v(std::string_view name, const core::vec<Dim, T>&& v) {
         return set_uniform_v(name, v);
     }
 

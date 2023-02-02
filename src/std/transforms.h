@@ -12,7 +12,7 @@ using namespace coretypes;
 
 template<typename T, i32 Dim>
 constexpr void translate(vec<Dim, T>& src, const vec<Dim, T>& t) {
-    for (i32 i = 0; i < src.dimmentions(); ++i) {
+    for (i32 i = 0; i < src.dimentions(); ++i) {
         src[i] += t[i];
     }
 }
@@ -26,14 +26,14 @@ constexpr void translate(arr<vec<Dim, T>>& src, const vec<Dim, T>& t) {
 
 template<typename T, i32 Dim>
 constexpr void scale(vec<Dim, T>& src, const vec<Dim, T>& s) {
-    for (i32 i = 0; i < src.dimmentions(); ++i) {
+    for (i32 i = 0; i < src.dimentions(); ++i) {
         src[i] *= s[i];
     }
 }
 
 template<typename T, i32 Dim>
 constexpr void scale(vec<Dim, T>& src, const vec<Dim, T>& reference, const vec<Dim, T>& s) {
-    for (i32 i = 0; i < src.dimmentions(); ++i) {
+    for (i32 i = 0; i < src.dimentions(); ++i) {
         src[i] = reference[i] + (src[i] - reference[i]) * s[i];
     }
 }

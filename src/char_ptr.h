@@ -24,7 +24,7 @@ CORE_API_EXPORT void int_to_cptr(TInt n, char* out) {
     }
     i32 dc = digit_count(n);
     for (i32 i = dc - 1; i >= 0; i--) {
-        i32 curr = (n / TInt(pow_i64(10, i))) % 10;
+        i32 curr = (n / TInt(pow_u64(10, i))) % 10;
         *out++ = digit_to_char(curr);
         dc--;
     }

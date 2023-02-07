@@ -4,6 +4,8 @@
 #include <arr.h>
 #include <std/vec.h>
 
+#include <type_traits>
+
 namespace core {
 
 using namespace coretypes;
@@ -52,77 +54,79 @@ constexpr void scale(arr<vec<Dim, T>>& src, const vec<Dim, T>& reference, const 
     }
 }
 
-template<typename T>
-constexpr void rotate(vec2<T>& src, const vec2<T>& axis, double angle) {
-    T c = cos(angle);
-    T s = sin(angle);
-    src -= axis;
-    src = vec2<T>(src.x() * c - src.y() * s, src.x() * s + src.y() * c);
-    src += axis;
+template<typename TFloat>
+constexpr void rotate(vec2<TFloat>& src, const vec2<TFloat>& origin, TFloat angle) {
+    static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
+    TFloat c = std::cos(angle);
+    TFloat s = std::sin(angle);
+    src -= origin;
+    src = vec2<TFloat>(src.x() * c - src.y() * s, src.x() * s + src.y() * c);
+    src += origin;
 }
 
-template<typename T>
-constexpr void rotate(vec3<T>& src, const vec3<T>& axis, double angle) {
-    // using 3d rotation anti-clockwise around axis
+template<typename TFloat>
+constexpr void rotate(vec3<TFloat>& src, const vec3<TFloat>& origin, TFloat angle) {
+    static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
+    // using 3d rotation anti-clockwise around origin
     // https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
-    T c = cos(angle);
-    T s = sin(angle);
-    T t = 1 - c;
+    TFloat c = std::cos(angle);
+    TFloat s = std::sin(angle);
+    TFloat t = 1 - c;
 
-    T x = axis.x();
-    T y = axis.y();
-    T z = axis.z();
+    TFloat x = origin.x();
+    TFloat y = origin.y();
+    TFloat z = origin.z();
 
-    T x2 = x * x;
-    T y2 = y * y;
-    T z2 = z * z;
+    TFloat x2 = x * x;
+    TFloat y2 = y * y;
+    TFloat z2 = z * z;
 
-    T xy = x * y;
-    T xz = x * z;
-    T yz = y * z;
+    TFloat xy = x * y;
+    TFloat xz = x * z;
+    TFloat yz = y * z;
 
-    T xs = x * s;
-    T ys = y * s;
-    T zs = z * s;
+    TFloat xs = x * s;
+    TFloat ys = y * s;
+    TFloat zs = z * s;
 
-    T m00 = t * x2 + c;
-    T m01 = t * xy - zs;
-    T m02 = t * xz + ys;
-    T m10 = t * xy + zs;
-    T m11 = t * y2 + c;
-    T m12 = t * yz - xs;
-    T m20 = t * xz - ys;
-    T m21 = t * yz + xs;
-    T m22 = t * z2 + c;
+    TFloat m00 = t * x2 + c;
+    TFloat m01 = t * xy - zs;
+    TFloat m02 = t * xz + ys;
+    TFloat m10 = t * xy + zs;
+    TFloat m11 = t * y2 + c;
+    TFloat m12 = t * yz - xs;
+    TFloat m20 = t * xz - ys;
+    TFloat m21 = t * yz + xs;
+    TFloat m22 = t * z2 + c;
 
-    src = vec3<T>(
+    src = vec3<TFloat>(
         m00 * src.x() + m01 * src.y() + m02 * src.z(),
         m10 * src.x() + m11 * src.y() + m12 * src.z(),
         m20 * src.x() + m21 * src.y() + m22 * src.z()
     );
 }
 
-template<typename T>
-constexpr void rotate_right(vec2<T>& src, const vec2<T>& axis, double angle) {
-    rotate(src, axis, -angle);
+template<typename TFloat>
+constexpr void rotate_right(vec2<TFloat>& src, const vec2<TFloat>& origin, TFloat angle) {
+    rotate(src, origin, -angle);
 }
 
-template<typename T>
-constexpr void rotate_right(vec3<T>& src, const vec3<T>& axis, double angle) {
-    rotate(src, axis, -angle);
+template<typename TFloat>
+constexpr void rotate_right(vec3<TFloat>& src, const vec3<TFloat>& origin, TFloat angle) {
+    rotate(src, origin, -angle);
 }
 
-template<typename T, i32 Dim>
-constexpr void rotate(arr<vec<Dim, T>>& src, const vec<Dim, T>& axis, double angle) {
+template<typename TFloat, i32 Dim>
+constexpr void rotate(arr<vec<Dim, TFloat>>& src, const vec<Dim, TFloat>& origin, TFloat angle) {
     for (i32 i = 0; i < src.len(); ++i) {
-        rotate(src[i], axis, angle);
+        rotate(src[i], origin, angle);
     }
 }
 
-template<typename T, i32 Dim>
-constexpr void rotate_right(arr<vec<Dim, T>>& src, const vec<Dim, T>& axis, double angle) {
+template<typename TFloat, i32 Dim>
+constexpr void rotate_right(arr<vec<Dim, TFloat>>& src, const vec<Dim, TFloat>& origin, TFloat angle) {
     for (i32 i = 0; i < src.len(); ++i) {
-        rotate_right(src[i], axis, angle);
+        rotate_right(src[i], origin, angle);
     }
 }
 

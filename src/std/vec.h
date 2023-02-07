@@ -112,7 +112,7 @@ constexpr bool vequals(const vec<Dim, T1>& v1, const vec<Dim, T2>& v2) {
 template<typename T1, typename T2, i32 Dim>
 constexpr bool vsafeequals(const vec<Dim, T1>& v1, const vec<Dim, T2>& v2, T1 epsilon) {
     for (i32 i = 0; i < v1.dimentions(); ++i) {
-        if (std::abs(v1[i] - static_cast<T1>(v2[i])) > epsilon) return false;
+        if (!core::safe_eq(v1[i], static_cast<T1>(v2[i]), epsilon)) return false;
     }
     return true;
 }

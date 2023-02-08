@@ -1,4 +1,4 @@
-void int_to_hex_signed_ints() {
+void int_to_hex_signed_ints_test() {
     char buf[20];
 
     core::memset(buf, 0, 20);
@@ -86,7 +86,7 @@ void int_to_hex_signed_ints() {
     Assert(core::cptr_cmp(buf, "FFFFFFFFFFFFFFFF") == 0);
 }
 
-void int_to_hex_unsigned_ints() {
+void int_to_hex_unsigned_ints_test() {
     char buf[20];
 
     core::memset(buf, 0, 20);
@@ -210,7 +210,129 @@ void int_to_hex_unsigned_ints() {
     Assert(core::cptr_cmp(buf, "7FFFFFFFFFFFFFFF") == 0);
 }
 
+template <typename T>
+struct __digit_count_test_case {
+    T value;
+    u32 expected;
+};
+
+constexpr void digit_count_test() {
+    __digit_count_test_case<i32> cases1[] = {
+        { 1,           1 },
+        { 11,          2 },
+        { 111,         3 },
+        { 1111,        4 },
+        { 11111,       5 },
+        { 111111,      6 },
+        { 1111111,     7 },
+        { 11111111,    8 },
+        { 111111111,   9 },
+        { 1111111111, 10 },
+
+        { -1,           1 },
+        { -11,          2 },
+        { -111,         3 },
+        { -1111,        4 },
+        { -11111,       5 },
+        { -111111,      6 },
+        { -1111111,     7 },
+        { -11111111,    8 },
+        { -111111111,   9 },
+        { -1111111111, 10 },
+    };
+    for (auto& c : cases1) {
+        Assert(core::digit_count(c.value) == c.expected, "test case failed for i32");
+    }
+
+    __digit_count_test_case<u32> cases2[] = {
+        { 1,           1 },
+        { 11,          2 },
+        { 111,         3 },
+        { 1111,        4 },
+        { 11111,       5 },
+        { 111111,      6 },
+        { 1111111,     7 },
+        { 11111111,    8 },
+        { 111111111,   9 },
+        { 1111111111, 10 },
+    };
+    for (auto& c : cases2) {
+        Assert(core::digit_count(c.value) == c.expected, "test case failed for i32");
+    }
+
+    __digit_count_test_case<i64> cases3[] = {
+        { 1,                    1 },
+        { 11,                   2 },
+        { 111,                  3 },
+        { 1111,                 4 },
+        { 11111,                5 },
+        { 111111,               6 },
+        { 1111111,              7 },
+        { 11111111,             8 },
+        { 111111111,            9 },
+        { 1111111111,          10 },
+        { 11111111111,         11 },
+        { 111111111111,        12 },
+        { 1111111111111,       13 },
+        { 11111111111111,      14 },
+        { 111111111111111,     15 },
+        { 1111111111111111,    16 },
+        { 11111111111111111,   17 },
+        { 111111111111111111,  18 },
+        { 1111111111111111111, 19 },
+
+        { -1,                    1 },
+        { -11,                   2 },
+        { -111,                  3 },
+        { -1111,                 4 },
+        { -11111,                5 },
+        { -111111,               6 },
+        { -1111111,              7 },
+        { -11111111,             8 },
+        { -111111111,            9 },
+        { -1111111111,          10 },
+        { -11111111111,         11 },
+        { -111111111111,        12 },
+        { -1111111111111,       13 },
+        { -11111111111111,      14 },
+        { -111111111111111,     15 },
+        { -1111111111111111,    16 },
+        { -11111111111111111,   17 },
+        { -111111111111111111,  18 },
+        { -1111111111111111111, 19 },
+    };
+    for (auto& c : cases3) {
+        Assert(core::digit_count(c.value) == c.expected, "test case failed for i64");
+    }
+
+    __digit_count_test_case<u64> cases4[] = {
+        { 1,                    1 },
+        { 11,                   2 },
+        { 111,                  3 },
+        { 1111,                 4 },
+        { 11111,                5 },
+        { 111111,               6 },
+        { 1111111,              7 },
+        { 11111111,             8 },
+        { 111111111,            9 },
+        { 1111111111,          10 },
+        { 11111111111,         11 },
+        { 111111111111,        12 },
+        { 1111111111111,       13 },
+        { 11111111111111,      14 },
+        { 111111111111111,     15 },
+        { 1111111111111111,    16 },
+        { 11111111111111111,   17 },
+        { 111111111111111111,  18 },
+        { 1111111111111111111, 19 },
+    };
+    for (auto& c : cases4) {
+        Assert(core::digit_count(c.value) == c.expected, "test case failed for u64");
+    }
+}
+
 void run_ints_tests_suite() {
-    RunTest(int_to_hex_signed_ints);
-    RunTest(int_to_hex_unsigned_ints);
+    RunTest(int_to_hex_signed_ints_test);
+    RunTest(int_to_hex_unsigned_ints_test);
+    RunTest(digit_count_test);
 }

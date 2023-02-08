@@ -45,9 +45,11 @@ static u32 maxdigits[] = {
 } // namespace
 
 template <typename TUint>
-CORE_API_EXPORT u32 digit_count(TUint n) {
-    static_assert(sizeof(n) <= 8, "Invalid TUint paramater.");
-    u32 leadingZeroes = leading_zeroes(n);
+u32 digit_count(TUint n) {
+    static_assert(sizeof(n) == 4 || sizeof(n) == 8, "Invalid TUint paramater.");
+    if (n == 0) return 0;
+    if (n < 0) n = -n;
+    u32 leadingZeroes = leading_zerobits(n);
     u32 usedBits = (sizeof(n) * 8) - u32(leadingZeroes);
     u32 digits = maxdigits[usedBits];
     if (n < static_cast<TUint>(powers[digits - 1])) digits--;
@@ -62,8 +64,8 @@ static const char* hexDigits = "0123456789ABCDEF";
 // The out argument must have enough space to hold the result!
 // You can use somthing like - "char out[sizeof(TInt)];"~
 template <typename TInt>
-CORE_API_EXPORT void int_to_hex(TInt v, char* out, u64 hexLen = (sizeof(TInt) << 1)) {
-    static_assert(sizeof(v) <= 8 || sizeof(v) > 64, "Invalid TInt paramater.");
+void int_to_hex(TInt v, char* out, u64 hexLen = (sizeof(TInt) << 1)) {
+    static_assert(1 <= sizeof(v) && sizeof(v) <= 8, "Invalid TInt paramater.");
     for (size_t i = 0, j = (hexLen - 1) * 4; i < hexLen; i++, j-=4) {
         out[i] = hexDigits[(v >> j) & 0x0f];
     }

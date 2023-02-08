@@ -9,9 +9,19 @@ namespace core {
 using namespace coretypes;
 
 // Least Significant N Bits are equal to bitSeq
-CORE_API_EXPORT bool lsn_bits(u8 v, u8 bitSeq, u8 n);
+constexpr bool lsn_bits(u8 v, u8 bitSeq, u8 n) {
+    u8 mask = ~(MAX_U8 << n);
+    v = (v & mask);
+    bool ret = (v == bitSeq);
+    return ret;
+}
+
 // Most Significant N Bits are equal to bitSeq
-CORE_API_EXPORT bool msn_bits(u8 v, u8 bitSeq, u8 n);
+constexpr bool msn_bits(u8 v, u8 bitSeq, u8 n) {
+    u8 shift = (sizeof(u8) * 8) - n;
+    bool ret = (v >> shift) == bitSeq;
+    return ret;
+}
 
 template <typename TUint>
 CORE_API_EXPORT TUint swap_byte_order(TUint n) {

@@ -77,13 +77,8 @@ void rotate2d_test() {
     Assert(v.equals(core::vec2f(1.0f, 2.0f), 0.0001f));
 }
 
-void float_safe_eq() {
-
-}
-
 void run_transforms_tests_suite() {
     RunTest(translate_test);
     RunTest(scale_test);
     RunTest(rotate2d_test);
-    RunTest(float_safe_eq);
 }

@@ -54,33 +54,10 @@ constexpr f64 abs(f64 a) {
     return a;
 }
 
-constexpr i8 abs(i8 a) {
-    // FIXME: find a better way to do this!
-    u32 temp = a >> (sizeof(i8) * 8 - 1);
-    a ^= temp;
-    a += temp & 1;
-    return a;
-}
-
-constexpr i16 abs(i16 a) {
-    u32 temp = a >> (sizeof(i16) * 8 - 1);
-    a ^= temp;
-    a += temp & 1;
-    return a;
-}
-
-constexpr i32 abs(i32 a) {
-    u32 temp = a >> (sizeof(i32) * 8 - 1);
-    a ^= temp;
-    a += temp & 1;
-    return a;
-}
-
-constexpr i64 abs(i64 a) {
-    u64 temp = a >> (sizeof(i64) * 8 - 1);
-    a ^= temp;
-    a += temp & 1;
-    return a;
+template <typename T>
+constexpr T abs(T a) {
+    // can be done branchless, but it's not faster.
+    return a < 0 ? -a : a;
 }
 
 // NOTE: This is pretty fast branchless check. Its collapsed to a single instruction on x86 and ARM by most compilers.

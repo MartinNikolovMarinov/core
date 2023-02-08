@@ -1,4 +1,4 @@
-void degrees_test() {
+constexpr void degrees_test() {
     Assert(core::deg_to_rad(0.0f) == 0.0f);
     Assert(core::deg_to_rad(90.0f) == core::PI / 2.0f);
     Assert(core::deg_to_rad(180.0f) == core::PI);
@@ -12,7 +12,7 @@ void degrees_test() {
     Assert(core::rad_to_deg(core::PI * 2.0f) == 360.0f);
 }
 
-void pow_u64_test() {
+constexpr void pow_u64_test() {
     Assert(core::pow_u64(0, 0) == 0);
     Assert(core::pow_u64(0, 5) == 0);
     Assert(core::pow_u64(5, 0) == 1);
@@ -111,7 +111,7 @@ void pow_u64_test() {
     // next one is too big for 64-bit int
 }
 
-void abs_test() {
+constexpr void abs_test() {
     Assert(core::abs(i8(0)) == 0);
     Assert(core::abs(i8(1)) == 1);
     Assert(core::abs(i8(-1)) == 1);
@@ -142,7 +142,7 @@ void abs_test() {
     Assert(core::abs(i64(core::MIN_I64 + 1)) == core::MAX_I64);
 }
 
-void is_positive_test() {
+constexpr void is_positive_test() {
     Assert(core::is_positive(i8(0)) == true);
     Assert(core::is_positive(i8(1)) == true);
     Assert(core::is_positive(i8(-1)) == false);
@@ -163,9 +163,48 @@ void is_positive_test() {
     Assert(core::is_positive(f64(-1)) == false);
 }
 
+constexpr void float_safe_eq() {
+    struct test_case {
+        f32 startA;
+        f32 startB;
+        f32 step;
+        f32 epsilon;
+        i32 iterations;
+        bool expected;
+    };
+
+    test_case cases[] = {
+        { 0.1, 0.1, 0.1,  0.01,  10, true },
+        { 0.1, 0.1, 0.2,  0.01,  10, true },
+        { 0.1, 0.1, 0.01, 0.01, 100, true },
+
+        { 0.1, 0.2, 0.1,  0.01,  10, false },
+        { 0.1, 0.2, 0.01, 0.01, 100, false },
+
+        { 0.001111, 0.00999, 0.001, 0.01, 10, true },
+        { 0.001111, 0.00999, 0.001, 0.001, 10, false },
+    };
+
+    i32 i = 0;
+    constexpr const char* iterAsCptrFmt = "float_safe_eq test case failed at index: ";
+    constexpr const ptr_size iterAsCptrFmtLen = core::cptr_len(iterAsCptrFmt);
+    char iterAsCptr[iterAsCptrFmtLen + 20] = {};
+    core::memcopy(iterAsCptr, iterAsCptrFmt, iterAsCptrFmtLen);
+    char* appendIdx = &iterAsCptr[iterAsCptrFmtLen];
+    for (auto& c : cases) {
+        core::int_to_cptr(i++, appendIdx, 2);
+        for (i32 j = 0; j < c.iterations; ++j) {
+            Assert(core::safe_eq(c.startA, c.startB, c.epsilon) == c.expected, iterAsCptr);
+            c.startA += c.step;
+            c.startB += c.step;
+        }
+    }
+}
+
 void run_core_math_tests_suite() {
     RunTest(degrees_test);
     RunTest(pow_u64_test);
     RunTest(abs_test);
     RunTest(is_positive_test);
+    RunTest(float_safe_eq);
 }

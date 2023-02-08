@@ -50,17 +50,13 @@ set(src_files
     tuple.h
     core_math.h
     mem.h
-    mem.cpp
     ints.h
     char_ptr.h
-    char_ptr.cpp
     rnd.h
     rnd.cpp
     bits.h
-    bits.cpp
     expected.h
     utf.h
-    utf.cpp
     alloc.h
     arr.h
     alloc_bump.h

@@ -1,12 +1,12 @@
 // TODO: Test invalid input cases!
 
-void converting_utf8_sequence_to_utf32_rune_one_bit() {
-    uchar d[10];
+constexpr void converting_utf8_sequence_to_utf32_rune_one_bit() {
+    uchar d[10] = {};
     core::memset(d, 0, 10);
-    uchar d2[10];
+    uchar d2[10] = {};
     core::memset(d2, 0, 10);
-    rune r;
-    u32 len;
+    rune r = 0;
+    u32 len = 0;
 
     // 0 is NULL, which is the MINUMUM 1 byte encoded character.
     d[0] = 0;
@@ -25,15 +25,15 @@ void converting_utf8_sequence_to_utf32_rune_one_bit() {
     Assert(core::cptr_cmp(d, d2) == 0);
 }
 
-void converting_utf8_sequence_to_utf32_rune_two_bit() {
+constexpr void converting_utf8_sequence_to_utf32_rune_two_bit() {
     // NOTE: from 128 to 2047 use 2 bytes.
 
-    uchar d[10];
+    uchar d[10] = {};
     core::memset(d, 0, 10);
-    uchar d2[10];
+    uchar d2[10] = {};
     core::memset(d2, 0, 10);
-    rune r;
-    u32 len;
+    rune r = 0;
+    u32 len = 0;
 
     // 194, 128 is , which is the MINIMUM 2 byte encoded character.
     d[0] = 194;
@@ -63,15 +63,15 @@ void converting_utf8_sequence_to_utf32_rune_two_bit() {
     Assert(core::cptr_cmp(d, d2) == 0);
 }
 
-void converting_utf8_sequence_to_utf32_rune_three_bit() {
+constexpr void converting_utf8_sequence_to_utf32_rune_three_bit() {
     // NOTE: from 2048 to 65535 use 3 bytes
 
-    uchar d[10];
+    uchar d[10] = {};
     core::memset(d, 0, 10);
-    uchar d2[10];
+    uchar d2[10] = {};
     core::memset(d2, 0, 10);
-    rune r;
-    u32 len;
+    rune r = 0;
+    u32 len = 0;
 
     // 224, 160, 128 is ࠀ, which is the MINIMUM 3 byte encoded character!
     d[0] = 224;
@@ -94,15 +94,15 @@ void converting_utf8_sequence_to_utf32_rune_three_bit() {
     Assert(core::cptr_cmp(d, d2) == 0);
 }
 
-void converting_utf8_sequence_to_utf32_rune_four_bit() {
+constexpr void converting_utf8_sequence_to_utf32_rune_four_bit() {
     // NOTE: from 65535 to MAX use 4 bytes
 
-    uchar d[10];
+    uchar d[10] = {};
     core::memset(d, 0, 10);
-    uchar d2[10];
+    uchar d2[10] = {};
     core::memset(d2, 0, 10);
-    rune r;
-    u32 len;
+    rune r = 0;
+    u32 len = 0;
 
     // 240, 144, 128, 128 is 𐀀, which is the MINUMUM 4 byte encoded character!
     d[0] = 240;

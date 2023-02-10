@@ -27,10 +27,19 @@ struct AppState {
     bool windowStateChange;
     std::chrono::time_point<std::chrono::high_resolution_clock> lastWindowDragTime;
     core::vec4<f32> clearColor;
+    ShaderProg guiShader;
+
     GLFWwindow* glfwWindow;
     i32 windowWidth;
     i32 windowHeight;
     const char* windowTitle;
+
+    AppState() = default;
+    ~AppState() { destory(); }
+
+    void destory() {
+        guiShader.destroy();
+    }
 };
 static AppState g_appState;
 
@@ -199,69 +208,7 @@ void init_openGL() {
     glEnable(GL_MULTISAMPLE);
 }
 
-bool should_render() {
-    bool shouldRender = g_appState.windowStateChange ||
-                        g_appState.mouseStateChange ||
-                        g_appState.keyboardStateChange;
-    return shouldRender;
-}
-
-void prepare_input_state_for_next_frame() {
-    g_appState.keyboardStateChange = false;
-    g_appState.mouseStateChange = false;
-    g_appState.windowStateChange = false;
-    g_appState.keyboardState.clear();
-    g_appState.mouseState.clear();
-}
-
-void render_shape(ShaderProg& guiShader, Shape2D& shape) {
-    // Bind shape:
-    {
-        // cache the last bound vbo and vao.
-        static u32 lastBoundVboId = core::MAX_U32;
-        static u32 lastBoundVaoId = core::MAX_U32;
-
-        if (lastBoundVboId != shape.vbo_id()) {
-            glBindBuffer(GL_ARRAY_BUFFER, shape.vbo_id());
-            lastBoundVboId = shape.vbo_id();
-        }
-        if (lastBoundVaoId != shape.vao_id()) {
-            glBindVertexArray(shape.vao_id());
-            lastBoundVaoId = shape.vao_id();
-        }
-    }
-
-    Check(guiShader.set_uniform_v("u_color", shape.fill_color()));
-    glDrawArrays(GL_TRIANGLES, 0, shape.vertex_count());
-}
-
-i32 main(i32, char const**) {
-    init_core();
-
-    g_appState = {}; // Zero out the global state.
-    g_appState.windowStateChange = true; // Force a render on the first frame.
-    g_appState.windowWidth = 800;
-    g_appState.windowHeight = 600;
-    g_appState.windowTitle = "Hello World";
-    g_appState.clearColor = core::v(0.2f, 0.3f, 0.3f, 1.0f);
-
-    GLFWwindow* window = init_glfw_window(g_appState.windowWidth, g_appState.windowHeight, g_appState.windowTitle);
-    defer { glfwTerminate(); };
-    if (!window) return APP_EXIT_FAILED_TO_INIT;
-    defer { glfwDestroyWindow(window); };
-
-    init_glfw_event_handlers(window);
-
-    // Init glew after we have a window:
-    if (auto err = glewInit(); err != GLEW_OK) {
-        const char* errStr = reinterpret_cast<const char*>(glewGetErrorString(err));
-        fmt::print(stderr, "Failed to initialize GLEW reason: {}\n", errStr);
-        return APP_EXIT_FAILED_TO_INIT;
-    }
-
-    init_openGL();
-
-    // Create opengl program:
+ShaderProg create_gui_shader_program() {
     const char* vertexGUIShaderSource = R"(
         #version 330 core
         layout (location = 0) in vec3 in_pos;
@@ -298,50 +245,118 @@ i32 main(i32, char const**) {
         }
     )";
     ShaderProg guiShader = ValueOrDie(ShaderProg::create(vertexGUIShaderSource, fragmentGUIShaderSource));
-    defer { guiShader.destroy(); };
-    guiShader.use();
+    return guiShader;
+}
 
-    // Example Rect
-    Shape2D rectShape;
+bool should_render() {
+    bool shouldRender = g_appState.windowStateChange ||
+                        g_appState.mouseStateChange ||
+                        g_appState.keyboardStateChange;
+    return shouldRender;
+}
+
+void prepare_input_state_for_next_frame() {
+    g_appState.keyboardStateChange = false;
+    g_appState.mouseStateChange = false;
+    g_appState.windowStateChange = false;
+    g_appState.keyboardState.clear();
+    g_appState.mouseState.clear();
+}
+
+void render_shape(Shape2D& shape) {
+    // Bind shape:
     {
-        core::arr<core::vec2f> rectVerts(0, 6);
-        rectVerts.append(core::v(250.0f, 750.0f))
-                .append(core::v(250.0f, 250.0f))
-                .append(core::v(750.0f, 750.0f))
-                .append(core::v(750.0f, 750.0f))
-                .append(core::v(250.0f, 250.0f))
-                .append(core::v(750.0f, 250.0f));
+        // cache the last bound vbo and vao.
+        static u32 lastBoundVboId = core::MAX_U32;
+        static u32 lastBoundVaoId = core::MAX_U32;
 
-        // FIXME: TMP rotation testing code:
-        // core::rotate_right(rectVerts, core::v(500.0f, 500.0f), core::deg_to_rad(5.0f));
-        core::rotate(rectVerts, core::v(500.0f, 500.0f), core::deg_to_rad(5.0f));
-
-        Shape2D::VertexLayout vl;
-        vl.stride = sizeof(core::vec2f);
-        vl.offset = 0;
-        vl.usage = { Shape2D::Usage::Access::STATIC, Shape2D::Usage::AccessType::DRAW };
-        vl.posAttribId = ValueOrDie(guiShader.get_attrib_location("in_pos"));
-        rectShape = Shape2D::create(vl, core::v(1.0f, 0.0f, 0.0f, 1.0f), 1000.f, core::move(rectVerts));
+        if (lastBoundVboId != shape.vbo_id()) {
+            glBindBuffer(GL_ARRAY_BUFFER, shape.vbo_id());
+            lastBoundVboId = shape.vbo_id();
+        }
+        if (lastBoundVaoId != shape.vao_id()) {
+            glBindVertexArray(shape.vao_id());
+            lastBoundVaoId = shape.vao_id();
+        }
     }
+
+    Check(g_appState.guiShader.set_uniform_v("u_color", shape.fill_color()));
+    glDrawArrays(GL_TRIANGLES, 0, shape.vertex_count());
+}
+
+Shape2D create_rectangle() {
+    core::arr<core::vec2f> rectVerts(0, 6);
+    rectVerts.append(core::v(250.0f, 750.0f))
+             .append(core::v(250.0f, 250.0f))
+             .append(core::v(750.0f, 750.0f))
+             .append(core::v(750.0f, 750.0f))
+             .append(core::v(250.0f, 250.0f))
+             .append(core::v(750.0f, 250.0f));
+
+    // FIXME: TMP rotation testing code:
+    // core::rotate_right(rectVerts, core::v(500.0f, 500.0f), core::deg_to_rad(5.0f));
+    core::rotate(rectVerts, core::v(500.0f, 500.0f), core::deg_to_rad(5.0f));
+
+    Shape2D::VertexLayout vl;
+    vl.stride = sizeof(core::vec2f);
+    vl.offset = 0;
+    vl.usage = { Shape2D::Usage::Access::STATIC, Shape2D::Usage::AccessType::DRAW };
+    vl.posAttribId = ValueOrDie(g_appState.guiShader.get_attrib_location("in_pos"));
+    Shape2D rectShape = Shape2D::create(vl, core::v(1.0f, 0.0f, 0.0f, 1.0f), 1000.f, core::move(rectVerts));
+    return rectShape;
+}
+
+Shape2D create_triangle() {
+    core::arr<core::vec2f> triangleVerts(0, 3);
+    triangleVerts.append(core::v(500.0f, 0.0f))
+                 .append(core::v(0.0f, 1000.0f))
+                 .append(core::v(1000.0f, 1000.0f));
+
+    // FIXME: TMP rotation testing code:
+    // core::rotate_right(triangleVerts, core::v(500.0f, 500.0f), core::deg_to_rad(30.0f));
+
+    Shape2D::VertexLayout vl;
+    vl.stride = sizeof(core::vec2f);
+    vl.offset = 0;
+    vl.usage = { Shape2D::Usage::Access::STATIC, Shape2D::Usage::AccessType::DRAW };
+    vl.posAttribId = ValueOrDie(g_appState.guiShader.get_attrib_location("in_pos"));
+    Shape2D triangleShape = Shape2D::create(vl, core::v(0.0f, 0.0f, 1.0f, 1.0f), 999.f, core::move(triangleVerts));
+    return triangleShape;
+}
+
+i32 main(i32, char const**) {
+    init_core();
+
+    g_appState = {}; // Zero out the global state.
+    g_appState.windowStateChange = true; // Force a render on the first frame.
+    g_appState.windowWidth = 800;
+    g_appState.windowHeight = 600;
+    g_appState.windowTitle = "Hello World";
+    g_appState.clearColor = core::v(0.2f, 0.3f, 0.3f, 1.0f);
+
+    GLFWwindow* window = init_glfw_window(g_appState.windowWidth, g_appState.windowHeight, g_appState.windowTitle);
+    defer { glfwTerminate(); };
+    if (!window) return APP_EXIT_FAILED_TO_INIT;
+    defer { glfwDestroyWindow(window); };
+
+    init_glfw_event_handlers(window);
+
+    // Init glew after we have a window:
+    if (auto err = glewInit(); err != GLEW_OK) {
+        const char* errStr = reinterpret_cast<const char*>(glewGetErrorString(err));
+        fmt::print(stderr, "Failed to initialize GLEW reason: {}\n", errStr);
+        return APP_EXIT_FAILED_TO_INIT;
+    }
+
+    init_openGL();
+
+    g_appState.guiShader = create_gui_shader_program();
+    g_appState.guiShader.use();
+
+    Shape2D rectShape = create_rectangle();
     defer { rectShape.destroy(); };
 
-    Shape2D triangleShape;
-    {
-        core::arr<core::vec2f> triangleVerts(0, 3);
-        triangleVerts.append(core::v(500.0f, 0.0f))
-                     .append(core::v(0.0f, 1000.0f))
-                     .append(core::v(1000.0f, 1000.0f));
-
-        // FIXME: TMP rotation testing code:
-        // core::rotate_right(triangleVerts, core::v(500.0f, 500.0f), core::deg_to_rad(30.0f));
-
-        Shape2D::VertexLayout vl;
-        vl.stride = sizeof(core::vec2f);
-        vl.offset = 0;
-        vl.usage = { Shape2D::Usage::Access::STATIC, Shape2D::Usage::AccessType::DRAW };
-        vl.posAttribId = ValueOrDie(guiShader.get_attrib_location("in_pos"));
-        triangleShape = Shape2D::create(vl, core::v(0.0f, 0.0f, 1.0f, 1.0f), 999.f, core::move(triangleVerts));
-    }
+    Shape2D triangleShape = create_triangle();
     defer { triangleShape.destroy(); };
 
     while(!glfwWindowShouldClose(window)) {
@@ -349,16 +364,16 @@ i32 main(i32, char const**) {
             // clear
             glClear(GL_COLOR_BUFFER_BIT);
             // render objects
-            Check(guiShader.set_uniform_v("u_worldSpaceGridMin", g_worldSpaceGrid.min));
-            Check(guiShader.set_uniform_v("u_worldSpaceGridMax", g_worldSpaceGrid.max));
+            Check(g_appState.guiShader.set_uniform_v("u_worldSpaceGridMin", g_worldSpaceGrid.min));
+            Check(g_appState.guiShader.set_uniform_v("u_worldSpaceGridMax", g_worldSpaceGrid.max));
             // TODO: implement z index ordering for rendering every shape. Shapes probably need to exist in the global state or whaterver.
             if (rectShape.z_index() < triangleShape.z_index()) {
-                render_shape(guiShader, rectShape);
-                render_shape(guiShader, triangleShape);
+                render_shape(rectShape);
+                render_shape(triangleShape);
             }
             else {
-                render_shape(guiShader, triangleShape);
-                render_shape(guiShader, rectShape);
+                render_shape(triangleShape);
+                render_shape(rectShape);
             }
 
             // swap buffers

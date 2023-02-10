@@ -32,7 +32,7 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
-            "name": "Build examples with Makefile",
+            "name": "Debug examples with Makefile",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/examples/build/main",

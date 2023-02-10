@@ -198,7 +198,7 @@ void init_openGL() {
     auto& cc = g_appState.clearColor;
     glClearColor(cc.r(), cc.g(), cc.b(), cc.a());
 
-    constexpr bool debugWireFrameMode = false;
+    constexpr bool debugWireFrameMode = true;
     if constexpr (debugWireFrameMode) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     } else {
@@ -281,7 +281,8 @@ void render_shape(Shape2D& shape) {
     }
 
     Check(g_appState.guiShader.set_uniform_v("u_color", shape.fill_color()));
-    glDrawArrays(GL_TRIANGLES, 0, shape.vertex_count());
+    // glDrawArrays(GL_TRIANGLES, 0, shape.vertex_count());
+    glDrawArrays(GL_TRIANGLE_FAN, 0, shape.vertex_count()); // FIXME: learn more about the TRIANGLE FAN mode!
 }
 
 Shape2D create_rectangle() {
@@ -302,7 +303,7 @@ Shape2D create_rectangle() {
     vl.offset = 0;
     vl.usage = { Shape2D::Usage::Access::STATIC, Shape2D::Usage::AccessType::DRAW };
     vl.posAttribId = ValueOrDie(g_appState.guiShader.get_attrib_location("in_pos"));
-    Shape2D rectShape = Shape2D::create(vl, core::v(1.0f, 0.0f, 0.0f, 1.0f), 1000.f, core::move(rectVerts));
+    Shape2D rectShape = Shape2D::create(vl, core::v(1.0f, 0.0f, 0.0f, 1.0f), 2.f, core::move(rectVerts));
     return rectShape;
 }
 
@@ -320,8 +321,39 @@ Shape2D create_triangle() {
     vl.offset = 0;
     vl.usage = { Shape2D::Usage::Access::STATIC, Shape2D::Usage::AccessType::DRAW };
     vl.posAttribId = ValueOrDie(g_appState.guiShader.get_attrib_location("in_pos"));
-    Shape2D triangleShape = Shape2D::create(vl, core::v(0.0f, 0.0f, 1.0f, 1.0f), 999.f, core::move(triangleVerts));
+    Shape2D triangleShape = Shape2D::create(vl, core::v(0.0f, 0.0f, 1.0f, 1.0f), 3.f, core::move(triangleVerts));
     return triangleShape;
+}
+
+Shape2D create_circle() {
+    constexpr u32 circleVertexCount = 80;
+    core::arr<core::vec2f> circleVerts(0, circleVertexCount);
+    core::vec2f center = core::v(500.0f, 500.0f);
+    f32 radius = 250.0f;
+    f32 angleStep = core::deg_to_rad(360.0f / f32(circleVertexCount));
+    for (u32 i = 0; i < circleVertexCount - 1; ++i) {
+        f32 angle = angleStep * i;
+        core::vec2f pos = core::v(center.x() + radius * std::cos(angle),
+                                  center.y() + radius * std::sin(angle));
+        circleVerts.append(pos);
+    }
+    circleVerts.append(circleVerts.first());
+
+    Shape2D::VertexLayout vl;
+    vl.stride = sizeof(core::vec2f);
+    vl.offset = 0;
+    vl.usage = { Shape2D::Usage::Access::STATIC, Shape2D::Usage::AccessType::DRAW };
+    vl.posAttribId = ValueOrDie(g_appState.guiShader.get_attrib_location("in_pos"));
+    Shape2D circleShape = Shape2D::create(vl, core::v(0.0f, 1.0f, 0.0f, 1.0f), 1.f, core::move(circleVerts));
+    return circleShape;
+}
+
+void debug_print_vertex_arr(const core::arr<core::vec2f>& vertices) {
+    for(ptr_size i = 0; i < vertices.len(); ++i) {
+        const auto& p = vertices[i];
+        auto vv = convert_vec_using_grid(p, g_worldSpaceGrid, g_clipSpaceGrid);
+        fmt::print("v_{}: (x:{}, y:{})\n", i, vv.x(), vv.y());
+    }
 }
 
 i32 main(i32, char const**) {
@@ -359,6 +391,15 @@ i32 main(i32, char const**) {
     Shape2D triangleShape = create_triangle();
     defer { triangleShape.destroy(); };
 
+    Shape2D circleShape = create_circle();
+    defer { circleShape.destroy(); };
+
+    core::arr<Shape2D> renderOrder;
+    // renderOrder.append(core::move(rectShape))
+    //            .append(core::move(triangleShape))
+    //            .append(core::move(circleShape));
+    renderOrder.append(core::move(circleShape));
+
     while(!glfwWindowShouldClose(window)) {
         if (should_render()) {
             // clear
@@ -366,14 +407,9 @@ i32 main(i32, char const**) {
             // render objects
             Check(g_appState.guiShader.set_uniform_v("u_worldSpaceGridMin", g_worldSpaceGrid.min));
             Check(g_appState.guiShader.set_uniform_v("u_worldSpaceGridMax", g_worldSpaceGrid.max));
-            // TODO: implement z index ordering for rendering every shape. Shapes probably need to exist in the global state or whaterver.
-            if (rectShape.z_index() < triangleShape.z_index()) {
-                render_shape(rectShape);
-                render_shape(triangleShape);
-            }
-            else {
-                render_shape(triangleShape);
-                render_shape(rectShape);
+
+            for (ptr_size i = 0; i < renderOrder.len(); ++i) {
+                render_shape(renderOrder[i]);
             }
 
             // swap buffers

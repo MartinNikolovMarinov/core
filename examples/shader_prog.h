@@ -19,7 +19,7 @@ struct ShaderProg {
 
     ShaderProg() = default;
 
-    u32 prog_id()         const { return m_id; }
+    u32 prog_id()          const { return m_id; }
     u32 vertex_shader_id() const { return m_vertexShaderId; }
     u32 frag_shader_id()   const { return m_fragShaderId; }
 

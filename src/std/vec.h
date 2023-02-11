@@ -172,23 +172,23 @@ struct vec {
         return ret;
     }
 
-    template<i32 D = Dim, typename std::enable_if<(D > 0), i32>::type = 0> constexpr T x() { return data[0]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 0), i32>::type = 0> constexpr T r() { return data[0]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 1), i32>::type = 0> constexpr T y() { return data[1]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 1), i32>::type = 0> constexpr T g() { return data[1]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 2), i32>::type = 0> constexpr T z() { return data[2]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 2), i32>::type = 0> constexpr T b() { return data[2]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr T w() { return data[3]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr T a() { return data[3]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 0), i32>::type = 0> constexpr T& x() { return data[0]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 0), i32>::type = 0> constexpr T& r() { return data[0]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 1), i32>::type = 0> constexpr T& y() { return data[1]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 1), i32>::type = 0> constexpr T& g() { return data[1]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 2), i32>::type = 0> constexpr T& z() { return data[2]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 2), i32>::type = 0> constexpr T& b() { return data[2]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr T& w() { return data[3]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr T& a() { return data[3]; }
 
-    template<i32 D = Dim, typename std::enable_if<(D > 0), i32>::type = 0> constexpr T x() const { return data[0]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 0), i32>::type = 0> constexpr T r() const { return data[0]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 1), i32>::type = 0> constexpr T y() const { return data[1]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 1), i32>::type = 0> constexpr T g() const { return data[1]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 2), i32>::type = 0> constexpr T z() const { return data[2]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 2), i32>::type = 0> constexpr T b() const { return data[2]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr T w() const { return data[3]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr T a() const { return data[3]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 0), i32>::type = 0> constexpr const T& x() const { return data[0]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 0), i32>::type = 0> constexpr const T& r() const { return data[0]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 1), i32>::type = 0> constexpr const T& y() const { return data[1]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 1), i32>::type = 0> constexpr const T& g() const { return data[1]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 2), i32>::type = 0> constexpr const T& z() const { return data[2]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 2), i32>::type = 0> constexpr const T& b() const { return data[2]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr const T& w() const { return data[3]; }
+    template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr const T& a() const { return data[3]; }
 
     constexpr T& operator[](i32 i) {
         Assert(i >= 0 && i < Dim, "Index out of bounds");

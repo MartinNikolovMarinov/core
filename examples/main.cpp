@@ -43,8 +43,9 @@ struct AppState {
 };
 static AppState g_appState;
 
-static constexpr Grid2D g_clipSpaceGrid  = { core::v(-1.0f, -1.0f), core::v(1.0f, 1.0f) };
-static constexpr Grid2D g_worldSpaceGrid = { core::v(0.0f, 0.0f), core::v(1000.0f, 1000.0f) };
+static constexpr Grid2D g_clipSpaceGrid    = { core::v(-1.0f, -1.0f), core::v(1.0f, 1.0f) };
+static constexpr Grid2D g_worldSpaceGrid   = { core::v(0.0f, 0.0f), core::v(1000.0f, 1000.0f) };
+static constexpr core::vec2f g_worldCenter = core::v(g_worldSpaceGrid.max.x() / 2, g_worldSpaceGrid.max.y() / 2);
 
 GLFWwindow* init_glfw_window(i32 width, i32 height, const char* title) {
     if (!glfwInit()) {
@@ -270,82 +271,29 @@ void render_shape(Shape2D& shape) {
         static u32 lastBoundVboId = core::MAX_U32;
         static u32 lastBoundVaoId = core::MAX_U32;
 
-        if (lastBoundVboId != shape.vbo_id()) {
-            glBindBuffer(GL_ARRAY_BUFFER, shape.vbo_id());
-            lastBoundVboId = shape.vbo_id();
+        if (lastBoundVboId != shape.vboID()) {
+            glBindBuffer(GL_ARRAY_BUFFER, shape.vboID());
+            lastBoundVboId = shape.vboID();
         }
-        if (lastBoundVaoId != shape.vao_id()) {
-            glBindVertexArray(shape.vao_id());
-            lastBoundVaoId = shape.vao_id();
+        if (lastBoundVaoId != shape.vaoID()) {
+            glBindVertexArray(shape.vaoID());
+            lastBoundVaoId = shape.vaoID();
         }
     }
 
-    Check(g_appState.guiShader.set_uniform_v("u_color", shape.fill_color()));
-    // glDrawArrays(GL_TRIANGLES, 0, shape.vertex_count());
-    glDrawArrays(GL_TRIANGLE_FAN, 0, shape.vertex_count()); // FIXME: learn more about the TRIANGLE FAN mode!
-}
+    Check(g_appState.guiShader.set_uniform_v("u_color", shape.color()));
 
-Shape2D create_rectangle() {
-    core::arr<core::vec2f> rectVerts(0, 6);
-    rectVerts.append(core::v(250.0f, 750.0f))
-             .append(core::v(250.0f, 250.0f))
-             .append(core::v(750.0f, 750.0f))
-             .append(core::v(750.0f, 750.0f))
-             .append(core::v(250.0f, 250.0f))
-             .append(core::v(750.0f, 250.0f));
-
-    // FIXME: TMP rotation testing code:
-    // core::rotate_right(rectVerts, core::v(500.0f, 500.0f), core::deg_to_rad(5.0f));
-    core::rotate(rectVerts, core::v(500.0f, 500.0f), core::deg_to_rad(5.0f));
-
-    Shape2D::VertexLayout vl;
-    vl.stride = sizeof(core::vec2f);
-    vl.offset = 0;
-    vl.usage = { Shape2D::Usage::Access::STATIC, Shape2D::Usage::AccessType::DRAW };
-    vl.posAttribId = ValueOrDie(g_appState.guiShader.get_attrib_location("in_pos"));
-    Shape2D rectShape = Shape2D::create(vl, core::v(1.0f, 0.0f, 0.0f, 1.0f), 2.f, core::move(rectVerts));
-    return rectShape;
-}
-
-Shape2D create_triangle() {
-    core::arr<core::vec2f> triangleVerts(0, 3);
-    triangleVerts.append(core::v(500.0f, 0.0f))
-                 .append(core::v(0.0f, 1000.0f))
-                 .append(core::v(1000.0f, 1000.0f));
-
-    // FIXME: TMP rotation testing code:
-    // core::rotate_right(triangleVerts, core::v(500.0f, 500.0f), core::deg_to_rad(30.0f));
-
-    Shape2D::VertexLayout vl;
-    vl.stride = sizeof(core::vec2f);
-    vl.offset = 0;
-    vl.usage = { Shape2D::Usage::Access::STATIC, Shape2D::Usage::AccessType::DRAW };
-    vl.posAttribId = ValueOrDie(g_appState.guiShader.get_attrib_location("in_pos"));
-    Shape2D triangleShape = Shape2D::create(vl, core::v(0.0f, 0.0f, 1.0f, 1.0f), 3.f, core::move(triangleVerts));
-    return triangleShape;
-}
-
-Shape2D create_circle() {
-    constexpr u32 circleVertexCount = 80;
-    core::arr<core::vec2f> circleVerts(0, circleVertexCount);
-    core::vec2f center = core::v(500.0f, 500.0f);
-    f32 radius = 250.0f;
-    f32 angleStep = core::deg_to_rad(360.0f / f32(circleVertexCount));
-    for (u32 i = 0; i < circleVertexCount - 1; ++i) {
-        f32 angle = angleStep * i;
-        core::vec2f pos = core::v(center.x() + radius * std::cos(angle),
-                                  center.y() + radius * std::sin(angle));
-        circleVerts.append(pos);
+    switch (shape.renderMode().m) {
+        case Shape2D::RenderMode::Mode::TRIANGLE_FAN:
+            glDrawArrays(GL_TRIANGLE_FAN, 0, shape.vertexCount()); // FIXME: learn more about the TRIANGLE FAN mode! Does it have reasonable performance?
+            break;
+        case Shape2D::RenderMode::Mode::TRIANGLES:
+            glDrawArrays(GL_TRIANGLES, 0, shape.vertexCount());
+            break;
+        default:
+            Assert(false, fmt::format("Unknown render mode: {}", shape.renderMode().m).c_str());
+            return;
     }
-    circleVerts.append(circleVerts.first());
-
-    Shape2D::VertexLayout vl;
-    vl.stride = sizeof(core::vec2f);
-    vl.offset = 0;
-    vl.usage = { Shape2D::Usage::Access::STATIC, Shape2D::Usage::AccessType::DRAW };
-    vl.posAttribId = ValueOrDie(g_appState.guiShader.get_attrib_location("in_pos"));
-    Shape2D circleShape = Shape2D::create(vl, core::v(0.0f, 1.0f, 0.0f, 1.0f), 1.f, core::move(circleVerts));
-    return circleShape;
 }
 
 void debug_print_vertex_arr(const core::arr<core::vec2f>& vertices) {
@@ -385,31 +333,69 @@ i32 main(i32, char const**) {
     g_appState.guiShader = create_gui_shader_program();
     g_appState.guiShader.use();
 
-    Shape2D rectShape = create_rectangle();
+    Shape2D::VertexLayout vl;
+    vl.stride = sizeof(core::vec2f);
+    vl.offset = 0;
+    vl.usage = { Shape2D::Usage::Access::STATIC, Shape2D::Usage::AccessType::DRAW };
+    vl.posAttribId = ValueOrDie(g_appState.guiShader.get_attrib_location("in_pos"));
+    vl.renderMode.m = Shape2D::RenderMode::TRIANGLES;
+
+    Shape2D rectShape = Shape2D::createRect2D(vl, g_worldCenter, 500.f, 500.f,
+                                              core::v(255u, 0u, 0u, 255u), 1.0f);
     defer { rectShape.destroy(); };
 
-    Shape2D triangleShape = create_triangle();
+    Shape2D triangleShape = Shape2D::createTriangle2D(vl,
+                                                      core::v(200.0f, 200.0f),
+                                                      core::v(500.0f, 200.0f),
+                                                      core::v(200.0f, 500.0f),
+                                                      core::v(0u, 255u, 0u, 255u),
+                                                      0.0f);
     defer { triangleShape.destroy(); };
 
-    Shape2D circleShape = create_circle();
+    vl.renderMode.m = Shape2D::RenderMode::TRIANGLE_FAN;
+
+    Shape2D circleShape = Shape2D::createCircle2D(vl, g_worldCenter, 200.0f, 100,
+                                                  core::v(255u, 255u, 255u, 255u), 0.0f);
     defer { circleShape.destroy(); };
 
     core::arr<Shape2D> renderOrder;
-    // renderOrder.append(core::move(rectShape))
-    //            .append(core::move(triangleShape))
-    //            .append(core::move(circleShape));
+    renderOrder.append(core::move(rectShape));
+    renderOrder.append(core::move(triangleShape));
     renderOrder.append(core::move(circleShape));
+
+    // TODO: order shapes by z-index, or keep them in a sorted data structure.
+
+    Check(g_appState.guiShader.set_uniform_v("u_worldSpaceGridMin", g_worldSpaceGrid.min));
+    Check(g_appState.guiShader.set_uniform_v("u_worldSpaceGridMax", g_worldSpaceGrid.max));
 
     while(!glfwWindowShouldClose(window)) {
         if (should_render()) {
             // clear
             glClear(GL_COLOR_BUFFER_BIT);
-            // render objects
-            Check(g_appState.guiShader.set_uniform_v("u_worldSpaceGridMin", g_worldSpaceGrid.min));
-            Check(g_appState.guiShader.set_uniform_v("u_worldSpaceGridMax", g_worldSpaceGrid.max));
 
-            for (ptr_size i = 0; i < renderOrder.len(); ++i) {
-                render_shape(renderOrder[i]);
+            // render objects
+
+            // FIXME: DEBUG CODE:
+            i32 perfDebugCounter = 1000; // mFIXME: bulk render and measure performance difference.
+            while(perfDebugCounter--) {
+                // FIXME: can't perform this test until the vertex buffer usage is dynamic.
+                // auto direction = core::v(1.0f, 1.0f);
+                // for (ptr_size i = 0; i < renderOrder.len(); ++i) {
+                //     auto& b = const_cast<core::arr<core::vec2f>&>(renderOrder[i].vertices());
+                //     for (ptr_size j = 0; j < b.len(); ++j) {
+                //         b[j] += direction;
+                //         if (b[j].x() > g_worldSpaceGrid.max.x() || b[j].x() < g_worldSpaceGrid.min.x()) {
+                //             direction.x() *= -1.0f;
+                //         }
+                //         if (b[j].y() > g_worldSpaceGrid.max.y() || b[j].y() < g_worldSpaceGrid.min.y()) {
+                //             direction.y() *= -1.0f;
+                //         }
+                //     }
+                // }
+
+                for (ptr_size i = 0; i < renderOrder.len(); ++i) {
+                    render_shape(renderOrder[i]);
+                }
             }
 
             // swap buffers

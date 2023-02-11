@@ -11,7 +11,7 @@ using namespace coretypes;
 namespace {
 
 template<typename TUint>
-u32 leading_zerobits_fallback(TUint n) {
+constexpr u32 leading_zerobits_fallback(TUint n) {
     u32 leadingZeroes = sizeof(n) * 8;
     for (i32 i = 0; i < sizeof(n) * 8; i++) {
         leadingZeroes--;

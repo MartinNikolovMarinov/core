@@ -6,8 +6,6 @@
 #include <expected.h>
 #include <mem.h>
 
-// FIXME: Check the asm that the arr code generates. It should be a very cheap abstraction if it's done right.
-
 namespace core {
 
 using namespace coretypes;
@@ -20,16 +18,16 @@ struct CORE_API_EXPORT arr {
 
     constexpr arr() : m_data(nullptr), m_cap(0), m_len(0) {}
     constexpr arr(size_type len) : m_cap(len), m_len(len) {
-        m_data = reinterpret_cast<data_type *>(allocator_type::alloc(m_cap * sizeof(data_type)));
+        m_data = reinterpret_cast<data_type *>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
         Assert(m_data != nullptr);
     }
     constexpr arr(size_type len, size_type cap) : m_cap(cap), m_len(len) {
-        m_data = reinterpret_cast<data_type *>(allocator_type::alloc(m_cap * sizeof(data_type)));
+        m_data = reinterpret_cast<data_type *>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
         Assert(m_data != nullptr);
         Assert(m_cap >= m_len);
     }
     constexpr arr(const arr& other) : m_cap(other.m_cap), m_len(other.m_len) {
-        m_data = reinterpret_cast<data_type *>(allocator_type::alloc(m_cap * sizeof(data_type)));
+        m_data = reinterpret_cast<data_type *>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
         Assert(m_data != nullptr);
         core::memcopy(m_data, other.m_data, m_len * sizeof(data_type));
     }
@@ -54,7 +52,7 @@ struct CORE_API_EXPORT arr {
         return *this;
     }
 
-    constexpr const char* allocator_name() const { return allocator_type::allocator_name(); }
+    constexpr const char* allocator_name() const { return core::allocator_name<allocator_type>(); }
     constexpr size_type   cap()            const { return m_cap; }
     constexpr size_type   len()            const { return m_len; }
     constexpr data_type*  data()           const { return m_data; }
@@ -70,7 +68,7 @@ struct CORE_API_EXPORT arr {
         if (m_data == nullptr) return;
         clear();
         m_cap = 0;
-        allocator_type::free(m_data);
+        core::free<allocator_type>(m_data);
         m_data = nullptr;
     }
 
@@ -122,12 +120,12 @@ struct CORE_API_EXPORT arr {
         }
 
         // reallocate
-        data_type* newData = reinterpret_cast<data_type *>(allocator_type::alloc(newCap * sizeof(data_type)));
+        data_type* newData = reinterpret_cast<data_type *>(core::alloc<allocator_type>(newCap * sizeof(data_type)));
         // NOTE: Choosing not to clear the new memory here might bite me in the ass later.
         Assert(newData != nullptr);
         if (m_data != nullptr) {
             core::memcopy(newData, m_data, m_len * sizeof(data_type));
-            allocator_type::free(m_data);
+            core::free<allocator_type>(m_data);
         }
         m_data = newData;
         m_cap = newCap;

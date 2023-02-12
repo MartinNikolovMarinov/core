@@ -363,7 +363,7 @@ i32 main(i32, char const**) {
     renderOrder.append(core::move(triangleShape));
     renderOrder.append(core::move(circleShape));
 
-    // TODO: order shapes by z-index, or keep them in a sorted data structure.
+    // TODO: when rendering lines I should use a SDF (Signed distance function)
 
     Check(g_appState.guiShader.set_uniform_v("u_worldSpaceGridMin", g_worldSpaceGrid.min));
     Check(g_appState.guiShader.set_uniform_v("u_worldSpaceGridMax", g_worldSpaceGrid.max));

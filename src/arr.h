@@ -5,6 +5,7 @@
 #include <alloc.h>
 #include <expected.h>
 #include <mem.h>
+#include <core_traits.h>
 
 namespace core {
 
@@ -66,6 +67,12 @@ struct CORE_API_EXPORT arr {
 
     constexpr void free() {
         if (m_data == nullptr) return;
+        if constexpr (!core::IsTriviallyDestructible_v<T>) {
+            // For elements that are not trivially destructible call destructors manually:
+            for (size_type i = 0; i < m_len; ++i) {
+                m_data[i].~T();
+            }
+        }
         clear();
         m_cap = 0;
         core::free<allocator_type>(m_data);

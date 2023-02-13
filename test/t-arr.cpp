@@ -167,3 +167,55 @@ void append_arr() {
         Assert(arr.at(i) == i + 1);
     }
 }
+
+template<typename TAllocator>
+void array_of_arrays_arr() {
+    {
+        core::arr<i32, TAllocator> arr;
+        core::arr<i32, TAllocator> arr2;
+        core::arr<i32, TAllocator> arr3;
+        core::arr<core::arr<i32, TAllocator>, TAllocator> multi;
+
+        arr.append(1);
+        arr.append(2);
+        arr.append(3);
+
+        arr2.append(4);
+        arr2.append(5);
+        arr2.append(6);
+
+        arr3.append(7);
+        arr3.append(8);
+        arr3.append(9);
+
+        multi.append(arr);
+        multi.append(core::move(arr2));
+        multi.append(core::move(arr3));
+
+        // arr 1 should be copied
+        Assert(arr.len() == 3);
+        Assert(arr[0] == 1);
+        Assert(arr[1] == 2);
+        Assert(arr[2] == 3);
+
+        // arr 2 and 3 should have been moved
+        Assert(arr2.len() == 0);
+        Assert(arr2.data() == nullptr);
+        Assert(arr3.len() == 0);
+        Assert(arr3.data() == nullptr);
+
+        Assert(multi.len() == 3);
+        Assert(multi[0].len() == 3);
+        Assert(multi[1].len() == 3);
+        Assert(multi[2].len() == 3);
+        Assert(multi[0][0] == 1);
+        Assert(multi[0][1] == 2);
+        Assert(multi[0][2] == 3);
+        Assert(multi[1][0] == 4);
+        Assert(multi[1][1] == 5);
+        Assert(multi[1][2] == 6);
+        Assert(multi[2][0] == 7);
+        Assert(multi[2][1] == 8);
+        Assert(multi[2][2] == 9);
+    }
+}

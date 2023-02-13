@@ -42,13 +42,13 @@ constexpr T min(T a, T b) {
 }
 
 // NOTE: This is pretty fast branchless check Its collapsed to a single instruction on x86 and ARM by most compilers.
-constexpr f32 abs(f32 a) {
+inline f32 abs(f32 a) {
     i32* ip = reinterpret_cast<i32*>(&a);
     *ip &= 0x7fffffff;
     return a;
 }
 
-constexpr f64 abs(f64 a) {
+inline f64 abs(f64 a) {
     i64* ip = reinterpret_cast<i64*>(&a);
     *ip &= 0x7fffffffffffffff;
     return a;
@@ -61,13 +61,13 @@ constexpr T abs(T a) {
 }
 
 // NOTE: This is pretty fast branchless check. Its collapsed to a single instruction on x86 and ARM by most compilers.
-constexpr bool is_positive(f32 a) {
+inline bool is_positive(f32 a) {
     i32* ip = reinterpret_cast<i32*>(&a);
     *ip = (*ip >> 31) << 1;
     return *ip == 0;
 }
 
-constexpr bool is_positive(f64 a) {
+inline bool is_positive(f64 a) {
     i64* ip = reinterpret_cast<i64*>(&a);
     *ip = (*ip >> 63) << 1;
     return *ip == 0;
@@ -93,11 +93,11 @@ constexpr bool is_positive(i64 a) {
     return temp == 0;
 }
 
-constexpr bool safe_eq(f32 a, f32 b, f32 epsilon) {
+inline bool safe_eq(f32 a, f32 b, f32 epsilon) {
     return core::abs(a - b) < epsilon;
 }
 
-constexpr bool safe_eq(f64 a, f64 b, f64 epsilon) {
+inline bool safe_eq(f64 a, f64 b, f64 epsilon) {
     return core::abs(a - b) < epsilon;
 }
 

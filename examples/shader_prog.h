@@ -46,7 +46,7 @@ struct ShaderProg {
             else if constexpr (Dim == 4) glUniform4uiv(loc, 1, reinterpret_cast<const u32*>(&v.data[0]));
         }
         else {
-            static_assert(core::always_false<T>, "Unsupported type"); // honestly I hate c++ :D
+            static_assert(core::AlwaysFalse<T>, "Unsupported type"); // honestly I hate c++ :D
         }
         return {};
     }
@@ -63,7 +63,7 @@ struct ShaderProg {
         if constexpr      (std::is_same_v<T, f32>) glUniform1f(loc, val);
         else if constexpr (std::is_same_v<T, i32>) glUniform1i(loc, val);
         else if constexpr (std::is_same_v<T, u32>) glUniform1ui(loc, val);
-        else    static_assert(core::always_false<T>, "Unsupported type");
+        else    static_assert(core::AlwaysFalse<T>, "Unsupported type");
         return {};
     }
 

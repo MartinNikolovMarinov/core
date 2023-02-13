@@ -2,6 +2,7 @@
 
 #include <API.h>
 #include <types.h>
+#include <core_traits.h>
 
 #pragma once
 
@@ -56,32 +57,21 @@ CORE_API_EXPORT global_assert_handler_ptr get_global_assert_handler();
     #define defer auto DEFER(__LINE__) = core::defer_dummy{} *[&]()
 #endif
 
-// Use this for static_asserts that are part of a if constexpr expression.
-template <class... T>
-constexpr bool always_false = false;
-
 // Move and forward implementations copied from the standard library:
 
-template<typename T> struct CORE_API_EXPORT remove_ref      { typedef T type; };
-template<typename T> struct CORE_API_EXPORT remove_ref<T&>  { typedef T type; };
-template<typename T> struct CORE_API_EXPORT remove_ref<T&&> { typedef T type; };
-
 template<typename T>
-CORE_API_EXPORT constexpr typename remove_ref<T>::type && move(T && arg) {
-    return static_cast<typename remove_ref<T>::type &&>(arg);
+CORE_API_EXPORT constexpr typename RemoveRef<T>::type && move(T && arg) {
+    return static_cast<typename RemoveRef<T>::type &&>(arg);
 }
 
-template<typename T> struct CORE_API_EXPORT is_L_value     { static constexpr bool value = false; };
-template<typename T> struct CORE_API_EXPORT is_L_value<T&> { static constexpr bool value = true; };
-
 template<typename T>
-constexpr CORE_API_EXPORT T&& forward(typename remove_ref<T>::type & arg) {
+constexpr CORE_API_EXPORT T&& forward(typename RemoveRef<T>::type & arg) {
     return static_cast<T&&>(arg);
 }
 
 template<typename T>
-constexpr CORE_API_EXPORT T&& forward(typename remove_ref<T>::type && arg) {
-    static_assert(!is_L_value<T>::value, "invalid rvalue to lvalue conversion");
+constexpr CORE_API_EXPORT T&& forward(typename RemoveRef<T>::type && arg) {
+    static_assert(!IsLValue<T>::value, "invalid rvalue to lvalue conversion");
     return static_cast<T&&>(arg);
 }
 

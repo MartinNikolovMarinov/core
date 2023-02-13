@@ -100,4 +100,6 @@ void run_std_allocator_tests_suite() {
     Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
     RunTest(move_and_copy_arr<std_allocator_static>);
     Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+    RunTest(array_of_arrays_arr<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
 }

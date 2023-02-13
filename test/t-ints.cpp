@@ -216,8 +216,9 @@ struct __digit_count_test_case {
     u32 expected;
 };
 
-constexpr void digit_count_test() {
+void digit_count_test() {
     __digit_count_test_case<i32> cases1[] = {
+        { 0,           1 },
         { 1,           1 },
         { 11,          2 },
         { 111,         3 },
@@ -245,6 +246,7 @@ constexpr void digit_count_test() {
     }
 
     __digit_count_test_case<u32> cases2[] = {
+        { 0,           1 },
         { 1,           1 },
         { 11,          2 },
         { 111,         3 },
@@ -261,6 +263,7 @@ constexpr void digit_count_test() {
     }
 
     __digit_count_test_case<i64> cases3[] = {
+        { 0,                    1 },
         { 1,                    1 },
         { 11,                   2 },
         { 111,                  3 },
@@ -306,6 +309,7 @@ constexpr void digit_count_test() {
     }
 
     __digit_count_test_case<u64> cases4[] = {
+        { 0,                    1 },
         { 1,                    1 },
         { 11,                   2 },
         { 111,                  3 },

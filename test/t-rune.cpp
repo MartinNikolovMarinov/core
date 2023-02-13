@@ -1,6 +1,6 @@
 // TODO: Test invalid input cases!
 
-constexpr void converting_utf8_sequence_to_utf32_rune_one_bit() {
+void converting_utf8_sequence_to_utf32_rune_one_bit() {
     uchar d[10] = {};
     core::memset(d, 0, 10);
     uchar d2[10] = {};
@@ -25,7 +25,7 @@ constexpr void converting_utf8_sequence_to_utf32_rune_one_bit() {
     Assert(core::cptr_cmp(d, d2) == 0);
 }
 
-constexpr void converting_utf8_sequence_to_utf32_rune_two_bit() {
+void converting_utf8_sequence_to_utf32_rune_two_bit() {
     // NOTE: from 128 to 2047 use 2 bytes.
 
     uchar d[10] = {};
@@ -63,7 +63,7 @@ constexpr void converting_utf8_sequence_to_utf32_rune_two_bit() {
     Assert(core::cptr_cmp(d, d2) == 0);
 }
 
-constexpr void converting_utf8_sequence_to_utf32_rune_three_bit() {
+void converting_utf8_sequence_to_utf32_rune_three_bit() {
     // NOTE: from 2048 to 65535 use 3 bytes
 
     uchar d[10] = {};
@@ -94,7 +94,7 @@ constexpr void converting_utf8_sequence_to_utf32_rune_three_bit() {
     Assert(core::cptr_cmp(d, d2) == 0);
 }
 
-constexpr void converting_utf8_sequence_to_utf32_rune_four_bit() {
+void converting_utf8_sequence_to_utf32_rune_four_bit() {
     // NOTE: from 65535 to MAX use 4 bytes
 
     uchar d[10] = {};

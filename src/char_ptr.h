@@ -6,8 +6,7 @@
 #include <core_math.h>
 #include <ints.h>
 
-namespace core
-{
+namespace core {
 
 using namespace coretypes;
 
@@ -30,29 +29,44 @@ constexpr void int_to_cptr(TInt n, char* out, u32 digitCount = 0) {
     }
 }
 
-constexpr ptr_size cptr_len(const char* p) {
+template<typename TChar>
+constexpr ptr_size cptr_len(const TChar* p) {
     // TODO: Should use x86 specific assembler instructions for fast strlen!
     if (p == nullptr) return 0;
-    const char *start = p;
+    const TChar* start = p;
     while(*p) p++;
     return p - start;
 }
 
 template <typename TChar>
-constexpr i32 cptr_cmp(const TChar* a, const TChar* b) {
-    // FIXME: Should implement a safe version of this !!
+constexpr i32 cptr_cmp(const TChar* a, ptr_size lena, const TChar* b, ptr_size lenb) {
     // TODO: This can be done much faster with SIMD or some other specifc x86 instruction.
     static_assert(sizeof(TChar) == 1, "Invalid TChar parameter.");
 
     if (a == nullptr && b == nullptr) return 0;
-    else if (a == nullptr) return 1;
-    else if (b == nullptr) return -1;
+    else if (a == nullptr) return -1;
+    else if (b == nullptr) return 1;
 
-    while (*a && (*a == *b)) {
-        ++a; ++b;
+    ptr_size i = 0;
+    while(i < lena && i < lenb) {
+        if (a[i] != b[i]) return (a[i] > b[i]) - (b[i] > a[i]);
+        i++;
     }
-    i32 ret = (*a > *b) - (*b  > *a);
-    return ret;
+
+    if (lena > lenb) return 1;
+    else if (lena < lenb) return -1;
+    return 0;
+}
+
+// Avoid this if you already know the length of the string.
+template <typename TChar>
+constexpr i32 cptr_cmp(const TChar* a, const TChar* b) {
+    return cptr_cmp(a, core::cptr_len(a), b, core::cptr_len(b));
+}
+
+template <typename TChar>
+constexpr i32 cptr_eq(const TChar* a, ptr_size lena, const TChar* b, ptr_size lenb) {
+    return cptr_cmp(a, lena, b, lenb) == 0;
 }
 
 constexpr void cptr_cpy(const char *src, ptr_size n, char *dst) {
@@ -69,19 +83,20 @@ constexpr void cptr_cpy(const char *src, ptr_size n, char *dst) {
     }
 }
 
-constexpr u64 cptr_idx_of(const char *src, ptr_size slen, const char *val, ptr_size vlen) {
-    Assert(val != nullptr);
-    if (src == nullptr) return -1;
-    for (ptr_size i = 0; i < (slen - vlen); i++, src++) {
-        i32 cmpVal = cptr_cmp(src, val);
+constexpr ptr_size cptr_idx_of(const char *src, ptr_size slen, const char *val, ptr_size vlen) {
+    if (src == nullptr || val == nullptr) return -1;
+    if (slen < vlen) return -1;
+    if (slen == 0 && vlen == 0) return 0;
+    for (ptr_size i = 0; i < slen; i++, src++) {
+        i32 cmpVal = cptr_cmp(src, vlen, val, vlen);
         if (cmpVal == 0) return i;
     }
     return -1;
 }
 
-constexpr u64 cptr_idx_of_char(const char *src, ptr_size srcLen, char val) {
+constexpr ptr_size cptr_idx_of_char(const char *src, ptr_size slen, char val) {
     if (src == nullptr) return -1;
-    for (ptr_size i = 0; i < srcLen; i++) {
+    for (ptr_size i = 0; i < slen; i++) {
         if (src[i] == val) return i;
     }
     return -1;

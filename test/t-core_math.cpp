@@ -111,7 +111,7 @@ constexpr void pow_u64_test() {
     // next one is too big for 64-bit int
 }
 
-constexpr void abs_test() {
+void abs_test() {
     Assert(core::abs(i8(0)) == 0);
     Assert(core::abs(i8(1)) == 1);
     Assert(core::abs(i8(-1)) == 1);
@@ -142,7 +142,7 @@ constexpr void abs_test() {
     Assert(core::abs(i64(core::MIN_I64 + 1)) == core::MAX_I64);
 }
 
-constexpr void is_positive_test() {
+void is_positive_test() {
     Assert(core::is_positive(i8(0)) == true);
     Assert(core::is_positive(i8(1)) == true);
     Assert(core::is_positive(i8(-1)) == false);
@@ -163,7 +163,7 @@ constexpr void is_positive_test() {
     Assert(core::is_positive(f64(-1)) == false);
 }
 
-constexpr void float_safe_eq() {
+void float_safe_eq() {
     struct test_case {
         f32 startA;
         f32 startB;

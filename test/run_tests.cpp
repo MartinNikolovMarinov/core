@@ -1,6 +1,7 @@
 #include "allocator_bump_static.cpp"
-#include "ds_arr_generic_test_functions.cpp"
 
+// Order matters here!
+#include "t-arr.cpp"
 #include "t-tuple.cpp"
 #include "t-rnd.cpp"
 #include "t-bits.cpp"
@@ -9,6 +10,8 @@
 #include "t-alloc_bump.cpp"
 #include "t-expected.cpp"
 #include "t-core_math.cpp"
+#include "t-traits.cpp"
+#include "t-cptr_ptr.cpp"
 
 void run_all_tests() {
     RunTestSuite(run_tuple_tests_suite);
@@ -19,4 +22,6 @@ void run_all_tests() {
     RunTestSuite(run_bump_allocator_tests_suite);
     RunTestSuite(run_expected_tests_suite);
     RunTestSuite(run_core_math_tests_suite);
+    RunTestSuite(run_traits_tests_suite);
+    RunTestSuite(run_cptr_ptr_tests_suite);
 }

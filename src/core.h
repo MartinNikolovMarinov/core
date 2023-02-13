@@ -11,6 +11,7 @@
 #include "bits.h"
 #include "char_ptr.h"
 #include "core_math.h"
+#include "core_traits.h"
 #include "expected.h"
 #include "intrinsic.h"
 #include "ints.h"

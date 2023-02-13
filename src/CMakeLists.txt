@@ -43,24 +43,26 @@ set(src_files
     types.h
     core.h
 
-    intrinsic.h
-    intrinsic.cpp
-    utils.h
-    utils.cpp
-    tuple.h
-    core_math.h
-    mem.h
-    ints.h
-    char_ptr.h
-    rnd.h
-    rnd.cpp
-    bits.h
-    expected.h
-    utf.h
-    alloc.h
-    arr.h
     alloc_bump.h
+    alloc.h
     ansi_escape_codes.h
+    arr.h
+    bits.h
+    char_ptr.h
+    core_math.h
+    core_traits.h
+    expected.h
+    intrinsic.cpp
+    intrinsic.h
+    ints.h
+    mem.h
+    mem.cpp
+    rnd.cpp
+    rnd.h
+    tuple.h
+    utf.h
+    utils.cpp
+    utils.h
 
     std/core.h
     std/fs.h

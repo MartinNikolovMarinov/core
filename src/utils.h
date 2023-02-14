@@ -11,13 +11,15 @@ namespace core {
 using namespace coretypes;
 
 // General Macro Magic for matching different macros for different number of arguments:
-#define __C_RSEQ_N__() 10,9,8,7,6,5,4,3,2,1,0
-#define __C_ARG_N__(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, N,...) N
-#define __C_NARG_I__(...) __C_ARG_N__(__VA_ARGS__)
-#define __C_NARG__(...) __C_NARG_I__(__VA_ARGS__,__C_RSEQ_N__())
-#define __C_VFUNC_A__(name, n) name##n
-#define __C_VFUNC__(name, n) __C_VFUNC_A__(name, n)
-#define C_VFUNC(func, ...) __C_VFUNC__(func, __C_NARG__(__VA_ARGS__)) (__VA_ARGS__)
+#define __C_RSEQ_N__ 10,9,8,7,6,5,4,3,2,1,0
+#define __C_ARG_N__(_1_, _2_, _3_, _4_, _5_, _6_, _7_, _8_, _9_, _10_, N, ...) N
+#define __EXPAND_ARGS(args) __C_ARG_N__ args
+#define __COUNT_ARGS_MAX10(...) __EXPAND_ARGS((__VA_ARGS__, __C_RSEQ_N__))
+#define __OVERLOAD_MACRO2(name, count) name##count
+#define __OVERLOAD_MACRO1(name, count) __OVERLOAD_MACRO2(name, count)
+#define __OVERLOAD_MACRO(name, count) __OVERLOAD_MACRO1(name, count)
+
+#define C_VFUNC(func, ...) __OVERLOAD_MACRO(func, __COUNT_ARGS_MAX10(__VA_ARGS__)) (__VA_ARGS__)
 
 // Customizeble global assert handler:
 using global_assert_handler_ptr = bool (*)(const char* failedExpr, const char* file, i32 line, const char* errMsg);

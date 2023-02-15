@@ -85,7 +85,7 @@ if(OS STREQUAL "linux")
     )
 elseif(OS STREQUAL "windows")
     set(src_files ${src_files}
-        std/platform/win64/win64_plt.cpp
+        std/plt/win64/win64_plt.cpp
     )
 endif()
 

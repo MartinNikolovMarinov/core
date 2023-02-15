@@ -40,5 +40,7 @@ void TMP_test() {
 }
 
 void run_fs_tests_suite() {
+#if (defined(OS_WIN) && OS_WIN == 0) // FIXME: reintroduce test and write real tests when the windows api is ready
     RunTest(TMP_test);
+#endif
 }

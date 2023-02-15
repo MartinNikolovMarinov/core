@@ -19,7 +19,7 @@ const char* std_allocator_static::allocator_name() noexcept {
     return g_stdAlloc.allocator_name();
 }
 
-void init_core() {
+void initCore() {
     core::set_global_assert_handler([](const char* failedExpr, const char* file, i32 line, const char* errMsg) {
         fmt::print(fg(fmt::color::red) | fmt::emphasis::bold,
                    "[ASSERTION] [EXPR]: {}\n[FILE]: {}\n[LINE]: {}\n[MSG]: {}\n",

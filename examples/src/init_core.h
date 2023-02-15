@@ -26,4 +26,4 @@ struct std_allocator_static {
 #include <core.h>
 #include <std/core.h>
 
-void init_core();
+void initCore();

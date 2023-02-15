@@ -1,6 +1,6 @@
 #include "mouse.h"
 
-mouse& mouse::set_button(key_info& button) {
+Mouse& Mouse::setButton(KeyInfo& button) {
     switch (button.value) {
         case GLFW_MOUSE_BUTTON_LEFT: {
             leftButton = button;
@@ -21,34 +21,34 @@ mouse& mouse::set_button(key_info& button) {
     return *this;
 }
 
-mouse& mouse::set_scroll(i32 x, i32 y) {
+Mouse& Mouse::setScroll(i32 x, i32 y) {
     scrollX = x;
     scrollY = y;
     return *this;
 }
 
-mouse& mouse::set_pos(i32 x, i32 y) {
+Mouse& Mouse::setPos(i32 x, i32 y) {
     this->x = x;
     this->y = y;
     return *this;
 }
 
-mouse& mouse::set_in_window(bool isInWindow) {
+Mouse& Mouse::setInWindow(bool isInWindow) {
     this->isInWindow = isInWindow;
     return *this;
 }
 
-void mouse::clear() {
+void Mouse::clear() {
     // Mouse scrollwheels can't be held down, so we can clear the scroll on every frame.
     scrollX = 0;
     scrollY = 0;
     // Mouse buttons act the same as keyboard keys, so we do the same thing here.
-    if (leftButton.is_release()) leftButton.action.type = keyboard_action::Type::NONE;
-    if (middleButton.is_release()) middleButton.action.type = keyboard_action::Type::NONE;
-    if (rightButton.is_release()) rightButton.action.type = keyboard_action::Type::NONE;
+    if (leftButton.isRelease()) leftButton.action.type = KeyboardAction::Type::NONE;
+    if (middleButton.isRelease()) middleButton.action.type = KeyboardAction::Type::NONE;
+    if (rightButton.isRelease()) rightButton.action.type = KeyboardAction::Type::NONE;
 }
 
-std::string mouse::to_string() {
+std::string Mouse::toString() {
     std::string result = "Mouse: ";
     result += '\n';
     result += "x: " + std::to_string(x) + ", ";
@@ -59,12 +59,12 @@ std::string mouse::to_string() {
     result += '\n';
     result += "isInWindow: " + std::to_string(isInWindow) + ", ";
     result += '\n';
-    result += "leftButton: " + leftButton.to_string() + ", ";
+    result += "leftButton: " + leftButton.toString() + ", ";
     result += '\n';
     // mouse wheel scrolling is -1 for scrolling left/up and 1 for scrolling right/down,
-    result += "middleButton: " + middleButton.to_string() + ", ";
+    result += "middleButton: " + middleButton.toString() + ", ";
     result += '\n';
-    result += "rightButton: " + rightButton.to_string() + ", ";
+    result += "rightButton: " + rightButton.toString() + ", ";
     result += '\n';
     return result;
 }

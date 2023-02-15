@@ -17,8 +17,8 @@ struct Shape2D {
             COPY = 2,
         };
 
-        Access a;
-        AccessType t;
+        Access access;
+        AccessType atype;
 
         u32 usageGL() const;
     };
@@ -34,7 +34,7 @@ struct Shape2D {
             TRIANGLE_FAN = 6,
         };
 
-        Mode m;
+        Mode mode;
 
         u32 modeGL() const;
     };
@@ -49,6 +49,9 @@ struct Shape2D {
         i32 posAttribId;
         RenderMode renderMode;
     };
+
+    Shape2D() = default;
+    ~Shape2D();
 
     static Shape2D create(const Shape2D::VertexLayout& vl,
                           const core::vec4u& colorRGB,

@@ -3,7 +3,7 @@
 namespace
 {
 
-core::expected<u32, ShaderProg::error_type> compile_shader(u32 type, std::string_view src) {
+core::expected<u32, ShaderProg::error_type> compileShader(u32 type, std::string_view src) {
     u32 shader = glCreateShader(type);
     if (shader == 0) return core::unexpected("Failed to create shader");
     const char* srcPtr = src.data();
@@ -30,12 +30,12 @@ core::expected<ShaderProg, ShaderProg::error_type> ShaderProg::create(std::strin
 
     u32 prog = glCreateProgram();
 
-    auto res = compile_shader(GL_VERTEX_SHADER, vertexShaderSrc);
+    auto res = compileShader(GL_VERTEX_SHADER, vertexShaderSrc);
     if (res.has_err()) return core::unexpected(core::move(res.err()));
     u32 vs = res.value();
     defer { glDeleteShader(vs); };
 
-    auto res2 = compile_shader(GL_FRAGMENT_SHADER, fragShaderSrc);
+    auto res2 = compileShader(GL_FRAGMENT_SHADER, fragShaderSrc);
     if (res2.has_err()) return core::unexpected(core::move(res2.err()));
     u32 fs = res2.value();
     defer { glDeleteShader(fs); };
@@ -57,7 +57,7 @@ core::expected<ShaderProg, ShaderProg::error_type> ShaderProg::create(std::strin
     return ret;
 }
 
-core::expected<i32, ShaderProg::error_type> ShaderProg::get_attrib_location(std::string_view name) {
+core::expected<i32, ShaderProg::error_type> ShaderProg::getAttribLocation(std::string_view name) {
     i32 loc = glGetAttribLocation(m_id, name.data());
     if (loc < 0) return core::unexpected(fmt::format("Failed to get attrib location: {}", name));
     return loc;

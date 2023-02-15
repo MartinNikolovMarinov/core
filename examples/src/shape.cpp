@@ -5,27 +5,27 @@
 
 u32 Shape2D::Usage::usageGL() const {
     u32 ret = -1;
-    if (a == Access::STATIC) {
-        if (t == AccessType::DRAW) ret = GL_STATIC_DRAW;
-        if (t == AccessType::READ) ret = GL_STATIC_READ;
-        if (t == AccessType::COPY) ret = GL_STATIC_COPY;
+    if (access == Access::STATIC) {
+        if (atype == AccessType::DRAW) ret = GL_STATIC_DRAW;
+        if (atype == AccessType::READ) ret = GL_STATIC_READ;
+        if (atype == AccessType::COPY) ret = GL_STATIC_COPY;
     }
-    if (a == Access::DYNAMIC) {
-        if (t == AccessType::DRAW) ret = GL_DYNAMIC_DRAW;
-        if (t == AccessType::READ) ret = GL_DYNAMIC_READ;
-        if (t == AccessType::COPY) ret = GL_DYNAMIC_COPY;
+    if (access == Access::DYNAMIC) {
+        if (atype == AccessType::DRAW) ret = GL_DYNAMIC_DRAW;
+        if (atype == AccessType::READ) ret = GL_DYNAMIC_READ;
+        if (atype == AccessType::COPY) ret = GL_DYNAMIC_COPY;
     }
-    if (a == Access::STREAM) {
-        if (t == AccessType::DRAW) ret = GL_STREAM_DRAW;
-        if (t == AccessType::READ) ret = GL_STREAM_READ;
-        if (t == AccessType::COPY) ret = GL_STREAM_COPY;
+    if (access == Access::STREAM) {
+        if (atype == AccessType::DRAW) ret = GL_STREAM_DRAW;
+        if (atype == AccessType::READ) ret = GL_STREAM_READ;
+        if (atype == AccessType::COPY) ret = GL_STREAM_COPY;
     }
     return ret;
 }
 
 u32 Shape2D::RenderMode::modeGL() const {
     u32 ret = -1;
-    switch (m) {
+    switch (mode) {
         case Mode::POINTS:         ret = GL_POINTS;         break;
         case Mode::LINES:          ret = GL_LINES;          break;
         case Mode::LINE_STRIP:     ret = GL_LINE_STRIP;     break;
@@ -37,10 +37,13 @@ u32 Shape2D::RenderMode::modeGL() const {
     return ret;
 }
 
-Shape2D Shape2D::create(const Shape2D::VertexLayout& vl,
-                        const core::vec4u& colorRGB,
+Shape2D::~Shape2D() { destroy(); }
+
+Shape2D Shape2D::create(const Shape2D::VertexLayout &vl,
+                        const core::vec4u &colorRGB,
                         f32 zIndex,
-                        core::arr<core::vec2f>&& vertices) {
+                        core::arr<core::vec2f> &&vertices)
+{
     Shape2D m;
     m.m_vertices = core::move(vertices);
     m.m_vboId = -1;

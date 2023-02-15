@@ -1,11 +1,11 @@
 #include "keyboard.h"
 
-bool keyboard_action::operator==(const keyboard_action& other) const {
+bool KeyboardAction::operator==(const KeyboardAction& other) const {
     return type == other.type;
 }
 
-keyboard_action keyboard_action::create_from_glfw(i32 action) {
-    keyboard_action ret;
+KeyboardAction KeyboardAction::createFromGLFW(i32 action) {
+    KeyboardAction ret;
     switch (action) {
         case GLFW_PRESS:   ret.type = Type::KEY_PRESS;   break;
         case GLFW_RELEASE: ret.type = Type::KEY_RELEASE; break;
@@ -15,7 +15,7 @@ keyboard_action keyboard_action::create_from_glfw(i32 action) {
     return ret;
 }
 
-i32 keyboard_action::to_glfw_action() {
+i32 KeyboardAction::toGLFWAction() {
     switch (type) {
         case Type::KEY_PRESS:   return GLFW_PRESS;
         case Type::KEY_RELEASE: return GLFW_RELEASE;
@@ -24,7 +24,7 @@ i32 keyboard_action::to_glfw_action() {
     }
 }
 
-const char* keyboard_action::to_cptr() {
+const char* KeyboardAction::toCptr() {
     switch (type) {
         case Type::KEY_PRESS:   return "key press";
         case Type::KEY_RELEASE: return "key release";
@@ -33,8 +33,8 @@ const char* keyboard_action::to_cptr() {
     }
 }
 
-keyboard_modifiers keyboard_modifiers::create_from_glfw(i32 mods) {
-    keyboard_modifiers ret = { Type::NONE };
+KeyboardModifiers KeyboardModifiers::createFromGLFW(i32 mods) {
+    KeyboardModifiers ret = { Type::NONE };
     if (mods & GLFW_MOD_SHIFT)     ret.type = (Type)(ret.type | Type::SHIFT);
     if (mods & GLFW_MOD_CONTROL)   ret.type = (Type)(ret.type | Type::CONTROL);
     if (mods & GLFW_MOD_ALT)       ret.type = (Type)(ret.type | Type::ALT);
@@ -44,7 +44,7 @@ keyboard_modifiers keyboard_modifiers::create_from_glfw(i32 mods) {
     return ret;
 }
 
-i32 keyboard_modifiers::to_glfw_mods() {
+i32 KeyboardModifiers::toGLFWMods() {
     i32 ret = 0;
     if (type & Type::SHIFT)     ret |= GLFW_MOD_SHIFT;
     if (type & Type::CONTROL)   ret |= GLFW_MOD_CONTROL;
@@ -55,7 +55,7 @@ i32 keyboard_modifiers::to_glfw_mods() {
     return ret;
 }
 
-const char* keyboard_modifiers::to_cptr() {
+const char* KeyboardModifiers::toCptr() {
     if (type == Type::NONE)
         return "none";
     if (type == Type::SHIFT)
@@ -183,89 +183,89 @@ const char* keyboard_modifiers::to_cptr() {
     return "unknown";
 }
 
-bool key_info::operator==(const key_info& other) const {
+bool KeyInfo::operator==(const KeyInfo& other) const {
     return scancode == other.scancode;
 }
 
-key_info key_info::create_from_glfw(i32 key, i32 scancode, i32 action) {
-    key_info info;
+KeyInfo KeyInfo::createFromGLFW(i32 key, i32 scancode, i32 action) {
+    KeyInfo info;
     info.value = key;
     info.scancode = scancode;
-    info.action = keyboard_action::create_from_glfw(action);
+    info.action = KeyboardAction::createFromGLFW(action);
     return info;
 }
 
 
-bool key_info::is_pressed() {
-    return action.type == keyboard_action::Type::KEY_PRESS;
+bool KeyInfo::isPressed() {
+    return action.type == KeyboardAction::Type::KEY_PRESS;
 }
 
-bool key_info::is_release() {
-    return action.type == keyboard_action::Type::KEY_RELEASE;
+bool KeyInfo::isRelease() {
+    return action.type == KeyboardAction::Type::KEY_RELEASE;
 }
 
-bool key_info::is_repeat() {
-    return action.type == keyboard_action::Type::KEY_REPEAT;
+bool KeyInfo::isRepeat() {
+    return action.type == KeyboardAction::Type::KEY_REPEAT;
 }
 
-std::string key_info::to_string() {
+std::string KeyInfo::toString() {
     std::string result = "key_info: { ";
     result += "value: " + std::to_string(value) + ", ";
     result += "scancode: " + std::to_string(scancode) + ", ";
-    result += "action: " + std::string(action.to_cptr());
+    result += "action: " + std::string(action.toCptr());
     result += " }";
     return result;
 }
 
-keyboard& keyboard::set_key(key_info&& key) {
+Keyboard& Keyboard::setKey(KeyInfo&& key) {
     keys[key.scancode] = core::move(key);
     return *this;
 }
 
-key_info& keyboard::get_key(i32 scancode) {
+KeyInfo& Keyboard::getKey(i32 scancode) {
     return keys[scancode];
 }
 
-keyboard& keyboard::set_modifiers(keyboard_modifiers&& mods) {
+Keyboard& Keyboard::setModifiers(KeyboardModifiers&& mods) {
     modifiers = core::move(mods);
     return *this;
 }
 
-keyboard_modifiers& keyboard::get_modifiers() {
+KeyboardModifiers& Keyboard::getModifiers() {
     return modifiers;
 }
 
-keyboard& keyboard::set_text_input(core::rune&& text) {
+Keyboard& Keyboard::setTextInput(core::rune&& text) {
     textInput = core::move(text);
     return *this;
 }
 
-core::rune& keyboard::get_text_input() {
+core::rune& Keyboard::getTextInput() {
     return textInput;
 }
 
-void keyboard::clear() {
+void Keyboard::clear() {
     // Keys that were released last frame are unset this frame.
     for (i32 i = 0; i < GLFW_KEY_LAST; i++) {
-        if (keys[i].is_release()) {
-            keys[i].action.type = keyboard_action::Type::NONE;
+        if (keys[i].isRelease()) {
+            keys[i].action.type = KeyboardAction::Type::NONE;
         }
     }
     // There is exactly one utf-8 rune as text input per frame, so clear it ant wait for the next one.
     textInput = core::rune{0};
 }
 
-std::string keyboard::to_string() {
+std::string Keyboard::toString() {
     std::string result = "Keyboard: { ";
     result += "keys: [ ";
     for (i32 i = 0; i < GLFW_KEY_LAST; i++) {
-        if (keys[i].action.type != keyboard_action::Type::NONE) {
-            result += keys[i].to_string();
+        if (keys[i].action.type != KeyboardAction::Type::NONE) {
+            result += keys[i].toString();
             if (i != GLFW_KEY_LAST - 1) result += ", ";
         }
     }
     result += " ], ";
-    result += "modifiers: " + std::string(modifiers.to_cptr()) + ", ";
+    result += "modifiers: " + std::string(modifiers.toCptr()) + ", ";
     char utfChar[4];
     core::rune_to_bytes(textInput, (uchar*)utfChar);
     result += "textInput: " + std::string(utfChar);

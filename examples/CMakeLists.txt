@@ -11,17 +11,22 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Generates compile_commands.json
 add_executable(${PROJECT_NAME}
     main.cpp
 
-    grid.h
-    init_core.cpp
-    init_core.h
-    keyboard.h
-    keyboard.cpp
-    mouse.h
-    mouse.cpp
-    shader_prog.h
-    shader_prog.cpp
-    shape.h
-    shape.cpp
+    # Examples:
+    ex/experiment_app.cpp
+    ex/experiment_app.h
+
+    # Common source files:
+    src/grid.h
+    src/init_core.cpp
+    src/init_core.h
+    src/keyboard.h
+    src/keyboard.cpp
+    src/mouse.h
+    src/mouse.cpp
+    src/shader_prog.h
+    src/shader_prog.cpp
+    src/shape.h
+    src/shape.cpp
 )
 
 # Compilation options:

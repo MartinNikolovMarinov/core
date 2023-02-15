@@ -19,15 +19,15 @@ struct ShaderProg {
 
     ShaderProg() = default;
 
-    u32 prog_id()          const { return m_id; }
-    u32 vertex_shader_id() const { return m_vertexShaderId; }
-    u32 frag_shader_id()   const { return m_fragShaderId; }
+    u32 progId()          const { return m_id; }
+    u32 vertexShaderId() const { return m_vertexShaderId; }
+    u32 fragShaderId()   const { return m_fragShaderId; }
 
     void destroy() { glDeleteProgram(m_id); }
     void use()     { glUseProgram(m_id); }
 
     template <i32 Dim, typename T>
-    core::expected<error_type> set_uniform_v(std::string_view name, const core::vec<Dim, T>& v) {
+    core::expected<error_type> setUniform_v(std::string_view name, const core::vec<Dim, T>& v) {
         i32 loc = glGetUniformLocation(m_id, name.data());
         if (loc < 0) return core::unexpected(fmt::format("Failed to get uniform location for {}", name));
         if constexpr (std::is_same_v<T, f32>) {
@@ -52,12 +52,12 @@ struct ShaderProg {
     }
 
     template <i32 Dim, typename T>
-    core::expected<error_type> set_uniform_v(std::string_view name, const core::vec<Dim, T>&& v) {
-        return set_uniform_v(name, v);
+    core::expected<error_type> setUniform_v(std::string_view name, const core::vec<Dim, T>&& v) {
+        return setUniform_v(name, v);
     }
 
     template <typename T>
-    core::expected<error_type> set_uniform(std::string_view name, T val) {
+    core::expected<error_type> setUniform(std::string_view name, T val) {
         i32 loc = glGetUniformLocation(m_id, name.data());
         if (loc < 0) return core::unexpected(fmt::format("Failed to get uniform location for {}", name));
         if constexpr      (std::is_same_v<T, f32>) glUniform1f(loc, val);
@@ -67,7 +67,7 @@ struct ShaderProg {
         return {};
     }
 
-    core::expected<i32, error_type> get_attrib_location(std::string_view name);
+    core::expected<i32, error_type> getAttribLocation(std::string_view name);
 
 private:
     u32 m_id;

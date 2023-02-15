@@ -13,7 +13,7 @@ struct Grid2D {
     }
 };
 
-constexpr core::vec2f convert_vec_using_grid(const core::vec2f& src, const Grid2D& from, const Grid2D& to) {
+constexpr core::vec2f convertVecUsingGrid(const core::vec2f& src, const Grid2D& from, const Grid2D& to) {
     core::vec2f fromRange = from.max - from.min;
     core::vec2f toRange = to.max - to.min;
     core::vec2f relativeLoc = (src - from.min) / fromRange;

@@ -7,16 +7,18 @@
 #include <keyboard.h>
 #include <shader_prog.h>
 
-#include <chrono>
-#include <thread>
-
-using system_clock = std::chrono::system_clock;
-template <typename T>
-using time_point = std::chrono::time_point<T>;
-using high_resolution_clock = std::chrono::high_resolution_clock;
+// TODO: Drawing line segments is quite the problem to solve in one pass. I first need to:
+//        - Go through all tutorials on https://learnopengl.com/ and make sure I understand everything.
+//        - Leave some good working examples with as little abstraciton as possible, without repeating code too much.
+//        - Examples need to be easy to switch between and test new things.
+//        - Read very carefully about instanced rendering in OpenGL from https://learnopengl.com/Advanced-OpenGL/Instancing
+//        - Then trying to slowly apply this to the examples here - https://wwwtyro.net/2019/11/18/instanced-lines.html
+//        - Maybe explore more techniques for rendering many line segments.
+//          Although this should be good enough for most applications. Especially for my needs.
 
 // Global state:
-time_point<system_clock> g_lastFrameTime;
+u64 g_firstFrameTimestamp_ms;
+u64 g_frameCount;
 
 i32 main(i32, char const**) {
     initCore();
@@ -50,8 +52,8 @@ i32 main(i32, char const**) {
         // These modifiers need to be locked because there is no need to hold them.
         glfwSetInputMode(window, GLFW_LOCK_KEY_MODS, GLFW_TRUE);
 
-        // vsync:
-        glfwSwapInterval(0); // FIXME: I hate x11 for forcing me to turn off vsync...
+        // Enable vsync:
+        glfwSwapInterval(1);
     }
     defer {
         glfwTerminate();
@@ -68,7 +70,6 @@ i32 main(i32, char const**) {
             }
         });
         glfwSetFramebufferSizeCallback(window, [](GLFWwindow*, i32 width, i32 height) {
-            fmt::print("Window Resize to: {}, {}\n", width, height);
             glViewport(0, 0, width, height);
         });
     }
@@ -124,25 +125,28 @@ i32 main(i32, char const**) {
     }
 
     // Init global state:
-    g_lastFrameTime = high_resolution_clock::now();
+    g_firstFrameTimestamp_ms = ValueOrDie(core::os_unix_time_stamp_in_ms());
+    g_frameCount = 0;
 
     // Main loop:
     while(!glfwWindowShouldClose(window)) {
-        glClear(GL_COLOR_BUFFER_BIT);
+        u64 elapsedTime_ms = ValueOrDie(core::os_unix_time_stamp_in_ms()) - g_firstFrameTimestamp_ms;
+        g_frameCount++;
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glfwPollEvents();
 
         // Render code:
         glfwSwapBuffers(window);
 
-        // Limit frame-rate to 60fps:
-        const auto frameTime = high_resolution_clock::now();
-        const auto frameDuration = frameTime - g_lastFrameTime;
-        const auto frameDurationMs = std::chrono::duration_cast<std::chrono::milliseconds>(frameDuration);
-        if (frameDurationMs.count() < (1/60*1000)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds((1/60*1000) - frameDurationMs.count()));
+        if (elapsedTime_ms) {
+            double elapsedSeconds = elapsedTime_ms / 1000.0;
+            constexpr double epsilon = 0.000000001;
+            if (core::safe_eq(elapsedSeconds, 0.0, epsilon)) continue;
+            double fps = g_frameCount / elapsedSeconds;
+            fmt::print("Frame: {}, FPS: {:f}\n", g_frameCount, fps);
         }
-        g_lastFrameTime = high_resolution_clock::now();
     }
 
     return 0;

@@ -44,7 +44,7 @@ struct AppState {
     AppState() = default;
     ~AppState();
 
-    void destory();
+    void destroy();
 };
 
 struct App {

@@ -2,9 +2,9 @@
 
 #include <fmt/format.h>
 
-AppState::~AppState() { destory(); }
+AppState::~AppState() { destroy(); }
 
-void AppState::destory() { guiShader.destroy(); }
+void AppState::destroy() { guiShader.destroy(); }
 
 namespace {
 

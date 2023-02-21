@@ -2,6 +2,12 @@
 
 #include <init_core.h>
 
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <fmt/format.h>
+
+#include <string>
+
 namespace common {
 
 enum AppExitCodes : i32 {
@@ -10,40 +16,52 @@ enum AppExitCodes : i32 {
     APP_EXIT_MEMORY_LEAK = -2,
 };
 
-struct AppState;
-struct Window;
+struct Window {
+    GLFWwindow* glfwWindow;
+    i32 width;
+    i32 height;
+    const char* title;
+};
 
-using InitStateCb = i32 (*)(AppState& s);
-using PreMainLoopCb = void (*)(AppState& s);
-using MainLoopCb = void (*)(AppState& s);
+struct CommonState;
 
-struct AppState {
-    u64 firstFrameTimestamp_ms;  // timestamp of the first frame in milliseconds.
-    u64 frameCount;              // number of frames since the app started.
-    PreMainLoopCb preMainLoopCb; // user defined callback that will be called once before the main loop starts.
-    MainLoopCb mainLoopCb;       // user defined callback that will be called on every frame.
+struct GraphicsLibError {
+    i32 code;
+    std::string msg;
+};
 
-    Window* mainWindow;     // the main window of the app. TODO: replace with my unique ptr implementation when ready.
-    core::vec4f clearColor; // the default background color.
+using InitStateCb = core::expected<GraphicsLibError> (*)(CommonState& s);
+using PreMainLoopCb = core::expected<GraphicsLibError> (*)(CommonState& s);
+using MainLoopCb = void (*)(CommonState& s);
+
+struct CommonState {
+    u64 firstFrameTimestamp_ms = 0;        // timestamp of the first frame in milliseconds.
+    u64 frameCount = 0;                    // number of frames since program started.
+    f64 fps = 0;                           // frames per second.
+    PreMainLoopCb preMainLoopCb = nullptr; // user defined callback that will be called once before the main loop starts.
+    MainLoopCb mainLoopCb = nullptr;       // user defined callback that will be called on every frame.
+    bool waitForEvents = false;            // the main loop will wait for events instead of polling.
+
+    Window mainWindow = {};      // the main window of the app.
+    core::vec4f clearColor = {}; // the default background color.
 
     bool debugWireFrameMode = false; // render in wireframe mode.
 };
 
 struct InitProps {
-    const char* title;
-    i32 width;
-    i32 height;
-    core::vec4f clearColor;
-    InitStateCb initStateCb;
-    PreMainLoopCb preMainLoopCb;
-    MainLoopCb mainLoopCb; // required.
+    const char* title = nullptr;
+    i32 width = 0;
+    i32 height = 0;
+    core::vec4f clearColor = {};
+    InitStateCb initStateCb = nullptr;
+    PreMainLoopCb preMainLoopCb = nullptr;
+    MainLoopCb mainLoopCb = nullptr;
     bool debugWireFrameMode = false;
+    bool waitForEvents = false;
 };
 
-void* getNativeWindowHandle(Window* w);
-
-AppState& state();
-i32 init(InitProps&& props);
+CommonState& state();
+core::expected<GraphicsLibError> init(InitProps&& props);
 i32 run();
 void destroy();
 

@@ -1,9 +1,5 @@
 #include "experiment_01_triangle_and_quad.h"
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <fmt/format.h>
-
 #include <keyboard.h>
 #include <shader_prog.h>
 
@@ -31,12 +27,9 @@ State& state() {
 
 } // namespace
 
-i32 init(AppState &s) {
-    GLFWwindow* glfwWindow = reinterpret_cast<GLFWwindow*>(getNativeWindowHandle(s.mainWindow));
-    if (!glfwWindow) {
-        fmt::print(stderr, "Failed to get GLFW window handle\n");
-        return AppExitCodes::APP_EXIT_FAILED_TO_INIT;
-    }
+core::expected<GraphicsLibError> init(CommonState &s) {
+    GLFWwindow* glfwWindow = s.mainWindow.glfwWindow;
+    const char* errDesc = nullptr;
 
     glfwSetKeyCallback(glfwWindow, [](GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods) {
         [[maybe_unused]] KeyboardModifiers keyModifiers = KeyboardModifiers::createFromGLFW(mods);
@@ -45,17 +38,40 @@ i32 init(AppState &s) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
     });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set GLFW KeyCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
 
     glfwSetFramebufferSizeCallback(glfwWindow, [](GLFWwindow*, i32 width, i32 height) {
         glViewport(0, 0, width, height);
     });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set GLFW FramebufferSizeCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
 
-    return AppExitCodes::APP_EXIT_SUCCESS;
+    // Set Error callback:
+    glfwSetErrorCallback([](i32 errCode, const char* errDesc) {
+        fmt::print(stderr, "GLFW error: {}, reason: {}\n", errCode, errDesc ? errDesc : "Unknown");
+    });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set GLFW Error callback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
+
+    return {};
 }
 
 void destroy() {}
 
-void preMainLoop(AppState&) {
+core::expected<GraphicsLibError> preMainLoop(CommonState&) {
     State& g_s = state();
 
     // Create shader program:
@@ -158,16 +174,18 @@ void preMainLoop(AppState&) {
         glVertexAttribPointer(inPosAttribLocation, dimentions, GL_FLOAT, GL_FALSE, stride, (void*)0);
         glEnableVertexAttribArray(inPosAttribLocation);
     }
+
+    return {};
 }
 
-void mainLoop(AppState&) {
+void mainLoop(CommonState& commonState) {
+    State& g_s = state();
+
     // Debug reset binds to make sure everyting is bound correctly later on.
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glUseProgram(0);
-
-    State& g_s = state();
 
     g_s.shaderProg.use();
     g_s.shaderProg.setUniform_v("u_color", g_s.triangleColor);
@@ -182,6 +200,10 @@ void mainLoop(AppState&) {
     glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBOId);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_s.quadEBOId);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+    glfwSwapBuffers(commonState.mainWindow.glfwWindow);
+
+    fmt::print("Frame: {}, FPS: {:f}\n", commonState.frameCount, commonState.fps);
 }
 
 } // namespace triangle_and_quad_ex_01

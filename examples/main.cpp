@@ -5,6 +5,7 @@
 
 #include "ex/common.h"
 #include "ex/experiment_01_triangle_and_quad.h"
+#include "ex/experiment_app.h"
 
 // TODO: Drawing line segments is quite the problem to solve in one pass. I first need to:
 //        - Go through all tutorials on https://learnopengl.com/ and make sure I understand everything.
@@ -16,47 +17,60 @@
 //          Although this should be good enough for most applications. Especially for my needs.
 
 struct Example {
-    i32 (*init)(common::AppState& s);
-    void (*destroy)();
-    void (*preMainLoop)(common::AppState& s);
-    void (*mainLoop)(common::AppState& s);
+    common::InitStateCb init = nullptr;
+    common::PreMainLoopCb preMainLoop = nullptr;
+    common::MainLoopCb mainLoop = nullptr;
+    void (*destroy)() = nullptr;
+    bool waitForEvents = false;
 };
 
 inline i32 runExample(Example&& ex) {
-    {
-        defer {
-            ex.destroy();
-            common::destroy();
-        };
-        common::InitProps iprops;
-        iprops.title = "Experiment 01 - Triangle";
-        iprops.width = 800;
-        iprops.height = 600;
-        iprops.clearColor = {0.2f, 0.3f, 0.3f, 1.0f};
-        iprops.initStateCb = ex.init;
-        iprops.preMainLoopCb = ex.preMainLoop;
-        iprops.mainLoopCb = ex.mainLoop;
-        iprops.debugWireFrameMode = false;
-        if (i32 err = common::init(core::move(iprops)); err != common::AppExitCodes::APP_EXIT_SUCCESS) {
-            return err;
+    auto checkForLeaks = []() {
+        ptr_size leaked = core::used_mem<CORE_DEFAULT_ALLOCATOR()>();
+        if (leaked > 0) {
+            fmt::print(stderr, "Leaked {} bytes of memory\n", leaked);
+            return common::AppExitCodes::APP_EXIT_MEMORY_LEAK;
+        } else {
+            fmt::print("No memory leaks detected\n");
+            return common::AppExitCodes::APP_EXIT_SUCCESS;
         }
-        if (i32 err = common::run(); err != common::AppExitCodes::APP_EXIT_SUCCESS) {
-            return err;
-        }
+    };
+
+    defer {
+        ex.destroy();
+        common::destroy();
+        checkForLeaks();
+    };
+
+    common::InitProps iprops;
+    iprops.title = "Experiment 01 - Triangle";
+    iprops.width = 800;
+    iprops.height = 600;
+    iprops.clearColor = {0.2f, 0.3f, 0.3f, 1.0f};
+    iprops.initStateCb = ex.init;
+    iprops.preMainLoopCb = ex.preMainLoop;
+    iprops.mainLoopCb = ex.mainLoop;
+    iprops.waitForEvents = ex.waitForEvents;
+    iprops.debugWireFrameMode = false;
+    if (auto err = common::init(core::move(iprops)); err.has_err()) {
+        fmt::print(stderr, "Failed to initialize the application: {}\n", err.err().msg.c_str());
+        return common::AppExitCodes::APP_EXIT_FAILED_TO_INIT;
+    }
+    if (i32 err = common::run(); err != common::AppExitCodes::APP_EXIT_SUCCESS) {
+        return err;
     }
 
-    ptr_size leaked = core::used_mem<CORE_DEFAULT_ALLOCATOR()>();
-    if (leaked > 0) {
-        fmt::print(stderr, "Leaked {} bytes of memory\n", leaked);
-        return common::AppExitCodes::APP_EXIT_MEMORY_LEAK;
-    } else {
-        fmt::print("No memory leaks detected\n");
-        return common::AppExitCodes::APP_EXIT_SUCCESS;
-    }
+    return common::AppExitCodes::APP_EXIT_SUCCESS;
 }
 
 i32 example_app() {
-    return 0;
+    Example ex;
+    ex.init = app::init;
+    ex.destroy = app::destroy;
+    ex.preMainLoop = app::preMainLoop;
+    ex.mainLoop = app::mainLoop;
+    ex.waitForEvents = true;
+    return runExample(core::move(ex));
 }
 
 i32 example_01() {
@@ -65,6 +79,7 @@ i32 example_01() {
     ex.destroy = triangle_and_quad_ex_01::destroy;
     ex.preMainLoop = triangle_and_quad_ex_01::preMainLoop;
     ex.mainLoop = triangle_and_quad_ex_01::mainLoop;
+    ex.waitForEvents = false;
     return runExample(core::move(ex));
 }
 

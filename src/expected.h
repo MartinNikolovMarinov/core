@@ -75,7 +75,7 @@ struct CORE_API_EXPORT expected<TErr> {
     expected& operator=(const expected&) = delete;
 
     // move
-    constexpr expected(expected&& other) : m_err(core::move(other.m_err)), m_hasErr(other.m_hasErr) {}
+    constexpr expected(expected&& other) : m_hasErr(other.m_hasErr), m_err(core::move(other.m_err)) {}
 
     constexpr const TErr& err() const { return m_err; }
     constexpr TErr& err()             { return m_err; }
@@ -140,13 +140,25 @@ private:
     bool m_hasValue;
 };
 
-#define Check(expr) (expr).check()
-#define ValueOrDie(expr) core::move(Check(expr).value())
+#ifndef Check
+    #define Check(expr) (expr).check()
+#endif
 
-#define ValueOrReturn(expr, v) {       \
-    auto __ret = (expr);               \
-    if (__ret.has_err()) return __ret; \
-    (v) = __ret.value();               \
-}
+#ifndef ValueOrDie
+    #define ValueOrDie(expr) core::move(Check(expr).value())
+#endif
+
+#ifndef ValueOrReturn
+    #define ValueOrReturn(...) C_VFUNC(ValueOrReturn, __VA_ARGS__)
+    #define ValueOrReturn1(expr) {         \
+        auto __ret = (expr);               \
+        if (__ret.has_err()) return __ret; \
+    }
+    #define ValueOrReturn2(expr, msg) {    \
+        auto __ret = (expr);               \
+        if (__ret.has_err()) return __ret; \
+        (v) = __ret.value();               \
+    }
+#endif
 
 } // namespace core

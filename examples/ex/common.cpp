@@ -1,34 +1,27 @@
 #include "common.h"
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <fmt/format.h>
-
 namespace common {
 
-struct Window {
-    GLFWwindow* glfwWindow;
-    i32 width;
-    i32 height;
-    const char* title;
-};
-
-void* getNativeWindowHandle(Window* w) {
-    if (w) return w->glfwWindow;
-    return nullptr;
-}
-
-AppState& state() {
-    static AppState g_state = {};
+CommonState& state() {
+    static CommonState g_state = {};
     return g_state;
 }
 
 namespace {
 
-i32 initGlfw() {
-    if (!glfwInit()) {
-        fmt::print(stderr, "Failed to initialize GLFW\n");
-        return AppExitCodes::APP_EXIT_FAILED_TO_INIT;
+GraphicsLibError createGLFWErr() {
+    GraphicsLibError err;
+    const char* errDesc = nullptr;
+    err.code = glfwGetError(&errDesc);
+    err.msg = fmt::format("Failed to initialize GLFW reason: {}", errDesc ? errDesc : "Unknown");
+    return err;
+}
+
+core::expected<GraphicsLibError> initGlfw() {
+    fmt::print("GLFW version: {}\n", glfwGetVersionString());
+
+    if (glfwInit() != GLFW_TRUE) {
+        return core::unexpected(createGLFWErr());
     }
 
     // Setup GLFW window hints:
@@ -41,21 +34,23 @@ i32 initGlfw() {
 #endif
     glfwWindowHint(GLFW_SAMPLES, 4);
 
-    return AppExitCodes::APP_EXIT_SUCCESS;
+    return {};
 }
 
-i32 initGlew() {
-    if (auto err = glewInit(); err != GLEW_OK) {
-        const char* errStr = reinterpret_cast<const char*>(glewGetErrorString(err));
-        fmt::print(stderr, "Failed to initialize GLEW reason: {}\n", errStr);
-        return AppExitCodes::APP_EXIT_FAILED_TO_INIT;
+core::expected<GraphicsLibError> initGlew() {
+    if (auto errCode = glewInit(); errCode != GLEW_OK) {
+        GraphicsLibError err;
+        const char* errDesc = reinterpret_cast<const char*>(glewGetErrorString(errCode));
+        err.code = errCode;
+        err.msg = fmt::format("Failed to initialize GLEW reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
     }
-    return AppExitCodes::APP_EXIT_SUCCESS;
+    return {};
 }
 
 void initOpenGL() {
-    AppState& g_s = state();
-    glViewport(0, 0, g_s.mainWindow->width, g_s.mainWindow->height);
+    CommonState& g_s = state();
+    glViewport(0, 0, g_s.mainWindow.width, g_s.mainWindow.height);
 
     auto& cc = g_s.clearColor;
     glClearColor(cc.r(), cc.g(), cc.b(), cc.a());
@@ -74,84 +69,85 @@ void initOpenGL() {
 
 }
 
-i32 init(InitProps&& props) {
+core::expected<GraphicsLibError> init(InitProps&& props) {
     Assert(props.mainLoopCb != nullptr, "Provided nullptr for Main Loop.");
 
     initCore();
-    if (i32 err = initGlfw(); err != AppExitCodes::APP_EXIT_SUCCESS) return err;
+    ValueOrReturn(initGlfw());
 
-    AppState& g_s = state();
+    CommonState& g_s = state();
     g_s.mainLoopCb = props.mainLoopCb;
     g_s.preMainLoopCb = props.preMainLoopCb;
     g_s.debugWireFrameMode = props.debugWireFrameMode;
     g_s.clearColor = props.clearColor;
+    g_s.waitForEvents = props.waitForEvents;
     g_s.firstFrameTimestamp_ms = 0;
     g_s.frameCount = 0;
 
     // Create the glfw main window:
-    g_s.mainWindow = reinterpret_cast<Window*>(core::alloc<CORE_DEFAULT_ALLOCATOR()>(sizeof(Window)));
-    g_s.mainWindow->width = props.width;
-    g_s.mainWindow->height = props.height;
-    g_s.mainWindow->title = props.title;
-    g_s.mainWindow->glfwWindow = glfwCreateWindow(g_s.mainWindow->width, g_s.mainWindow->height, g_s.mainWindow->title, 0, 0);
-    if (!g_s.mainWindow->glfwWindow) {
-        fmt::print(stderr, "Failed to create GLFW window\n");
-        return APP_EXIT_FAILED_TO_INIT;
+    g_s.mainWindow = {};
+    g_s.mainWindow.width = props.width;
+    g_s.mainWindow.height = props.height;
+    g_s.mainWindow.title = props.title;
+    g_s.mainWindow.glfwWindow = glfwCreateWindow(g_s.mainWindow.width, g_s.mainWindow.height, g_s.mainWindow.title, 0, 0);
+    if (!g_s.mainWindow.glfwWindow) {
+        return core::unexpected(createGLFWErr());
     }
 
-    glfwMakeContextCurrent(g_s.mainWindow->glfwWindow);
+    glfwMakeContextCurrent(g_s.mainWindow.glfwWindow);
     // This sets the modifier bit for caps lock and num lock when a key press event is received.
     // These modifiers need to be locked because there is no need to hold them:
-    glfwSetInputMode(g_s.mainWindow->glfwWindow, GLFW_LOCK_KEY_MODS, GLFW_TRUE);
+    glfwSetInputMode(g_s.mainWindow.glfwWindow, GLFW_LOCK_KEY_MODS, GLFW_TRUE);
     // Enable vsync:
     glfwSwapInterval(1);
 
     // Init glew after we have a window:
-    if (i32 err = initGlew(); err != AppExitCodes::APP_EXIT_SUCCESS) return err;
+    ValueOrReturn(initGlew());
 
     // Initialize OpenGL:
     initOpenGL();
 
     // Call the custom user provided callback:
     if (props.initStateCb) {
-        if (i32 err = props.initStateCb(g_s); err != AppExitCodes::APP_EXIT_SUCCESS) {
-            return err;
-        }
+        ValueOrReturn(props.initStateCb(g_s))
     }
 
-    return AppExitCodes::APP_EXIT_SUCCESS;
+    return {};
 }
 
 void destroy() {
-    AppState& g_s = state();
+    CommonState& g_s = state();
     glfwTerminate();
-    if (g_s.mainWindow) {
-        glfwDestroyWindow(g_s.mainWindow->glfwWindow);
-        core::free<CORE_DEFAULT_ALLOCATOR()>(g_s.mainWindow);
-    }
+    if (g_s.mainWindow.glfwWindow) glfwDestroyWindow(g_s.mainWindow.glfwWindow);
 }
 
 i32 run() {
-    AppState& g_s = state();
+    CommonState& g_s = state();
 
     g_s.firstFrameTimestamp_ms = ValueOrDie(core::os_unix_time_stamp_in_ms());
-    if (g_s.preMainLoopCb) g_s.preMainLoopCb(g_s);
+    if (g_s.preMainLoopCb) {
+        auto ret = g_s.preMainLoopCb(g_s);
+        if (ret.has_err()) {
+            fmt::print("User defined Pre-Main Loop Callback failed; reason: {}\n", ret.err().msg);
+            return AppExitCodes::APP_EXIT_FAILED_TO_INIT;
+        }
+    }
 
-    while (!glfwWindowShouldClose(g_s.mainWindow->glfwWindow)) {
+    while (!glfwWindowShouldClose(g_s.mainWindow.glfwWindow)) {
         u64 elapsedTime_ms = ValueOrDie(core::os_unix_time_stamp_in_ms()) - g_s.firstFrameTimestamp_ms;
         g_s.frameCount++;
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glfwPollEvents();
+        if (g_s.waitForEvents) glfwWaitEvents();
+        else glfwPollEvents();
+
         g_s.mainLoopCb(g_s);
-        glfwSwapBuffers(g_s.mainWindow->glfwWindow);
 
         if (elapsedTime_ms) {
-            double elapsedSeconds = elapsedTime_ms / 1000.0;
-            constexpr double epsilon = 0.000000001;
+            f64 elapsedSeconds = elapsedTime_ms / 1000.0;
+            constexpr f64 epsilon = 0.000000001;
             if (core::safe_eq(elapsedSeconds, 0.0, epsilon)) continue;
-            double fps = g_s.frameCount / elapsedSeconds;
-            fmt::print("Frame: {}, FPS: {:f}\n", g_s.frameCount, fps);
+            g_s.fps = g_s.frameCount / elapsedSeconds;
         }
     }
 

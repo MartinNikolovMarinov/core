@@ -50,9 +50,6 @@ struct Shape2D {
         RenderMode renderMode;
     };
 
-    Shape2D() = default;
-    ~Shape2D();
-
     static Shape2D create(const Shape2D::VertexLayout& vl,
                           const core::vec4u& colorRGB,
                           f32 zIndex,

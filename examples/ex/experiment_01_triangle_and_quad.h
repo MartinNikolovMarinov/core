@@ -5,11 +5,12 @@
 namespace triangle_and_quad_ex_01 {
 
 using AppExitCodes = common::AppExitCodes;
-using AppState = common::AppState;
+using CommonState = common::CommonState;
+using GraphicsLibError = common::GraphicsLibError;
 
-i32 init(AppState &s);
+core::expected<GraphicsLibError> init(CommonState &s);
 void destroy();
-void preMainLoop(AppState& s);
-void mainLoop(AppState& s);
+core::expected<GraphicsLibError> preMainLoop(CommonState& s);
+void mainLoop(CommonState& s);
 
 } // namespace triangle_and_quad_ex_01

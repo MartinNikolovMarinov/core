@@ -37,8 +37,6 @@ u32 Shape2D::RenderMode::modeGL() const {
     return ret;
 }
 
-Shape2D::~Shape2D() { destroy(); }
-
 Shape2D Shape2D::create(const Shape2D::VertexLayout &vl,
                         const core::vec4u &colorRGB,
                         f32 zIndex,
@@ -52,7 +50,7 @@ Shape2D Shape2D::create(const Shape2D::VertexLayout &vl,
     m.m_renderMode = vl.renderMode;
     m.m_color = {
         f32(colorRGB.r()) / 255.0f, f32(colorRGB.g()) / 255.0f,
-        f32(colorRGB.b()) / 255.0f, f32(colorRGB.z()) / 255.0f,
+        f32(colorRGB.b()) / 255.0f, f32(colorRGB.a()) / 255.0f,
     };
 
     // Create VBO

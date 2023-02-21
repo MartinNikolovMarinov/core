@@ -1,100 +1,140 @@
 #include "experiment_app.h"
 
-#include <fmt/format.h>
-
-AppState::~AppState() { destroy(); }
-
-void AppState::destroy() { guiShader.destroy(); }
+#include <grid.h>
+#include <keyboard.h>
+#include <mouse.h>
+#include <shader_prog.h>
+#include <shape.h>
+namespace app {
 
 namespace {
 
-GLFWwindow* initGLFWWindow(i32 width, i32 height, const char* title) {
-    if (!glfwInit()) {
-        fmt::print(stderr, "Failed to initialize GLFW\n");
-        return nullptr;
-    }
+struct AppState {
+    // Constants:
+    static constexpr Grid2D clipSpaceGrid    = { core::v(-1.0f, -1.0f), core::v(1.0f, 1.0f) };
+    static constexpr Grid2D worldSpaceGrid   = { core::v(0.0f, 0.0f), core::v(1000.0f, 1000.0f) };
+    static constexpr core::vec2f worldCenter = core::v(worldSpaceGrid.max.x() / 2, worldSpaceGrid.max.y() / 2);
 
-    // Hints for OpenGL:
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
-#ifdef OS_MAC
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-    glfwWindowHint(GLFW_SAMPLES, 4);
+    Keyboard keyboardState;
+    Mouse mouseState;
+    bool keyboardStateChange;
+    bool mouseStateChange;
+    bool windowStateChange;
+    u64 lastWindowDragTimestamp_ms;
+    ShaderProg guiShader;
+    core::arr<Shape2D> shapesToRender;
+};
 
-    GLFWwindow* window = glfwCreateWindow(width, height, title, nullptr, nullptr);
-    if (!window) {
-        fmt::print(stderr, "Failed to create GLFW window\n");
-        return nullptr;
-    }
-    glfwMakeContextCurrent(window);
-    App::state().glfwWindow = window;
-
-    // This sets the modifier bit for caps lock and num lock when a key press event is received.
-    // These modifiers need to be locked because there is no need to hold them.
-    glfwSetInputMode(window, GLFW_LOCK_KEY_MODS, GLFW_TRUE);
-
-    return window;
+AppState& state(bool clear = false) {
+    static AppState g_state = {};
+    if (clear) g_state = {};
+    return g_state;
 }
 
-void initGLFWEventHandlers(GLFWwindow* window) {
-    // TODO: All these callbacks can return nullptr in case of error. Not checking anything is not great.
+core::expected<GraphicsLibError> initEventHandlers(GLFWwindow* window) {
+    const char* errDesc = nullptr;
 
     // Error handler
 
     glfwSetErrorCallback([](i32, const char* description) {
         fmt::print(stderr, "GLFW error: {}\n", description);
     });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set glfwSetErrorCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
 
     // Keyboard event handlers
 
     glfwSetKeyCallback(window, [](GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods) {
+        auto& g_s = app::state();
         KeyboardModifiers keyModifiers = KeyboardModifiers::createFromGLFW(mods);
         KeyInfo keyInfo = KeyInfo::createFromGLFW(key, scancode, action);
-        App::state().keyboardState.setModifiers(core::move(keyModifiers))
+        g_s.keyboardState.setModifiers(core::move(keyModifiers))
                                   .setKey(core::move(keyInfo));
 
         if (keyInfo.value == GLFW_KEY_ESCAPE && keyInfo.isPressed()) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
 
-        App::state().keyboardStateChange = true;
+        g_s.keyboardStateChange = true;
     });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set glfwSetKeyCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
 
     glfwSetCharCallback(window, [](GLFWwindow*, u32 codepoint) {
-        App::state().keyboardState.setTextInput(core::rune(codepoint));
-        App::state().keyboardStateChange = true;
+        auto& g_s = app::state();
+        g_s.keyboardState.setTextInput(core::rune(codepoint));
+        g_s.keyboardStateChange = true;
     });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set glfwSetCharCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
 
     // Mouse event handlers
 
     glfwSetCursorPosCallback(window, [](GLFWwindow*, f64 xpos, f64 ypos) {
-        App::state().mouseState.setPos(xpos, ypos);
-        App::state().mouseStateChange = true;
+        auto& g_s = app::state();
+        g_s.mouseState.setPos(xpos, ypos);
+        g_s.mouseStateChange = true;
     });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set glfwSetCursorPosCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
 
     glfwSetCursorEnterCallback(window, [](GLFWwindow*, i32 entered) {
-        App::state().mouseState.setInWindow(entered != 0);
-        App::state().mouseStateChange = true;
+        auto& g_s = app::state();
+        g_s.mouseState.setInWindow(entered != 0);
+        g_s.mouseStateChange = true;
     });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set glfwSetCursorEnterCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
 
     glfwSetMouseButtonCallback(window, [](GLFWwindow*, i32 button, i32 action, i32 mods) {
+        auto& g_s = app::state();
         // Change keyboard state to take account of the modifiers:
         KeyboardModifiers keyModifiers = KeyboardModifiers::createFromGLFW(mods);
-        App::state().keyboardState.setModifiers(core::move(keyModifiers));
-        App::state().keyboardStateChange = true;
+        g_s.keyboardState.setModifiers(core::move(keyModifiers));
+        g_s.keyboardStateChange = true;
         // Then change the mouse state:
         KeyInfo mouseButton = KeyInfo::createFromGLFW(button, 0, action);
-        App::state().mouseState.setButton(mouseButton);
-        App::state().mouseStateChange = true;
+        g_s.mouseState.setButton(mouseButton);
+        g_s.mouseStateChange = true;
     });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set glfwSetMouseButtonCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
 
     glfwSetScrollCallback(window, [](GLFWwindow*, f64 xoffset, f64 yoffset) {
-        App::state().mouseState.setScroll(xoffset, yoffset);
-        App::state().mouseStateChange = true;
+        auto& g_s = app::state();
+        g_s.mouseState.setScroll(xoffset, yoffset);
+        g_s.mouseStateChange = true;
     });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set glfwSetScrollCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
 
     glfwSetDropCallback(window, [](GLFWwindow*, i32 count, const char** paths) {
         // TODO: save this to the global state.
@@ -103,102 +143,127 @@ void initGLFWEventHandlers(GLFWwindow* window) {
         for (i32 i = 0; i < count; ++i) {
             fmt::print("  {}\n", paths[i]);
         }
-        App::state().mouseStateChange = true;
     });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set glfwSetDropCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
 
     // Window event handlers
 
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow*, i32 width, i32 height) {
+        auto& g_s = app::state();
+        auto& commonState = common::state();
         fmt::print("Window Resize to: {}, {}\n", width, height);
-        App::state().windowWidth = width;
-        App::state().windowHeight = height;
+        commonState.mainWindow.width = width;
+        commonState.mainWindow.height = height;
         glViewport(0, 0, width, height);
-        App::state().windowStateChange = true;
+        g_s.windowStateChange = true;
     });
-
-    glfwSetWindowPosCallback(window, [](GLFWwindow*, i32 xpos, i32 ypos) {
-        auto now = std::chrono::high_resolution_clock::now();
-        auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(now - App::state().lastWindowDragTime);
-        if (diff.count() > 50) {
-            // Throttle window drag events to avoid spam rendering.
-            fmt::print("Window dragged to: {}, {}\n", xpos, ypos);
-            App::state().lastWindowDragTime = std::chrono::high_resolution_clock::now();
-            App::state().windowStateChange = true;
-        }
-    });
-
-    glfwSetWindowCloseCallback(window, [](GLFWwindow* window) {
-        fmt::print("Window close requested\n");
-        glfwSetWindowShouldClose(window, true);
-        App::state().windowStateChange = true;
-    });
-
-    glfwSetWindowFocusCallback(window, [](GLFWwindow*, i32 focused) {
-        fmt::print("Window focus changed to: {}\n", focused ? "true" : "false");
-        App::state().windowStateChange = true;
-    });
-
-    glfwSetWindowMaximizeCallback(window, [](GLFWwindow*, i32 maximized) {
-        fmt::print("Window maximized changed to: {}\n", maximized ? "true" : "false");
-        App::state().windowStateChange = true;
-    });
-
-    glfwSetWindowContentScaleCallback(window, [](GLFWwindow*, f32 xscale, f32 yscale) {
-        fmt::print("Window content scale: {}, {}\n", xscale, yscale);
-        App::state().windowStateChange = true;
-    });
-
-    glfwSetWindowRefreshCallback(window, [](GLFWwindow*) {
-        fmt::print("Window refresh requested\n");
-        App::state().windowStateChange = true;
-    });
-}
-
-void initOpenGL() {
-    glViewport(0, 0, App::state().windowWidth, App::state().windowHeight);
-
-    auto& cc = App::state().clearColor;
-    glClearColor(cc.r(), cc.g(), cc.b(), cc.a());
-
-    constexpr bool debugWireFrameMode = true;
-    if constexpr (debugWireFrameMode) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    } else {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set glfwSetFramebufferSizeCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
     }
 
-    glEnable(GL_MULTISAMPLE);
+    glfwSetWindowPosCallback(window, [](GLFWwindow*, i32 xpos, i32 ypos) {
+        auto& g_s = app::state();
+        u64 now = ValueOrDie(core::os_unix_time_stamp_in_ms());
+        u64 diff = now - g_s.lastWindowDragTimestamp_ms;
+        static constexpr u32 throttleDragEventsTime_ms = 50;
+        if (diff > throttleDragEventsTime_ms) {
+            fmt::print("Window dragged to: {}, {}\n", xpos, ypos);
+            g_s.lastWindowDragTimestamp_ms = ValueOrDie(core::os_unix_time_stamp_in_ms());
+            g_s.windowStateChange = true;
+        }
+    });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set glfwSetWindowPosCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
+
+    glfwSetWindowCloseCallback(window, [](GLFWwindow* window) {
+        auto& g_s = app::state();
+        fmt::print("Window close requested\n");
+        glfwSetWindowShouldClose(window, true);
+        g_s.windowStateChange = true;
+    });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set glfwSetWindowCloseCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
+
+    glfwSetWindowFocusCallback(window, [](GLFWwindow*, i32 focused) {
+        auto& g_s = app::state();
+        fmt::print("Window focus changed to: {}\n", focused ? "true" : "false");
+        g_s.windowStateChange = true;
+    });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set glfwSetWindowFocusCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
+
+    glfwSetWindowMaximizeCallback(window, [](GLFWwindow*, i32 maximized) {
+        auto& g_s = app::state();
+        fmt::print("Window maximized changed to: {}\n", maximized ? "true" : "false");
+        g_s.windowStateChange = true;
+    });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set glfwSetWindowMaximizeCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
+
+    glfwSetWindowContentScaleCallback(window, [](GLFWwindow*, f32 xscale, f32 yscale) {
+        auto& g_s = app::state();
+        fmt::print("Window content scale: {}, {}\n", xscale, yscale);
+        g_s.windowStateChange = true;
+    });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set glfwSetWindowContentScaleCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
+
+    glfwSetWindowRefreshCallback(window, [](GLFWwindow*) {
+        auto& g_s = app::state();
+        fmt::print("Window refresh requested\n");
+        g_s.windowStateChange = true;
+    });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set glfwSetWindowRefreshCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
+
+    return {};
 }
 
 ShaderProg createGUIShaderProgram() {
     const char* vertexGUIShaderSource = R"(
         #version 330 core
+
         layout (location = 0) in vec3 in_pos;
 
-        uniform vec2 u_worldSpaceGridMin;
-        uniform vec2 u_worldSpaceGridMax;
-
-        vec2 convertVecUsingGrid(vec2 src, vec2 fromMin, vec2 fromMax, vec2 toMin, vec2 toMax) {
-            vec2 fromRange = fromMax - fromMin;
-            vec2 toRange = toMax - toMin;
-            vec2 relativeLoc = (src - fromMin) / fromRange;
-            vec2 ret = relativeLoc * toRange + toMin;
-            return ret;
-        }
-
         void main() {
-            const vec2 clipSpaceGridMin = vec2(-1.0, 1.0); // OpenGL flips the y axis.
-            const vec2 clipSpaceGridMax = vec2(1.0, -1.0);
-
-            vec2 clipSpacePos = convertVecUsingGrid(in_pos.xy,
-                                                    u_worldSpaceGridMin, u_worldSpaceGridMax,
-                                                    clipSpaceGridMin, clipSpaceGridMax);
-
-            gl_Position = vec4(clipSpacePos.xy, 1.0, 1.0);
+            gl_Position = vec4(in_pos.xyz, 1.0);
         }
     )";
     const char* fragmentGUIShaderSource = R"(
         #version 330 core
+
         out vec4 out_fragColor;
         uniform vec4 u_color;
 
@@ -211,42 +276,33 @@ ShaderProg createGUIShaderProgram() {
 }
 
 bool shouldRender() {
-    bool shouldRender = App::state().windowStateChange ||
-                        App::state().mouseStateChange  ||
-                        App::state().keyboardStateChange;
+    auto& g_s = app::state();
+    bool shouldRender = g_s.windowStateChange || g_s.mouseStateChange || g_s.keyboardStateChange;
     return shouldRender;
 }
 
 void prepareInputStateForNextFrame() {
-    App::state().keyboardStateChange = false;
-    App::state().mouseStateChange = false;
-    App::state().windowStateChange = false;
-    App::state().keyboardState.clear();
-    App::state().mouseState.clear();
+    auto& g_s = app::state();
+    g_s.keyboardStateChange = false;
+    g_s.mouseStateChange = false;
+    g_s.windowStateChange = false;
+    g_s.keyboardState.clear();
+    g_s.mouseState.clear();
 }
 
 void renderShape(Shape2D& shape) {
+    auto& g_s = app::state();
+
     // Bind shape:
-    {
-        // cache the last bound vbo and vao.
-        static u32 lastBoundVboId = core::MAX_U32;
-        static u32 lastBoundVaoId = core::MAX_U32;
+    glBindBuffer(GL_ARRAY_BUFFER, shape.vboID());
+    glBindVertexArray(shape.vaoID());
 
-        if (lastBoundVboId != shape.vboID()) {
-            glBindBuffer(GL_ARRAY_BUFFER, shape.vboID());
-            lastBoundVboId = shape.vboID();
-        }
-        if (lastBoundVaoId != shape.vaoID()) {
-            glBindVertexArray(shape.vaoID());
-            lastBoundVaoId = shape.vaoID();
-        }
-    }
-
-    Check(App::state().guiShader.setUniform_v("u_color", shape.color()));
+    // Set uniforms:
+    Check(g_s.guiShader.setUniform_v("u_color", shape.color()));
 
     switch (shape.renderMode().mode) {
         case Shape2D::RenderMode::Mode::TRIANGLE_FAN:
-            glDrawArrays(GL_TRIANGLE_FAN, 0, shape.vertexCount()); // FIXME: learn more about the TRIANGLE FAN mode! Does it have reasonable performance?
+            glDrawArrays(GL_TRIANGLE_FAN, 0, shape.vertexCount());
             break;
         case Shape2D::RenderMode::Mode::TRIANGLES:
             glDrawArrays(GL_TRIANGLES, 0, shape.vertexCount());
@@ -258,139 +314,96 @@ void renderShape(Shape2D& shape) {
 }
 
 [[maybe_unused]] void debug__printVertexArr(const core::arr<core::vec2f>& vertices) {
+    auto& g_s = app::state();
     for(ptr_size i = 0; i < vertices.len(); ++i) {
         const auto& p = vertices[i];
-        auto vv = convertVecUsingGrid(p, App::state().worldSpaceGrid, App::state().clipSpaceGrid);
+        auto vv = convertVecUsingGrid(p, g_s.worldSpaceGrid, g_s.clipSpaceGrid);
         fmt::print("v_{}: (x:{}, y:{})\n", i, vv.x(), vv.y());
     }
 }
 
 }
 
-AppState App::g_appState = {};
-
-AppState& App::state() { return App::g_appState; }
-
-App::~App() {
-    glfwTerminate();
-    if (App::state().glfwWindow) {
-        glfwDestroyWindow(App::state().glfwWindow);
-    }
+core::expected<GraphicsLibError> init(CommonState& commonState) {
+    Assert(commonState.mainWindow.glfwWindow);
+    ValueOrReturn(initEventHandlers(commonState.mainWindow.glfwWindow));
+    return {};
 }
 
-i32 App::init() {
-    initCore();
-
-    App::state().windowStateChange = true; // Force a render on the first frame.
-    App::state().windowWidth = 800;
-    App::state().windowHeight = 600;
-    App::state().windowTitle = "Hello World";
-    App::state().clearColor = core::v(0.2f, 0.3f, 0.3f, 1.0f);
-
-    App::state().glfwWindow = initGLFWWindow(App::state().windowWidth,
-                                             App::state().windowHeight,
-                                             App::state().windowTitle);
-    if (!App::state().glfwWindow) return APP_EXIT_FAILED_TO_INIT;
-
-    initGLFWEventHandlers(App::state().glfwWindow);
-
-    // Init glew after we have a window:
-    if (auto err = glewInit(); err != GLEW_OK) {
-        const char* errStr = reinterpret_cast<const char*>(glewGetErrorString(err));
-        fmt::print(stderr, "Failed to initialize GLEW reason: {}\n", errStr);
-        return APP_EXIT_FAILED_TO_INIT;
+void destroy() {
+    auto& g_s = app::state();
+    g_s.guiShader.destroy();
+    for (ptr_size i = 0; i < g_s.shapesToRender.len(); ++i) {
+        g_s.shapesToRender[i].destroy();
     }
-
-    initOpenGL();
-
-    App::state().guiShader = createGUIShaderProgram();
-    App::state().guiShader.use();
-    return APP_EXIT_SUCCESS;
+    // clear the state:
+    app::state(true);
 }
 
-i32 App::run() {
+core::expected<GraphicsLibError> preMainLoop(CommonState&) {
+    auto& g_s = app::state();
+    g_s.guiShader = createGUIShaderProgram();
+
     Shape2D::VertexLayout vl;
     vl.stride = sizeof(core::vec2f);
     vl.offset = 0;
     vl.usage = { Shape2D::Usage::Access::STATIC, Shape2D::Usage::AccessType::DRAW };
-    vl.posAttribId = ValueOrDie(App::state().guiShader.getAttribLocation("in_pos"));
+    vl.posAttribId = ValueOrDie(g_s.guiShader.getAttribLocation("in_pos"));
     vl.renderMode.mode = Shape2D::RenderMode::TRIANGLES;
 
-    Shape2D rectShape = Shape2D::createRect2D(vl, App::state().worldCenter, 500.f, 500.f,
+    Shape2D rectShape = Shape2D::createRect2D(vl, core::v(-0.1f, 0.1f), 1.0f, 1.0f,
                                               core::v(255u, 0u, 0u, 255u), 1.0f);
-    defer { rectShape.destroy(); };
 
     Shape2D triangleShape = Shape2D::createTriangle2D(vl,
-                                                      core::v(200.0f, 200.0f),
-                                                      core::v(500.0f, 200.0f),
-                                                      core::v(200.0f, 500.0f),
+                                                      core::v(-0.5f, -0.5f),
+                                                      core::v(0.5f, -0.5f),
+                                                      core::v(0.0f, 0.5f),
                                                       core::v(0u, 255u, 0u, 255u),
-                                                      0.0f);
-    defer { triangleShape.destroy(); };
+                                                      1.0f);
 
     vl.renderMode.mode = Shape2D::RenderMode::TRIANGLE_FAN;
 
-    Shape2D circleShape = Shape2D::createCircle2D(vl, App::state().worldCenter, 200.0f, 100,
+    Shape2D circleShape = Shape2D::createCircle2D(vl, core::v(0.f, 0.f), 0.4f, 100,
                                                   core::v(255u, 255u, 255u, 255u), 0.0f);
-    defer { circleShape.destroy(); };
 
-    core::arr<Shape2D> renderOrder;
-    renderOrder.append(core::move(rectShape));
-    renderOrder.append(core::move(triangleShape));
-    renderOrder.append(core::move(circleShape));
+    // TODO: should sort shapes by z-index ?
+    core::arr<Shape2D> shapesToRender(0, 3);
+    shapesToRender.append(core::move(rectShape));
+    shapesToRender.append(core::move(triangleShape));
+    shapesToRender.append(core::move(circleShape));
+    g_s.shapesToRender = core::move(shapesToRender);
 
-    // TODO: when rendering lines I should use a SDF (Signed distance function)
+    return {};
+}
 
-    Check(App::state().guiShader.setUniform_v("u_worldSpaceGridMin", App::state().worldSpaceGrid.min));
-    Check(App::state().guiShader.setUniform_v("u_worldSpaceGridMax", App::state().worldSpaceGrid.max));
+void mainLoop(CommonState& commonState) {
+    auto& g_s = app::state();
 
-    while(!glfwWindowShouldClose(App::state().glfwWindow)) {
-        if (shouldRender()) {
-            // clear
-            glClear(GL_COLOR_BUFFER_BIT);
+    if (shouldRender()) {
+        // Debug reset binds to make sure everyting is bound correctly later on.
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glUseProgram(0);
 
-            // render objects
+        g_s.guiShader.use();
 
-            // FIXME: DEBUG CODE:
-            i32 perfDebugCounter = 1000; // mFIXME: bulk render and measure performance difference.
-            while(perfDebugCounter--) {
-                // FIXME: can't perform this test until the vertex buffer usage is dynamic.
-                // auto direction = core::v(1.0f, 1.0f);
-                // for (ptr_size i = 0; i < renderOrder.len(); ++i) {
-                //     auto& b = const_cast<core::arr<core::vec2f>&>(renderOrder[i].vertices());
-                //     for (ptr_size j = 0; j < b.len(); ++j) {
-                //         b[j] += direction;
-                //         if (b[j].x() > g_worldSpaceGrid.max.x() || b[j].x() < g_worldSpaceGrid.min.x()) {
-                //             direction.x() *= -1.0f;
-                //         }
-                //         if (b[j].y() > g_worldSpaceGrid.max.y() || b[j].y() < g_worldSpaceGrid.min.y()) {
-                //             direction.y() *= -1.0f;
-                //         }
-                //     }
-                // }
+        for (ptr_size i = 0; i < g_s.shapesToRender.len(); ++i) {
+            renderShape(g_s.shapesToRender[i]);
+        }
 
-                for (ptr_size i = 0; i < renderOrder.len(); ++i) {
-                    renderShape(renderOrder[i]);
-                }
-            }
+        glfwSwapBuffers(commonState.mainWindow.glfwWindow);
 
-            // swap buffers
-            glfwSwapBuffers(App::state().glfwWindow);
+        // DEBUG PRINT STATE:
+        if (g_s.keyboardStateChange) {
+            fmt::print("{}", g_s.keyboardState.toString());
+        }
+        if (g_s.mouseStateChange) {
+            fmt::print("{}", g_s.mouseState.toString());
         }
 
         prepareInputStateForNextFrame();
-
-        // Poll/Wait events:
-        // glfwPollEvents();
-        glfwWaitEvents();
-
-        if (App::state().keyboardStateChange) {
-            fmt::print("{}", App::state().keyboardState.toString());
-        }
-        if (App::state().mouseStateChange) {
-            fmt::print("{}", App::state().mouseState.toString());
-        }
     }
-
-    return APP_EXIT_SUCCESS;
 }
+
+} // namespace app

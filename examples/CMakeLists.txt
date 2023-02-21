@@ -12,8 +12,8 @@ add_executable(${PROJECT_NAME}
     main.cpp
 
     # Examples:
-    # ex/experiment_app.cpp
-    # ex/experiment_app.h
+    ex/experiment_app.cpp
+    ex/experiment_app.h
     ex/experiment_01_triangle_and_quad.h
     ex/experiment_01_triangle_and_quad.cpp
     ex/common.h

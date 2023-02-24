@@ -29,11 +29,10 @@ inline i32 runExample(Example&& ex) {
         ptr_size leaked = core::used_mem<CORE_DEFAULT_ALLOCATOR()>();
         if (leaked > 0) {
             fmt::print(stderr, "Leaked {} bytes of memory\n", leaked);
-            return common::AppExitCodes::APP_EXIT_MEMORY_LEAK;
-        } else {
-            fmt::print("No memory leaks detected\n");
-            return common::AppExitCodes::APP_EXIT_SUCCESS;
+            std::exit(common::AppExitCodes::APP_EXIT_MEMORY_LEAK);
+            return;
         }
+        fmt::print("No memory leaks detected\n");
     };
 
     defer {
@@ -56,6 +55,7 @@ inline i32 runExample(Example&& ex) {
         fmt::print(stderr, "Failed to initialize the application: {}\n", err.err().msg.c_str());
         return common::AppExitCodes::APP_EXIT_FAILED_TO_INIT;
     }
+
     if (i32 err = common::run(); err != common::AppExitCodes::APP_EXIT_SUCCESS) {
         return err;
     }

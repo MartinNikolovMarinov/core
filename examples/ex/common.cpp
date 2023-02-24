@@ -117,8 +117,8 @@ core::expected<GraphicsLibError> init(InitProps&& props) {
 
 void destroy() {
     CommonState& g_s = state();
-    glfwTerminate();
     if (g_s.mainWindow.glfwWindow) glfwDestroyWindow(g_s.mainWindow.glfwWindow);
+    glfwTerminate();
 }
 
 i32 run() {

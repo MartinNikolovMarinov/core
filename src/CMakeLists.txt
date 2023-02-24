@@ -130,16 +130,16 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clan
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     # Common flags:
     target_compile_options(${PROJECT_NAME} PRIVATE
-        -std:c++17
-        -nologo -FC -EHa
-        -W4
+        /std:c++17
+        /nologo /FC /EHa
+        /W4
     )
     if (CORE_DEBUG)
         # Debug flags:
-        target_compile_options(${PROJECT_NAME} PRIVATE -Zi -Od -Oi)
+        target_compile_options(${PROJECT_NAME} PRIVATE /O0 /Zi /Od /Oi)
     else()
         # Release flags:
-        target_compile_options(${PROJECT_NAME} PRIVATE -O2)
+        target_compile_options(${PROJECT_NAME} PRIVATE /O2)
     endif()
 else()
     message(FATAL_ERROR "Unsupported compiler")

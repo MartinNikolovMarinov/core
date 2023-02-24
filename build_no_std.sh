@@ -22,3 +22,4 @@ objdump -M intel -S build/test_no_std > build/test_no_std.S
 echo "grepping for NEEDED section in generated elf (should be empty line):"
 readelf -d build/test_no_std | grep NEEDED
 
+exit 0

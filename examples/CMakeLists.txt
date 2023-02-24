@@ -16,6 +16,8 @@ add_executable(${PROJECT_NAME}
     ex/experiment_app.h
     ex/experiment_01_triangle_and_quad.h
     ex/experiment_01_triangle_and_quad.cpp
+    ex/experiment_02_textures.h
+    ex/experiment_02_textures.cpp
     ex/common.h
     ex/common.cpp
 

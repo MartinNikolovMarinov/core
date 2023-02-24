@@ -154,7 +154,7 @@ private:
         auto __ret = (expr);               \
         if (__ret.has_err()) return __ret; \
     }
-    #define ValueOrReturn2(expr, msg) {    \
+    #define ValueOrReturn2(expr, v) {      \
         auto __ret = (expr);               \
         if (__ret.has_err()) return __ret; \
         (v) = __ret.value();               \

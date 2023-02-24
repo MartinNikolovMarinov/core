@@ -27,7 +27,7 @@ State& state() {
 
 } // namespace
 
-core::expected<GraphicsLibError> init(CommonState &s) {
+core::expected<GraphicsLibError> init(CommonState& s) {
     GLFWwindow* glfwWindow = s.mainWindow.glfwWindow;
     const char* errDesc = nullptr;
 
@@ -76,7 +76,7 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
 
     // Create shader program:
     {
-        const char* vertexGUIShaderSource = R"(
+        const char* vertexShaderSource = R"(
             #version 330 core
 
             layout (location = 0) in vec3 in_pos;
@@ -85,7 +85,7 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
                 gl_Position = vec4(in_pos.xyz, 1.0);
             }
         )";
-        const char* fragmentGUIShaderSource = R"(
+        const char* fragShaderSource = R"(
             #version 330 core
 
             out vec4 out_fragColor;
@@ -95,7 +95,7 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
                 out_fragColor = u_color;
             }
         )";
-        g_s.shaderProg = ValueOrDie(ShaderProg::create(vertexGUIShaderSource, fragmentGUIShaderSource));
+        g_s.shaderProg = ValueOrDie(ShaderProg::create(vertexShaderSource, fragShaderSource));
     }
 
     // Create triangle:

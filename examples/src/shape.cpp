@@ -37,10 +37,10 @@ u32 Shape2D::RenderMode::modeGL() const {
     return ret;
 }
 
-Shape2D Shape2D::create(const Shape2D::VertexLayout &vl,
-                        const core::vec4u &colorRGB,
+Shape2D Shape2D::create(const Shape2D::VertexLayout& vl,
+                        const core::vec4u& colorRGB,
                         f32 zIndex,
-                        core::arr<core::vec2f> &&vertices)
+                        core::arr<core::vec2f>&& vertices)
 {
     Shape2D m;
     m.m_vertices = core::move(vertices);
@@ -93,9 +93,9 @@ Shape2D Shape2D::createRect2D(const Shape2D::VertexLayout& vl,
     return rectShape;
 }
 
-Shape2D Shape2D::createTriangle2D(const Shape2D::VertexLayout &vl,
+Shape2D Shape2D::createTriangle2D(const Shape2D::VertexLayout& vl,
                                   core::vec2f a, core::vec2f b, core::vec2f c,
-                                  const core::vec4u &colorRGB,
+                                  const core::vec4u& colorRGB,
                                   f32 zIdx) {
     core::arr<core::vec2f> vertices(0, 3);
     vertices.append(a).append(b).append(c);

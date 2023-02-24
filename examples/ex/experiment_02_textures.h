@@ -2,7 +2,7 @@
 
 #include "common.h"
 
-namespace triangle_and_quad_ex_01 {
+namespace textures_ex_02 {
 
 using AppExitCodes = common::AppExitCodes;
 using CommonState = common::CommonState;
@@ -13,4 +13,4 @@ void destroy();
 core::expected<GraphicsLibError> preMainLoop(CommonState& s);
 void mainLoop(CommonState& s);
 
-} // namespace triangle_and_quad_ex_01
+} // namespace textures_ex_02

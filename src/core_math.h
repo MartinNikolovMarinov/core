@@ -41,7 +41,7 @@ constexpr T min(T a, T b) {
     return a < b ? a : b;
 }
 
-// NOTE: This is pretty fast branchless check Its collapsed to a single instruction on x86 and ARM by most compilers.
+// NOTE: This is pretty fast branchless check. Its collapsed to a single instruction on x86 and ARM by most compilers.
 inline f32 abs(f32 a) {
     i32* ip = reinterpret_cast<i32*>(&a);
     *ip &= 0x7fffffff;

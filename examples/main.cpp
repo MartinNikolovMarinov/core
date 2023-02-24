@@ -5,6 +5,7 @@
 
 #include "ex/common.h"
 #include "ex/experiment_01_triangle_and_quad.h"
+#include "ex/experiment_02_textures.h"
 #include "ex/experiment_app.h"
 
 // TODO: Drawing line segments is quite the problem to solve in one pass. I first need to:
@@ -83,7 +84,17 @@ i32 example_01() {
     return runExample(core::move(ex));
 }
 
+i32 example_02() {
+    Example ex;
+    ex.init = textures_ex_02::init;
+    ex.destroy = textures_ex_02::destroy;
+    ex.preMainLoop = textures_ex_02::preMainLoop;
+    ex.mainLoop = textures_ex_02::mainLoop;
+    ex.waitForEvents = false;
+    return runExample(core::move(ex));
+}
+
 i32 main(i32, char const**) {
     initCore();
-    return example_01();
+    return example_02();
 }

@@ -43,7 +43,7 @@ constexpr void pow_u64_test() {
     Assert(core::pow_u64(5, 25) == 298023223876953125);
     Assert(core::pow_u64(5, 26) == 1490116119384765625);
     Assert(core::pow_u64(5, 27) == 7450580596923828125);
-    // next one is too big for 64-bit int
+    // next one is too big for 64-bit integer
 
     Assert(core::pow_u64(2, 0) == 1);
     Assert(core::pow_u64(2, 1) == 2);
@@ -108,7 +108,7 @@ constexpr void pow_u64_test() {
     Assert(core::pow_u64(2, 60) == 1152921504606846976);
     Assert(core::pow_u64(2, 61) == 2305843009213693952);
     Assert(core::pow_u64(2, 62) == 4611686018427387904);
-    // next one is too big for 64-bit int
+    // next one is too big for 64-bit integer
 }
 
 void abs_test() {

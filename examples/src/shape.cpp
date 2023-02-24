@@ -65,8 +65,8 @@ Shape2D Shape2D::create(const Shape2D::VertexLayout& vl,
 
     // Link vertex attributes
     constexpr ptr_size stride = sizeof(core::vec2f);
-    constexpr ptr_size dimentions = core::vec2f::dimentions();
-    glVertexAttribPointer(vl.posAttribId, dimentions, GL_FLOAT, GL_FALSE, stride, (void*)0);
+    constexpr ptr_size dimensions = core::vec2f::dimensions();
+    glVertexAttribPointer(vl.posAttribId, dimensions, GL_FLOAT, GL_FALSE, stride, (void*)0);
     glEnableVertexAttribArray(vl.posAttribId);
 
     return m;

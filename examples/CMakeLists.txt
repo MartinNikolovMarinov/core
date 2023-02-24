@@ -70,6 +70,11 @@ else()
     message(FATAL_ERROR "Unsupported compiler!")
 endif()
 
+# Definitions:
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    -DPATH_TO_DATA="${CMAKE_CURRENT_SOURCE_DIR}/data"
+)
+
 # fmt library:
 target_link_libraries(${PROJECT_NAME} PRIVATE fmt)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/fmt)
@@ -96,6 +101,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 option(CORE_LIBRARY_SHARED "" ON)
 target_link_libraries(${PROJECT_NAME} PRIVATE core)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../src ${CMAKE_CURRENT_BINARY_DIR}/core)
+
+# STB single header libraries:
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lib/stb)
 
 # Inlcude path:
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC

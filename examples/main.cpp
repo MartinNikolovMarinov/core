@@ -29,7 +29,7 @@ inline i32 runExample(Example&& ex) {
         ptr_size leaked = core::used_mem<CORE_DEFAULT_ALLOCATOR()>();
         if (leaked > 0) {
             fmt::print(stderr, "Leaked {} bytes of memory\n", leaked);
-            std::exit(common::AppExitCodes::APP_EXIT_MEMORY_LEAK);
+            core::os_exit(common::AppExitCodes::APP_EXIT_MEMORY_LEAK);
             return;
         }
         fmt::print("No memory leaks detected\n");

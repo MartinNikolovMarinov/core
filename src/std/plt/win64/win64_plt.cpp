@@ -1,5 +1,7 @@
 #include <std/plt.h>
 
+#include <stdlib.h>
+
 namespace core {
 
 file_desc::file_desc()           : desc((void*)(-1)) {}
@@ -49,4 +51,17 @@ expected<plt_err_code> os_rmdir(const char*) {
     return unexpected(0);
 }
 
-};
+namespace {
+AtExitCb g_atExit;
+} // namespace
+
+void os_exit(i64 exitCode) {
+    if (g_atExit) g_atExit(exitCode);
+    return _exit(exitCode);
+}
+
+void at_exit(AtExitCb atExit) {
+    g_atExit = atExit;
+}
+
+} // namespace core

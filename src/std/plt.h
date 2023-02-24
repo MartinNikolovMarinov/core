@@ -28,6 +28,11 @@ struct CORE_API_EXPORT file_desc {
     u64 to_u64();
 };
 
+using AtExitCb = void (*)(i64 exitCode);
+
+CORE_API_EXPORT void os_exit(i64 exitCode);
+CORE_API_EXPORT void at_exit(AtExitCb atExit);
+
 CORE_API_EXPORT expected<file_desc, plt_err_code> os_open(const char* path, u64 flag, u64 mode);
 /**
  * @brief This function reads from a given file descriptor and stores the read data in the buffer.

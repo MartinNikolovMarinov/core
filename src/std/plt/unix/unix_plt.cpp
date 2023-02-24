@@ -104,4 +104,17 @@ expected<plt_err_code> os_rmdir(const char* path) {
     return {};
 }
 
+namespace {
+AtExitCb g_atExit;
+} // namespace
+
+void os_exit(i64 exitCode) {
+    if (g_atExit) g_atExit(exitCode);
+    return _exit(exitCode);
+}
+
+void at_exit(AtExitCb atExit) {
+    g_atExit = atExit;
+}
+
 } // namespace core::plt

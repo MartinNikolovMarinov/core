@@ -71,6 +71,7 @@ set(src_files
     std/traits.h
     std/vec.h
     std/transforms.h
+    std/stacktrace.h
 
     std/allocators/alloc_std_stats.cpp
     std/allocators/alloc_std_stats.h
@@ -81,6 +82,7 @@ set(src_files
 # OS specific source files:
 if(OS STREQUAL "linux")
     set(src_files ${src_files}
+        std/plt/unix/unix_stacktrace.cpp
         std/plt/unix/unix_plt.cpp
     )
 elseif(OS STREQUAL "windows")

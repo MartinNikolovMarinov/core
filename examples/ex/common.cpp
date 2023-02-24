@@ -72,7 +72,6 @@ void initOpenGL() {
 core::expected<GraphicsLibError> init(InitProps&& props) {
     Assert(props.mainLoopCb != nullptr, "Provided nullptr for Main Loop.");
 
-    initCore();
     ValueOrReturn(initGlfw());
 
     CommonState& g_s = state();

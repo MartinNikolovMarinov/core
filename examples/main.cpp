@@ -41,6 +41,8 @@ inline i32 runExample(Example&& ex) {
         checkForLeaks();
     };
 
+    Assert(false, "ples");
+
     common::InitProps iprops;
     iprops.title = "Experiment 01 - Triangle";
     iprops.width = 800;
@@ -84,5 +86,6 @@ i32 example_01() {
 }
 
 i32 main(i32, char const**) {
+    initCore();
     return example_01();
 }

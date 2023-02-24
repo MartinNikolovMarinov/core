@@ -5,6 +5,7 @@
 #include "t-vec.cpp"
 #include "t-fs.cpp"
 #include "t-transforms.cpp"
+#include "t-stacktrace.cpp"
 
 void run_all_std_tests() {
     RunTestSuite(run_std_allocator_tests_suite);
@@ -14,4 +15,5 @@ void run_all_std_tests() {
     RunTestSuite(run_vec_tests_suite);
     RunTestSuite(run_fs_tests_suite);
     RunTestSuite(run_transforms_tests_suite);
+    RunTestSuite(run_stacktrace_tests_suite);
 }

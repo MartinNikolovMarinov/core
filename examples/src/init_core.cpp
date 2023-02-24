@@ -21,9 +21,12 @@ const char* std_allocator_static::allocator_name() noexcept {
 
 void initCore() {
     core::set_global_assert_handler([](const char* failedExpr, const char* file, i32 line, const char* errMsg) {
+        constexpr u32 stackFramesToSkip = 3;
+        std::string trace = core::stacktrace(200, stackFramesToSkip);
         fmt::print(fg(fmt::color::red) | fmt::emphasis::bold,
-                   "[ASSERTION] [EXPR]: {}\n[FILE]: {}\n[LINE]: {}\n[MSG]: {}\n",
+                   "[ASSERTION] [EXPR]: {}\n[FILE]: {}:{}\n[MSG]: {}\n",
                     failedExpr, file, line, errMsg);
+        fmt::print(fmt::emphasis::bold, "[TRACE]:\n{}\n", trace);
         throw std::runtime_error("Assertion failed!");
         return false;
     });

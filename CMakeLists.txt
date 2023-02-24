@@ -12,17 +12,41 @@ add_executable(${PROJECT_NAME} test.cpp)
 
 # Compilation options:
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE
-        -O0 -g -ggdb
-        -Wall -Wextra -Wno-unknown-pragmas
-    )
+    if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")
+        # Release build:
+        target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE
+            -O3 -g -ggdb
+            -Wall -Wextra -Wno-unknown-pragmas
+        )
+    elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        # Debug build:
+        target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE
+            -O0 -g -ggdb
+            -Wall -Wextra -Wno-unknown-pragmas
+        )
+    else()
+        message(FATAL_ERROR "Unsupported build type!")
+    endif()
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE
-        -Zi -Od -Oi
-        -nologo -FC
-        -EHa
-        -W4
-    )
+    if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")
+        # Release build:
+        target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE
+            /O2 /Zi /Od /Oi
+            /nologo /FC
+            /EHa
+            /W4
+        )
+    elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        # Debug build:
+        target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE
+            /O0 /Zi /Od /Oi
+            /nologo /FC
+            /EHa
+            /W4
+        )
+    else()
+        message(FATAL_ERROR "Unsupported build type!")
+    endif()
 else()
     message(FATAL_ERROR "Unsupported compiler!")
 endif()

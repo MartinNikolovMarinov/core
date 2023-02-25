@@ -18,20 +18,30 @@ if (NOT DEFINED CORE_DEBUG)
 endif()
 
 # OS check:
-# TODO: Use CMAKE_SYSTEM_NAME for the OS check!
-if(WIN32 OR MSVC OR MSYS OR MINGW)
+if(MAKE_SYSTEM_NAME STREQUAL "Windows"
+   OR CMAKE_SYSTEM_NAME STREQUAL "CYGWIN"
+   OR CMAKE_SYSTEM_NAME STREQUAL "MSYS"
+   OR CMAKE_SYSTEM_NAME STREQUAL "WindowsCE")
     set(OS "windows")
-elseif(APPLE)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(OS "darwin")
-elseif(UNIX AND NOT APPLE)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(OS "linux")
 else()
     message(FATAL_ERROR "Unsupported OS: ${OS}!")
 endif()
 
+# Architecture check:
+if (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
+    set(ARCH "x64")
+else()
+    message(FATAL_ERROR "Unsupported architecture: ${CMAKE_HOST_SYSTEM_PROCESSOR}!")
+endif()
+
 # Print build info:
 message(STATUS "[CORE] ---------------------------------------------")
 message(STATUS "[CORE] Platform: ${OS}")
+message(STATUS "[CORE] Arch:     ${ARCH}")
 message(STATUS "[CORE] Compiler: ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "[CORE] Debug:    ${CORE_DEBUG}")
 message(STATUS "[CORE] Shared:   ${CORE_LIBRARY_SHARED}")

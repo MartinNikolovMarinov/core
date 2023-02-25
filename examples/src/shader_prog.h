@@ -11,7 +11,7 @@
 using namespace coretypes;
 
 struct ShaderProg {
-    // TODO: using a string as the error type is a bit crazy, but it's ok for debugging.
+    // TODO2: using a string as the error type is a bit crazy, but it's for this stage.
     using error_type = std::string;
 
     static core::expected<ShaderProg, error_type> create(std::string_view vertexShaderSrc,

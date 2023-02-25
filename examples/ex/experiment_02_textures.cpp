@@ -7,6 +7,9 @@
 #include <shader_prog.h>
 #include <mouse.h>
 
+// TODO: I should create a texture abstraction, but right now I do not have enough context to understand what is a good design.
+//       Do this later, for now it is more important to advace my OpenGL knowledge!
+
 namespace textures_ex_02 {
 
 namespace {
@@ -162,7 +165,6 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         // after after creating a OpenGL texture out of the image it can be freed:
         defer { stbi_image_free(data); };
 
-        // TODO: Create texture abstraciton.
         glGenTextures(1, &g_s.textureId);
         glBindTexture(GL_TEXTURE_2D, g_s.textureId);
         // Set the texture parameters:

@@ -366,7 +366,6 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
     Shape2D circleShape = Shape2D::createCircle2D(vl, core::v(0.f, 0.f), 0.4f, 100,
                                                   core::v(255u, 255u, 255u, 255u), 0.0f);
 
-    // TODO: should sort shapes by z-index ?
     core::arr<Shape2D> shapesToRender(0, 3);
     shapesToRender.append(core::move(rectShape));
     shapesToRender.append(core::move(triangleShape));

@@ -61,7 +61,7 @@ void initOpenGL() {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
-    // TODO: Might want to disable this if I want to do implement anti-alising myself.
+    // TODO2: Might want to disable this if I want to implement anti-alising myself.
     //       Or if I deciede to render to a backbuffer/texture. Leave it for the examples for now.
     // Enable building anti-aliasing:
     glEnable(GL_MULTISAMPLE);

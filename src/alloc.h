@@ -4,7 +4,6 @@
 #include <types.h>
 #include <utils.h>
 
-// TODO: Including new might break the nostdlib build on some systems?
 #include <new>
 
 namespace core {

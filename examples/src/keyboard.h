@@ -52,7 +52,7 @@ struct KeyboardModifiers {
 struct KeyInfo {
     static KeyInfo createFromGLFW(i32 key, i32 scancode, i32 action);
 
-    i32 value = 0; // TODO: Don't use i32. Translate this to a concreate type.
+    i32 value = 0; // TODO2: Don't use i32. Translate this to a concreate type.
     i32 scancode = 0;
     KeyboardAction action = { KeyboardAction::Type::NONE };
 

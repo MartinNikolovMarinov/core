@@ -5,6 +5,9 @@
 
 #include <cmath>
 
+// TODO: I need to implement the following:
+//       - normalize
+
 namespace core {
 
 using namespace coretypes;
@@ -14,11 +17,11 @@ template<i32 Dim, typename T> struct vec;
 template<typename TDst, i32 Dim, typename TSrc>
 constexpr void vadd(vec<Dim, TDst>& dst, const TSrc& src) {
     if constexpr (std::is_arithmetic_v<TSrc>) {
-        for (i32 i = 0; i < dst.dimentions(); ++i) {
+        for (i32 i = 0; i < dst.dimensions(); ++i) {
             dst[i] += static_cast<TDst>(src);
         }
     } else {
-        for (i32 i = 0; i < dst.dimentions(); ++i) {
+        for (i32 i = 0; i < dst.dimensions(); ++i) {
             dst[i] += static_cast<TDst>(src[i]);
         }
     }
@@ -27,11 +30,11 @@ constexpr void vadd(vec<Dim, TDst>& dst, const TSrc& src) {
 template<typename TDst, i32 Dim, typename TSrc>
 constexpr void vsub(vec<Dim, TDst>& dst, const TSrc& src) {
     if constexpr (std::is_arithmetic_v<TSrc>) {
-        for (i32 i = 0; i < dst.dimentions(); ++i) {
+        for (i32 i = 0; i < dst.dimensions(); ++i) {
             dst[i] -= static_cast<TDst>(src);
         }
     } else {
-        for (i32 i = 0; i < dst.dimentions(); ++i) {
+        for (i32 i = 0; i < dst.dimensions(); ++i) {
             dst[i] -= static_cast<TDst>(src[i]);
         }
     }
@@ -40,11 +43,11 @@ constexpr void vsub(vec<Dim, TDst>& dst, const TSrc& src) {
 template<typename TDst, i32 Dim, typename TSrc>
 constexpr void vmul(vec<Dim, TDst>& dst, const TSrc& src) {
     if constexpr (std::is_arithmetic_v<TSrc>) {
-        for (i32 i = 0; i < dst.dimentions(); ++i) {
+        for (i32 i = 0; i < dst.dimensions(); ++i) {
             dst[i] *= static_cast<TDst>(src);
         }
     } else {
-        for (i32 i = 0; i < dst.dimentions(); ++i) {
+        for (i32 i = 0; i < dst.dimensions(); ++i) {
             dst[i] *= static_cast<TDst>(src[i]);
         }
     }
@@ -53,12 +56,12 @@ constexpr void vmul(vec<Dim, TDst>& dst, const TSrc& src) {
 template<typename TDst, i32 Dim, typename TSrc>
 constexpr void vdiv(vec<Dim, TDst>& dst, const TSrc& src) {
     if constexpr (std::is_arithmetic_v<TSrc>) {
-        for (i32 i = 0; i < dst.dimentions(); ++i) {
+        for (i32 i = 0; i < dst.dimensions(); ++i) {
             Assert(static_cast<TDst>(src) != 0, "Division by zero"); // TODO: this assert is costly. Should have an assert that only runs in debug mode.
             dst[i] /= static_cast<TDst>(src);
         }
     } else {
-        for (i32 i = 0; i < dst.dimentions(); ++i) {
+        for (i32 i = 0; i < dst.dimensions(); ++i) {
             Assert(static_cast<TDst>(src[i]) != 0, "Division by zero"); // TODO: this assert is costly. Should have an assert that only runs in debug mode.
             dst[i] /= static_cast<TDst>(src[i]);
         }
@@ -68,7 +71,7 @@ constexpr void vdiv(vec<Dim, TDst>& dst, const TSrc& src) {
 template<typename T, i32 Dim>
 constexpr f64 vlength(const vec<Dim, T>& v) {
     f64 ret = 0;
-    for (i32 i = 0; i < v.dimentions(); ++i) {
+    for (i32 i = 0; i < v.dimensions(); ++i) {
         ret += static_cast<f64>(v[i]) * static_cast<f64>(v[i]);
     }
     ret = std::sqrt(ret);
@@ -77,7 +80,7 @@ constexpr f64 vlength(const vec<Dim, T>& v) {
 
 template<typename T, i32 Dim>
 constexpr void vnegate(vec<Dim, T>& v) {
-    for (i32 i = 0; i < v.dimentions(); ++i) {
+    for (i32 i = 0; i < v.dimensions(); ++i) {
         v[i] = -v[i];
     }
 }
@@ -85,7 +88,7 @@ constexpr void vnegate(vec<Dim, T>& v) {
 template<typename T1, typename T2, i32 Dim>
 constexpr f64 vdot(const vec<Dim, T1>& v1, const vec<Dim, T2>& v2) {
     f64 ret = 0;
-    for (i32 i = 0; i < v1.dimentions(); ++i) {
+    for (i32 i = 0; i < v1.dimensions(); ++i) {
         ret += v1[i] * static_cast<T1>(v2[i]);
     }
     return ret;
@@ -94,16 +97,16 @@ constexpr f64 vdot(const vec<Dim, T1>& v1, const vec<Dim, T2>& v2) {
 template<typename T1, typename T2, i32 Dim>
 constexpr vec<Dim, T1> vcross(const vec<Dim, T1>& v1, const vec<Dim, T2>& v2) {
     vec<Dim, T1> ret;
-    for (i32 i = 0; i < v1.dimentions(); ++i) {
-        ret[i] = v1[(i + 1) % v1.dimentions()] * v2[(i + 2) % v1.dimentions()] -
-                 v1[(i + 2) % v1.dimentions()] * v2[(i + 1) % v1.dimentions()];
+    for (i32 i = 0; i < v1.dimensions(); ++i) {
+        ret[i] = v1[(i + 1) % v1.dimensions()] * v2[(i + 2) % v1.dimensions()] -
+                 v1[(i + 2) % v1.dimensions()] * v2[(i + 1) % v1.dimensions()];
     }
     return ret;
 }
 
 template<typename T1, typename T2, i32 Dim>
 constexpr bool vequals(const vec<Dim, T1>& v1, const vec<Dim, T2>& v2) {
-    for (i32 i = 0; i < v1.dimentions(); ++i) {
+    for (i32 i = 0; i < v1.dimensions(); ++i) {
         if (v1[i] != static_cast<T1>(v2[i])) return false;
     }
     return true;
@@ -111,7 +114,7 @@ constexpr bool vequals(const vec<Dim, T1>& v1, const vec<Dim, T2>& v2) {
 
 template<typename T1, typename T2, i32 Dim>
 constexpr bool vsafeequals(const vec<Dim, T1>& v1, const vec<Dim, T2>& v2, T1 epsilon) {
-    for (i32 i = 0; i < v1.dimentions(); ++i) {
+    for (i32 i = 0; i < v1.dimensions(); ++i) {
         if (!core::safe_eq(v1[i], static_cast<T1>(v2[i]), epsilon)) return false;
     }
     return true;
@@ -122,7 +125,7 @@ constexpr vec<Dim, T> vnorm(const vec<Dim, T>& v) {
     f64 len = vlength(v);
     if (len == 0) return v.zero();
     vec<Dim, T> ret = v;
-    for (i32 i = 0; i < v.dimentions(); ++i) {
+    for (i32 i = 0; i < v.dimensions(); ++i) {
         ret[i] /= static_cast<T>(len);
     }
     return ret;
@@ -131,11 +134,11 @@ constexpr vec<Dim, T> vnorm(const vec<Dim, T>& v) {
 template<i32 Dim, typename T>
 struct vec {
     static_assert(std::is_trivial_v<T>, "T must be trivial");
-    static_assert(std::is_arithmetic_v<T>, "T must be arithmetic type");
+    static_assert(std::is_arithmetic_v<T>, "T must be arithmetic Type");
     static_assert(Dim > 0, "Dim must be greater than 0");
 
-    static constexpr i32 dimentions() { return Dim; }
-    using type = T;
+    static constexpr i32 dimensions() { return Dim; }
+    using Type = T;
 
     T data[Dim] = {};
 
@@ -144,7 +147,7 @@ struct vec {
     template<typename ...Args>
     constexpr vec(Args... args) {
         using commonT = template_args_common_type<Args...>;
-        static_assert(std::is_same_v<commonT, T>, "All arguments must be of type T");
+        static_assert(std::is_same_v<commonT, T>, "All arguments must be of Type T");
         static_assert(sizeof...(Args) == Dim, "Invalid number of arguments");
 
         i32 i = 0;
@@ -155,7 +158,7 @@ struct vec {
     }
 
     // zero vector
-    [[nodiscard]] constexpr vec<Dim, T> zero() const {
+    constexpr vec<Dim, T> zero() const {
         vec<Dim, T> ret;
         for (i32 i = 0; i < Dim; ++i) {
             ret[i] = 0;
@@ -164,7 +167,7 @@ struct vec {
     }
 
     // one vector
-    [[nodiscard]] constexpr vec<Dim, T> one() const {
+    constexpr vec<Dim, T> one() const {
         vec<Dim, T> ret;
         for (i32 i = 0; i < Dim; ++i) {
             ret[i] = 1;
@@ -219,17 +222,17 @@ struct vec {
     template<typename U>  constexpr void div(const vec<Dim, U>& other) { vdiv(*this, other); }
     template<typename TA> constexpr void div(TA v)                     { vdiv(*this, v); }
 
-    [[nodiscard]] constexpr f64 length() const { return vlength(*this); }
+    constexpr f64 length() const { return vlength(*this); }
 
     template<typename U>
-    [[nodiscard]] constexpr f64 dot(const vec<Dim, U>& other) const { return vdot(*this, other); }
+    constexpr f64 dot(const vec<Dim, U>& other) const { return vdot(*this, other); }
 
     template<typename U>
-    [[nodiscard]] constexpr vec<Dim, T> cross(const vec<Dim, U>& other) const { return vcross(*this, other); }
+    constexpr vec<Dim, T> cross(const vec<Dim, U>& other) const { return vcross(*this, other); }
 
-    [[nodiscard]] constexpr vec<Dim, T> norm() const { return vnorm(*this); }
+    constexpr vec<Dim, T> norm() const { return vnorm(*this); }
 
-    #pragma region overloads "=="
+#pragma region overloads "=="
 
     template<typename U>
     constexpr bool operator==(const vec<Dim, U>& other) const { return equals(other); }
@@ -241,9 +244,9 @@ struct vec {
     template<typename U>
     constexpr bool operator!=(U v) const { return !equals(vec<Dim, U>(v)); }
 
-    #pragma endregion
+#pragma endregion
 
-    #pragma region overloads negation
+#pragma region overloads negation
 
     constexpr vec<Dim, T> operator-() const {
         vec<Dim, T> ret = *this;
@@ -251,18 +254,18 @@ struct vec {
         return ret;
     }
 
-    #pragma endregion
+#pragma endregion
 
-    #pragma region overloads increment and decrement
+#pragma region overloads increment and decrement
 
     constexpr vec<Dim, T>& operator++()   { inc(); return *this; }
     constexpr vec<Dim, T> operator++(i32) { vec<Dim, T> ret = *this; inc(); return ret; }
     constexpr vec<Dim, T>& operator--()   { dec(); return *this; }
     constexpr vec<Dim, T> operator--(i32) { vec<Dim, T> ret = *this; dec(); return ret; }
 
-    #pragma endregion
+#pragma endregion
 
-    #pragma region overloads assignment operators
+#pragma region overloads assignment operators
 
     constexpr vec<Dim, T>& operator+=(const vec<Dim, T>& other) { add(other); return *this; }
     constexpr vec<Dim, T>& operator+=(T v)                      { add(v); return *this; }
@@ -273,105 +276,106 @@ struct vec {
     constexpr vec<Dim, T>& operator/=(const vec<Dim, T>& other) { div(other); return *this; }
     constexpr vec<Dim, T>& operator/=(T v)                      { div(v); return *this; }
 
-    #pragma endregion
+#pragma endregion
 
-    #pragma region overloads "+"
+#pragma region overloads "+"
 
-    [[nodiscard]] friend constexpr vec<Dim, T> operator+(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
+    friend constexpr vec<Dim, T> operator+(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
         vec<Dim, T> ret = v1;
         ret.add(v2);
         return ret;
     }
     template<typename U>
-    [[nodiscard]] friend constexpr vec<Dim, T> operator+(const vec<Dim, T>& v1, U v2) {
+    friend constexpr vec<Dim, T> operator+(const vec<Dim, T>& v1, U v2) {
         vec<Dim, T> ret = v1;
         ret.add(v2);
         return ret;
     }
     template<typename U>
-    [[nodiscard]] friend constexpr vec<Dim, T> operator+(U v1, const vec<Dim, T>& v2) {
+    friend constexpr vec<Dim, T> operator+(U v1, const vec<Dim, T>& v2) {
         vec<Dim, T> ret = v2;
         ret.add(v1);
         return ret;
     }
 
-    #pragma endregion
+#pragma endregion
 
-    #pragma region overloads "-"
+#pragma region overloads "-"
 
-    [[nodiscard]] friend constexpr vec<Dim, T> operator-(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
+    friend constexpr vec<Dim, T> operator-(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
         vec<Dim, T> ret = v1;
         ret.sub(v2);
         return ret;
     }
     template<typename U>
-    [[nodiscard]] friend constexpr vec<Dim, T> operator-(const vec<Dim, T>& v1, U v2) {
+    friend constexpr vec<Dim, T> operator-(const vec<Dim, T>& v1, U v2) {
         vec<Dim, T> ret = v1;
         ret.sub(v2);
         return ret;
     }
     template<typename U>
-    [[nodiscard]] friend constexpr vec<Dim, T> operator-(U v1, const vec<Dim, T>& v2) {
+    friend constexpr vec<Dim, T> operator-(U v1, const vec<Dim, T>& v2) {
         vec<Dim, T> ret = v2;
-        for (i32 i = 0; i < ret.dimentions(); ++i) {
+        for (i32 i = 0; i < ret.dimensions(); ++i) {
             ret[i] = -(ret[i] - static_cast<T>(v1));
         }
         return ret;
     }
 
-    #pragma endregion
+#pragma endregion
 
-    #pragma region overloads "*"
+#pragma region overloads "*"
 
-    [[nodiscard]] friend constexpr vec<Dim, T> operator*(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
+    friend constexpr vec<Dim, T> operator*(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
         vec<Dim, T> ret = v1;
         ret.mul(v2);
         return ret;
     }
     template<typename U>
-    [[nodiscard]] friend constexpr vec<Dim, T> operator*(const vec<Dim, T>& v1, U v2) {
+    friend constexpr vec<Dim, T> operator*(const vec<Dim, T>& v1, U v2) {
         vec<Dim, T> ret = v1;
         ret.mul(v2);
         return ret;
     }
     template<typename U>
-    [[nodiscard]] friend constexpr vec<Dim, T> operator*(U v1, const vec<Dim, T>& v2) {
+    friend constexpr vec<Dim, T> operator*(U v1, const vec<Dim, T>& v2) {
         vec<Dim, T> ret = v2;
         ret.mul(v1);
         return ret;
     }
 
-    #pragma endregion
+#pragma endregion
 
-    #pragma region overloads "/"
+#pragma region overloads "/"
 
-    [[nodiscard]] friend constexpr vec<Dim, T> operator/(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
+    friend constexpr vec<Dim, T> operator/(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
         vec<Dim, T> ret = v1;
         ret.div(v2);
         return ret;
     }
     template<typename U>
-    [[nodiscard]] friend constexpr vec<Dim, T> operator/(const vec<Dim, T>& v1, U v2) {
+    friend constexpr vec<Dim, T> operator/(const vec<Dim, T>& v1, U v2) {
         vec<Dim, T> ret = v1;
         ret.div(v2);
         return ret;
     }
     template<typename U>
-    [[nodiscard]] friend constexpr vec<Dim, T> operator/(U v1, const vec<Dim, T>& v2) {
+    friend constexpr vec<Dim, T> operator/(U v1, const vec<Dim, T>& v2) {
         vec<Dim, T> ret = v2;
-        for (i32 i = 0; i < ret.dimentions(); ++i) {
+        for (i32 i = 0; i < ret.dimensions(); ++i) {
             ret[i] = static_cast<T>(v1) / ret[i];
         }
         return ret;
     }
 
-    #pragma endregion
+#pragma endregion
+
 };
 
 template<typename ...Args>
 constexpr auto v(Args... args) {
     using commonT = template_args_common_type<Args...>;
-    static_assert(template_args_are_of_type_v<commonT, Args...>, "All arguments must be the same type");
+    static_assert(template_args_are_of_type_v<commonT, Args...>, "All arguments must be the same Type");
     auto ret = vec<sizeof...(Args), commonT>(args...);
     return ret;
 }
@@ -379,8 +383,8 @@ constexpr auto v(Args... args) {
 template<typename TVec, typename TVec2>
 constexpr TVec v_conv(const TVec2& v) {
     TVec ret;
-    for (i32 i = 0; i < TVec2::dimentions(); i++) {
-        ret[i] = static_cast<typename TVec2::type>(v[i]);
+    for (i32 i = 0; i < TVec2::dimensions(); i++) {
+        ret[i] = static_cast<typename TVec2::Type>(v[i]);
     }
     return ret;
 }

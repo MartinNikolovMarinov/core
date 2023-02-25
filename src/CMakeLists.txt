@@ -80,6 +80,7 @@ set(src_files
     std/plt.h
     std/traits.h
     std/vec.h
+    std/mat.h
     std/transforms.h
     std/stacktrace.h
 

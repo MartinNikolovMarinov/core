@@ -101,4 +101,26 @@ inline bool safe_eq(f64 a, f64 b, f64 epsilon) {
     return core::abs(a - b) < epsilon;
 }
 
+inline bool nearly_eq(f32 a, f32 b, f32 epsilon) {
+    if (a == b) return true;
+    f32 absA = core::abs(a);
+    f32 absB = core::abs(b);
+    f32 diff = core::abs(absA - absB);
+    if (a == 0 || b == 0 || (absA + absB < MIN_NORMAL_F32)) {
+        return diff < (epsilon * MIN_NORMAL_F32);
+    }
+    return diff / core::min((absA + absB), MAX_F32) < epsilon;
+}
+
+inline bool nearly_eq(f64 a, f64 b, f64 epsilon) {
+    if (a == b) return true;
+    f64 absA = core::abs(a);
+    f64 absB = core::abs(b);
+    f64 diff = core::abs(absA - absB);
+    if (a == 0 || b == 0 || (absA + absB < MIN_NORMAL_F64)) {
+        return diff < (epsilon * MIN_NORMAL_F64);
+    }
+    return diff / core::min((absA + absB), MAX_F64) < epsilon;
+}
+
 } // namespace core

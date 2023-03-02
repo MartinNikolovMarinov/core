@@ -1295,6 +1295,39 @@ void mat_mul() {
     }
 }
 
+void mat_determinant() {
+    auto m1 = core::m2x2<f32>({ 1.0f, 2.0f }, { 3.0f, 4.0f });
+    Assert(core::det(m1) == -2.0f);
+
+    auto m2 = core::m2x2<i32>({ 1, 2 }, { 3, 4 });
+    Assert(core::det(m2) == -2);
+
+    auto m3 = core::m3x3<f32>({ 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 1.0f, 0.0f },
+                              { 1.0f, 0.0f, 1.0f });
+    Assert(core::det(m3) == 0.0f);
+
+    auto m4 = core::m3x3<i32>({ 2, 8, 1 }, { 0, 1, 3 }, { 4, 5, 1 });
+    Assert(core::det(m4) == 64);
+
+    auto m5 = core::m3x3<f32>(0.0f);
+    Assert(core::det(m5) == 0.0f);
+
+    auto m6 = core::m4x4<f32>({ 1.0f, 2.0f, 3.0f, 4.0f },
+                              { 5.0f, 56.0f, 7.0f, 8.0f },
+                              { 9.0f, 10.0f, 6.0f, 12.0f },
+                              { 13.0f, 14.0f, 15.0f, 16.0f });
+    Assert(core::det(m6) == 9000.0f);
+
+    core::mat<5, 5, f32> m7;
+    m7[0] = core::v(3.0f, 12.0f, 3.0f, 4.0f, 5.0f);
+    m7[1] = core::v(2.0f, 34.0f, 12.0f, 1.0f, 3.0f);
+    m7[2] = core::v(4.0f, 2.0f, 1.0f, 4.0f, 4.0f);
+    m7[3] = core::v(5.0f, 6.0f, 2.0f, 3.0f, 5.0f);
+    m7[4] = core::v(9.0f, 9.0f, 8.0f, 6.0f, 1.0f);
+    Assert(core::nearly_eq(core::det(m7), 1494.99988f, 0.00001f));
+}
+
 void run_mat_tests_suite() {
     RunTest(mat1xN_constructors);
     RunTest(mat2xN_constructors);
@@ -1304,4 +1337,5 @@ void run_mat_tests_suite() {
     RunTest(mat_add);
     RunTest(mat_sub);
     RunTest(mat_mul);
+    RunTest(mat_determinant);
 }

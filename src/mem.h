@@ -22,4 +22,15 @@ constexpr ptr_size align(ptr_size n) {
   return (n + sizeof(ptr_size) - 1) & ~(sizeof(ptr_size) - 1);
 }
 
+constexpr void swap(void* a, void* b, ptr_size size) {
+  // TODO: Use SIMD probably.
+  u8* a_ = (u8*)a;
+  u8* b_ = (u8*)b;
+  for (ptr_size i = 0; i < size; ++i) {
+    u8 tmp = a_[i];
+    a_[i] = b_[i];
+    b_[i] = tmp;
+  }
+}
+
 } // namespace core

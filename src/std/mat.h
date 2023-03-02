@@ -1,6 +1,7 @@
 #pragma onces
 
 #include <types.h>
+#include <mem.h>
 #include <std/vec.h>
 #include <std/traits.h>
 
@@ -103,6 +104,73 @@ constexpr mat<DstDimRow, SrcDimCol, TDst> mmul2(const mat<DstDimRow, DstDimCol, 
     return ret;
 }
 
+template<i32 DimRow, i32 DimCol, typename TDst>
+constexpr TDst det(const mat<DimRow, DimCol, TDst>& m) {
+    static_assert(DimRow == DimCol, "Matrix must be square");
+
+    // TODO: This works fine, but it will be a lot better if I just write out the code for each dimension.
+    //       It will be much faster, easier to read and easer to use avx/sse instructions!
+
+    auto mcpy = m;
+    TDst det = 1;
+    TDst total = 1;
+    i32 bufIdx = 0;
+    TDst diagBuff[DimRow + 1];
+    constexpr i32 N = DimRow;
+
+    for (i32 i = 0; i < N; i++) {
+        bufIdx = i;
+
+        while (bufIdx < N && mcpy[bufIdx][i] == 0) {
+            bufIdx++;
+        }
+
+        if (bufIdx == N) {
+            // the matrix is singular
+            return 0;
+        }
+        if (bufIdx != i) {
+            // swap the rows
+            core::swap(&mcpy[i], &mcpy[bufIdx], sizeof(TDst) * N);
+            // multiply the determinant by -1
+            det = det * static_cast<TDst>(std::pow(-1, bufIdx - i));
+        }
+
+        // store the values of the current row
+        for (i32 j = 0; j < N; j++) {
+            diagBuff[j] = mcpy[i][j];
+        }
+
+        // traversing every row below the diagonal
+        for (i32 j = i + 1; j < N; j++) {
+            TDst diagElem = diagBuff[i];
+            TDst currElem = mcpy[j][i];
+
+            // traversing every column of the current row and multiplying every row.
+            for (i32 k = 0; k < N; k++) {
+                mcpy[j][k] = (diagElem * mcpy[j][k]) - (currElem * diagBuff[k]);
+            }
+
+            total = total * diagElem;
+        }
+    }
+
+    // Multiply the diagonal elements to get the determinant
+    for (i32 i = 0; i < N; i++) {
+        det = det * mcpy[i][i];
+    }
+
+    Assert(total != 0, "Division by zero!");
+    return det / total;
+}
+
+template<i32 DimRow, i32 DimCol, typename TDst>
+constexpr mat<DimRow, DimCol, TDst> inverse(const mat<DimRow, DimCol, TDst>& m) {
+    // TODO: Use Gauss-Jordan elimination to calculate the inverse. Or somthing more efficient if possible.
+    Assert(false, "Not implemented");
+    return {};
+}
+
 template<i32 DimRow, i32 DimCol, typename T>
 struct mat {
     using DataType = T;
@@ -114,17 +182,17 @@ struct mat {
     static constexpr i32 dimensionsRows() { return DimRow; }
     static constexpr i32 dimensionsCols() { return DimCol; }
 
-    using ColType = vec<DimCol, DataType>;
+    using RowType = vec<DimCol, DataType>;
     template <typename TM>
     using MatrixType = mat<DimRow, DimCol, TM>;
 
-    ColType data[DimRow] = {}; // initializing to zero allows use in constexpr.. c++ nonsense
+    RowType data[DimRow] = {}; // initializing to zero allows use in constexpr.. c++ nonsense
 
-    constexpr ColType& operator[](i32 i) {
+    constexpr RowType& operator[](i32 i) {
         Assert(i >= 0 && i < DimRow, "Index out of bounds");
         return data[i];
     }
-    constexpr const ColType& operator[](i32 i) const {
+    constexpr const RowType& operator[](i32 i) const {
         Assert(i >= 0 && i < DimRow, "Index out of bounds");
         return data[i];
     }

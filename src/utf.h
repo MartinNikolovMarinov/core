@@ -5,8 +5,6 @@
 #include <expected.h>
 #include <bits.h>
 
-// FIXME: Change uchar* to char*. This decision is purely annoying.
-
 namespace core {
 
 using namespace coretypes;

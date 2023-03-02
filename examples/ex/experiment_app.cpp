@@ -137,7 +137,7 @@ core::expected<GraphicsLibError> initEventHandlers(GLFWwindow* window) {
     }
 
     glfwSetDropCallback(window, [](GLFWwindow*, i32 count, const char** paths) {
-        // TODO: save this to the global state.
+        // TODO2: save this to the global state.
         fmt::print("Dropped {} files.\n", count);
         fmt::print("Paths:\n");
         for (i32 i = 0; i < count; ++i) {

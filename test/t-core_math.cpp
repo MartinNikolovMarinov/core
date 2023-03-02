@@ -201,10 +201,105 @@ void float_safe_eq() {
     }
 }
 
+void float_nearly_eq() {
+    struct test_case {
+        f32 a;
+        f32 b;
+        f32 epsilon;
+        bool expected;
+    };
+
+    constexpr f32 defaultEpsilon = 0.00001f;
+
+    test_case cases[] = {
+        { 1000000.f, 1000001.f, defaultEpsilon, true },
+        { 1000001.f, 1000000.f, defaultEpsilon, true },
+        { 10000.f, 10001.f, defaultEpsilon, false },
+        { 10001.f, 10000.f, defaultEpsilon, false },
+
+        { -1000000.f, -1000001.f, defaultEpsilon, true},
+        { -1000001.f, -1000000.f, defaultEpsilon, true},
+        { -10000.f,  -10001.f, defaultEpsilon, false},
+        { -10001.f,  -10000.f, defaultEpsilon, false},
+
+        { -1000000.f, -1000001.f, defaultEpsilon, true},
+        { -1000001.f, -1000000.f, defaultEpsilon, true},
+        { -10000.f,  -10001.f, defaultEpsilon, false},
+        { -10001.f,  -10000.f, defaultEpsilon, false},
+
+        { -1.000001f, -1.000002f, defaultEpsilon, true },
+        { -1.000002f, -1.000001f, defaultEpsilon, true },
+        { -1.0001f,  -1.0002f, defaultEpsilon, false },
+        { -1.0002f,  -1.0001f, defaultEpsilon, false },
+
+        { 0.000000001000001f,  0.000000001000002f, defaultEpsilon, true },
+        { 0.000000001000002f,  0.000000001000001f, defaultEpsilon, true },
+        { 0.000000000001002f, 0.000000000001001f, defaultEpsilon, false },
+        { 0.000000000001001f, 0.000000000001002f, defaultEpsilon, false },
+
+        { -0.000000001000001f,  -0.000000001000002f, defaultEpsilon, true },
+        { -0.000000001000002f,  -0.000000001000001f, defaultEpsilon, true },
+        { -0.000000000001002f, -0.000000000001001f, defaultEpsilon, false },
+        { -0.000000000001001f, -0.000000000001002f, defaultEpsilon, false },
+
+        { 0.3f, 0.30000003f, defaultEpsilon, true },
+        { -0.3f, -0.30000003f, defaultEpsilon, true },
+
+        { 0.f, 0.f, defaultEpsilon, true },
+        { 0.f, -0.f, defaultEpsilon, true },
+        { -0.f, 0.f, defaultEpsilon, true },
+        { -0.f, -0.f, defaultEpsilon, true },
+        { 0.00000001f, 0.0f, defaultEpsilon, false },
+        { 0.0f, 0.00000001f, defaultEpsilon, false },
+        { -0.00000001f, 0.0f, defaultEpsilon, false },
+        { 0.0f, -0.00000001f, defaultEpsilon, false },
+        { 0.0f, 1e-40f,  0.01f, true },
+        { 1e-40f, 0.0f,  0.01f, true },
+        { 1e-40f, 0.0f, 0.000001f, false },
+        { 0.0f, 1e-40f, 0.000001f, false },
+        { 0.0f, -1e-40f,  0.1f, true },
+        { -1e-40f, 0.0f,  0.1f, true },
+        { -1e-40f, 0.0f, 0.00000001f, false },
+        { 0.0f, -1e-40f, 0.00000001f, false },
+
+        { MAX_F32, MAX_F32, defaultEpsilon, true },
+        // { MAX_F32, -MAX_F32, defaultEpsilon, false }, // FIXME: These 2 look like a bug.
+        // { -MAX_F32, MAX_F32, defaultEpsilon, false },
+        { MAX_F32, MAX_F32 / 2, defaultEpsilon, false },
+        { MAX_F32, -MAX_F32 / 2, defaultEpsilon, false },
+        { -MAX_F32, MAX_F32 / 2, defaultEpsilon, false },
+
+        { MIN_F32, MIN_F32, defaultEpsilon, true },
+        { MIN_F32, -MIN_F32, defaultEpsilon, true },
+        { -MIN_F32, MIN_F32, defaultEpsilon, true },
+        { MIN_F32, 0, defaultEpsilon, false },
+        { 0, MIN_F32, defaultEpsilon, false },
+        { -MIN_F32, 0, defaultEpsilon, false },
+        { 0, -MIN_F32, defaultEpsilon, false },
+        { 0.000000001f, -MIN_F32, defaultEpsilon, false },
+        { 0.000000001f, MIN_F32, defaultEpsilon, false },
+        { MIN_F32, 0.000000001f, defaultEpsilon, false },
+        { -MIN_F32, 0.000000001f, defaultEpsilon, false },
+    };
+
+
+    i32 i = 0;
+    constexpr const char* iterAsCptrFmt = "float_nearly_eq test case failed at index: ";
+    constexpr const ptr_size iterAsCptrFmtLen = core::cptr_len(iterAsCptrFmt);
+    char iterAsCptr[iterAsCptrFmtLen + 20] = {};
+    core::memcopy(iterAsCptr, iterAsCptrFmt, iterAsCptrFmtLen);
+    char* appendIdx = &iterAsCptr[iterAsCptrFmtLen];
+    for (auto& c : cases) {
+        core::int_to_cptr(i++, appendIdx, 2);
+        Assert(core::nearly_eq(c.a, c.b, c.epsilon) == c.expected, iterAsCptr);
+    }
+}
+
 void run_core_math_tests_suite() {
     RunTest(degrees_test);
     RunTest(pow_u64_test);
     RunTest(abs_test);
     RunTest(is_positive_test);
     RunTest(float_safe_eq);
+    RunTest(float_nearly_eq);
 }

@@ -169,6 +169,21 @@ void vector_dot_product_test() {
         auto b = core::v(1, 2);
         Assert(a.dot(b) <= a.length() * b.length());
     }
+    {
+        // Adding different types of vectors is ok when using the direct functions and NOT the operators.
+        core::vec4<i32> a { 1, 2, 3, 4 };
+        core::vec4<f32> b { 1.0f, 2.0f, 3.0f, 4.0f };
+        a.add(b);
+        // a += b; // fails!
+        // auto c = a + b; // also fails!
+        Assert(a.equals(core::v(2, 4, 6, 8)));
+        a.sub(b);
+        Assert(a.equals(core::v(1, 2, 3, 4)));
+        a.mul(b);
+        Assert(a.equals(core::v(1, 4, 9, 16)));
+        a.div(b);
+        Assert(a.equals(core::v(1, 2, 3, 4)));
+    }
 }
 
 void vector_cross_product_test() {

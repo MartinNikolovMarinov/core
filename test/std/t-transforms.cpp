@@ -28,7 +28,7 @@ void scale_test() {
 }
 
 void rotate2d_test() {
-    constexpr core::vec2f origin = {0.0f, 0.0f};
+    constexpr core::vec2f origin = core::v(0.0f, 0.0f);
 
     core::vec2f v = {1.0f, 2.0f};
     core::rotate(v, origin, core::deg_to_rad(0.0f));

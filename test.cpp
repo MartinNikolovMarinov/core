@@ -40,7 +40,7 @@ i32 main(i32, const char **) {
     // Print OS
     if (OS_WIN == 1)     { std::cout << "[OS] OS_WIN" << std::endl; }
     if (OS_LINUX == 1)   { std::cout << "[OS] OS_LINUX" << std::endl; }
-    if (OS_MAC == 1)    { std::cout <<  "[OS] OS_MAC" << std::endl; }
+    if (OS_MAC == 1)     { std::cout <<  "[OS] OS_MAC" << std::endl; }
     if (OS_UNKNOWN == 1) { std::cout << "[OS] OS_UNKNOWN" << std::endl; }
 
     std::cout << "\n" << "RUNNING COMMONG TESTS" << "\n\n";

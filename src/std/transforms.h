@@ -13,95 +13,93 @@ using namespace coretypes;
 
 // Translate
 
-template<typename T, i32 Dim>
-constexpr void translate(vec<Dim, T>& src, const vec<Dim, T>& t) {
-    for (i32 i = 0; i < src.dimensions(); ++i) {
-        src[i] += t[i];
+template<i32 Dim, typename T>
+constexpr void translate(vec<Dim, T>& v, const vec<Dim, T>& t) {
+    for (i32 i = 0; i < v.dimensions(); ++i) {
+        v[i] += t[i];
     }
 }
 
-template<typename T, i32 Dim>
-constexpr void translate(arr<vec<Dim, T>>& src, const vec<Dim, T>& t) {
-    for (i32 i = 0; i < src.len(); ++i) {
-        translate(src[i], t);
+template<i32 Dim, typename T>
+constexpr void translate(arr<vec<Dim, T>>& arrv, const vec<Dim, T>& t) {
+    for (i32 i = 0; i < arrv.len(); ++i) {
+        translate(arrv[i], t);
     }
 }
 
-template<typename T, i32 Dim>
-constexpr void translate(mat<Dim + 1, Dim + 1, T>& m, const vec<Dim, T>& t) {
-    for (i32 i = 0; i < t.dimensions(); ++i) {
-        m[0][i] += t[i];
-    }
+template<typename T>
+constexpr void translate(mat4x4<T>& m, const vec3<T>& t) {
+    m[3][0] += t[0];
+    m[3][1] += t[1];
+    m[3][2] += t[2];
 }
 
 // Scale
 
-template<typename T, i32 Dim>
-constexpr void scale(vec<Dim, T>& src, const vec<Dim, T>& s) {
-    for (i32 i = 0; i < src.dimensions(); ++i) {
-        src[i] *= s[i];
+template<i32 Dim, typename T>
+constexpr void scale(vec<Dim, T>& v, const vec<Dim, T>& s) {
+    for (i32 i = 0; i < v.dimensions(); ++i) {
+        v[i] *= s[i];
     }
 }
 
-template<typename T, i32 Dim>
-constexpr void scale(vec<Dim, T>& src, const vec<Dim, T>& reference, const vec<Dim, T>& s) {
-    for (i32 i = 0; i < src.dimensions(); ++i) {
-        src[i] = reference[i] + (src[i] - reference[i]) * s[i];
+template<i32 Dim, typename T>
+constexpr void scale(vec<Dim, T>& v, const vec<Dim, T>& axis, const vec<Dim, T>& s) {
+    for (i32 i = 0; i < v.dimensions(); ++i) {
+        v[i] = axis[i] + (v[i] - axis[i]) * s[i];
     }
 }
 
-template<typename T, i32 Dim>
-constexpr void scale(arr<vec<Dim, T>>& src, const vec<Dim, T>& s) {
-    for (i32 i = 0; i < src.len(); ++i) {
-        scale(src[i], s);
+template<i32 Dim, typename T>
+constexpr void scale(arr<vec<Dim, T>>& arrv, const vec<Dim, T>& s) {
+    for (i32 i = 0; i < arrv.len(); ++i) {
+        scale(arrv[i], s);
     }
 }
 
-template<typename T, i32 Dim>
-constexpr void scale(arr<vec<Dim, T>>& src, const vec<Dim, T>& reference, const vec<Dim, T>& s) {
-    for (i32 i = 0; i < src.len(); ++i) {
-        scale(src[i], reference, s);
+template<i32 Dim, typename T>
+constexpr void scale(arr<vec<Dim, T>>& arrv, const vec<Dim, T>& axis, const vec<Dim, T>& s) {
+    for (i32 i = 0; i < arrv.len(); ++i) {
+        scale(arrv[i], axis, s);
     }
 }
 
-template<typename T, i32 Dim>
-constexpr void scale(mat<Dim, Dim, T>& m, const vec<Dim, T>& s) {
-    for (i32 i = 0; i < m.dimensionsRows(); ++i) {
+template<i32 Dim, typename T>
+constexpr void scale(mat4x4<T>& m, const vec<Dim, T>& s) {
+    for (i32 i = 0; i < s.dimensions(); ++i) {
         m[i][i] *= s[i];
     }
 }
 
-template<typename T, i32 Dim>
-constexpr void scale(mat<Dim, Dim, T>& m, const vec<Dim, T>& reference, const vec<Dim, T>& s) {
-    for (i32 i = 0; i < m.dimensionsRows(); ++i) {
-        m[i][i] = reference[i] + (m[i][i] - reference[i]) * s[i];
+template<i32 Dim, typename T>
+constexpr void scale(mat4x4<T>& m, const vec<Dim, T>& axis, const vec<Dim, T>& s) {
+    for (i32 i = 0; i < s.dimensions(); ++i) {
+        m[i][i] = axis[i] + (m[i][i] - axis[i]) * s[i];
     }
 }
 
 // Rotate
 
 template<typename TFloat>
-constexpr void rotate(vec2<TFloat>& src, const vec2<TFloat>& origin, TFloat angle) {
+constexpr void rotate(vec2<TFloat>& v, const vec2<TFloat>& axis, TFloat angle) {
     static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
     TFloat c = std::cos(angle);
     TFloat s = std::sin(angle);
-    src -= origin;
-    src = core::v<TFloat>(src.x() * c - src.y() * s, src.x() * s + src.y() * c);
-    src += origin;
+    v -= axis;
+    v = core::v<TFloat>(v.x() * c - v.y() * s, v.x() * s + v.y() * c);
+    v += axis;
 }
 
 template<typename TFloat>
-constexpr void rotate(vec3<TFloat>& src, const vec3<TFloat>& origin, TFloat angle) {
+constexpr void rotate(vec3<TFloat>& v, const vec3<TFloat>& axis, TFloat angle) {
     static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
-    // using 3d rotation anti-clockwise around origin
-    // https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
     TFloat c = std::cos(angle);
     TFloat s = std::sin(angle);
     TFloat t = 1 - c;
 
-    TFloat x = origin.x();
-    TFloat y = origin.y();
-    TFloat z = origin.z();
+    TFloat x = axis.x();
+    TFloat y = axis.y();
+    TFloat z = axis.z();
 
     TFloat x2 = x * x;
     TFloat y2 = y * y;
@@ -125,35 +123,83 @@ constexpr void rotate(vec3<TFloat>& src, const vec3<TFloat>& origin, TFloat angl
     TFloat m21 = t * yz + xs;
     TFloat m22 = t * z2 + c;
 
-    src = vec3<TFloat>(
-        m00 * src.x() + m01 * src.y() + m02 * src.z(),
-        m10 * src.x() + m11 * src.y() + m12 * src.z(),
-        m20 * src.x() + m21 * src.y() + m22 * src.z()
+    v = core::v<TFloat>(
+        m00 * v.x() + m01 * v.y() + m02 * v.z(),
+        m10 * v.x() + m11 * v.y() + m12 * v.z(),
+        m20 * v.x() + m21 * v.y() + m22 * v.z()
     );
 }
 
 template<typename TFloat>
-constexpr void rotate_right(vec2<TFloat>& src, const vec2<TFloat>& origin, TFloat angle) {
-    rotate(src, origin, -angle);
+constexpr void rotate(mat4x4<TFloat>& m, const vec3<TFloat>& axis, TFloat angle) {
+    static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
+    TFloat c = std::cos(angle);
+    TFloat s = std::sin(angle);
+    TFloat t = 1 - c;
+
+    TFloat x = axis.x();
+    TFloat y = axis.y();
+    TFloat z = axis.z();
+
+    TFloat x2 = x * x;
+    TFloat y2 = y * y;
+    TFloat z2 = z * z;
+
+    TFloat xy = x * y;
+    TFloat xz = x * z;
+    TFloat yz = y * z;
+
+    TFloat xs = x * s;
+    TFloat ys = y * s;
+    TFloat zs = z * s;
+
+    TFloat m00 = t * x2 + c;
+    TFloat m01 = t * xy - zs;
+    TFloat m02 = t * xz + ys;
+    TFloat m10 = t * xy + zs;
+    TFloat m11 = t * y2 + c;
+    TFloat m12 = t * yz - xs;
+    TFloat m20 = t * xz - ys;
+    TFloat m21 = t * yz + xs;
+    TFloat m22 = t * z2 + c;
+
+    auto quaternion = core::m4x4<TFloat>(
+        m00, m01, m02, 0,
+        m10, m11, m12, 0,
+        m20, m21, m22, 0,
+        0,   0,   0,   1
+    );
+
+    m = quaternion * m;
 }
 
 template<typename TFloat>
-constexpr void rotate_right(vec3<TFloat>& src, const vec3<TFloat>& origin, TFloat angle) {
-    rotate(src, origin, -angle);
+constexpr void rotate_right(vec2<TFloat>& v, const vec2<TFloat>& axis, TFloat angle) {
+    rotate(v, axis, -angle);
+}
+
+template<typename TFloat>
+constexpr void rotate_right(vec3<TFloat>& v, const vec3<TFloat>& axis, TFloat angle) {
+    rotate(v, axis, -angle);
 }
 
 template<typename TFloat, i32 Dim>
-constexpr void rotate(arr<vec<Dim, TFloat>>& src, const vec<Dim, TFloat>& origin, TFloat angle) {
-    for (i32 i = 0; i < src.len(); ++i) {
-        rotate(src[i], origin, angle);
+constexpr void rotate(arr<vec<Dim, TFloat>>& v, const vec<Dim, TFloat>& axis, TFloat angle) {
+    for (i32 i = 0; i < v.len(); ++i) {
+        rotate(v[i], axis, angle);
     }
 }
 
 template<typename TFloat, i32 Dim>
-constexpr void rotate_right(arr<vec<Dim, TFloat>>& src, const vec<Dim, TFloat>& origin, TFloat angle) {
-    for (i32 i = 0; i < src.len(); ++i) {
-        rotate_right(src[i], origin, angle);
+constexpr void rotate_right(arr<vec<Dim, TFloat>>& v, const vec<Dim, TFloat>& axis, TFloat angle) {
+    for (i32 i = 0; i < v.len(); ++i) {
+        rotate_right(v[i], axis, angle);
     }
+}
+
+template<typename TFloat>
+constexpr void rotate_right(mat4x4<TFloat>& v, const vec3<TFloat>& axis, TFloat angle) {
+    rotate(v, axis, -angle);
 }
 
 }

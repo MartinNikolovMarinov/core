@@ -15,6 +15,7 @@ struct State {
     u32 quadEBOId;
     u32 quadIndicesCount;
     core::vec4f quadColor;
+    core::mat4x4f quadTransform;
 };
 
 State& state() {
@@ -78,18 +79,20 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
 
             layout (location = 0) in vec3 in_pos;
 
+            uniform mat4 u_transform;
+
             void main() {
-                gl_Position = vec4(in_pos.xyz, 1.0);
+                gl_Position = u_transform * vec4(in_pos.xy, 1.0, 1.0);
             }
         )";
         const char* fragShaderSource = R"(
             #version 330 core
 
-            out vec4 out_fragColor;
+            out vec4 fragColor;
             uniform vec4 u_color;
 
             void main() {
-                out_fragColor = u_color;
+                fragColor = u_color;
             }
         )";
         g_s.shaderProg = ValueOrDie(ShaderProg::create(vertexShaderSource, fragShaderSource));
@@ -100,10 +103,10 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         g_s.quadColor = core::v(0.2f, 0.3f, 0.8f, 1.0f);
 
         core::arr<core::vec2f> vertices(0, 4);
-        vertices.append({ 0.5f, 0.5f });   // left
-        vertices.append({ 0.5f, -0.5f });  // right
-        vertices.append({ -0.5f, -0.5f }); // top
-        vertices.append({ -0.5f, 0.5f });  // bottom
+        vertices.append(core::v(0.5f, 0.5f));   // left
+        vertices.append(core::v(0.5f, -0.5f));  // right
+        vertices.append(core::v(-0.5f, -0.5f)); // top
+        vertices.append(core::v(-0.5f, 0.5f));  // bottom
 
         core::arr<u32> indices(0, 6);
         // First triangle:
@@ -151,8 +154,15 @@ void mainLoop(CommonState& commonState) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glUseProgram(0);
 
+    // Combining transformations:
+    g_s.quadTransform = core::midentity<4, f32>();
+    core::translate(g_s.quadTransform, core::v(0.3f, -0.4f, 0.0f));
+    core::rotate(g_s.quadTransform, core::v(0.0f, 0.0f, 1.0f), core::deg_to_rad(45.0f));
+    core::scale(g_s.quadTransform, core::v(0.7f, 0.7f, 0.7f));
+
     g_s.shaderProg.use();
     g_s.shaderProg.setUniform_v("u_color", g_s.quadColor);
+    g_s.shaderProg.setUniform_m("u_transform", g_s.quadTransform);
 
     glBindVertexArray(g_s.quadVAOId);
     glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBOId);

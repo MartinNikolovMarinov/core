@@ -12,10 +12,6 @@ namespace core {
 using namespace coretypes;
 
 // TODO: Need to implement at least the following:
-//       Implement these in transforms.h :
-//       - translate
-//       - rotate
-//       - scale
 //       Implement here:
 //       - orhto ( orthographic projection matrix )
 //       - persp ( perspective projection matrix )
@@ -90,8 +86,6 @@ constexpr void mmul(mat<TRow, TCol, T>& dst, typename mat<TRow, TCol, T>::DataTy
     }
 }
 
-// TODO: There probably is a way to write this template so that it takes precedence over the other mmul function when
-//       multiplying matrices. But I am not sure I want to do that. It might be better to explicitly call this.
 template<i32 TRow1, i32 TCol1, i32 TRow2, i32 TCol2, typename T1, typename T2>
 constexpr mat<TRow1, TCol2, T1> mmul(const mat<TRow1, TCol1, T1>& m1, const mat<TRow2, TCol2, T2>& m2) {
     static_assert(TCol1 == TRow2, "Dimensions of matrices are not compatible");

@@ -16,6 +16,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clan
     target_compile_options(${PROJECT_NAME} PRIVATE
         -Wall -Wextra -Wno-unknown-pragmas
         -g -ggdb # debug info for Release as well
+        -Wfatal-errors
     )
 
     if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")

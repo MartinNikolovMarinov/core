@@ -23,32 +23,38 @@ using namespace coretypes;
 
 template<i32 DimRow, i32 DimCol, typename T> struct mat;
 
-template<i32 DimRow, i32 DimCol, typename T1, typename T2>
-constexpr bool mequals(const mat<DimRow, DimCol, T1>& m1, const mat<DimRow, DimCol, T2>& m2) {
+#pragma region Static Matrix Operations
+
+// Equality
+
+template<i32 TRow, i32 TCol, typename T>
+constexpr bool mequals(const mat<TRow, TCol, T>& m1, const mat<TRow, TCol, T>& m2) {
     for (i32 i = 0; i < m1.dimensionsRows(); ++i) {
         if (!vequals(m1[i], m2[i])) return false;
     }
     return true;
 }
-
-template<i32 DimRow, i32 DimCol, typename T1, typename T2>
-constexpr bool msafeequals(const mat<DimRow, DimCol, T1>& m1, const mat<DimRow, DimCol, T2>& m2, T1 epsilon) {
+template<i32 TRow, i32 TCol, typename T>
+constexpr bool msafeequals(const mat<TRow, TCol, T>& m1, const mat<TRow, TCol, T>& m2, T epsilon) {
     for (i32 i = 0; i < m1.dimensionsRows(); ++i) {
         if (!vsafeequals(m1[i], m2[i], epsilon)) return false;
     }
     return true;
 }
 
-template<i32 DimRow, i32 DimCol, typename T1>
-constexpr void mnegate(mat<DimRow, DimCol, T1>& m) {
+// Negation
+
+template<i32 TRow, i32 TCol, typename T>
+constexpr void mnegate(mat<TRow, TCol, T>& m) {
     for (i32 i = 0; i < m.dimensionsRows(); ++i) {
         vnegate(m[i]);
     }
 }
 
-template<i32 DimRow, i32 DimCol, typename TDst, typename TVal>
-constexpr void madd(mat<DimRow, DimCol, TDst>& dst, const TVal& val) {
-    static_assert(std::is_arithmetic_v<TVal>, "TVal must be an arithmetic");
+// Addition
+
+template<i32 TRow, i32 TCol, typename T>
+constexpr void madd(mat<TRow, TCol, T>& dst, typename mat<TRow, TCol, T>::DataType val) {
     for (i32 i = 0; i < dst.dimensionsRows(); ++i) {
         vadd(dst[i], val);
     }
@@ -60,6 +66,8 @@ constexpr void madd(mat<DimRow, DimCol, TDst>& dst, const mat<DimRow, DimCol, TS
         vadd(dst[i], src[i]);
     }
 }
+
+// Subtraction
 
 template<i32 DimRow, i32 DimCol, typename TDst, typename TVal>
 constexpr void msub(mat<DimRow, DimCol, TDst>& dst, const TVal& val) {
@@ -198,6 +206,8 @@ constexpr mat<Dim, Dim, T> midentity() {
     return ret;
 }
 
+#pragma endregion
+
 template<i32 DimRow, i32 DimCol, typename T>
 struct mat {
     using DataType = T;
@@ -236,11 +246,11 @@ struct mat {
 
     template<typename U>  constexpr void add(const MatrixType<U>& other) { madd(*this, other); }
     template<typename TA> constexpr void add(TA v)                       { madd(*this, v); }
-                          constexpr void inc()                           { add(1); }
+                          constexpr void inc()                           { add(DataType(1)); }
 
     template<typename U>  constexpr void sub(const MatrixType<U>& other) { msub(*this, other); }
     template<typename TA> constexpr void sub(TA v)                       { msub(*this, v); }
-                          constexpr void dec()                           { sub(1); }
+                          constexpr void dec()                           { sub(DataType(1)); }
 
     template<typename TA> constexpr void mul(TA v)                       { mmul(*this, v); }
     template<typename TA> constexpr void scale(TA v)                     { mul(v); }
@@ -347,10 +357,19 @@ struct mat {
         ret.mul(v1);
         return ret;
     }
+    template<typename U>
+    friend constexpr RowType operator*(const MatrixType<DataType>& v1, const vec<DimCol, U>& v2) {
+        return mmul2(v1, v2);
+    }
 
 #pragma endregion
 
 };
+
+// Operators
+
+
+// Definitions
 
 template<typename T> using mat1x1 = mat<1, 1, T>;
 template<typename T> using mat1x2 = mat<1, 2, T>;
@@ -369,8 +388,64 @@ template<typename T> using mat4x2 = mat<4, 2, T>;
 template<typename T> using mat4x3 = mat<4, 3, T>;
 template<typename T> using mat4x4 = mat<4, 4, T>;
 
+using mat2x2b = mat2x2<bool>;
+using mat2x2i = mat2x2<i32>;
+using mat2x2u = mat2x2<u32>;
+using mat2x2f = mat2x2<f32>;
+using mat2x2d = mat2x2<f64>;
+
+using mat2x3b = mat2x3<bool>;
+using mat2x3i = mat2x3<i32>;
+using mat2x3u = mat2x3<u32>;
+using mat2x3f = mat2x3<f32>;
+using mat2x3d = mat2x3<f64>;
+
+using mat2x4b = mat2x4<bool>;
+using mat2x4i = mat2x4<i32>;
+using mat2x4u = mat2x4<u32>;
+using mat2x4f = mat2x4<f32>;
+using mat2x4d = mat2x4<f64>;
+
+using mat3x2b = mat3x2<bool>;
+using mat3x2i = mat3x2<i32>;
+using mat3x2u = mat3x2<u32>;
+using mat3x2f = mat3x2<f32>;
+using mat3x2d = mat3x2<f64>;
+
+using mat3x3b = mat3x3<bool>;
+using mat3x3i = mat3x3<i32>;
+using mat3x3u = mat3x3<u32>;
+using mat3x3f = mat3x3<f32>;
+using mat3x3d = mat3x3<f64>;
+
+using mat3x4b = mat3x4<bool>;
+using mat3x4i = mat3x4<i32>;
+using mat3x4u = mat3x4<u32>;
+using mat3x4f = mat3x4<f32>;
+using mat3x4d = mat3x4<f64>;
+
+using mat4x2b = mat4x2<bool>;
+using mat4x2i = mat4x2<i32>;
+using mat4x2u = mat4x2<u32>;
+using mat4x2f = mat4x2<f32>;
+using mat4x2d = mat4x2<f64>;
+
+using mat4x3b = mat4x3<bool>;
+using mat4x3i = mat4x3<i32>;
+using mat4x3u = mat4x3<u32>;
+using mat4x3f = mat4x3<f32>;
+using mat4x3d = mat4x3<f64>;
+
+using mat4x4b = mat4x4<bool>;
+using mat4x4i = mat4x4<i32>;
+using mat4x4u = mat4x4<u32>;
+using mat4x4f = mat4x4<f32>;
+using mat4x4d = mat4x4<f64>;
+
+#pragma region Factory functions
+
 template<typename T>
-mat1x1<T> m1x1(const vec<1, T>& v0) {
+mat1x1<T> m1x1(const vec1<T>& v0) {
     mat1x1<T> ret; ret[0] = v0;
     return ret;
 }
@@ -436,7 +511,7 @@ mat1x4<T> m1x4(T v) {
 }
 
 template<typename T>
-mat2x1<T> m2x1(const vec<1, T>& v0, const vec<1, T>& v1) {
+mat2x1<T> m2x1(const vec1<T>& v0, const vec1<T>& v1) {
     mat2x1<T> ret; ret[0] = v0; ret[1] = v1;
     return ret;
 }
@@ -512,7 +587,7 @@ mat2x4<T> m2x4(T v) {
 }
 
 template<typename T>
-mat3x1<T> m3x1(const vec<1, T>& v0, const vec<1, T>& v1, const vec<1, T>& v2) {
+mat3x1<T> m3x1(const vec1<T>& v0, const vec1<T>& v1, const vec1<T>& v2) {
     mat3x1<T> ret; ret[0] = v0; ret[1] = v1; ret[2] = v2;
     return ret;
 }
@@ -592,7 +667,7 @@ mat3x4<T> m3x4(T v) {
 }
 
 template<typename T>
-mat4x1<T> m4x1(const vec<1, T>& v0, const vec<1, T>& v1, const vec<1, T>& v2, const vec<1, T>& v3) {
+mat4x1<T> m4x1(const vec1<T>& v0, const vec1<T>& v1, const vec1<T>& v2, const vec1<T>& v3) {
     mat4x1 <T> ret; ret[0] = v0; ret[1] = v1; ret[2] = v2; ret[3] = v3;
     return ret;
 }
@@ -675,58 +750,6 @@ mat4x4<T> m4x4(T v) {
     return ret;
 }
 
-using mat2x2b = mat2x2<bool>;
-using mat2x2i = mat2x2<i32>;
-using mat2x2u = mat2x2<u32>;
-using mat2x2f = mat2x2<f32>;
-using mat2x2d = mat2x2<f64>;
-
-using mat2x3b = mat2x3<bool>;
-using mat2x3i = mat2x3<i32>;
-using mat2x3u = mat2x3<u32>;
-using mat2x3f = mat2x3<f32>;
-using mat2x3d = mat2x3<f64>;
-
-using mat2x4b = mat2x4<bool>;
-using mat2x4i = mat2x4<i32>;
-using mat2x4u = mat2x4<u32>;
-using mat2x4f = mat2x4<f32>;
-using mat2x4d = mat2x4<f64>;
-
-using mat3x2b = mat3x2<bool>;
-using mat3x2i = mat3x2<i32>;
-using mat3x2u = mat3x2<u32>;
-using mat3x2f = mat3x2<f32>;
-using mat3x2d = mat3x2<f64>;
-
-using mat3x3b = mat3x3<bool>;
-using mat3x3i = mat3x3<i32>;
-using mat3x3u = mat3x3<u32>;
-using mat3x3f = mat3x3<f32>;
-using mat3x3d = mat3x3<f64>;
-
-using mat3x4b = mat3x4<bool>;
-using mat3x4i = mat3x4<i32>;
-using mat3x4u = mat3x4<u32>;
-using mat3x4f = mat3x4<f32>;
-using mat3x4d = mat3x4<f64>;
-
-using mat4x2b = mat4x2<bool>;
-using mat4x2i = mat4x2<i32>;
-using mat4x2u = mat4x2<u32>;
-using mat4x2f = mat4x2<f32>;
-using mat4x2d = mat4x2<f64>;
-
-using mat4x3b = mat4x3<bool>;
-using mat4x3i = mat4x3<i32>;
-using mat4x3u = mat4x3<u32>;
-using mat4x3f = mat4x3<f32>;
-using mat4x3d = mat4x3<f64>;
-
-using mat4x4b = mat4x4<bool>;
-using mat4x4i = mat4x4<i32>;
-using mat4x4u = mat4x4<u32>;
-using mat4x4f = mat4x4<f32>;
-using mat4x4d = mat4x4<f64>;
+#pragma endregion
 
 } // namespace core

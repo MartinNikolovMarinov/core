@@ -130,6 +130,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clan
         -std=c++17
         -fno-exceptions
         -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-function
+        -Wfatal-errors
     )
     if (CORE_DEBUG)
         # Debug flags:

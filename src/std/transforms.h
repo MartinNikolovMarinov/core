@@ -86,7 +86,7 @@ constexpr void rotate(vec2<TFloat>& src, const vec2<TFloat>& origin, TFloat angl
     TFloat c = std::cos(angle);
     TFloat s = std::sin(angle);
     src -= origin;
-    src = vec2<TFloat>(src.x() * c - src.y() * s, src.x() * s + src.y() * c);
+    src = core::v<TFloat>(src.x() * c - src.y() * s, src.x() * s + src.y() * c);
     src += origin;
 }
 

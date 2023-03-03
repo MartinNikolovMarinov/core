@@ -107,9 +107,8 @@ i32 example_03() {
 
 i32 main(i32, char const**) {
     initCore();
-    core::vec4f v = {1.0f, 0.0f, 0.0f, 1.0f};
-    core::mat4x4f m = core::midentity<4, f32>();
-    core::translate(m, core::v(1.0f, 1.0f, 1.0f));
-    v = core::mmul2(m, v);
+    auto a = core::v(1.0f, 2, 3);
+    auto b = core::v(1, 2);
+    auto c = core::v(1);
     return 0;
 }

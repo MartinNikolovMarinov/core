@@ -214,7 +214,7 @@ void vector_cross_product_test() {
     {
         // B × B = (0,0,0)
         auto b = core::v(3, 4, 5);
-        Assert(b.cross(b).equals(b.zero()));
+        Assert(b.cross(b).equals(core::vzero<b.dimensions(), decltype(b)::DataType>()));
     }
     {
         // (B × A) ⋅ C = (C × B) ⋅ A = (A × C) ⋅ B

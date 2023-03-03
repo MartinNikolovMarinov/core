@@ -6,14 +6,14 @@ void mat1xN_constructors() {
         Assert(m1.data[0][0] == 1.0f);
         Assert(m1.data[0].data[0] == 1.0f);
 
-        auto m2 = core::m1x1<f32>(core::vec<1, f32>(1.0f));
+        auto m2 = core::m1x1<f32>(core::v(1.0f));
         Assert(m2[0].x() == 1.0f);
         Assert(m2.data[0].x() == 1.0f);
         Assert(m2.data[0][0] == 1.0f);
         Assert(m2.data[0].data[0] == 1.0f);
     }
     {
-        auto m = core::m1x2<f32>(core::vec2f(1.0f, 2.0f));
+        auto m = core::m1x2<f32>(core::v(1.0f, 2.0f));
         Assert(m[0].x() == 1.0f);
         Assert(m[0].y() == 2.0f);
         Assert(m.data[0].x() == 1.0f);
@@ -34,7 +34,7 @@ void mat1xN_constructors() {
         Assert(m2.data[0].data[1] == 1.0f);
     }
     {
-        auto m = core::m1x3<f32>(core::vec3f(1.0f, 2.0f, 3.0f));
+        auto m = core::m1x3<f32>(core::v(1.0f, 2.0f, 3.0f));
         Assert(m[0].x() == 1.0f);
         Assert(m[0].y() == 2.0f);
         Assert(m[0].z() == 3.0f);
@@ -63,7 +63,7 @@ void mat1xN_constructors() {
         Assert(m2.data[0].data[2] == 1.0f);
     }
     {
-        auto m = core::m1x4<f32>(core::vec4f(1.0f, 2.0f, 3.0f, 4.0f));
+        auto m = core::m1x4<f32>(core::v(1.0f, 2.0f, 3.0f, 4.0f));
         Assert(m[0].x() == 1.0f);
         Assert(m[0].y() == 2.0f);
         Assert(m[0].z() == 3.0f);
@@ -103,7 +103,7 @@ void mat1xN_constructors() {
 
 void mat2xN_constructors() {
     {
-        auto m1 = core::m2x1(core::vec<1, f32>(1.0f), core::vec<1, f32>(2.0f));
+        auto m1 = core::m2x1(core::v(1.0f), core::v(2.0f));
         Assert(m1[0].x() == 1.0f);
         Assert(m1[1].x() == 2.0f);
         Assert(m1.data[0].x() == 1.0f);
@@ -153,7 +153,7 @@ void mat2xN_constructors() {
         Assert(m1.data[1].data[0] == 3.0f);
         Assert(m1.data[1].data[1] == 4.0f);
 
-        auto m2 = core::m2x2(core::vec2f(1.0f, 2.0f), core::vec2f(3.0f, 4.0f));
+        auto m2 = core::m2x2(core::v(1.0f, 2.0f), core::v(3.0f, 4.0f));
         Assert(m2[0].x() == 1.0f);
         Assert(m2[0].y() == 2.0f);
         Assert(m2[1].x() == 3.0f);
@@ -217,7 +217,7 @@ void mat2xN_constructors() {
         Assert(m1.data[1].data[1] == 5.0f);
         Assert(m1.data[1].data[2] == 6.0f);
 
-        auto m2 = core::m2x3<f32>(core::vec3f(1.0f, 2.0f, 3.0f), core::vec3f(4.0f, 5.0f, 6.0f));
+        auto m2 = core::m2x3<f32>(core::v(1.0f, 2.0f, 3.0f), core::v(4.0f, 5.0f, 6.0f));
         Assert(m2[0].x() == 1.0f);
         Assert(m2[0].y() == 2.0f);
         Assert(m2[0].z() == 3.0f);
@@ -305,7 +305,7 @@ void mat2xN_constructors() {
         Assert(m1.data[1].data[2] == 7.0f);
         Assert(m1.data[1].data[3] == 8.0f);
 
-        auto m2 = core::m2x4(core::vec4f(1.0f, 2.0f, 3.0f, 4.0f), core::vec4f(5.0f, 6.0f, 7.0f, 8.0f));
+        auto m2 = core::m2x4(core::v(1.0f, 2.0f, 3.0f, 4.0f), core::v(5.0f, 6.0f, 7.0f, 8.0f));
         Assert(m2[0].x() == 1.0f);
         Assert(m2[0].y() == 2.0f);
         Assert(m2[0].z() == 3.0f);
@@ -377,7 +377,7 @@ void mat2xN_constructors() {
 
 void mat3xN_constructors() {
     {
-        auto m = core::m3x1(core::vec<1, f32>(1.0f), core::vec<1, f32>(2.0f), core::vec<1, f32>(3.0f));
+        auto m = core::m3x1(core::v(1.0f), core::v(2.0f), core::v(3.0f));
         Assert(m[0].x() == 1.0f);
         Assert(m[1].x() == 2.0f);
         Assert(m[2].x() == 3.0f);
@@ -421,7 +421,7 @@ void mat3xN_constructors() {
     }
 
     {
-        auto m = core::m3x2(core::vec2f(1.0f, 2.0f), core::vec2f(3.0f, 4.0f), core::vec2f(5.0f, 6.0f));
+        auto m = core::m3x2(core::v(1.0f, 2.0f), core::v(3.0f, 4.0f), core::v(5.0f, 6.0f));
         Assert(m[0].x() == 1.0f);
         Assert(m[0].y() == 2.0f);
         Assert(m[1].x() == 3.0f);
@@ -539,7 +539,7 @@ void mat3xN_constructors() {
         Assert(m1.data[2].data[1] == 8.0f);
         Assert(m1.data[2].data[2] == 9.0f);
 
-        auto m2 = core::m3x3(core::vec3f(1.0f, 2.0f, 3.0f), core::vec3f(4.0f, 5.0f, 6.0f), core::vec3f(7.0f, 8.0f, 9.0f));
+        auto m2 = core::m3x3(core::v(1.0f, 2.0f, 3.0f), core::v(4.0f, 5.0f, 6.0f), core::v(7.0f, 8.0f, 9.0f));
         Assert(m2[0].x() == 1.0f);
         Assert(m2[0].y() == 2.0f);
         Assert(m2[0].z() == 3.0f);
@@ -617,7 +617,7 @@ void mat3xN_constructors() {
     }
 
     {
-        auto m = core::m3x4(core::vec4f(1.0f, 2.0f, 3.0f, 4.0f), core::vec4f(5.0f, 6.0f, 7.0f, 8.0f), core::vec4f(9.0f, 10.0f, 11.0f, 12.0f));
+        auto m = core::m3x4(core::v(1.0f, 2.0f, 3.0f, 4.0f), core::v(5.0f, 6.0f, 7.0f, 8.0f), core::v(9.0f, 10.0f, 11.0f, 12.0f));
         Assert(m[0].x() == 1.0f);
         Assert(m[0].y() == 2.0f);
         Assert(m[0].z() == 3.0f);
@@ -721,7 +721,7 @@ void mat3xN_constructors() {
 
 void mat4xN_constructors() {
     {
-        auto m = core::m4x1(core::vec<1, f32>(1.0f), core::vec<1, f32>(2.0f), core::vec<1, f32>(3.0f), core::vec<1, f32>(4.0f));
+        auto m = core::m4x1(core::v(1.0f), core::v(2.0f), core::v(3.0f), core::v(4.0f));
         Assert(m[0].x() == 1.0f);
         Assert(m[1].x() == 2.0f);
         Assert(m[2].x() == 3.0f);
@@ -776,7 +776,7 @@ void mat4xN_constructors() {
         Assert(m3.data[3].data[0] == 0.9f);
     }
     {
-        auto m = core::m4x2(core::vec2f(1.0f, 2.0f), core::vec2f(3.0f, 4.0f), core::vec2f(5.0f, 6.0f), core::vec2f(7.0f, 8.0f));
+        auto m = core::m4x2(core::v(1.0f, 2.0f), core::v(3.0f, 4.0f), core::v(5.0f, 6.0f), core::v(7.0f, 8.0f));
         Assert(m[0].x() == 1.0f);
         Assert(m[0].y() == 2.0f);
         Assert(m[1].x() == 3.0f);
@@ -879,7 +879,7 @@ void mat4xN_constructors() {
         Assert(m3.data[3].data[1] == 8.0f);
     }
     {
-        auto m = core::m4x3(core::vec3f(1.0f, 2.0f, 3.0f), core::vec3f(4.0f, 5.0f, 6.0f), core::vec3f(7.0f, 8.0f, 9.0f), core::vec3f(10.0f, 11.0f, 12.0f));
+        auto m = core::m4x3(core::v(1.0f, 2.0f, 3.0f), core::v(4.0f, 5.0f, 6.0f), core::v(7.0f, 8.0f, 9.0f), core::v(10.0f, 11.0f, 12.0f));
         Assert(m[0].x() == 1.0f);
         Assert(m[0].y() == 2.0f);
         Assert(m[0].z() == 3.0f);
@@ -1024,7 +1024,7 @@ void mat4xN_constructors() {
         Assert(m1.data[3].data[2] == 15.0f);
         Assert(m1.data[3].data[3] == 16.0f);
 
-        auto m2 = core::m4x4(core::vec4f(1.0f, 2.0f, 3.0f, 4.0f), core::vec4f(5.0f, 6.0f, 7.0f, 8.0f), core::vec4f(9.0f, 10.0f, 11.0f, 12.0f), core::vec4f(13.0f, 14.0f, 15.0f, 16.0f));
+        auto m2 = core::m4x4(core::v(1.0f, 2.0f, 3.0f, 4.0f), core::v(5.0f, 6.0f, 7.0f, 8.0f), core::v(9.0f, 10.0f, 11.0f, 12.0f), core::v(13.0f, 14.0f, 15.0f, 16.0f));
         Assert(m1[0].y() == 2.0f);
         Assert(m1[0].z() == 3.0f);
         Assert(m1[0].w() == 4.0f);
@@ -1231,33 +1231,33 @@ void mat_mul() {
     // Matrix multiplication with scalars:
     {
         auto m1 = core::m2x2(1.0f, 2.0f, 3.0f, 4.0f);
-        m1.mul(2);
+        m1.mul(2.0f);
         Assert(m1 == core::m2x2(2.0f, 4.0f, 6.0f, 8.0f));
-        m1 *= 2;
+        m1 *= 2.0f;
         Assert(m1 == core::m2x2(4.0f, 8.0f, 12.0f, 16.0f));
-        m1 = m1 * 2;
+        m1 = m1 * 2.0f;
         Assert(m1 == core::m2x2(8.0f, 16.0f, 24.0f, 32.0f));
-        m1 = 2 * m1;
+        m1 = 2.0f * m1;
         Assert(m1 == core::m2x2(16.0f, 32.0f, 48.0f, 64.0f));
 
         auto m3 = core::m3x3(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f);
-        m3.mul(2);
+        m3.mul(2.0f);
         Assert(m3 == core::m3x3(2.0f, 4.0f, 6.0f, 8.0f, 10.0f, 12.0f, 14.0f, 16.0f, 18.0f));
-        m3 *= 2;
+        m3 *= 2.0f;
         Assert(m3 == core::m3x3(4.0f, 8.0f, 12.0f, 16.0f, 20.0f, 24.0f, 28.0f, 32.0f, 36.0f));
-        m3 = m3 * 2;
+        m3 = m3 * 2.0f;
         Assert(m3 == core::m3x3(8.0f, 16.0f, 24.0f, 32.0f, 40.0f, 48.0f, 56.0f, 64.0f, 72.0f));
-        m3 = 2 * m3;
+        m3 = 2.0f * m3;
         Assert(m3 == core::m3x3(16.0f, 32.0f, 48.0f, 64.0f, 80.0f, 96.0f, 112.0f, 128.0f, 144.0f));
 
         auto m4 = core::m4x4(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f);
-        m4.mul(2);
+        m4.mul(2.0f);
         Assert(m4 == core::m4x4(2.0f, 4.0f, 6.0f, 8.0f, 10.0f, 12.0f, 14.0f, 16.0f, 18.0f, 20.0f, 22.0f, 24.0f, 26.0f, 28.0f, 30.0f, 32.0f));
-        m4 *= 2;
+        m4 *= 2.0f;
         Assert(m4 == core::m4x4(4.0f, 8.0f, 12.0f, 16.0f, 20.0f, 24.0f, 28.0f, 32.0f, 36.0f, 40.0f, 44.0f, 48.0f, 52.0f, 56.0f, 60.0f, 64.0f));
-        m4 = m4 * 2;
+        m4 = m4 * 2.0f;
         Assert(m4 == core::m4x4(8.0f, 16.0f, 24.0f, 32.0f, 40.0f, 48.0f, 56.0f, 64.0f, 72.0f, 80.0f, 88.0f, 96.0f, 104.0f, 112.0f, 120.0f, 128.0f));
-        m4 = 2 * m4;
+        m4 = 2.0f * m4;
         Assert(m4 == core::m4x4(16.0f, 32.0f, 48.0f, 64.0f, 80.0f, 96.0f, 112.0f, 128.0f, 144.0f, 160.0f, 176.0f, 192.0f, 208.0f, 224.0f, 240.0f, 256.0f));
     }
     // Matrix by matrix multiplication:

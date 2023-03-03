@@ -1,4 +1,4 @@
-#pragma onces
+#pragma once
 
 #include <types.h>
 #include <mem.h>
@@ -84,8 +84,10 @@ constexpr void mmul(mat<DimRow, DimCol, TDst>& dst, const TVal& val) {
     }
 }
 
+// TODO: There probably is a way to write this template so that it takes precedence over the other mmul function when
+//       multiplying matrices. But I am not sure I want to do that. It might be better to explicitly call this.
 template<i32 DstDimRow, i32 DstDimCol, i32 SrcDimRow, i32 SrcDimCol, typename TDst, typename TSrc>
-constexpr mat<DstDimRow, SrcDimCol, TDst> mmul2(const mat<DstDimRow, DstDimCol, TDst>& dst, const mat<SrcDimRow, SrcDimCol, TSrc>& src) {
+constexpr mat<DstDimRow, SrcDimCol, TDst> mmul2(const mat<DstDimRow, DstDimCol, TDst>& m1, const mat<SrcDimRow, SrcDimCol, TSrc>& m2) {
     static_assert(DstDimCol == SrcDimRow, "Dimensions of matrices are not compatible");
 
     // Multiplyting matrix with different dimensions.
@@ -94,10 +96,26 @@ constexpr mat<DstDimRow, SrcDimCol, TDst> mmul2(const mat<DstDimRow, DstDimCol, 
 
     for (i32 i = 0; i < ret.dimensionsRows(); ++i) {
         for (i32 j = 0; j < ret.dimensionsCols(); ++j) {
-            ret[i][j] = dst[i][0] * static_cast<TDst>(src[0][j]);
+            ret[i][j] = m1[i][0] * static_cast<TDst>(m2[0][j]);
             for (i32 k = 1; k < DstDimCol; ++k) {
-                ret[i][j] += dst[i][k] * static_cast<TDst>(src[k][j]);
+                ret[i][j] += m1[i][k] * static_cast<TDst>(m2[k][j]);
             }
+        }
+    }
+
+    return ret;
+}
+
+template<i32 Dim, typename TDst, typename TSrc>
+constexpr vec<Dim, TDst> mmul2(const mat<Dim, Dim, TDst>& m, const vec<Dim, TSrc>& v) {
+    // Multiplyting matrix with different dimensions.
+    // This code has to create a new matrix!
+    vec<Dim, TDst> ret;
+
+    for (i32 i = 0; i < ret.dimensions(); ++i) {
+        ret[i] = m[i][0] * static_cast<TDst>(v[0]);
+        for (i32 k = 1; k < Dim; ++k) {
+            ret[i] += m[i][k] * static_cast<TDst>(v[k]);
         }
     }
 
@@ -165,10 +183,19 @@ constexpr TDst det(const mat<DimRow, DimCol, TDst>& m) {
 }
 
 template<i32 DimRow, i32 DimCol, typename TDst>
-constexpr mat<DimRow, DimCol, TDst> inverse(const mat<DimRow, DimCol, TDst>& m) {
+constexpr mat<DimRow, DimCol, TDst> minverse(const mat<DimRow, DimCol, TDst>&) {
     // TODO: Use Gauss-Jordan elimination to calculate the inverse. Or somthing more efficient if possible.
     Assert(false, "Not implemented");
     return {};
+}
+
+template<i32 Dim, typename T>
+constexpr mat<Dim, Dim, T> midentity() {
+    mat<Dim, Dim, T> ret = {};
+    for (i32 i = 0; i < Dim; ++i) {
+        ret[i][i] = 1;
+    }
+    return ret;
 }
 
 template<i32 DimRow, i32 DimCol, typename T>
@@ -187,6 +214,11 @@ struct mat {
     using MatrixType = mat<DimRow, DimCol, TM>;
 
     RowType data[DimRow] = {}; // initializing to zero allows use in constexpr.. c++ nonsense
+
+    constexpr auto identity() const {
+        static_assert(DimRow == DimCol, "Matrix must be square");
+        return midentity<DimRow, DataType>();
+    }
 
     constexpr RowType& operator[](i32 i) {
         Assert(i >= 0 && i < DimRow, "Index out of bounds");

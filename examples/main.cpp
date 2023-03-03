@@ -6,6 +6,7 @@
 #include "ex/common.h"
 #include "ex/experiment_01_triangle_and_quad.h"
 #include "ex/experiment_02_textures.h"
+#include "ex/experiment_03_transformations.h"
 #include "ex/experiment_app.h"
 
 // TODO: Drawing line segments is quite the problem to solve in one pass. I first need to:
@@ -94,7 +95,21 @@ i32 example_02() {
     return runExample(core::move(ex));
 }
 
+i32 example_03() {
+    Example ex;
+    ex.init = transformation_ex_03::init;
+    ex.destroy = transformation_ex_03::destroy;
+    ex.preMainLoop = transformation_ex_03::preMainLoop;
+    ex.mainLoop = transformation_ex_03::mainLoop;
+    ex.waitForEvents = false;
+    return runExample(core::move(ex));
+}
+
 i32 main(i32, char const**) {
     initCore();
-    return example_02();
+    core::vec4f v = {1.0f, 0.0f, 0.0f, 1.0f};
+    core::mat4x4f m = core::midentity<4, f32>();
+    core::translate(m, core::v(1.0f, 1.0f, 1.0f));
+    v = core::mmul2(m, v);
+    return 0;
 }

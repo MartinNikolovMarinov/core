@@ -1328,6 +1328,60 @@ void mat_determinant() {
     Assert(core::nearly_eq(core::det(m7), 1494.99988f, 0.00001f));
 }
 
+void mat_identity() {
+    auto m1 = core::m2x2<f32>({ 1.0f, 2.0f }, { 3.0f, 4.0f });
+    Assert(m1.identity() == core::m2x2<f32>({ 1.0f, 0.0f }, { 0.0f, 1.0f }));
+    Assert(m1.identity() * m1 == m1);
+    Assert(m1 * m1.identity() == m1);
+
+    auto m2 = core::m3x3<f32>({ 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 1.0f, 0.0f },
+                              { 1.0f, 0.0f, 1.0f });
+    Assert(m2.identity() == core::m3x3<f32>({ 1.0f, 0.0f, 0.0f },
+                                            { 0.0f, 1.0f, 0.0f },
+                                            { 0.0f, 0.0f, 1.0f }));
+    Assert(m2.identity() * m2 == m2);
+    Assert(m2 * m2.identity() == m2);
+
+    auto m3 = core::m4x4<f32>({ 1.0f, 2.0f, 3.0f, 4.0f },
+                              { 5.0f, 56.0f, 7.0f, 8.0f },
+                              { 9.0f, 10.0f, 6.0f, 12.0f },
+                              { 13.0f, 14.0f, 15.0f, 16.0f });
+    Assert(m3.identity() == core::m4x4<f32>({ 1.0f, 0.0f, 0.0f, 0.0f },
+                                            { 0.0f, 1.0f, 0.0f, 0.0f },
+                                            { 0.0f, 0.0f, 1.0f, 0.0f },
+                                            { 0.0f, 0.0f, 0.0f, 1.0f }));
+    Assert(m3.identity() * m3 == m3);
+    Assert(m3 * m3.identity() == m3);
+
+    // Identity for non-square matrices is allowed but there is a difference between left and right identity.
+    // So the api is a bit more complex:
+    auto m4 = core::m2x3<f32>({ 1.0f, 2.0f, 3.0f }, { 4.0f, 5.0f, 6.0f });
+    Assert(core::mmul2(m4, core::midentity<m4.dimensionsCols(), f32>()) == m4);
+    Assert(core::mmul2(core::midentity<m4.dimensionsRows(), f32>(), m4) == m4);
+
+    auto m5 = core::m3x2<f32>({ 1.0f, 2.0f }, { 3.0f, 4.0f }, { 5.0f, 6.0f });
+    Assert(core::mmul2(m5, core::midentity<m5.dimensionsCols(), f32>()) == m5);
+    Assert(core::mmul2(core::midentity<m5.dimensionsRows(), f32>(), m5) == m5);
+
+    auto m6 = core::m3x4<f32>({ 1.0f, 2.0f, 3.0f, 4.0f },
+                              { 5.0f, 6.0f, 7.0f, 8.0f },
+                              { 9.0f, 10.0f, 11.0f, 12.0f });
+    Assert(core::mmul2(m6, core::midentity<m6.dimensionsCols(), f32>()) == m6);
+    Assert(core::mmul2(core::midentity<m6.dimensionsRows(), f32>(), m6) == m6);
+
+    auto m7 = core::m4x3<f32>({ 1.0f, 2.0f, 3.0f },
+                              { 4.0f, 5.0f, 6.0f },
+                              { 7.0f, 8.0f, 9.0f },
+                              { 10.0f, 11.0f, 12.0f });
+    Assert(core::mmul2(m7, core::midentity<m7.dimensionsCols(), f32>()) == m7);
+    Assert(core::mmul2(core::midentity<m7.dimensionsRows(), f32>(), m7) == m7);
+
+    auto m8 = core::m4x1<f32>(1.0f, 2.0f, 3.0f, 4.0f);
+    Assert(core::mmul2(m8, core::midentity<m8.dimensionsCols(), f32>()) == m8);
+    Assert(core::mmul2(core::midentity<m8.dimensionsRows(), f32>(), m8) == m8);
+}
+
 void run_mat_tests_suite() {
     RunTest(mat1xN_constructors);
     RunTest(mat2xN_constructors);
@@ -1338,4 +1392,5 @@ void run_mat_tests_suite() {
     RunTest(mat_sub);
     RunTest(mat_mul);
     RunTest(mat_determinant);
+    RunTest(mat_identity);
 }

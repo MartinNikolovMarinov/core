@@ -3,6 +3,7 @@
 #include <types.h>
 #include <arr.h>
 #include <std/vec.h>
+#include <std/mat.h>
 
 #include <type_traits>
 
@@ -10,7 +11,7 @@ namespace core {
 
 using namespace coretypes;
 
-// TODO: Implement versions that use a matrix.
+// Translate
 
 template<typename T, i32 Dim>
 constexpr void translate(vec<Dim, T>& src, const vec<Dim, T>& t) {
@@ -25,6 +26,15 @@ constexpr void translate(arr<vec<Dim, T>>& src, const vec<Dim, T>& t) {
         translate(src[i], t);
     }
 }
+
+template<typename T, i32 Dim>
+constexpr void translate(mat<Dim + 1, Dim + 1, T>& m, const vec<Dim, T>& t) {
+    for (i32 i = 0; i < t.dimensions(); ++i) {
+        m[0][i] += t[i];
+    }
+}
+
+// Scale
 
 template<typename T, i32 Dim>
 constexpr void scale(vec<Dim, T>& src, const vec<Dim, T>& s) {
@@ -53,6 +63,22 @@ constexpr void scale(arr<vec<Dim, T>>& src, const vec<Dim, T>& reference, const 
         scale(src[i], reference, s);
     }
 }
+
+template<typename T, i32 Dim>
+constexpr void scale(mat<Dim, Dim, T>& m, const vec<Dim, T>& s) {
+    for (i32 i = 0; i < m.dimensionsRows(); ++i) {
+        m[i][i] *= s[i];
+    }
+}
+
+template<typename T, i32 Dim>
+constexpr void scale(mat<Dim, Dim, T>& m, const vec<Dim, T>& reference, const vec<Dim, T>& s) {
+    for (i32 i = 0; i < m.dimensionsRows(); ++i) {
+        m[i][i] = reference[i] + (m[i][i] - reference[i]) * s[i];
+    }
+}
+
+// Rotate
 
 template<typename TFloat>
 constexpr void rotate(vec2<TFloat>& src, const vec2<TFloat>& origin, TFloat angle) {

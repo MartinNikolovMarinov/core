@@ -254,11 +254,9 @@ struct vec {
 
     constexpr f64 length() const { return vlength(*this); }
 
-    template<typename U>
-    constexpr f64 dot(const vec<Dim, U>& other) const { return vdot(*this, other); }
+    constexpr f64 dot(const vec<Dim, DataType>& other) const { return vdot(*this, other); }
 
-    template<typename U>
-    constexpr vec<Dim, DataType> cross(const vec<Dim, U>& other) const { return vcross(*this, other); }
+    constexpr vec<Dim, DataType> cross(const vec<Dim, DataType>& other) const { return vcross(*this, other); }
 
     constexpr vec<Dim, DataType> norm() const { return vnorm(*this); }
 

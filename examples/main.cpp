@@ -107,8 +107,10 @@ i32 example_03() {
 
 i32 main(i32, char const**) {
     initCore();
-    auto a = core::v(1.0f, 2, 3);
-    auto b = core::v(1, 2);
-    auto c = core::v(1);
+    auto vec = core::v(1.0f, 0.0f, 0.0f, 1.0f);
+    auto trans = core::midentity<4, f32>();
+    trans = core::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
+    vec = trans * vec;
+    fmt::print("{} {} {}\n", vec.x(), vec.y(), vec.z());
     return 0;
 }

@@ -1225,6 +1225,12 @@ void mat_sub() {
         Assert(m3 - m4 == core::m3x3(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f));
         Assert(m4 - m3 == core::m3x3(-1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f));
     }
+    {
+        auto m1 = core::m2x2<f32>(2.0f, 3.0f, 4.0f, 5.0f);
+        auto m2 = core::m2x2<i32>(1, 2, 3, 4);
+        m1.sub(m2);
+        Assert(m1 == core::m2x2<f32>(1.0f, 1.0f, 1.0f, 1.0f));
+    }
 }
 
 void mat_mul() {
@@ -1280,44 +1286,78 @@ void mat_mul() {
         auto m7 = core::m2x3<f32>({ 1.0f, 2.0f, 3.0f }, { 4.0f, 5.0f, 6.0f });
         auto m8 = core::m3x2<f32>({ 7.0f, 8.0f }, { 9.0f, 10.0f }, { 11.0f, 12.0f });
         // m7 * m8 is ambiguous, so use a function call instead:
-        Assert(core::mmul2(m7, m8) == core::m2x2<f32>({ 58.0f, 64.0f }, { 139.0f, 154.0f }));
-        Assert(core::mmul2(m8, m7) == core::m3x3<f32>({ 39.0f, 54.0f, 69.0f }, { 49.0f, 68.0f, 87.0f }, { 59.0f, 82.0f, 105.0f }));
+        Assert(core::mmul(m7, m8) == core::m2x2<f32>({ 58.0f, 64.0f }, { 139.0f, 154.0f }));
+        Assert(core::mmul(m8, m7) == core::m3x3<f32>({ 39.0f, 54.0f, 69.0f }, { 49.0f, 68.0f, 87.0f }, { 59.0f, 82.0f, 105.0f }));
 
         auto m9 = core::m3x4<f32>({ 1.0f, 2.0f, 3.0f, 4.0f }, { 5.0f, 6.0f, 7.0f, 8.0f }, { 9.0f, 10.0f, 11.0f, 12.0f });
         auto m10 = core::m4x3<f32>({ 13.0f, 14.0f, 15.0f }, { 16.0f, 17.0f, 18.0f }, { 19.0f, 20.0f, 21.0f }, { 22.0f, 23.0f, 24.0f });
-        Assert(core::mmul2(m9, m10) == core::m3x3<f32>({ 190.0f, 200.0f, 210.0f }, { 470.0f, 496.0f, 522.0f }, { 750.0f, 792.0f, 834.0f }));
-        Assert(core::mmul2(m10, m9) == core::m4x4<f32>({ 218.0f, 260.0f, 302.0f, 344.0f }, { 263.0f, 314.0f, 365.0f, 416.0f }, { 308.0f, 368.0f, 428.0f, 488.0f }, { 353.0f, 422.0f, 491.0f, 560.0f }));
+        Assert(core::mmul(m9, m10) == core::m3x3<f32>({ 190.0f, 200.0f, 210.0f }, { 470.0f, 496.0f, 522.0f }, { 750.0f, 792.0f, 834.0f }));
+        Assert(core::mmul(m10, m9) == core::m4x4<f32>({ 218.0f, 260.0f, 302.0f, 344.0f }, { 263.0f, 314.0f, 365.0f, 416.0f }, { 308.0f, 368.0f, 428.0f, 488.0f }, { 353.0f, 422.0f, 491.0f, 560.0f }));
 
         auto m11 = core::m4x2<f32>({ 1.0f, 2.0f }, { 3.0f, 4.0f }, { 5.0f, 6.0f }, { 7.0f, 8.0f });
         auto m12 = core::m2x2<f32>({ 9.0f, 10.0f }, { 11.0f, 12.0f });
-        Assert(core::mmul2(m11, m12) == core::m4x2<f32>({ 31.0f, 34.0f }, { 71.0f, 78.0f }, { 111.0f, 122.0f }, { 151.0f, 166.0f }));
+        Assert(core::mmul(m11, m12) == core::m4x2<f32>({ 31.0f, 34.0f }, { 71.0f, 78.0f }, { 111.0f, 122.0f }, { 151.0f, 166.0f }));
         // m12 * m11 is not allowed.
+    }
+    // Matrix by vector multiplication:
+    {
+        auto m1 = core::m2x2<f32>({ 1.0f, 2.0f }, { 3.0f, 4.0f });
+        auto v1 = core::v(5.0f, 6.0f);
+        Assert(m1 * v1 == core::v(17.0f, 39.0f));
+
+        auto m2 = core::m3x3<f32>({ 1.0f, 2.0f, 3.0f }, { 4.0f, 5.0f, 6.0f }, { 7.0f, 8.0f, 9.0f });
+        auto v2 = core::v(10.0f, 11.0f, 12.0f);
+        Assert(m2 * v2 == core::v(68.0f, 167.0f, 266.0f));
+
+        auto m3 = core::m4x4<f32>({ 1.0f, 2.0f, 3.0f, 4.0f }, { 5.0f, 6.0f, 7.0f, 8.0f }, { 9.0f, 10.0f, 11.0f, 12.0f }, { 13.0f, 14.0f, 15.0f, 16.0f });
+        auto v3 = core::v(17.0f, 18.0f, 19.0f, 20.0f);
+        Assert(m3 * v3 == core::v(190.0f, 486.0f, 782.0f, 1078.0f));
+
+        auto m4 = core::m3x2<f32>({ 1.0f, 2.0f }, { 3.0f, 4.0f }, { 5.0f, 6.0f });
+        auto v4 = core::v(7.0f, 8.0f);
+        Assert(m4 * v4 == core::v<f32>(23.0f, 53.0f, 83.0f));
+
+        auto m5 = core::m1x2<f32>({ 1.0f, 2.0f });
+        auto v5 = core::v(3.0f, 4.0f);
+        Assert(m5 * v5 == core::v(11.0f));
+
+        auto m6 = core::m1x3<f32>({ 1.0f, 2.0f, 3.0f });
+        auto v6 = core::v(4.0f, 5.0f, 6.0f);
+        Assert(m6 * v6 == core::v(32.0f));
+
+        auto m7 = core::m1x4<f32>({ 1.0f, 2.0f, 3.0f, 4.0f });
+        auto v7 = core::v(5.0f, 6.0f, 7.0f, 8.0f);
+        Assert(m7 * v7 == core::v(70.0f));
+
+        auto m8 = core::m2x1<f32>(1.0f, 2.0f);
+        auto v8 = core::v(3.0f);
+        Assert(m8 * v8 == core::v(3.0f, 6.0f));
     }
 }
 
 void mat_determinant() {
     auto m1 = core::m2x2<f32>({ 1.0f, 2.0f }, { 3.0f, 4.0f });
-    Assert(core::det(m1) == -2.0f);
+    Assert(core::mdet(m1) == -2.0f);
 
     auto m2 = core::m2x2<i32>({ 1, 2 }, { 3, 4 });
-    Assert(core::det(m2) == -2);
+    Assert(core::mdet(m2) == -2);
 
     auto m3 = core::m3x3<f32>({ 1.0f, 1.0f, 1.0f },
                               { 0.0f, 1.0f, 0.0f },
                               { 1.0f, 0.0f, 1.0f });
-    Assert(core::det(m3) == 0.0f);
+    Assert(core::mdet(m3) == 0.0f);
 
     auto m4 = core::m3x3<i32>({ 2, 8, 1 }, { 0, 1, 3 }, { 4, 5, 1 });
-    Assert(core::det(m4) == 64);
+    Assert(m4.det() == 64);
 
     auto m5 = core::m3x3<f32>(0.0f);
-    Assert(core::det(m5) == 0.0f);
+    Assert(core::mdet(m5) == 0.0f);
 
     auto m6 = core::m4x4<f32>({ 1.0f, 2.0f, 3.0f, 4.0f },
                               { 5.0f, 56.0f, 7.0f, 8.0f },
                               { 9.0f, 10.0f, 6.0f, 12.0f },
                               { 13.0f, 14.0f, 15.0f, 16.0f });
-    Assert(core::det(m6) == 9000.0f);
+    Assert(m6.det() == 9000.0f);
 
     core::mat<5, 5, f32> m7;
     m7[0] = core::v(3.0f, 12.0f, 3.0f, 4.0f, 5.0f);
@@ -1325,7 +1365,7 @@ void mat_determinant() {
     m7[2] = core::v(4.0f, 2.0f, 1.0f, 4.0f, 4.0f);
     m7[3] = core::v(5.0f, 6.0f, 2.0f, 3.0f, 5.0f);
     m7[4] = core::v(9.0f, 9.0f, 8.0f, 6.0f, 1.0f);
-    Assert(core::nearly_eq(core::det(m7), 1494.99988f, 0.00001f));
+    Assert(core::nearly_eq(core::mdet(m7), 1494.99988f, 0.00001f));
 }
 
 void mat_identity() {
@@ -1357,29 +1397,29 @@ void mat_identity() {
     // Identity for non-square matrices is allowed but there is a difference between left and right identity.
     // So the api is a bit more complex:
     auto m4 = core::m2x3<f32>({ 1.0f, 2.0f, 3.0f }, { 4.0f, 5.0f, 6.0f });
-    Assert(core::mmul2(m4, core::midentity<m4.dimensionsCols(), f32>()) == m4);
-    Assert(core::mmul2(core::midentity<m4.dimensionsRows(), f32>(), m4) == m4);
+    Assert(core::mmul(m4, core::midentity<m4.dimensionsCols(), f32>()) == m4);
+    Assert(core::mmul(core::midentity<m4.dimensionsRows(), f32>(), m4) == m4);
 
     auto m5 = core::m3x2<f32>({ 1.0f, 2.0f }, { 3.0f, 4.0f }, { 5.0f, 6.0f });
-    Assert(core::mmul2(m5, core::midentity<m5.dimensionsCols(), f32>()) == m5);
-    Assert(core::mmul2(core::midentity<m5.dimensionsRows(), f32>(), m5) == m5);
+    Assert(core::mmul(m5, core::midentity<m5.dimensionsCols(), f32>()) == m5);
+    Assert(core::mmul(core::midentity<m5.dimensionsRows(), f32>(), m5) == m5);
 
     auto m6 = core::m3x4<f32>({ 1.0f, 2.0f, 3.0f, 4.0f },
                               { 5.0f, 6.0f, 7.0f, 8.0f },
                               { 9.0f, 10.0f, 11.0f, 12.0f });
-    Assert(core::mmul2(m6, core::midentity<m6.dimensionsCols(), f32>()) == m6);
-    Assert(core::mmul2(core::midentity<m6.dimensionsRows(), f32>(), m6) == m6);
+    Assert(core::mmul(m6, core::midentity<m6.dimensionsCols(), f32>()) == m6);
+    Assert(core::mmul(core::midentity<m6.dimensionsRows(), f32>(), m6) == m6);
 
     auto m7 = core::m4x3<f32>({ 1.0f, 2.0f, 3.0f },
                               { 4.0f, 5.0f, 6.0f },
                               { 7.0f, 8.0f, 9.0f },
                               { 10.0f, 11.0f, 12.0f });
-    Assert(core::mmul2(m7, core::midentity<m7.dimensionsCols(), f32>()) == m7);
-    Assert(core::mmul2(core::midentity<m7.dimensionsRows(), f32>(), m7) == m7);
+    Assert(core::mmul(m7, core::midentity<m7.dimensionsCols(), f32>()) == m7);
+    Assert(core::mmul(core::midentity<m7.dimensionsRows(), f32>(), m7) == m7);
 
     auto m8 = core::m4x1<f32>(1.0f, 2.0f, 3.0f, 4.0f);
-    Assert(core::mmul2(m8, core::midentity<m8.dimensionsCols(), f32>()) == m8);
-    Assert(core::mmul2(core::midentity<m8.dimensionsRows(), f32>(), m8) == m8);
+    Assert(core::mmul(m8, core::midentity<m8.dimensionsCols(), f32>()) == m8);
+    Assert(core::mmul(core::midentity<m8.dimensionsRows(), f32>(), m8) == m8);
 }
 
 void run_mat_tests_suite() {

@@ -59,9 +59,8 @@ constexpr void madd(mat<TRow, TCol, T>& dst, typename mat<TRow, TCol, T>::DataTy
         vadd(dst[i], val);
     }
 }
-
-template<i32 DimRow, i32 DimCol, typename TDst, typename TSrc>
-constexpr void madd(mat<DimRow, DimCol, TDst>& dst, const mat<DimRow, DimCol, TSrc>& src) {
+template<i32 TRow, i32 TCol, typename T1, typename T2>
+constexpr void madd(mat<TRow, TCol, T1>& dst, const mat<TRow, TCol, T2>& src) {
     for (i32 i = 0; i < dst.dimensionsRows(); ++i) {
         vadd(dst[i], src[i]);
     }
@@ -69,24 +68,23 @@ constexpr void madd(mat<DimRow, DimCol, TDst>& dst, const mat<DimRow, DimCol, TS
 
 // Subtraction
 
-template<i32 DimRow, i32 DimCol, typename TDst, typename TVal>
-constexpr void msub(mat<DimRow, DimCol, TDst>& dst, const TVal& val) {
-    static_assert(std::is_arithmetic_v<TVal>, "TVal must be an arithmetic");
+template<i32 TRow, i32 TCol, typename T>
+constexpr void msub(mat<TRow, TCol, T>& dst, typename mat<TRow, TCol, T>::DataType val) {
     for (i32 i = 0; i < dst.dimensionsRows(); ++i) {
         vsub(dst[i], val);
     }
 }
-
-template<i32 DimRow, i32 DimCol, typename TDst, typename TSrc>
-constexpr void msub(mat<DimRow, DimCol, TDst>& dst, const mat<DimRow, DimCol, TSrc>& src) {
+template<i32 TRow, i32 TCol, typename T1, typename T2>
+constexpr void msub(mat<TRow, TCol, T1>& dst, const mat<TRow, TCol, T2>& src) {
     for (i32 i = 0; i < dst.dimensionsRows(); ++i) {
         vsub(dst[i], src[i]);
     }
 }
 
-template<i32 DimRow, i32 DimCol, typename TDst, typename TVal>
-constexpr void mmul(mat<DimRow, DimCol, TDst>& dst, const TVal& val) {
-    static_assert(std::is_arithmetic_v<TVal>, "TVal must be an arithmetic");
+// Multiplication
+
+template<i32 TRow, i32 TCol, typename T>
+constexpr void mmul(mat<TRow, TCol, T>& dst, typename mat<TRow, TCol, T>::DataType val) {
     for (i32 i = 0; i < dst.dimensionsRows(); ++i) {
         vmul(dst[i], val);
     }
@@ -94,19 +92,19 @@ constexpr void mmul(mat<DimRow, DimCol, TDst>& dst, const TVal& val) {
 
 // TODO: There probably is a way to write this template so that it takes precedence over the other mmul function when
 //       multiplying matrices. But I am not sure I want to do that. It might be better to explicitly call this.
-template<i32 DstDimRow, i32 DstDimCol, i32 SrcDimRow, i32 SrcDimCol, typename TDst, typename TSrc>
-constexpr mat<DstDimRow, SrcDimCol, TDst> mmul2(const mat<DstDimRow, DstDimCol, TDst>& m1, const mat<SrcDimRow, SrcDimCol, TSrc>& m2) {
-    static_assert(DstDimCol == SrcDimRow, "Dimensions of matrices are not compatible");
+template<i32 TRow1, i32 TCol1, i32 TRow2, i32 TCol2, typename T1, typename T2>
+constexpr mat<TRow1, TCol2, T1> mmul(const mat<TRow1, TCol1, T1>& m1, const mat<TRow2, TCol2, T2>& m2) {
+    static_assert(TCol1 == TRow2, "Dimensions of matrices are not compatible");
 
     // Multiplyting matrix with different dimensions.
     // This code has to create a new matrix!
-    mat<DstDimRow, SrcDimCol, TDst> ret;
+    mat<TRow1, TCol2, T1> ret;
 
     for (i32 i = 0; i < ret.dimensionsRows(); ++i) {
         for (i32 j = 0; j < ret.dimensionsCols(); ++j) {
-            ret[i][j] = m1[i][0] * static_cast<TDst>(m2[0][j]);
-            for (i32 k = 1; k < DstDimCol; ++k) {
-                ret[i][j] += m1[i][k] * static_cast<TDst>(m2[k][j]);
+            ret[i][j] = m1[i][0] * static_cast<T1>(m2[0][j]);
+            for (i32 k = 1; k < TCol1; ++k) {
+                ret[i][j] += m1[i][k] * static_cast<T1>(m2[k][j]);
             }
         }
     }
@@ -114,35 +112,37 @@ constexpr mat<DstDimRow, SrcDimCol, TDst> mmul2(const mat<DstDimRow, DstDimCol, 
     return ret;
 }
 
-template<i32 Dim, typename TDst, typename TSrc>
-constexpr vec<Dim, TDst> mmul2(const mat<Dim, Dim, TDst>& m, const vec<Dim, TSrc>& v) {
+template<i32 TRow, i32 TCol, typename T1, typename T2>
+constexpr vec<TRow, T1> mmul(const mat<TRow, TCol, T1>& m, const vec<TCol, T2>& v) {
     // Multiplyting matrix with different dimensions.
     // This code has to create a new matrix!
-    vec<Dim, TDst> ret;
+    vec<TRow, T1> ret;
 
     for (i32 i = 0; i < ret.dimensions(); ++i) {
-        ret[i] = m[i][0] * static_cast<TDst>(v[0]);
-        for (i32 k = 1; k < Dim; ++k) {
-            ret[i] += m[i][k] * static_cast<TDst>(v[k]);
+        ret[i] = m[i][0] * static_cast<T1>(v[0]);
+        for (i32 k = 1; k < m.dimensionsCols(); ++k) {
+            ret[i] += m[i][k] * static_cast<T1>(v[k]);
         }
     }
 
     return ret;
 }
 
-template<i32 DimRow, i32 DimCol, typename TDst>
-constexpr TDst det(const mat<DimRow, DimCol, TDst>& m) {
-    static_assert(DimRow == DimCol, "Matrix must be square");
+// Determinant
+
+template<i32 TRow, i32 TCol, typename T>
+constexpr T mdet(const mat<TRow, TCol, T>& m) {
+    static_assert(TRow == TCol, "Matrix must be square");
 
     // TODO: This works fine, but it will be a lot better if I just write out the code for each dimension.
     //       It will be much faster, easier to read and easer to use avx/sse instructions!
 
     auto mcpy = m;
-    TDst det = 1;
-    TDst total = 1;
+    T det = 1;
+    T total = 1;
     i32 bufIdx = 0;
-    TDst diagBuff[DimRow + 1];
-    constexpr i32 N = DimRow;
+    T diagBuff[TRow + 1];
+    constexpr i32 N = TRow;
 
     for (i32 i = 0; i < N; i++) {
         bufIdx = i;
@@ -157,9 +157,9 @@ constexpr TDst det(const mat<DimRow, DimCol, TDst>& m) {
         }
         if (bufIdx != i) {
             // swap the rows
-            core::swap(&mcpy[i], &mcpy[bufIdx], sizeof(TDst) * N);
+            core::swap(&mcpy[i], &mcpy[bufIdx], sizeof(T) * N);
             // multiply the determinant by -1
-            det = det * static_cast<TDst>(std::pow(-1, bufIdx - i));
+            det = det * static_cast<T>(std::pow(-1, bufIdx - i));
         }
 
         // store the values of the current row
@@ -169,8 +169,8 @@ constexpr TDst det(const mat<DimRow, DimCol, TDst>& m) {
 
         // traversing every row below the diagonal
         for (i32 j = i + 1; j < N; j++) {
-            TDst diagElem = diagBuff[i];
-            TDst currElem = mcpy[j][i];
+            T diagElem = diagBuff[i];
+            T currElem = mcpy[j][i];
 
             // traversing every column of the current row and multiplying every row.
             for (i32 k = 0; k < N; k++) {
@@ -190,12 +190,16 @@ constexpr TDst det(const mat<DimRow, DimCol, TDst>& m) {
     return det / total;
 }
 
-template<i32 DimRow, i32 DimCol, typename TDst>
-constexpr mat<DimRow, DimCol, TDst> minverse(const mat<DimRow, DimCol, TDst>&) {
+// Inverse
+
+template<i32 TRow, i32 TCol, typename T>
+constexpr mat<TRow, TCol, T> minverse(const mat<TRow, TCol, T>&) {
     // TODO: Use Gauss-Jordan elimination to calculate the inverse. Or somthing more efficient if possible.
     Assert(false, "Not implemented");
     return {};
 }
+
+// Identity
 
 template<i32 Dim, typename T>
 constexpr mat<Dim, Dim, T> midentity() {
@@ -242,29 +246,25 @@ struct mat {
     constexpr bool equals(const MatrixType<DataType>& other) const                   { return mequals(*this, other); }
     constexpr bool equals(const MatrixType<DataType>& other, DataType epsilon) const { return msafeequals(*this, other, epsilon); }
 
+    constexpr DataType det() const { return mdet(*this); }
+
     constexpr void negate() { mnegate(*this); }
 
-    template<typename U>  constexpr void add(const MatrixType<U>& other) { madd(*this, other); }
-    template<typename TA> constexpr void add(TA v)                       { madd(*this, v); }
-                          constexpr void inc()                           { add(DataType(1)); }
+    template<typename U> constexpr void add(const MatrixType<U>& other) { madd(*this, other); }
+                         constexpr void add(DataType v)                 { madd(*this, v); }
+                         constexpr void inc()                           { add(DataType(1)); }
 
-    template<typename U>  constexpr void sub(const MatrixType<U>& other) { msub(*this, other); }
-    template<typename TA> constexpr void sub(TA v)                       { msub(*this, v); }
-                          constexpr void dec()                           { sub(DataType(1)); }
+    template<typename U> constexpr void sub(const MatrixType<U>& other) { msub(*this, other); }
+                         constexpr void sub(DataType v)                 { msub(*this, v); }
+                         constexpr void dec()                           { sub(DataType(1)); }
 
-    template<typename TA> constexpr void mul(TA v)                       { mmul(*this, v); }
-    template<typename TA> constexpr void scale(TA v)                     { mul(v); }
+                         constexpr void mul(DataType v)                  { mmul(*this, v); }
+                         constexpr void scale(DataType v)                { mul(v); }
 
     // TODO: Write div here...
 
-#pragma region overloads "=="
-
     constexpr bool operator==(const MatrixType<T>& other) const { return equals(other); }
     constexpr bool operator!=(const MatrixType<T>& other) const { return !equals(other); }
-
-#pragma endregion
-
-#pragma region overloads negation
 
     constexpr MatrixType<DataType> operator-() const {
         MatrixType<DataType> ret = *this;
@@ -272,102 +272,93 @@ struct mat {
         return ret;
     }
 
-#pragma endregion
-
-#pragma region overloads increment and decrement
-
     constexpr MatrixType<DataType>& operator++() { inc(); return *this; }
     constexpr MatrixType<DataType>& operator--() { dec(); return *this; }
 
     constexpr MatrixType<DataType> operator++(int) { MatrixType<DataType> tmp(*this); inc(); return tmp; }
     constexpr MatrixType<DataType> operator--(int) { MatrixType<DataType> tmp(*this); dec(); return tmp; }
 
-#pragma endregion
-
-#pragma region overloads assignment operators
-
     constexpr MatrixType<DataType>& operator+=(const MatrixType<DataType>& other) { add(other); return *this; }
     constexpr MatrixType<DataType>& operator+=(DataType v)                        { add(v); return *this; }
     constexpr MatrixType<DataType>& operator-=(const MatrixType<DataType>& other) { sub(other); return *this; }
     constexpr MatrixType<DataType>& operator-=(DataType v)                        { sub(v); return *this; }
     constexpr MatrixType<DataType>& operator*=(DataType v)                        { mul(v); return *this; }
+};
 
-#pragma endregion
+// Operators
 
 #pragma region overloads "+"
 
-    friend constexpr MatrixType<DataType> operator+(const MatrixType<DataType>& v1, const MatrixType<DataType>& v2) {
-        MatrixType<DataType> ret = v1;
-        ret.add(v2);
-        return ret;
-    }
-    template<typename U>
-    friend constexpr MatrixType<DataType> operator+(const MatrixType<DataType>& v1, U v2) {
-        MatrixType<DataType> ret = v1;
-        ret.add(v2);
-        return ret;
-    }
-    template<typename U>
-    friend constexpr MatrixType<DataType> operator+(U v1, const MatrixType<DataType>& v2) {
-        MatrixType<DataType> ret = v2;
-        ret.add(v1);
-        return ret;
-    }
+template<i32 TRow, i32 TCol, typename T>
+constexpr mat<TRow, TCol, T> operator+(const mat<TRow, TCol, T>& lhs, const mat<TRow, TCol, T>& rhs) {
+    mat<TRow, TCol, T> ret = lhs;
+    ret.add(rhs);
+    return ret;
+}
+template<i32 TRow, i32 TCol, typename T>
+constexpr mat<TRow, TCol, T> operator+(const mat<TRow, TCol, T>& lhs, typename mat<TRow, TCol, T>::DataType rhs) {
+    mat<TRow, TCol, T> ret = lhs;
+    ret.add(rhs);
+    return ret;
+}
+template<i32 TRow, i32 TCol, typename T>
+constexpr mat<TRow, TCol, T> operator+(typename mat<TRow, TCol, T>::DataType lhs, const mat<TRow, TCol, T>& rhs) {
+    mat<TRow, TCol, T> ret = rhs;
+    ret.add(lhs);
+    return ret;
+}
 
 #pragma endregion
 
 #pragma region overloads "-"
 
-    friend constexpr MatrixType<DataType> operator-(const MatrixType<DataType>& v1, const MatrixType<DataType>& v2) {
-        MatrixType<DataType> ret = v1;
-        ret.sub(v2);
-        return ret;
+template<i32 TRow, i32 TCol, typename T>
+constexpr mat<TRow, TCol, T> operator-(const mat<TRow, TCol, T>& lhs, const mat<TRow, TCol, T>& rhs) {
+    mat<TRow, TCol, T> ret = lhs;
+    ret.sub(rhs);
+    return ret;
+}
+template<i32 TRow, i32 TCol, typename T>
+constexpr mat<TRow, TCol, T> operator-(const mat<TRow, TCol, T>& lhs, typename mat<TRow, TCol, T>::DataType rhs) {
+    mat<TRow, TCol, T> ret = lhs;
+    ret.sub(rhs);
+    return ret;
+}
+template<i32 TRow, i32 TCol, typename T>
+constexpr mat<TRow, TCol, T> operator-(typename mat<TRow, TCol, T>::DataType lhs, const mat<TRow, TCol, T>& rhs) {
+    mat<TRow, TCol, T> ret = rhs;
+    for (i32 i = 0; i < ret.dimensions(); ++i) {
+        ret[i] = -(ret[i] - static_cast<T>(lhs));
     }
-    template<typename U>
-    friend constexpr MatrixType<DataType> operator-(const MatrixType<DataType>& v1, U v2) {
-        MatrixType<DataType> ret = v1;
-        ret.sub(v2);
-        return ret;
-    }
-    template<typename U>
-    friend constexpr MatrixType<DataType> operator-(U v1, const MatrixType<DataType>& v2) {
-        MatrixType<DataType> ret = v2;
-        for (i32 i = 0; i < ret.dimensions(); ++i) {
-            ret[i] = -(ret[i] - static_cast<T>(v1));
-        }
-        return ret;
-    }
+    return ret;
+}
 
 #pragma endregion
 
 #pragma region overloads "*"
 
-    friend constexpr MatrixType<DataType> operator*(const MatrixType<DataType>& v1, const MatrixType<DataType>& v2) {
-        return mmul2(v1, v2);
-    }
-    template<typename U>
-    friend constexpr MatrixType<DataType> operator*(const MatrixType<DataType>& v1, U v2) {
-        MatrixType<DataType> ret = v1;
-        ret.mul(v2);
-        return ret;
-    }
-    template<typename U>
-    friend constexpr MatrixType<DataType> operator*(U v1, const MatrixType<DataType>& v2) {
-        MatrixType<DataType> ret = v2;
-        ret.mul(v1);
-        return ret;
-    }
-    template<typename U>
-    friend constexpr RowType operator*(const MatrixType<DataType>& v1, const vec<DimCol, U>& v2) {
-        return mmul2(v1, v2);
-    }
+template<i32 TRow, i32 TCol, typename T>
+constexpr mat<TRow, TCol, T> operator*(const mat<TRow, TCol, T>& lhs, const mat<TRow, TCol, T>& rhs) {
+    return mmul(lhs, rhs);
+}
+template<i32 TRow, i32 TCol, typename T>
+constexpr mat<TRow, TCol, T> operator*(const mat<TRow, TCol, T>& lhs, typename mat<TRow, TCol, T>::DataType rhs) {
+    mat<TRow, TCol, T> ret = lhs;
+    ret.mul(rhs);
+    return ret;
+}
+template<i32 TRow, i32 TCol, typename T>
+constexpr mat<TRow, TCol, T> operator*(typename mat<TRow, TCol, T>::DataType lhs, const mat<TRow, TCol, T>& rhs) {
+    mat<TRow, TCol, T> ret = rhs;
+    ret.mul(lhs);
+    return ret;
+}
+template<i32 TRow, i32 TCol, typename T>
+constexpr vec<TRow, typename mat<TRow, TCol, T>::DataType> operator*(const mat<TRow, TCol, T>& lhs, const vec<TCol, typename mat<TRow, TCol, T>::DataType>& rhs) {
+    return mmul(lhs, rhs);
+}
 
 #pragma endregion
-
-};
-
-// Operators
-
 
 // Definitions
 

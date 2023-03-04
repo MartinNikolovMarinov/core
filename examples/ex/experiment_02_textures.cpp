@@ -25,8 +25,9 @@ struct State {
     u32 textureColorVBOId;
 };
 
-State& state() {
+State& state(bool clear = false) {
     static State g_state = {};
+    if (clear) g_state = {};
     return g_state;
 }
 
@@ -74,7 +75,16 @@ core::expected<GraphicsLibError> init(CommonState& s) {
     return {};
 }
 
-void destroy() {}
+void destroy() {
+    State& g_s = state();
+    glDeleteBuffers(1, &g_s.quadVBOId);
+    glDeleteVertexArrays(1, &g_s.quadVAOId);
+    glDeleteBuffers(1, &g_s.quadEBOId);
+    glDeleteBuffers(1, &g_s.textureColorVBOId);
+    glDeleteTextures(1, &g_s.textureId);
+    g_s.shaderProg.destroy();
+    state(true);
+}
 
 core::expected<GraphicsLibError> preMainLoop(CommonState&) {
     State& g_s = state();

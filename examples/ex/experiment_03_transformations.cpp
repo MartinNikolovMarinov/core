@@ -18,8 +18,9 @@ struct State {
     core::mat4x4f quadTransform;
 };
 
-State& state() {
+State& state(bool clear = false) {
     static State g_state = {};
+    if (clear) g_state = {};
     return g_state;
 }
 
@@ -67,10 +68,17 @@ core::expected<GraphicsLibError> init(CommonState& s) {
     return {};
 }
 
-void destroy() {}
+void destroy() {
+    State& g_s = state();
+    glDeleteBuffers(1, &g_s.quadVBOId);
+    glDeleteVertexArrays(1, &g_s.quadVAOId);
+    glDeleteBuffers(1, &g_s.quadEBOId);
+    g_s.shaderProg.destroy();
+    state(true);
+}
 
 core::expected<GraphicsLibError> preMainLoop(CommonState&) {
-        State& g_s = state();
+    State& g_s = state();
 
     // Create shader program:
     {
@@ -100,7 +108,7 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
 
     // Create quad:
     {
-        g_s.quadColor = core::v(0.2f, 0.3f, 0.8f, 1.0f);
+        g_s.quadColor = core::v(0.2f, 0.7f, 0.5f, 1.0f);
 
         core::arr<core::vec2f> vertices(0, 4);
         vertices.append(core::v(0.5f, 0.5f));   // left

@@ -20,8 +20,9 @@ struct State {
     core::vec4f quadColor;
 };
 
-State& state() {
+State& state(bool clear = false) {
     static State g_state = {};
+    if (clear) g_state = {};
     return g_state;
 }
 
@@ -69,7 +70,16 @@ core::expected<GraphicsLibError> init(CommonState& s) {
     return {};
 }
 
-void destroy() {}
+void destroy() {
+    State& g_s = state();
+    glDeleteBuffers(1, &g_s.trinagleVBOId);
+    glDeleteVertexArrays(1, &g_s.triangleVAOId);
+    glDeleteBuffers(1, &g_s.quadVBOId);
+    glDeleteVertexArrays(1, &g_s.quadVAOId);
+    glDeleteBuffers(1, &g_s.quadEBOId);
+    g_s.shaderProg.destroy();
+    state(true);
+}
 
 core::expected<GraphicsLibError> preMainLoop(CommonState&) {
     State& g_s = state();

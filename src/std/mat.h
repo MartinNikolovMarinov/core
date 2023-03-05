@@ -216,17 +216,16 @@ struct mat {
 
     static constexpr i32 dimensionsRows() { return DimRow; }
     static constexpr i32 dimensionsCols() { return DimCol; }
+    static constexpr auto identity() {
+        static_assert(DimRow == DimCol, "Matrix must be square");
+        return midentity<DimRow, DataType>();
+    }
 
     using RowType = vec<DimCol, DataType>;
     template <typename TM>
     using MatrixType = mat<DimRow, DimCol, TM>;
 
     RowType data[DimRow] = {}; // initializing to zero allows use in constexpr.. c++ nonsense
-
-    constexpr auto identity() const {
-        static_assert(DimRow == DimCol, "Matrix must be square");
-        return midentity<DimRow, DataType>();
-    }
 
     constexpr RowType& operator[](i32 i) {
         Assert(i >= 0 && i < DimRow, "Index out of bounds");
@@ -430,154 +429,154 @@ using mat4x4d = mat4x4<f64>;
 #pragma region Factory functions
 
 template<typename T>
-mat1x1<T> m1x1(const vec1<T>& v0) {
+constexpr mat1x1<T> m1x1(const vec1<T>& v0) {
     mat1x1<T> ret; ret[0] = v0;
     return ret;
 }
 template<typename T>
-mat1x1<T> m1x1(T x0) {
+constexpr mat1x1<T> m1x1(T x0) {
     mat1x1<T> ret;
     ret[0][0] = x0;
     return ret;
 }
 
 template<typename T>
-mat1x2<T> m1x2(const vec2<T>& v0) {
+constexpr mat1x2<T> m1x2(const vec2<T>& v0) {
     mat1x2<T> ret; ret[0] = v0;
     return ret;
 }
 template<typename T>
-mat1x2<T> m1x2(T x0, T y0) {
+constexpr mat1x2<T> m1x2(T x0, T y0) {
     mat1x2<T> ret;
     ret[0][0] = x0; ret[0][1] = y0;
     return ret;
 }
 template<typename T>
-mat1x2<T> m1x2(T v) {
+constexpr mat1x2<T> m1x2(T v) {
     mat1x2<T> ret;
     ret[0][0] = ret[0][1] = v;
     return ret;
 }
 
 template<typename T>
-mat1x3<T> m1x3(const vec3<T>& v0) {
+constexpr mat1x3<T> m1x3(const vec3<T>& v0) {
     mat1x3<T> ret; ret[0] = v0;
     return ret;
 }
 template<typename T>
-mat1x3<T> m1x3(T x0, T y0, T z0) {
+constexpr mat1x3<T> m1x3(T x0, T y0, T z0) {
     mat1x3<T> ret;
     ret[0][0] = x0; ret[0][1] = y0; ret[0][2] = z0;
     return ret;
 }
 template<typename T>
-mat1x3<T> m1x3(T v) {
+constexpr mat1x3<T> m1x3(T v) {
     mat1x3<T> ret;
     ret[0][0] = ret[0][1] = ret[0][2] = v;
     return ret;
 }
 
 template<typename T>
-mat1x4<T> m1x4(const vec4<T>& v0) {
+constexpr mat1x4<T> m1x4(const vec4<T>& v0) {
     mat1x4<T> ret; ret[0] = v0;
     return ret;
 }
 template<typename T>
-mat1x4<T> m1x4(T x0, T y0, T z0, T w0) {
+constexpr mat1x4<T> m1x4(T x0, T y0, T z0, T w0) {
     mat1x4<T> ret;
     ret[0][0] = x0; ret[0][1] = y0; ret[0][2] = z0; ret[0][3] = w0;
     return ret;
 }
 template<typename T>
-mat1x4<T> m1x4(T v) {
+constexpr mat1x4<T> m1x4(T v) {
     mat1x4<T> ret;
     ret[0][0] = ret[0][1] = ret[0][2] = ret[0][3] = v;
     return ret;
 }
 
 template<typename T>
-mat2x1<T> m2x1(const vec1<T>& v0, const vec1<T>& v1) {
+constexpr mat2x1<T> m2x1(const vec1<T>& v0, const vec1<T>& v1) {
     mat2x1<T> ret; ret[0] = v0; ret[1] = v1;
     return ret;
 }
 template<typename T>
-mat2x1<T> m2x1(T x0, T x1) {
+constexpr mat2x1<T> m2x1(T x0, T x1) {
     mat2x1<T> ret;
     ret[0][0] = x0;
     ret[1][0] = x1;
     return ret;
 }
 template<typename T>
-mat2x1<T> m2x1(T v) {
+constexpr mat2x1<T> m2x1(T v) {
     mat2x1<T> ret;
     ret[0][0] = ret[1][0] = v;
     return ret;
 }
 
 template<typename T>
-mat2x2<T> m2x2(const vec2<T>& v0, const vec2<T>& v1) {
+constexpr mat2x2<T> m2x2(const vec2<T>& v0, const vec2<T>& v1) {
     mat2x2<T> ret; ret[0] = v0; ret[1] = v1;
     return ret;
 }
 template<typename T>
-mat2x2<T> m2x2(T x0, T y0, T x1, T y1) {
+constexpr mat2x2<T> m2x2(T x0, T y0, T x1, T y1) {
     mat2x2<T> ret;
     ret[0][0] = x0; ret[0][1] = y0;
     ret[1][0] = x1; ret[1][1] = y1;
     return ret;
 }
 template<typename T>
-mat2x2<T> m2x2(T v) {
+constexpr mat2x2<T> m2x2(T v) {
     mat2x2<T> ret;
     ret[0][0] = ret[0][1] = ret[1][0] = ret[1][1] = v;
     return ret;
 }
 
 template<typename T>
-mat2x3<T> m2x3(const vec3<T>& v0, const vec3<T>& v1) {
+constexpr mat2x3<T> m2x3(const vec3<T>& v0, const vec3<T>& v1) {
     mat2x3 <T> ret; ret[0] = v0; ret[1] = v1;
     return ret;
 }
 template<typename T>
-mat2x3<T> m2x3(T x0, T y0, T z0, T x1, T y1, T z1) {
+constexpr mat2x3<T> m2x3(T x0, T y0, T z0, T x1, T y1, T z1) {
     mat2x3<T> ret;
     ret[0][0] = x0; ret[0][1] = y0; ret[0][2] = z0;
     ret[1][0] = x1; ret[1][1] = y1; ret[1][2] = z1;
     return ret;
 }
 template<typename T>
-mat2x3<T> m2x3(T v) {
+constexpr mat2x3<T> m2x3(T v) {
     mat2x3<T> ret;
     ret[0][0] = ret[0][1] = ret[0][2] = ret[1][0] = ret[1][1] = ret[1][2] = v;
     return ret;
 }
 
 template<typename T>
-mat2x4<T> m2x4(const vec4<T>& v0, const vec4<T>& v1) {
+constexpr mat2x4<T> m2x4(const vec4<T>& v0, const vec4<T>& v1) {
     mat2x4 <T> ret; ret[0] = v0; ret[1] = v1;
     return ret;
 }
 template<typename T>
-mat2x4<T> m2x4(T x0, T y0, T z0, T w0, T x1, T y1, T z1, T w1) {
+constexpr mat2x4<T> m2x4(T x0, T y0, T z0, T w0, T x1, T y1, T z1, T w1) {
     mat2x4<T> ret;
     ret[0][0] = x0; ret[0][1] = y0; ret[0][2] = z0; ret[0][3] = w0;
     ret[1][0] = x1; ret[1][1] = y1; ret[1][2] = z1; ret[1][3] = w1;
     return ret;
 }
 template<typename T>
-mat2x4<T> m2x4(T v) {
+constexpr mat2x4<T> m2x4(T v) {
     mat2x4<T> ret;
     ret[0][0] = ret[0][1] = ret[0][2] = ret[0][3] = ret[1][0] = ret[1][1] = ret[1][2] = ret[1][3] = v;
     return ret;
 }
 
 template<typename T>
-mat3x1<T> m3x1(const vec1<T>& v0, const vec1<T>& v1, const vec1<T>& v2) {
+constexpr mat3x1<T> m3x1(const vec1<T>& v0, const vec1<T>& v1, const vec1<T>& v2) {
     mat3x1<T> ret; ret[0] = v0; ret[1] = v1; ret[2] = v2;
     return ret;
 }
 template<typename T>
-mat3x1<T> m3x1(T x0, T x1, T x2) {
+constexpr mat3x1<T> m3x1(T x0, T x1, T x2) {
     mat3x1<T> ret;
     ret[0][0] = x0;
     ret[1][0] = x1;
@@ -585,19 +584,19 @@ mat3x1<T> m3x1(T x0, T x1, T x2) {
     return ret;
 }
 template<typename T>
-mat3x1<T> m3x1(T v) {
+constexpr mat3x1<T> m3x1(T v) {
     mat3x1<T> ret;
     ret[0][0] = ret[1][0] = ret[2][0] = v;
     return ret;
 }
 
 template<typename T>
-mat3x2<T> m3x2(const vec2<T>& v0, const vec2<T>& v1, const vec2<T>& v2) {
+constexpr mat3x2<T> m3x2(const vec2<T>& v0, const vec2<T>& v1, const vec2<T>& v2) {
     mat3x2 <T> ret; ret[0] = v0; ret[1] = v1; ret[2] = v2;
     return ret;
 }
 template<typename T>
-mat3x2<T> m3x2(T x0, T y0, T x1, T y1, T x2, T y2) {
+constexpr mat3x2<T> m3x2(T x0, T y0, T x1, T y1, T x2, T y2) {
     mat3x2<T> ret;
     ret[0][0] = x0; ret[0][1] = y0;
     ret[1][0] = x1; ret[1][1] = y1;
@@ -605,19 +604,19 @@ mat3x2<T> m3x2(T x0, T y0, T x1, T y1, T x2, T y2) {
     return ret;
 }
 template<typename T>
-mat3x2<T> m3x2(T v) {
+constexpr mat3x2<T> m3x2(T v) {
     mat3x2<T> ret;
     ret[0][0] = ret[0][1] = ret[1][0] = ret[1][1] = ret[2][0] = ret[2][1] = v;
     return ret;
 }
 
 template<typename T>
-mat3x3<T> m3x3(const vec3<T>& v0, const vec3<T>& v1, const vec3<T>& v2) {
+constexpr mat3x3<T> m3x3(const vec3<T>& v0, const vec3<T>& v1, const vec3<T>& v2) {
     mat3x3 <T> ret; ret[0] = v0; ret[1] = v1; ret[2] = v2;
     return ret;
 }
 template<typename T>
-mat3x3<T> m3x3(T x0, T y0, T z0, T x1, T y1, T z1, T x2, T y2, T z2) {
+constexpr mat3x3<T> m3x3(T x0, T y0, T z0, T x1, T y1, T z1, T x2, T y2, T z2) {
     mat3x3<T> ret;
     ret[0][0] = x0; ret[0][1] = y0; ret[0][2] = z0;
     ret[1][0] = x1; ret[1][1] = y1; ret[1][2] = z1;
@@ -625,19 +624,19 @@ mat3x3<T> m3x3(T x0, T y0, T z0, T x1, T y1, T z1, T x2, T y2, T z2) {
     return ret;
 }
 template<typename T>
-mat3x3<T> m3x3(T v) {
+constexpr mat3x3<T> m3x3(T v) {
     mat3x3<T> ret;
     ret[0][0] = ret[0][1] = ret[0][2] = ret[1][0] = ret[1][1] = ret[1][2] = ret[2][0] = ret[2][1] = ret[2][2] = v;
     return ret;
 }
 
 template<typename T>
-mat3x4<T> m3x4(const vec4<T>& v0, const vec4<T>& v1, const vec4<T>& v2) {
+constexpr mat3x4<T> m3x4(const vec4<T>& v0, const vec4<T>& v1, const vec4<T>& v2) {
     mat3x4 <T> ret; ret[0] = v0; ret[1] = v1; ret[2] = v2;
     return ret;
 }
 template<typename T>
-mat3x4<T> m3x4(T x0, T y0, T z0, T w0, T x1, T y1, T z1, T w1, T x2, T y2, T z2, T w2) {
+constexpr mat3x4<T> m3x4(T x0, T y0, T z0, T w0, T x1, T y1, T z1, T w1, T x2, T y2, T z2, T w2) {
     mat3x4<T> ret;
     ret[0][0] = x0; ret[0][1] = y0; ret[0][2] = z0; ret[0][3] = w0;
     ret[1][0] = x1; ret[1][1] = y1; ret[1][2] = z1; ret[1][3] = w1;
@@ -645,19 +644,19 @@ mat3x4<T> m3x4(T x0, T y0, T z0, T w0, T x1, T y1, T z1, T w1, T x2, T y2, T z2,
     return ret;
 }
 template<typename T>
-mat3x4<T> m3x4(T v) {
+constexpr mat3x4<T> m3x4(T v) {
     mat3x4<T> ret;
     ret[0][0] = ret[0][1] = ret[0][2] = ret[0][3] = ret[1][0] = ret[1][1] = ret[1][2] = ret[1][3] = ret[2][0] = ret[2][1] = ret[2][2] = ret[2][3] = v;
     return ret;
 }
 
 template<typename T>
-mat4x1<T> m4x1(const vec1<T>& v0, const vec1<T>& v1, const vec1<T>& v2, const vec1<T>& v3) {
+constexpr mat4x1<T> m4x1(const vec1<T>& v0, const vec1<T>& v1, const vec1<T>& v2, const vec1<T>& v3) {
     mat4x1 <T> ret; ret[0] = v0; ret[1] = v1; ret[2] = v2; ret[3] = v3;
     return ret;
 }
 template<typename T>
-mat4x1<T> m4x1(T x0, T x1, T x2, T x3) {
+constexpr mat4x1<T> m4x1(T x0, T x1, T x2, T x3) {
     mat4x1<T> ret;
     ret[0][0] = x0;
     ret[1][0] = x1;
@@ -666,19 +665,19 @@ mat4x1<T> m4x1(T x0, T x1, T x2, T x3) {
     return ret;
 }
 template<typename T>
-mat4x1<T> m4x1(T v) {
+constexpr mat4x1<T> m4x1(T v) {
     mat4x1<T> ret;
     ret[0][0] = ret[1][0] = ret[2][0] = ret[3][0] = v;
     return ret;
 }
 
 template<typename T>
-mat4x2<T> m4x2(const vec2<T>& v0, const vec2<T>& v1, const vec2<T>& v2, const vec2<T>& v3) {
+constexpr mat4x2<T> m4x2(const vec2<T>& v0, const vec2<T>& v1, const vec2<T>& v2, const vec2<T>& v3) {
     mat4x2 <T> ret; ret[0] = v0; ret[1] = v1; ret[2] = v2; ret[3] = v3;
     return ret;
 }
 template<typename T>
-mat4x2<T> m4x2(T x0, T y0, T x1, T y1, T x2, T y2, T x3, T y3) {
+constexpr mat4x2<T> m4x2(T x0, T y0, T x1, T y1, T x2, T y2, T x3, T y3) {
     mat4x2<T> ret;
     ret[0][0] = x0; ret[0][1] = y0;
     ret[1][0] = x1; ret[1][1] = y1;
@@ -687,19 +686,19 @@ mat4x2<T> m4x2(T x0, T y0, T x1, T y1, T x2, T y2, T x3, T y3) {
     return ret;
 }
 template<typename T>
-mat4x2<T> m4x2(T v) {
+constexpr mat4x2<T> m4x2(T v) {
     mat4x2<T> ret;
     ret[0][0] = ret[0][1] = ret[1][0] = ret[1][1] = ret[2][0] = ret[2][1] = ret[3][0] = ret[3][1] = v;
     return ret;
 }
 
 template<typename T>
-mat4x3<T> m4x3(const vec3<T>& v0, const vec3<T>& v1, const vec3<T>& v2, const vec3<T>& v3) {
+constexpr mat4x3<T> m4x3(const vec3<T>& v0, const vec3<T>& v1, const vec3<T>& v2, const vec3<T>& v3) {
     mat4x3 <T> ret; ret[0] = v0; ret[1] = v1; ret[2] = v2; ret[3] = v3;
     return ret;
 }
 template<typename T>
-mat4x3<T> m4x3(T x0, T y0, T z0, T x1, T y1, T z1, T x2, T y2, T z2, T x3, T y3, T z3) {
+constexpr mat4x3<T> m4x3(T x0, T y0, T z0, T x1, T y1, T z1, T x2, T y2, T z2, T x3, T y3, T z3) {
     mat4x3<T> ret;
     ret[0][0] = x0; ret[0][1] = y0; ret[0][2] = z0;
     ret[1][0] = x1; ret[1][1] = y1; ret[1][2] = z1;
@@ -708,19 +707,19 @@ mat4x3<T> m4x3(T x0, T y0, T z0, T x1, T y1, T z1, T x2, T y2, T z2, T x3, T y3,
     return ret;
 }
 template<typename T>
-mat4x3<T> m4x3(T v) {
+constexpr mat4x3<T> m4x3(T v) {
     mat4x3<T> ret;
     ret[0][0] = ret[0][1] = ret[0][2] = ret[1][0] = ret[1][1] = ret[1][2] = ret[2][0] = ret[2][1] = ret[2][2] = ret[3][0] = ret[3][1] = ret[3][2] = v;
     return ret;
 }
 
 template<typename T>
-mat4x4<T> m4x4(const vec4<T>& v0, const vec4<T>& v1, const vec4<T>& v2, const vec4<T>& v3) {
+constexpr mat4x4<T> m4x4(const vec4<T>& v0, const vec4<T>& v1, const vec4<T>& v2, const vec4<T>& v3) {
     mat4x4 <T> ret; ret[0] = v0; ret[1] = v1; ret[2] = v2; ret[3] = v3;
     return ret;
 }
 template<typename T>
-mat4x4<T> m4x4(T x0, T y0, T z0, T w0, T x1, T y1, T z1, T w1, T x2, T y2, T z2, T w2, T x3, T y3, T z3, T w3) {
+constexpr mat4x4<T> m4x4(T x0, T y0, T z0, T w0, T x1, T y1, T z1, T w1, T x2, T y2, T z2, T w2, T x3, T y3, T z3, T w3) {
     mat4x4<T> ret;
     ret[0][0] = x0; ret[0][1] = y0; ret[0][2] = z0; ret[0][3] = w0;
     ret[1][0] = x1; ret[1][1] = y1; ret[1][2] = z1; ret[1][3] = w1;
@@ -729,7 +728,7 @@ mat4x4<T> m4x4(T x0, T y0, T z0, T w0, T x1, T y1, T z1, T w1, T x2, T y2, T z2,
     return ret;
 }
 template<typename T>
-mat4x4<T> m4x4(T v) {
+constexpr mat4x4<T> m4x4(T v) {
     mat4x4<T> ret;
     ret[0][0] = ret[0][1] = ret[0][2] = ret[0][3] = ret[1][0] = ret[1][1] = ret[1][2] = ret[1][3] = ret[2][0] = ret[2][1] = ret[2][2] = ret[2][3] = ret[3][0] = ret[3][1] = ret[3][2] = ret[3][3] = v;
     return ret;

@@ -83,6 +83,7 @@ set(src_files
     std/mat.h
     std/transforms.h
     std/stacktrace.h
+    std/projections.h
 
     std/allocators/alloc_std_stats.cpp
     std/allocators/alloc_std_stats.h

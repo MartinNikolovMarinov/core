@@ -7,6 +7,8 @@
 
 #include <type_traits>
 
+// FIXME: Create a concrete type for radians! The api should make it obvious that radians are used.
+
 namespace core {
 
 using namespace coretypes;
@@ -80,6 +82,8 @@ constexpr void scale(mat4x4<T>& m, const vec<Dim, T>& axis, const vec<Dim, T>& s
 
 // Rotate
 
+// FIXME: Think about switching the default dirrection of rotation to be clockwise ?
+
 template<typename TFloat>
 constexpr void rotate(vec2<TFloat>& v, const vec2<TFloat>& axis, TFloat angle) {
     static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
@@ -137,9 +141,10 @@ constexpr void rotate(mat4x4<TFloat>& m, const vec3<TFloat>& axis, TFloat angle)
     TFloat s = std::sin(angle);
     TFloat t = 1 - c;
 
-    TFloat x = axis.x();
-    TFloat y = axis.y();
-    TFloat z = axis.z();
+    auto naxis = core::vnorm(axis);
+    TFloat x = naxis.x();
+    TFloat y = naxis.y();
+    TFloat z = naxis.z();
 
     TFloat x2 = x * x;
     TFloat y2 = y * y;

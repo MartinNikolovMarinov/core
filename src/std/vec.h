@@ -146,19 +146,6 @@ constexpr bool vsafeequals(const vec<Dim, T>& v1, const vec<Dim, T>& v2, T epsil
     return true;
 }
 
-// Normalization
-
-template<i32 Dim, typename T>
-constexpr vec<Dim, T> vnorm(const vec<Dim, T>& v) {
-    f64 len = vlength(v);
-    if (len == 0) return v.zero();
-    vec<Dim, T> ret = v;
-    for (i32 i = 0; i < v.dimensions(); ++i) {
-        ret[i] /= static_cast<T>(len);
-    }
-    return ret;
-}
-
 // Uniform
 
 template<i32 Dim, typename T>
@@ -186,6 +173,19 @@ constexpr vec<Dim, T> vone() {
     vec<Dim, T> ret;
     for (i32 i = 0; i < Dim; ++i) {
         ret[i] = 1;
+    }
+    return ret;
+}
+
+// Normalization
+
+template<i32 Dim, typename T>
+constexpr vec<Dim, T> vnorm(const vec<Dim, T>& v) {
+    f64 len = vlength(v);
+    if (len == 0) return vzero<Dim, T>();
+    vec<Dim, T> ret = v;
+    for (i32 i = 0; i < v.dimensions(); ++i) {
+        ret[i] /= static_cast<T>(len);
     }
     return ret;
 }

@@ -20,6 +20,8 @@ add_executable(${PROJECT_NAME}
     ex/experiment_02_textures.cpp
     ex/experiment_03_transformations.h
     ex/experiment_03_transformations.cpp
+    ex/experiment_04_rotating_cube.h
+    ex/experiment_04_rotating_cube.cpp
     ex/common.h
     ex/common.cpp
 

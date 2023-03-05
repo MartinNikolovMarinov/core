@@ -10,3 +10,4 @@
 #include "mat.h"
 #include "transforms.h"
 #include "stacktrace.h"
+#include "projections.h"

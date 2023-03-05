@@ -7,6 +7,7 @@
 #include "ex/experiment_01_triangle_and_quad.h"
 #include "ex/experiment_02_textures.h"
 #include "ex/experiment_03_transformations.h"
+#include "ex/experiment_04_rotating_cube.h"
 #include "ex/experiment_app.h"
 
 // TODO: Drawing line segments is quite the problem to solve in one pass. I first need to:
@@ -52,7 +53,7 @@ inline i32 runExample(Example&& ex) {
     iprops.preMainLoopCb = ex.preMainLoop;
     iprops.mainLoopCb = ex.mainLoop;
     iprops.waitForEvents = ex.waitForEvents;
-    iprops.debugWireFrameMode = false;
+    iprops.debugWireFrameMode = true;
     if (auto err = common::init(core::move(iprops)); err.has_err()) {
         fmt::print(stderr, "Failed to initialize the application: {}\n", err.err().msg.c_str());
         return common::AppExitCodes::APP_EXIT_FAILED_TO_INIT;
@@ -105,7 +106,18 @@ i32 example_03() {
     return runExample(core::move(ex));
 }
 
+// First real 3D example.
+i32 example_04() {
+    Example ex;
+    ex.init = rotating_cube_ex_04::init;
+    ex.destroy = rotating_cube_ex_04::destroy;
+    ex.preMainLoop = rotating_cube_ex_04::preMainLoop;
+    ex.mainLoop = rotating_cube_ex_04::mainLoop;
+    ex.waitForEvents = false;
+    return runExample(core::move(ex));
+}
+
 i32 main(i32, char const**) {
     initCore();
-    return example_03();
+    return example_04();
 }

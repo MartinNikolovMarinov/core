@@ -129,11 +129,11 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         // Create VAO and bind it:
         glGenVertexArrays(1, &g_s.triangleVAOId);
         glBindVertexArray(g_s.triangleVAOId);
+
+        // Link vertex attributes:
         constexpr ptr_size stride = sizeof(core::vec2f);
         constexpr ptr_size dimensions = core::vec2f::dimensions();
         constexpr u32 inPosAttribLocation = 0;
-
-        // Link vertex attributes:
         glVertexAttribPointer(inPosAttribLocation, dimensions, GL_FLOAT, GL_FALSE, stride, (void*)0);
         glEnableVertexAttribArray(inPosAttribLocation);
     }

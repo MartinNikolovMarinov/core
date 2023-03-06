@@ -190,6 +190,13 @@ constexpr vec<Dim, T> vnorm(const vec<Dim, T>& v) {
     return ret;
 }
 
+// Linear Interpolation
+
+template<i32 Dim, typename T>
+constexpr vec<Dim, T> lerp(const vec<Dim, T>& a, const vec<Dim, T>& b, f32 t) {
+    return (1.0f - t) * a + t * b;
+}
+
 #pragma endregion
 
 template<i32 Dim, typename T>

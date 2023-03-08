@@ -16,6 +16,8 @@ add_executable(${PROJECT_NAME}
     ex/experiment_app.cpp
     ex/raytracing.h
     ex/raytracing.cpp
+    ex/ray_in_voxel_space.h
+    ex/ray_in_voxel_space.cpp
     ex/experiment_01_triangle_and_quad.h
     ex/experiment_01_triangle_and_quad.cpp
     ex/experiment_02_textures.h

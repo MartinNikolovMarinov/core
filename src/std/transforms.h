@@ -85,58 +85,26 @@ constexpr void scale(mat4x4<T>& m, const vec<Dim, T>& axis, const vec<Dim, T>& s
 // FIXME: Think about switching the default dirrection of rotation to be clockwise ?
 
 template<typename TFloat>
-constexpr void rotate(vec2<TFloat>& v, const vec2<TFloat>& axis, TFloat angle) {
+constexpr void rotate(vec2<TFloat>& v, const vec2<TFloat>& origin, TFloat angle) {
     static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
     TFloat c = std::cos(angle);
     TFloat s = std::sin(angle);
-    v -= axis;
+    v -= origin;
     v = core::v<TFloat>(v.x() * c - v.y() * s, v.x() * s + v.y() * c);
-    v += axis;
+    v += origin;
 }
 
-template<typename TFloat>
-constexpr void rotate(vec3<TFloat>& v, const vec3<TFloat>& axis, TFloat angle) {
-    static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
-    TFloat c = std::cos(angle);
-    TFloat s = std::sin(angle);
-    TFloat t = 1 - c;
-
-    TFloat x = axis.x();
-    TFloat y = axis.y();
-    TFloat z = axis.z();
-
-    TFloat x2 = x * x;
-    TFloat y2 = y * y;
-    TFloat z2 = z * z;
-
-    TFloat xy = x * y;
-    TFloat xz = x * z;
-    TFloat yz = y * z;
-
-    TFloat xs = x * s;
-    TFloat ys = y * s;
-    TFloat zs = z * s;
-
-    TFloat m00 = t * x2 + c;
-    TFloat m01 = t * xy - zs;
-    TFloat m02 = t * xz + ys;
-    TFloat m10 = t * xy + zs;
-    TFloat m11 = t * y2 + c;
-    TFloat m12 = t * yz - xs;
-    TFloat m20 = t * xz - ys;
-    TFloat m21 = t * yz + xs;
-    TFloat m22 = t * z2 + c;
-
-    v = core::v<TFloat>(
-        m00 * v.x() + m01 * v.y() + m02 * v.z(),
-        m10 * v.x() + m11 * v.y() + m12 * v.z(),
-        m20 * v.x() + m21 * v.y() + m22 * v.z()
-    );
+template<typename TFloat, i32 Dim>
+constexpr void rotate(arr<vec<Dim, TFloat>>& v, const vec<Dim, TFloat>& axis, TFloat angle) {
+    for (i32 i = 0; i < v.len(); ++i) {
+        rotate(v[i], axis, angle);
+    }
 }
 
 template<typename TFloat>
 constexpr void rotate(mat4x4<TFloat>& m, const vec3<TFloat>& axis, TFloat angle) {
     static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
+
     TFloat c = std::cos(angle);
     TFloat s = std::sin(angle);
     TFloat t = 1 - c;
@@ -178,21 +146,10 @@ constexpr void rotate(mat4x4<TFloat>& m, const vec3<TFloat>& axis, TFloat angle)
     m = quaternion * m;
 }
 
+
 template<typename TFloat>
 constexpr void rotate_right(vec2<TFloat>& v, const vec2<TFloat>& axis, TFloat angle) {
     rotate(v, axis, -angle);
-}
-
-template<typename TFloat>
-constexpr void rotate_right(vec3<TFloat>& v, const vec3<TFloat>& axis, TFloat angle) {
-    rotate(v, axis, -angle);
-}
-
-template<typename TFloat, i32 Dim>
-constexpr void rotate(arr<vec<Dim, TFloat>>& v, const vec<Dim, TFloat>& axis, TFloat angle) {
-    for (i32 i = 0; i < v.len(); ++i) {
-        rotate(v[i], axis, angle);
-    }
 }
 
 template<typename TFloat, i32 Dim>

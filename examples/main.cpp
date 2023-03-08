@@ -10,6 +10,7 @@
 #include "ex/experiment_04_rotating_cube.h"
 #include "ex/experiment_app.h"
 #include "ex/raytracing.h"
+#include "ex/ray_in_voxel_space.h"
 
 // TODO: Drawing line segments is quite the problem to solve in one pass. I first need to:
 //        - Go through all tutorials on https://learnopengl.com/ and make sure I understand everything.
@@ -26,6 +27,7 @@ struct Example {
     common::MainLoopCb mainLoop = nullptr;
     void (*destroy)() = nullptr;
     bool waitForEvents = false;
+    core::vec4f clearColor = {0.2f, 0.3f, 0.3f, 1.0f};
 };
 
 inline i32 runExample(Example&& ex) {
@@ -49,7 +51,7 @@ inline i32 runExample(Example&& ex) {
     iprops.title = "Experiment 01 - Triangle";
     iprops.width = 800;
     iprops.height = 600;
-    iprops.clearColor = {0.2f, 0.3f, 0.3f, 1.0f};
+    iprops.clearColor = ex.clearColor;
     iprops.initStateCb = ex.init;
     iprops.preMainLoopCb = ex.preMainLoop;
     iprops.mainLoopCb = ex.mainLoop;
@@ -84,6 +86,17 @@ i32 example_raytracing() {
     ex.preMainLoop = raytracing::preMainLoop;
     ex.mainLoop = raytracing::mainLoop;
     ex.waitForEvents = false;
+    return runExample(core::move(ex));
+}
+
+i32 example_ray_in_voxel_space() {
+    Example ex;
+    ex.init = ray_in_voxel_space::init;
+    ex.destroy = ray_in_voxel_space::destroy;
+    ex.preMainLoop = ray_in_voxel_space::preMainLoop;
+    ex.mainLoop = ray_in_voxel_space::mainLoop;
+    ex.waitForEvents = false;
+    ex.clearColor = core::WHITE;
     return runExample(core::move(ex));
 }
 
@@ -130,5 +143,5 @@ i32 example_04() {
 
 i32 main(i32, char const**) {
     initCore();
-    return example_raytracing();
+    return example_ray_in_voxel_space();
 }

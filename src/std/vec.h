@@ -448,4 +448,13 @@ using vec2d = vec2<f64>;
 using vec3d = vec3<f64>;
 using vec4d = vec4<f64>;
 
+constexpr static vec4f WHITE   = v(1.0f, 1.0f, 1.0f, 1.0f);
+constexpr static vec4f BLACK   = v(0.0f, 0.0f, 0.0f, 1.0f);
+constexpr static vec4f RED     = v(1.0f, 0.0f, 0.0f, 1.0f);
+constexpr static vec4f GREEN   = v(0.0f, 1.0f, 0.0f, 1.0f);
+constexpr static vec4f BLUE    = v(0.0f, 0.0f, 1.0f, 1.0f);
+constexpr static vec4f YELLOW  = v(1.0f, 1.0f, 0.0f, 1.0f);
+constexpr static vec4f MAGENTA = v(1.0f, 0.0f, 1.0f, 1.0f);
+constexpr static vec4f CYAN    = v(0.0f, 1.0f, 1.0f, 1.0f);
+
 } // namespace core

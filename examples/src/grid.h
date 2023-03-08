@@ -8,8 +8,16 @@ struct Grid2D {
     core::vec2f min;
     core::vec2f max;
 
-    constexpr core::vec2f center() {
+    constexpr core::vec2f center() const {
         return (min + max) / 2;
+    }
+
+    core::mat4x4f conversionMatrix(const Grid2D& to) const {
+        core::mat4x4f mat = core::mat4x4f::identity();
+        auto diff = (to.max - to.min) / (max - min);
+        core::vec4f factor = core::v(diff.x(), diff.y(), 1.0f, 1.0f);
+        core::scale(mat, factor);
+        return mat;
     }
 };
 

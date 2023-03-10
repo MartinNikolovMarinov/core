@@ -256,13 +256,6 @@ void mainLoop(CommonState& commonState) {
 
         auto projection = core::mat4x4f::identity(); // TODO: might want to move outside the main loop.
 
-        auto model = core::mat4x4f::identity();
-        auto tmp = core::v(200.f, 200.f, 1.0f);
-        core::translate(model, tmp);
-        auto view = g_s.worldSpaceGrid.conversionMatrix(g_s.clipSpaceGrid);
-        auto mvp = projection * view * model;
-        drawVoxel(mvp, core::BLACK, core::WHITE);
-
         // for (u32 y = 0; y < g_s.imgHeight; ++y) {
         //     for (u32 x = 0; x < g_s.imgWidth; ++x) {
         //         if (g_s.imgMask[y * g_s.imgWidth + x]) {

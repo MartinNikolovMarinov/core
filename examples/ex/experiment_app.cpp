@@ -317,7 +317,7 @@ void renderShape(Shape2D& shape) {
     auto& g_s = app::state();
     for(ptr_size i = 0; i < vertices.len(); ++i) {
         const auto& p = vertices[i];
-        auto vv = convertVecUsingGrid(p, g_s.worldSpaceGrid, g_s.clipSpaceGrid);
+        auto vv = g_s.worldSpaceGrid.convertVectorTo(p, g_s.clipSpaceGrid);
         fmt::print("v_{}: (x:{}, y:{})\n", i, vv.x(), vv.y());
     }
 }

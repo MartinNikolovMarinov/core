@@ -141,7 +141,58 @@ i32 example_04() {
     return runExample(core::move(ex));
 }
 
+#include <grid.h>
+
+const Grid2D from { core::v(10.0f, 10.0f), core::v(70.0f, 70.0f) };
+const Grid2D to { core::v(-1.0f, -1.0f), core::v(1.0f, 1.0f) };
+
+void vectorExample() {
+    core::vec2f p = from.min;
+    bool done = false;
+    f32 i = 0, j = 0, step = 10.0f;
+    while (!done) {
+        core::vec2f p2 = from.convertVectorTo(p, to);
+        core::vec2f inverse = from.convertVectorFrom(p2, to);
+        Assert(core::vsafeequals(p, inverse, 1.0f));
+        fmt::print("from: ({}, {}) -> to: ({}, {})\n", p.x(), p.y(), p2.x(), p2.y());
+        i += step;
+        if (i > from.max.x()) {
+            i = 0;
+            j += step;
+            if (j > from.max.y()) {
+                done = true;
+            }
+        }
+        p = core::v(i, j);
+    }
+}
+
+void matrixExample() {
+    core::mat4x4f m = from.genMatrixTo(to);
+    core::mat4x4f inverseM = from.genMatrixFrom(to);
+    core::vec4f p = core::v(from.min.x(), from.min.y(), 1.0f, 1.0f);
+    bool done = false;
+    f32 i = 0, j = 0, step = 10.0f;
+    while (!done) {
+        core::vec4f p2 = m * p;
+        core::vec4f inverse = inverseM * p2;
+        Assert(core::vsafeequals(p, inverse, 1.0f));
+        fmt::print("from: ({}, {}) -> to: ({}, {})\n", p.x(), p.y(), p2.x(), p2.y());
+        i += step;
+        if (i > from.max.x()) {
+            i = 0;
+            j += step;
+            if (j > from.max.y()) {
+                done = true;
+            }
+        }
+        p = core::v(i, j, 1.0f, 1.0f);
+    }
+}
+
 i32 main(i32, char const**) {
     initCore();
-    return example_ray_in_voxel_space();
+    vectorExample();
+    // return example_ray_in_voxel_space();
+    return 0;
 }

@@ -4,32 +4,38 @@
 #include <shader_prog.h>
 #include <grid.h>
 
+#include <std/stringer.h>
+
 namespace ray_in_voxel_space {
 
 namespace {
 
+struct Ray {
+    core::vec2f start;
+    core::vec2f end;
+};
+
+struct Cell {
+    core::vec2f pos = {};
+    bool isOn = false;
+};
+
 struct State {
-    static constexpr Grid2D clipSpaceGrid  = { core::v(-1.0f, -1.0f), core::v(1.0f, 1.0f) };
+    static constexpr Grid2D viewSpaceGrid  = { core::v(-1.0f, -1.0f), core::v(1.0f, 1.0f) };
     static constexpr Grid2D worldSpaceGrid = { core::v(0.0f, 0.0f), core::v(1000.0f, 1000.0f) };
 
     ShaderProg shaderProg;
 
-    u32 viewportWidth;
-    u32 viewportHeight;
+    u32 quadVAO = 0;
+    u32 quadVBO = 0;
+    u32 quadEBO = 0;
+    u32 quadIndicesCount = 0;
 
-    u32 lineVBOId;
-    u32 lineVAOId;
-    u32 linesVertexCount;
-
-    u32 voxelVBOId;
-    u32 voxelVAOId;
-    u32 voxelVertexCount;
-
-    core::arr<bool> imgMask;
-    core::vec2i imgOffset;
-    core::vec2f imgDelta;
-    u32 imgWidth;
-    u32 imgHeight;
+    static constexpr u32 cellCount = 50;
+    static constexpr u32 cellWidth = 60;
+    static constexpr u32 cellHeight = 50;
+    static constexpr u32 cellsPerRow = 10;
+    Cell cells[cellCount] = {};
 };
 
 State& state(bool clear = false) {
@@ -46,39 +52,13 @@ void resetOpenGLBinds() {
     glUseProgram(0);
 }
 
-void drawLines(const core::mat4x4f& mvp, const core::vec4f& color) {
-    State& g_s = state();
-    g_s.shaderProg.use();
-    g_s.shaderProg.setUniform_m("u_mvp", mvp);
-    g_s.shaderProg.setUniform_v("u_color", color);
-    glBindVertexArray(g_s.lineVAOId);
-    glBindBuffer(GL_ARRAY_BUFFER, g_s.lineVBOId);
-    glDrawArrays(GL_LINES, 0, g_s.linesVertexCount);
-}
-
-void drawVoxel(const core::mat4x4f& mvp, const core::vec4f& drawColor, const core::vec4f& fillColor) {
-    State& g_s = state();
-    g_s.shaderProg.use();
-    g_s.shaderProg.setUniform_m("u_mvp", mvp);
-    glBindVertexArray(g_s.voxelVAOId);
-    glBindBuffer(GL_ARRAY_BUFFER, g_s.voxelVBOId);
-    g_s.shaderProg.setUniform_v("u_color", fillColor);
-    glDrawArrays(GL_TRIANGLES, 0, g_s.voxelVertexCount);
-    g_s.shaderProg.setUniform_v("u_color", drawColor);
-    glDrawArrays(GL_LINE_LOOP, 0, g_s.voxelVertexCount);
-}
-
 } // namespace
 
 core::expected<GraphicsLibError> init(CommonState& s) {
-    State& g_s = state();
     GLFWwindow* glfwWindow = s.mainWindow.glfwWindow;
     const char* errDesc = nullptr;
 
     glEnable(GL_DEPTH_TEST);
-
-    g_s.viewportHeight = s.mainWindow.height;
-    g_s.viewportWidth = s.mainWindow.width;
 
     glfwSetKeyCallback(glfwWindow, [](GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods) {
         [[maybe_unused]] KeyboardModifiers keyModifiers = KeyboardModifiers::createFromGLFW(mods);
@@ -95,9 +75,6 @@ core::expected<GraphicsLibError> init(CommonState& s) {
     }
 
     glfwSetFramebufferSizeCallback(glfwWindow, [](GLFWwindow*, i32 width, i32 height) {
-        State& g_s = state();
-        g_s.viewportWidth = width;
-        g_s.viewportHeight = height;
         glViewport(0, 0, width, height);
     });
     if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
@@ -123,9 +100,9 @@ core::expected<GraphicsLibError> init(CommonState& s) {
 
 void destroy() {
     State& g_s = state();
-    g_s.shaderProg.destroy();
-    glDeleteBuffers(1, &g_s.lineVBOId);
-    glDeleteVertexArrays(1, &g_s.lineVAOId);
+    glDeleteVertexArrays(1, &g_s.quadVAO);
+    glDeleteBuffers(1, &g_s.quadVBO);
+    glDeleteBuffers(1, &g_s.quadEBO);
     state(true);
 }
 
@@ -135,143 +112,111 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
     // Create line drawing shader:
     {
         const char* vertexShader = R"(
-            #version 330 core
+            #version 430 core
 
             layout (location = 0) in vec3 a_pos;
 
             uniform mat4 u_mvp;
 
             void main() {
-                gl_Position = u_mvp * vec4(a_pos, 1.0);
+                gl_Position = u_mvp * vec4(a_pos.xyz, 1.0);
             }
         )";
         const char* fragmentShader = R"(
-            #version 330 core
+            #version 430 core
 
             out vec4 fragColor;
 
-            uniform vec4 u_color;
+            uniform vec4 color;
 
             void main() {
-                fragColor = u_color;
+                fragColor = color;
             }
         )";
         g_s.shaderProg = ValueOrDie(ShaderProg::create(vertexShader, fragmentShader));
     }
 
-    // Create line vertices:
-    {
-        core::arr<core::vec3f> lineVertices;
-        lineVertices.append(core::v(-1.0f, 1.0f, 0.0f));
-        lineVertices.append(core::v(1.0f, -1.0f, 0.0f));
-
-        g_s.linesVertexCount = lineVertices.len();
-
-        // Create VBO:
-        glGenBuffers(1, &g_s.lineVBOId);
-        glBindBuffer(GL_ARRAY_BUFFER, g_s.lineVBOId);
-        ptr_size bufferDataSize = lineVertices.len() * sizeof(decltype(lineVertices)::data_type);
-        glBufferData(GL_ARRAY_BUFFER, bufferDataSize, lineVertices.data(), GL_STATIC_DRAW);
-
-        // Create VAO:
-        glGenVertexArrays(1, &g_s.lineVAOId);
-        glBindVertexArray(g_s.lineVAOId);
-
-        // Link vertex attributes:
-        constexpr ptr_size stride = sizeof(decltype(lineVertices)::data_type);
-        constexpr ptr_size dimensions = decltype(lineVertices)::data_type::dimensions();
-        u32 posAttribLoc = ValueOrDie(g_s.shaderProg.getAttribLocation("a_pos"));
-        glVertexAttribPointer(posAttribLoc, dimensions, GL_FLOAT, GL_FALSE, stride, (void*)0);
-        glEnableVertexAttribArray(posAttribLoc);
-    }
-
     // Create quad vertices:
     {
-        core::arr<core::vec3f> quadVertices;
-        quadVertices.append(core::v(-1.0f, 1.0f, 0.0f));
-        quadVertices.append(core::v(1.0f, 1.0f, 0.0f));
-        quadVertices.append(core::v(1.0f, -1.0f, 0.0f));
-        quadVertices.append(core::v(-1.0f, -1.0f, 0.0f));
-        quadVertices.append(core::v(-1.0f, 1.0f, 0.0f));
-        quadVertices.append(core::v(1.0f, -1.0f, 0.0f));
+        f32 verts[] = {
+            -1.0f, -1.0f, 0.0f,
+            -1.0f,  1.0f, 0.0f,
+             1.0f,  1.0f, 0.0f,
+             1.0f, -1.0f, 0.0f,
+        };
 
-        g_s.voxelVertexCount = quadVertices.len();
+        i32 indices[] = {
+            0, 1, 2,
+            2, 3, 0,
+        };
 
-        // Create VBO:
-        glGenBuffers(1, &g_s.voxelVBOId);
-        glBindBuffer(GL_ARRAY_BUFFER, g_s.voxelVBOId);
-        ptr_size bufferDataSize = quadVertices.len() * sizeof(decltype(quadVertices)::data_type);
-        glBufferData(GL_ARRAY_BUFFER, bufferDataSize, quadVertices.data(), GL_STATIC_DRAW);
+        g_s.quadIndicesCount = sizeof(indices) / sizeof(indices[0]);
 
-        // Create VAO:
-        glGenVertexArrays(1, &g_s.voxelVAOId);
-        glBindVertexArray(g_s.voxelVAOId);
+        glGenBuffers(1, &g_s.quadVBO);
+        glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
 
-        // Link vertex attributes:
-        constexpr ptr_size stride = sizeof(decltype(quadVertices)::data_type);
-        constexpr ptr_size dimensions = decltype(quadVertices)::data_type::dimensions();
-        u32 posAttribLoc = ValueOrDie(g_s.shaderProg.getAttribLocation("a_pos"));
-        glVertexAttribPointer(posAttribLoc, dimensions, GL_FLOAT, GL_FALSE, stride, (void*)0);
-        glEnableVertexAttribArray(posAttribLoc);
+        glGenBuffers(1, &g_s.quadEBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_s.quadEBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+        glGenVertexArrays(1, &g_s.quadVAO);
+        glBindVertexArray(g_s.quadVAO);
+        constexpr i32 stride = 3 * sizeof(f32);
+        constexpr i32 dimmensions = 3;
+        u32 attribPosLoc = ValueOrDie(g_s.shaderProg.getAttribLocation("a_pos"));
+        glVertexAttribPointer(attribPosLoc, dimmensions, GL_FLOAT, GL_FALSE, stride, (void*)0);
+        glEnableVertexAttribArray(attribPosLoc);
     }
 
-    // Create voxel grid
+    // Create cells:
     {
-        g_s.imgOffset = core::v(200, 200);
-        g_s.imgDelta = core::v(20.f, 20.f);
-        g_s.imgWidth = 8;
-        g_s.imgHeight = 8;
-        g_s.imgMask = core::arr<bool>(g_s.imgWidth * g_s.imgHeight, g_s.imgWidth * g_s.imgHeight);
-        for (u32 y = 0; y < g_s.imgHeight; ++y) {
-            for (u32 x = 0; x < g_s.imgWidth; ++x) {
-                g_s.imgMask[y * g_s.imgWidth + x] = (x + y) % 2 == 0;
-            }
+        for (u32 i = 0; i < g_s.cellCount; ++i) {
+            Cell& cell = g_s.cells[i];
+            cell.isOn = true;
+            cell.pos = core::v(f32(i % g_s.cellsPerRow) * g_s.cellWidth, f32(i / g_s.cellsPerRow) * g_s.cellHeight);
         }
+        fmt::print("Cells count: {}\n", sizeof(g_s.cells));
     }
 
     return {};
 }
 
+namespace {
+
+void render_cell(const Cell& cell) {
+    State& g_s = state();
+
+    core::mat4x4f mvp = core::mat4x4f::identity();
+    auto cellViewPos = g_s.worldSpaceGrid.convertTo_v(cell.pos, g_s.viewSpaceGrid);
+    core::translate(mvp, core::v(cellViewPos.x(), cellViewPos.y(), 0.0f));
+    auto cellViewSize = g_s.viewSpaceGrid.min - g_s.worldSpaceGrid.convertTo_v(core::v(f32(g_s.cellWidth), f32(g_s.cellHeight)), g_s.viewSpaceGrid);
+    core::scale(mvp, core::v(cellViewSize.x(), cellViewSize.y(), 0.0f));
+    fmt::print("mvp: {}\n", core::to_string(mvp));
+
+    g_s.shaderProg.setUniform_m("u_mvp", mvp);
+    g_s.shaderProg.setUniform_v("color", cell.isOn ? core::GREEN : core::RED);
+    glDrawElements(GL_TRIANGLES, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
+}
+
+} // namespace
+
 void mainLoop(CommonState& commonState) {
     State& g_s = state();
-    [[maybe_unused]] auto rotationAxisZ = core::v(0.0f, 0.0f, -1.0f);
 
     resetOpenGLBinds();
     {
-        auto model = core::mat4x4f::identity();
-        auto view = core::mat4x4f::identity();
-        auto projection = core::mat4x4f::identity();
-        auto mvp = projection * view * model;
-        drawLines(mvp, core::RED);
+        g_s.shaderProg.use();
+        glBindVertexArray(g_s.quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_s.quadEBO);
+
+        render_cell(g_s.cells[0]);
     }
 
     resetOpenGLBinds();
     {
-        // auto model = core::mat4x4f::identity();
-        // core::translate(model, core::v(0.2f, 0.2f, 0.0f));
-        // auto view = core::mat4x4f::identity();
-        // auto projection = core::mat4x4f::identity();
-        // auto mvp = projection * view * model;
-        // drawVoxel(mvp, core::BLACK, core::WHITE);
-
-        auto projection = core::mat4x4f::identity(); // TODO: might want to move outside the main loop.
-
-        // for (u32 y = 0; y < g_s.imgHeight; ++y) {
-        //     for (u32 x = 0; x < g_s.imgWidth; ++x) {
-        //         if (g_s.imgMask[y * g_s.imgWidth + x]) {
-        //             core::vec2f xy = core::v(
-        //                 g_s.imgOffset.x() + f32(x) * g_s.imgDelta.x(),
-        //                 g_s.imgOffset.y() + f32(y) * g_s.imgDelta.y()
-        //             );
-        //             xy = convertVecUsingGrid(xy, g_s.worldSpaceGrid, g_s.clipSpaceGrid);
-        //             auto model = core::mat4x4f::identity();
-        //             core::translate(model, core::v(xy.x(), xy.y(), 0.0f));
-        //             auto view = core::mat4x4f::identity();
-        //             auto mvp = projection * view * model;
-        //             drawVoxel(mvp, core::BLACK, core::WHITE);
-        //         }
-        //     }
-        // }
+        g_s.shaderProg.use();
     }
 
     glfwSwapBuffers(commonState.mainWindow.glfwWindow);

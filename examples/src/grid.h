@@ -17,23 +17,31 @@ struct Grid2D {
         return (min + max) / 2;
     }
 
-    constexpr core::vec2f convertVectorTo(const core::vec2f& v, const Grid2D& to) const {
+    constexpr core::vec2f convertTo(f32 x, f32 y, const Grid2D& to) const {
         core::vec2f fromRange = this->max - this->min;
         core::vec2f toRange = to.max - to.min;
-        core::vec2f relativeLoc = (v - this->min) / fromRange;
+        core::vec2f relativeLoc = (core::v(x, y) - this->min) / fromRange;
         core::vec2f ret = relativeLoc * toRange + to.min;
         return ret;
     }
 
-    constexpr core::vec2f convertVectorFrom(const core::vec2f& v, const Grid2D& from) const {
+    constexpr core::vec2f convertTo_v(const core::vec2f& v, const Grid2D& to) const {
+        return convertTo(v.x(), v.y(), to);
+    }
+
+    constexpr core::vec2f convertFrom(f32 x, f32 y, const Grid2D& from) const {
         core::vec2f fromRange = from.max - from.min;
         core::vec2f toRange = this->max - this->min;
-        core::vec2f relativeLoc = (v - from.min) / fromRange;
+        core::vec2f relativeLoc = (core::v(x, y) - from.min) / fromRange;
         core::vec2f ret = relativeLoc * toRange + this->min;
         return ret;
     }
 
-    constexpr core::mat4x4f genMatrixTo(const Grid2D& to) const {
+    constexpr core::vec2f convertFrom_v(const core::vec2f& v, const Grid2D& from) const {
+        return convertFrom(v.x(), v.y(), from);
+    }
+
+    constexpr core::mat4x4f getToConvMatrix(const Grid2D& to) const {
         core::mat4x4f m = core::mat4x4f::identity();
         m[0][0] = (to.max.x() - to.min.x()) / (this->max.x() - this->min.x());
         m[1][1] = (to.max.y() - to.min.y()) / (this->max.y() - this->min.y());
@@ -42,7 +50,7 @@ struct Grid2D {
         return m;
     }
 
-    constexpr core::mat4x4f genMatrixFrom(const Grid2D& from) const {
+    constexpr core::mat4x4f getFromConvMatrix(const Grid2D& from) const {
         core::mat4x4f m = core::mat4x4f::identity();
         m[0][0] = (this->max.x() - this->min.x()) / (from.max.x() - from.min.x());
         m[1][1] = (this->max.y() - this->min.y()) / (from.max.y() - from.min.y());

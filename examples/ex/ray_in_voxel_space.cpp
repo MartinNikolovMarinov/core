@@ -21,7 +21,7 @@ struct Cell {
 };
 
 struct State {
-    static constexpr Grid2D viewSpaceGrid  = { core::v(-1.0f, -1.0f), core::v(1.0f, 1.0f) };
+    static constexpr Grid2D viewSpaceGrid  = { core::v(-1.0f, 1.0f), core::v(1.0f, -1.0f) };
     static constexpr Grid2D worldSpaceGrid = { core::v(0.0f, 0.0f), core::v(1000.0f, 1000.0f) };
 
     ShaderProg shaderProg;
@@ -212,6 +212,9 @@ void mainLoop(CommonState& commonState) {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_s.quadEBO);
 
         render_cell(g_s.cells[0]);
+        // for (u32 i = 0; i < g_s.cellCount; ++i) {
+        //     render_cell(g_s.cells[i]);
+        // }
     }
 
     resetOpenGLBinds();

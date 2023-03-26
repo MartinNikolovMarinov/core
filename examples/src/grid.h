@@ -8,21 +8,12 @@ struct Grid2D {
     core::vec2f min;
     core::vec2f max;
 
-    constexpr Grid2D(const core::vec2f& min, const core::vec2f& max) : min(min), max(max) {
-        Assert(min.x() < max.x());
-        Assert(min.y() < max.y());
-    }
-
     constexpr core::vec2f center() const {
         return (min + max) / 2;
     }
 
     constexpr core::vec2f convertTo(f32 x, f32 y, const Grid2D& to) const {
-        core::vec2f fromRange = this->max - this->min;
-        core::vec2f toRange = to.max - to.min;
-        core::vec2f relativeLoc = (core::v(x, y) - this->min) / fromRange;
-        core::vec2f ret = relativeLoc * toRange + to.min;
-        return ret;
+        return convertCommon(x, y, this->max, this->min, to.max, to.min);
     }
 
     constexpr core::vec2f convertTo_v(const core::vec2f& v, const Grid2D& to) const {
@@ -30,11 +21,7 @@ struct Grid2D {
     }
 
     constexpr core::vec2f convertFrom(f32 x, f32 y, const Grid2D& from) const {
-        core::vec2f fromRange = from.max - from.min;
-        core::vec2f toRange = this->max - this->min;
-        core::vec2f relativeLoc = (core::v(x, y) - from.min) / fromRange;
-        core::vec2f ret = relativeLoc * toRange + this->min;
-        return ret;
+        return convertCommon(x, y, from.max, from.min, this->max, this->min);
     }
 
     constexpr core::vec2f convertFrom_v(const core::vec2f& v, const Grid2D& from) const {
@@ -42,20 +29,47 @@ struct Grid2D {
     }
 
     constexpr core::mat4x4f getToConvMatrix(const Grid2D& to) const {
-        core::mat4x4f m = core::mat4x4f::identity();
-        m[0][0] = (to.max.x() - to.min.x()) / (this->max.x() - this->min.x());
-        m[1][1] = (to.max.y() - to.min.y()) / (this->max.y() - this->min.y());
-        m[0][3] = to.min.x() - m[0][0] * this->min.x();
-        m[1][3] = to.min.y() - m[1][1] * this->min.y();
-        return m;
+        core::vec2f fromMax = core::v(core::max(this->max.x(), this->min.x()),
+                                      core::max(this->max.y(), this->min.y()));
+        core::vec2f fromMin = core::v(core::min(this->max.x(), this->min.x()),
+                                      core::min(this->max.y(), this->min.y()));
+        core::vec2f toMax = core::v(core::max(to.max.x(), to.min.x()),
+                                    core::max(to.max.y(), to.min.y()));
+        core::vec2f toMin = core::v(core::min(to.max.x(), to.min.x()),
+                                    core::min(to.max.y(), to.min.y()));
+        return convertCommon(fromMax, fromMin, toMax, toMin);
     }
 
     constexpr core::mat4x4f getFromConvMatrix(const Grid2D& from) const {
+        core::vec2f fromMax = core::v(core::max(from.max.x(), from.min.x()),
+                                      core::max(from.max.y(), from.min.y()));
+        core::vec2f fromMin = core::v(core::min(from.max.x(), from.min.x()),
+                                      core::min(from.max.y(), from.min.y()));
+        core::vec2f toMax = core::v(core::max(this->max.x(), this->min.x()),
+                                    core::max(this->max.y(), this->min.y()));
+        core::vec2f toMin = core::v(core::min(this->max.x(), this->min.x()),
+                                    core::min(this->max.y(), this->min.y()));
+        return convertCommon(fromMax, fromMin, toMax, toMin);
+    }
+
+private:
+    static constexpr core::vec2f convertCommon(f32 x, f32 y,
+                                               const core::vec2f& fromMax, const core::vec2f& fromMin,
+                                               const core::vec2f& toMax, const core::vec2f& toMin) {
+        core::vec2f fromRange = fromMax - fromMin;
+        core::vec2f toRange = toMax - toMin;
+        core::vec2f relativeLoc = (core::v(x, y) - fromMin) / fromRange;
+        core::vec2f ret = relativeLoc * toRange + toMin;
+        return ret;
+    }
+
+    static constexpr core::mat4x4f convertCommon(const core::vec2f& fromMax, const core::vec2f& fromMin,
+                                                 const core::vec2f& toMax, const core::vec2f& toMin) {
         core::mat4x4f m = core::mat4x4f::identity();
-        m[0][0] = (this->max.x() - this->min.x()) / (from.max.x() - from.min.x());
-        m[1][1] = (this->max.y() - this->min.y()) / (from.max.y() - from.min.y());
-        m[0][3] = this->min.x() - m[0][0] * from.min.x();
-        m[1][3] = this->min.y() - m[1][1] * from.min.y();
+        m[0][0] = (toMax.x() - toMin.x()) / (fromMax.x() - fromMin.x());
+        m[1][1] = (toMax.y() - toMin.y()) / (fromMax.y() - fromMin.y());
+        m[0][3] = toMin.x() - m[0][0] * fromMin.x();
+        m[1][3] = toMin.y() - m[1][1] * fromMin.y();
         return m;
     }
 };

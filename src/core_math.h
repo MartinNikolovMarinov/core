@@ -2,6 +2,7 @@
 
 #include <API.h>
 #include <types.h>
+#include <tuple.h>
 
 namespace core {
 
@@ -39,6 +40,11 @@ template <typename T>
 constexpr T min(T a, T b) {
     // can be done branchless, but it's not faster.
     return a < b ? a : b;
+}
+
+template <typename T>
+constexpr tuple<T, T> minmax(T a, T b) {
+    return a < b ? tuple<T, T>(a, b) : tuple<T, T>(b, a);
 }
 
 // NOTE: This is pretty fast branchless check. Its collapsed to a single instruction on x86 and ARM by most compilers.

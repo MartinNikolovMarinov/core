@@ -38,6 +38,9 @@ struct State {
     static constexpr u32 cellsPerRow = 40;
     static constexpr core::vec2f gridOffset = worldSpaceGrid.center() - core::uniform<2, f32>(cellsPerRow * cellWidth / 2);
     Cell cells[cellCount] = {};
+
+    u32 rayVAO = 0;
+    u32 rayVBO = 0;
 };
 
 State& state(bool clear = false) {
@@ -181,6 +184,26 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         }
     }
 
+    // Create line vertices:
+    {
+        f32 verts[] = {
+            -1.0f, 0.0f, 0.0f,
+             1.0f, 0.0f, 0.0f,
+        };
+
+        glGenBuffers(1, &g_s.rayVBO);
+        glBindBuffer(GL_ARRAY_BUFFER, g_s.rayVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+
+        glGenVertexArrays(1, &g_s.rayVAO);
+        glBindVertexArray(g_s.rayVAO);
+        constexpr i32 stride = 3 * sizeof(f32);
+        constexpr i32 dimmensions = 3;
+        u32 attribPosLoc = ValueOrDie(g_s.shaderProg.getAttribLocation("a_pos"));
+        glVertexAttribPointer(attribPosLoc, dimmensions, GL_FLOAT, GL_FALSE, stride, (void*)0);
+        glEnableVertexAttribArray(attribPosLoc);
+    }
+
     return {};
 }
 
@@ -227,6 +250,16 @@ void mainLoop(CommonState& commonState) {
     resetOpenGLBinds();
     {
         g_s.shaderProg.use();
+        glBindVertexArray(g_s.rayVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, g_s.rayVBO);
+
+        core::mat4x4f mvp = core::mat4x4f::identity();
+        core::rotate(mvp, core::v(0.0f, 0.0f, 1.0f), core::deg_to_rad(45.0f));
+        core::translate(mvp, core::v(0.0f, 0.0f, -1.0f));
+        g_s.shaderProg.setUniform_m("u_mvp", mvp);
+        g_s.shaderProg.setUniform_v("color", core::BLACK);
+
+        glDrawArrays(GL_LINES, 0, 2);
     }
 
     glfwSwapBuffers(commonState.mainWindow.glfwWindow);

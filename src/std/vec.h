@@ -151,7 +151,9 @@ constexpr bool vsafeequals(const vec<Dim, T>& v1, const vec<Dim, T>& v2, T epsil
 template<i32 Dim, typename T>
 static constexpr vec<Dim, T> uniform(typename vec<Dim, T>::DataType val) {
     vec<Dim, T> ret;
-    core::memset(ret.data, val, sizeof(T) * Dim);
+    for (i32 i = 0; i < Dim; ++i) {
+        ret[i] = val;
+    }
     return ret;
 }
 

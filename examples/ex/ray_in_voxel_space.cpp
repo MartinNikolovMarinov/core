@@ -23,6 +23,7 @@ struct Cell {
 struct State {
     static constexpr Grid2D viewSpaceGrid  = { core::v(-1.0f, 1.0f), core::v(1.0f, -1.0f) };
     static constexpr Grid2D worldSpaceGrid = { core::v(0.0f, 0.0f), core::v(1000.0f, 1000.0f) };
+    static constexpr core::mat4x4f worldSpaceToViewSpaceMatrix = worldSpaceGrid.getToConvMatrix(viewSpaceGrid);
 
     ShaderProg shaderProg;
 
@@ -31,10 +32,11 @@ struct State {
     u32 quadEBO = 0;
     u32 quadIndicesCount = 0;
 
-    static constexpr u32 cellCount = 50;
-    static constexpr u32 cellWidth = 60;
-    static constexpr u32 cellHeight = 50;
-    static constexpr u32 cellsPerRow = 10;
+    static constexpr u32 cellCount = 1600;
+    static constexpr u32 cellWidth = 20;
+    static constexpr u32 cellHeight = 20;
+    static constexpr u32 cellsPerRow = 40;
+    static constexpr core::vec2f gridOffset = worldSpaceGrid.center() - core::uniform<2, f32>(cellsPerRow * cellWidth / 2);
     Cell cells[cellCount] = {};
 };
 
@@ -174,9 +176,9 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         for (u32 i = 0; i < g_s.cellCount; ++i) {
             Cell& cell = g_s.cells[i];
             cell.isOn = true;
-            cell.pos = core::v(f32(i % g_s.cellsPerRow) * g_s.cellWidth, f32(i / g_s.cellsPerRow) * g_s.cellHeight);
+            cell.pos = core::v(f32(i % g_s.cellsPerRow) * (g_s.cellWidth) + g_s.gridOffset.x(),
+                               f32(i / g_s.cellsPerRow) * (g_s.cellHeight) + g_s.gridOffset.y());
         }
-        fmt::print("Cells count: {}\n", sizeof(g_s.cells));
     }
 
     return {};
@@ -184,19 +186,24 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
 
 namespace {
 
-void render_cell(const Cell& cell) {
+void render_cell(const Cell& cell, const core::vec4f& color, bool fill = true) {
     State& g_s = state();
 
+    auto topLeftCornerOfCell = cell.pos + core::v(f32(g_s.cellWidth/2), f32(g_s.cellHeight/2));
+
     core::mat4x4f mvp = core::mat4x4f::identity();
-    auto cellViewPos = g_s.worldSpaceGrid.convertTo_v(cell.pos, g_s.viewSpaceGrid);
+    auto cellViewPos = g_s.worldSpaceToViewSpaceMatrix * core::v(topLeftCornerOfCell.x(), topLeftCornerOfCell.y(), 0.0f, 1.0f);
     core::translate(mvp, core::v(cellViewPos.x(), cellViewPos.y(), 0.0f));
-    auto cellViewSize = g_s.viewSpaceGrid.min - g_s.worldSpaceGrid.convertTo_v(core::v(f32(g_s.cellWidth), f32(g_s.cellHeight)), g_s.viewSpaceGrid);
+    auto cellViewSize = g_s.worldSpaceToViewSpaceMatrix * core::v(f32(g_s.cellWidth/2), f32(g_s.cellHeight/2), 0.0f, 1.0f);
+    cellViewSize.x() = g_s.viewSpaceGrid.min.x() - cellViewSize.x();
+    cellViewSize.y() = g_s.viewSpaceGrid.min.y() - cellViewSize.y();
     core::scale(mvp, core::v(cellViewSize.x(), cellViewSize.y(), 0.0f));
-    fmt::print("mvp: {}\n", core::to_string(mvp));
 
     g_s.shaderProg.setUniform_m("u_mvp", mvp);
-    g_s.shaderProg.setUniform_v("color", cell.isOn ? core::GREEN : core::RED);
-    glDrawElements(GL_TRIANGLES, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
+    g_s.shaderProg.setUniform_v("color", color);
+
+    if (fill) glDrawElements(GL_TRIANGLES, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
+    else      glDrawElements(GL_LINE_LOOP, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
 }
 
 } // namespace
@@ -211,10 +218,10 @@ void mainLoop(CommonState& commonState) {
         glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_s.quadEBO);
 
-        render_cell(g_s.cells[0]);
-        // for (u32 i = 0; i < g_s.cellCount; ++i) {
-        //     render_cell(g_s.cells[i]);
-        // }
+        for (u32 i = 0; i < g_s.cellCount; ++i) {
+            Cell& cell = g_s.cells[i];
+            render_cell(cell, core::RED, i % 2 == 0);
+        }
     }
 
     resetOpenGLBinds();

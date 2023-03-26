@@ -29,27 +29,11 @@ struct Grid2D {
     }
 
     constexpr core::mat4x4f getToConvMatrix(const Grid2D& to) const {
-        core::vec2f fromMax = core::v(core::max(this->max.x(), this->min.x()),
-                                      core::max(this->max.y(), this->min.y()));
-        core::vec2f fromMin = core::v(core::min(this->max.x(), this->min.x()),
-                                      core::min(this->max.y(), this->min.y()));
-        core::vec2f toMax = core::v(core::max(to.max.x(), to.min.x()),
-                                    core::max(to.max.y(), to.min.y()));
-        core::vec2f toMin = core::v(core::min(to.max.x(), to.min.x()),
-                                    core::min(to.max.y(), to.min.y()));
-        return convertCommon(fromMax, fromMin, toMax, toMin);
+        return convertCommon(this->max, this->min, to.max, to.min);
     }
 
     constexpr core::mat4x4f getFromConvMatrix(const Grid2D& from) const {
-        core::vec2f fromMax = core::v(core::max(from.max.x(), from.min.x()),
-                                      core::max(from.max.y(), from.min.y()));
-        core::vec2f fromMin = core::v(core::min(from.max.x(), from.min.x()),
-                                      core::min(from.max.y(), from.min.y()));
-        core::vec2f toMax = core::v(core::max(this->max.x(), this->min.x()),
-                                    core::max(this->max.y(), this->min.y()));
-        core::vec2f toMin = core::v(core::min(this->max.x(), this->min.x()),
-                                    core::min(this->max.y(), this->min.y()));
-        return convertCommon(fromMax, fromMin, toMax, toMin);
+        return convertCommon(from.max, from.min, this->max, this->min);
     }
 
 private:

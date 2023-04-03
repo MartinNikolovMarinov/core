@@ -25,6 +25,9 @@ struct State {
     static constexpr Grid2D worldSpaceGrid = { core::v(0.0f, 0.0f), core::v(1000.0f, 1000.0f) };
     static constexpr core::mat4x4f worldSpaceToViewSpaceMatrix = worldSpaceGrid.getToConvMatrix(viewSpaceGrid);
 
+    u32 viewportWidth;
+    u32 viewportHeight;
+
     ShaderProg shaderProg;
 
     u32 quadVAO = 0;
@@ -60,10 +63,14 @@ void resetOpenGLBinds() {
 } // namespace
 
 core::expected<GraphicsLibError> init(CommonState& s) {
+    State& g_s = state();
     GLFWwindow* glfwWindow = s.mainWindow.glfwWindow;
     const char* errDesc = nullptr;
 
     glEnable(GL_DEPTH_TEST);
+
+    g_s.viewportWidth = s.mainWindow.width;
+    g_s.viewportHeight = s.mainWindow.height;
 
     glfwSetKeyCallback(glfwWindow, [](GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods) {
         [[maybe_unused]] KeyboardModifiers keyModifiers = KeyboardModifiers::createFromGLFW(mods);
@@ -80,7 +87,10 @@ core::expected<GraphicsLibError> init(CommonState& s) {
     }
 
     glfwSetFramebufferSizeCallback(glfwWindow, [](GLFWwindow*, i32 width, i32 height) {
+        State& g_s = state();
         glViewport(0, 0, width, height);
+        g_s.viewportWidth = width;
+        g_s.viewportHeight = height;
     });
     if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
         GraphicsLibError err;
@@ -234,6 +244,19 @@ void render_cell(const Cell& cell, const core::vec4f& color, bool fill = true) {
 void mainLoop(CommonState& commonState) {
     State& g_s = state();
 
+    // resetOpenGLBinds();
+    // {
+    //     g_s.shaderProg.use();
+    //     glBindVertexArray(g_s.quadVAO);
+    //     glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBO);
+    //     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_s.quadEBO);
+
+    //     for (u32 i = 0; i < g_s.cellCount; ++i) {
+    //         Cell& cell = g_s.cells[i];
+    //         render_cell(cell, core::RED, i % 2 == 0);
+    //     }
+    // }
+
     resetOpenGLBinds();
     {
         g_s.shaderProg.use();
@@ -241,25 +264,20 @@ void mainLoop(CommonState& commonState) {
         glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_s.quadEBO);
 
-        for (u32 i = 0; i < g_s.cellCount; ++i) {
-            Cell& cell = g_s.cells[i];
-            render_cell(cell, core::RED, i % 2 == 0);
-        }
-    }
+        auto model = core::mat4x4f::identity();
+        core::scale(model, core::v(1.0f, 0.2f, 1.0f));
 
-    resetOpenGLBinds();
-    {
-        g_s.shaderProg.use();
-        glBindVertexArray(g_s.rayVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, g_s.rayVBO);
+        auto view = core::mat4x4f::identity();
+        core::translate(view, core::v(0.0f, 0.0f, -3.0f));
 
-        core::mat4x4f mvp = core::mat4x4f::identity();
-        core::rotate(mvp, core::v(0.0f, 0.0f, 1.0f), core::deg_to_rad(45.0f));
-        core::translate(mvp, core::v(0.0f, 0.0f, -1.0f));
+        auto projection = core::mat4x4f::identity();
+        projection = core::perspective(core::deg_to_rad(45.0f), (f32)g_s.viewportWidth / (f32)g_s.viewportHeight, 0.1f, 100.0f);
+
+        auto mvp = projection * view * model;
         g_s.shaderProg.setUniform_m("u_mvp", mvp);
         g_s.shaderProg.setUniform_v("color", core::BLACK);
 
-        glDrawArrays(GL_LINES, 0, 2);
+        glDrawElements(GL_TRIANGLES, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
     }
 
     glfwSwapBuffers(commonState.mainWindow.glfwWindow);

@@ -15,6 +15,12 @@ using namespace coretypes;
 //       Implement here:
 //       - lookat ( look at matrix )
 
+// FIXME: The entire matrix logic is implemented in row-major order, but the default for OpenGL is column-major order.
+//        Not only that, but the entire matrix multiplication math sees to be incorrect. It might be unrelated to the
+//        row-major order decision but it just does not work. Instead of spending time on figuring out why it does not
+//        work, I will just change the internal storage to column-major order. I already have lots of tests, which should
+//        be easily convertable to column-major order. It will still take some non-trivial amount of time.
+
 template<i32 DimRow, i32 DimCol, typename T> struct mat;
 
 #pragma region Static Matrix Operations

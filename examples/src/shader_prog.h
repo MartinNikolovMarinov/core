@@ -56,18 +56,21 @@ struct ShaderProg {
 
     template <i32 TRow, i32 TCol, typename T>
     core::expected<error_type> setUniform_m(std::string_view name, const core::mat<TRow, TCol, T>& m) {
+        // NOTE: I have decided to use row major order for matrices. That decision is not final but for now it requires
+        // me to transpose all matrices.
+        bool shouldTranspose = GL_TRUE;
         i32 loc = glGetUniformLocation(m_id, name.data());
         if (loc < 0) return core::unexpected(fmt::format("Failed to get uniform location for {}", name));
         if constexpr (std::is_same_v<T, f32>) {
-            if      constexpr (TRow == 2 && TCol == 2) glUniformMatrix2fv(loc, 1, GL_FALSE, reinterpret_cast<const f32*>(&m.data[0]));
-            else if constexpr (TRow == 3 && TCol == 3) glUniformMatrix3fv(loc, 1, GL_FALSE, reinterpret_cast<const f32*>(&m.data[0]));
-            else if constexpr (TRow == 4 && TCol == 4) glUniformMatrix4fv(loc, 1, GL_FALSE, reinterpret_cast<const f32*>(&m.data[0]));
-            else if constexpr (TRow == 2 && TCol == 3) glUniformMatrix2x3fv(loc, 1, GL_FALSE, reinterpret_cast<const f32*>(&m.data[0]));
-            else if constexpr (TRow == 3 && TCol == 2) glUniformMatrix3x2fv(loc, 1, GL_FALSE, reinterpret_cast<const f32*>(&m.data[0]));
-            else if constexpr (TRow == 2 && TCol == 4) glUniformMatrix2x4fv(loc, 1, GL_FALSE, reinterpret_cast<const f32*>(&m.data[0]));
-            else if constexpr (TRow == 4 && TCol == 2) glUniformMatrix4x2fv(loc, 1, GL_FALSE, reinterpret_cast<const f32*>(&m.data[0]));
-            else if constexpr (TRow == 3 && TCol == 4) glUniformMatrix3x4fv(loc, 1, GL_FALSE, reinterpret_cast<const f32*>(&m.data[0]));
-            else if constexpr (TRow == 4 && TCol == 3) glUniformMatrix4x3fv(loc, 1, GL_FALSE, reinterpret_cast<const f32*>(&m.data[0]));
+            if      constexpr (TRow == 2 && TCol == 2) glUniformMatrix2fv(loc, 1, shouldTranspose, reinterpret_cast<const f32*>(&m.data[0]));
+            else if constexpr (TRow == 3 && TCol == 3) glUniformMatrix3fv(loc, 1, shouldTranspose, reinterpret_cast<const f32*>(&m.data[0]));
+            else if constexpr (TRow == 4 && TCol == 4) glUniformMatrix4fv(loc, 1, shouldTranspose, reinterpret_cast<const f32*>(&m.data[0]));
+            else if constexpr (TRow == 2 && TCol == 3) glUniformMatrix2x3fv(loc, 1, shouldTranspose, reinterpret_cast<const f32*>(&m.data[0]));
+            else if constexpr (TRow == 3 && TCol == 2) glUniformMatrix3x2fv(loc, 1, shouldTranspose, reinterpret_cast<const f32*>(&m.data[0]));
+            else if constexpr (TRow == 2 && TCol == 4) glUniformMatrix2x4fv(loc, 1, shouldTranspose, reinterpret_cast<const f32*>(&m.data[0]));
+            else if constexpr (TRow == 4 && TCol == 2) glUniformMatrix4x2fv(loc, 1, shouldTranspose, reinterpret_cast<const f32*>(&m.data[0]));
+            else if constexpr (TRow == 3 && TCol == 4) glUniformMatrix3x4fv(loc, 1, shouldTranspose, reinterpret_cast<const f32*>(&m.data[0]));
+            else if constexpr (TRow == 4 && TCol == 3) glUniformMatrix4x3fv(loc, 1, shouldTranspose, reinterpret_cast<const f32*>(&m.data[0]));
             else    static_assert(core::AlwaysFalse<T>, "Unsupported type");
         }
         else {

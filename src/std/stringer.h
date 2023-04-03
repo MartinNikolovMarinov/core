@@ -22,6 +22,7 @@ std::string to_string(const mat<TRow, TCol, T>& m) {
             ret += ", ";
         }
     }
+    ret += "}";
     return ret;
 }
 

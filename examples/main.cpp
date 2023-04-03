@@ -56,7 +56,7 @@ inline i32 runExample(Example&& ex) {
     iprops.preMainLoopCb = ex.preMainLoop;
     iprops.mainLoopCb = ex.mainLoop;
     iprops.waitForEvents = ex.waitForEvents;
-    iprops.debugWireFrameMode = true;
+    iprops.debugWireFrameMode = false;
     if (auto err = common::init(core::move(iprops)); err.has_err()) {
         fmt::print(stderr, "Failed to initialize the application: {}\n", err.err().msg.c_str());
         return common::AppExitCodes::APP_EXIT_FAILED_TO_INIT;
@@ -143,5 +143,5 @@ i32 example_04() {
 
 i32 main(i32, char const**) {
     initCore();
-    return ray_in_voxel_space();
+    return example_ray_in_voxel_space();
 }

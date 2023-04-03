@@ -31,9 +31,7 @@ constexpr void translate(arr<vec<Dim, T>>& arrv, const vec<Dim, T>& t) {
 
 template<typename T>
 constexpr void translate(mat4x4<T>& m, const vec3<T>& t) {
-    m[3][0] += t[0];
-    m[3][1] += t[1];
-    m[3][2] += t[2];
+    m[3] = m[0] * t[0] + m[1] * t[1] + m[2] * t[2] + m[3];
 }
 
 // Scale
@@ -66,23 +64,14 @@ constexpr void scale(arr<vec<Dim, T>>& arrv, const vec<Dim, T>& axis, const vec<
     }
 }
 
-template<i32 Dim, typename T>
-constexpr void scale(mat4x4<T>& m, const vec<Dim, T>& s) {
-    for (i32 i = 0; i < s.dimensions(); ++i) {
-        m[i][i] *= s[i];
-    }
-}
-
-template<i32 Dim, typename T>
-constexpr void scale(mat4x4<T>& m, const vec<Dim, T>& axis, const vec<Dim, T>& s) {
-    for (i32 i = 0; i < s.dimensions(); ++i) {
-        m[i][i] = axis[i] + (m[i][i] - axis[i]) * s[i];
-    }
+template<typename T>
+constexpr void scale(mat4x4<T>& m, const vec3<T>& s) {
+    m[0] *= s[0];
+    m[1] *= s[1];
+    m[2] *= s[2];
 }
 
 // Rotate
-
-// FIXME: Think about switching the default dirrection of rotation to be clockwise ?
 
 template<typename TFloat>
 constexpr void rotate(vec2<TFloat>& v, const vec2<TFloat>& origin, TFloat angle) {
@@ -136,14 +125,14 @@ constexpr void rotate(mat4x4<TFloat>& m, const vec3<TFloat>& axis, TFloat angle)
     TFloat m21 = t * yz + xs;
     TFloat m22 = t * z2 + c;
 
-    auto quaternion = core::m4x4<TFloat>(
-        m00, m01, m02, 0,
-        m10, m11, m12, 0,
-        m20, m21, m22, 0,
+    auto r = core::m4x4<TFloat>(
+        m00, m01, m02, 0, // right
+        m10, m11, m12, 0, // up
+        m20, m21, m22, 0, // forward
         0,   0,   0,   1
     );
 
-    m = quaternion * m;
+    m = r * m;
 }
 
 

@@ -13,8 +13,6 @@ using namespace coretypes;
 
 // TODO: Need to implement at least the following:
 //       Implement here:
-//       - orhto ( orthographic projection matrix )
-//       - persp ( perspective projection matrix )
 //       - lookat ( look at matrix )
 
 template<i32 DimRow, i32 DimCol, typename T> struct mat;

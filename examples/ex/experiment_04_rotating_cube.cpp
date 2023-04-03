@@ -198,7 +198,8 @@ void mainLoop(CommonState& commonState) {
     glUseProgram(0);
 
     auto model = core::mat4x4f::identity();
-    core::rotate_right(model, core::v(0.5f, 1.0f, 0.0f), core::deg_to_rad(50.0f) * (f32)timeSiceStart_seconds);
+    core::rotate_right(model, core::v(0.0f, 1.0f, 1.0f), core::deg_to_rad(50.0f) * (f32)timeSiceStart_seconds);
+    core::scale(model, core::v(0.2f, 1.0f, 0.3f));
 
     auto view = core::mat4x4f::identity();
     core::translate(view, core::v(0.0f, 0.0f, -3.0f));

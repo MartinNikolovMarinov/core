@@ -111,10 +111,10 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         g_s.quadColor = core::v(0.2f, 0.7f, 0.5f, 1.0f);
 
         core::arr<core::vec2f> vertices(0, 4);
-        vertices.append(core::v(0.5f, 0.5f));   // left
-        vertices.append(core::v(0.5f, -0.5f));  // right
-        vertices.append(core::v(-0.5f, -0.5f)); // top
-        vertices.append(core::v(-0.5f, 0.5f));  // bottom
+        vertices.append(core::v(1.f, 1.f));   // left
+        vertices.append(core::v(1.f, -1.f));  // right
+        vertices.append(core::v(-1.f, -1.f)); // top
+        vertices.append(core::v(-1.f, 1.f));  // bottom
 
         core::arr<u32> indices(0, 6);
         // First triangle:
@@ -164,9 +164,9 @@ void mainLoop(CommonState& commonState) {
 
     // Combining transformations:
     g_s.quadTransform = core::midentity<4, f32>();
+    core::rotate_right(g_s.quadTransform, core::v(0.0f, 0.0f, 1.0f), core::deg_to_rad(35));
     core::translate(g_s.quadTransform, core::v(0.3f, -0.4f, 0.0f));
-    core::rotate(g_s.quadTransform, core::v(0.0f, 0.0f, 1.0f), core::deg_to_rad(45.0f));
-    core::scale(g_s.quadTransform, core::v(0.7f, 0.7f, 0.7f));
+    core::scale(g_s.quadTransform, core::v(0.2f, 0.01f, 0.2f));
 
     g_s.shaderProg.use();
     g_s.shaderProg.setUniform_v("u_color", g_s.quadColor);

@@ -12,6 +12,9 @@
 #include "ex/raytracing.h"
 #include "ex/ray_in_voxel_space.h"
 
+// FIXME: remove temporary examples:
+#include "ex/mat_refactor/mat_example.h"
+
 // TODO: Drawing line segments is quite the problem to solve in one pass. I first need to:
 //        - Go through all tutorials on https://learnopengl.com/ and make sure I understand everything.
 //        - Leave some good working examples with as little abstraciton as possible, without repeating code too much.
@@ -141,7 +144,12 @@ i32 example_04() {
     return runExample(core::move(ex));
 }
 
+i32 example_mat_refactor() {
+    refactorRunMatExample();
+    return 0;
+}
+
 i32 main(i32, char const**) {
     initCore();
-    return example_ray_in_voxel_space();
+    return example_mat_refactor();
 }

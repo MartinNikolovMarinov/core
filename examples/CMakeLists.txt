@@ -11,6 +11,19 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Generates compile_commands.json
 add_executable(${PROJECT_NAME}
     main.cpp
 
+    # Common source files:
+    src/grid.h
+    src/init_core.cpp
+    src/init_core.h
+    src/keyboard.h
+    src/keyboard.cpp
+    src/mouse.h
+    src/mouse.cpp
+    src/shader_prog.h
+    src/shader_prog.cpp
+    src/shape.h
+    src/shape.cpp
+
     # Examples:
     ex/experiment_app.h
     ex/experiment_app.cpp
@@ -29,18 +42,10 @@ add_executable(${PROJECT_NAME}
     ex/common.h
     ex/common.cpp
 
-    # Common source files:
-    src/grid.h
-    src/init_core.cpp
-    src/init_core.h
-    src/keyboard.h
-    src/keyboard.cpp
-    src/mouse.h
-    src/mouse.cpp
-    src/shader_prog.h
-    src/shader_prog.cpp
-    src/shape.h
-    src/shape.cpp
+    # FIXME: remove temporary experiments:
+    ex/mat_refactor/mat_example.h
+    ex/mat_refactor/mat_example.cpp
+    ex/mat_refactor/mat.h
 )
 
 # Compilation options:

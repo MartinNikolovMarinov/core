@@ -30,4 +30,6 @@ void initCore() {
         throw std::runtime_error("Assertion failed!");
         return false;
     });
+
+    core::rnd_init();
 }

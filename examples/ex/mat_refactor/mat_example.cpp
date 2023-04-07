@@ -222,7 +222,7 @@ void check_transpose() {
 }
 
 void check_addition_and_subtraction() {
-     i32 c = fuzzCount;
+    i32 c = fuzzCount;
     while (c-- > 0) {
         auto [n0, n1, n2, n3] = get_f32_fuzz();
         auto [n4, n5, n6, n7] = get_f32_fuzz();
@@ -307,9 +307,133 @@ void check_addition_and_subtraction() {
     }
 }
 
+void check_multiplication() {
+    i32 c = fuzzCount;
+    while (c-- > 0) {
+        auto [n0, n1, n2, n3] = get_f32_fuzz();
+        auto [n4, n5, n6, n7] = get_f32_fuzz();
+        auto [n8, n9, n10, n11] = get_f32_fuzz();
+        auto [n12, n13, n14, n15] = get_f32_fuzz();
+        // auto [n16, n17, n18, n19] = get_f32_fuzz();
+        // auto [n20, n21, n22, n23] = get_f32_fuzz();
+        // auto [n24, n25, n26, n27] = get_f32_fuzz();
+        // auto [n28, n29, n30, n31] = get_f32_fuzz();
+        {
+            // 2x2 * 2x2 = 2x2
+            mat2f m1(n0, n1, n2, n3);
+            glm::mat2 glmM1(n0, n1, n2, n3);
+            mat2f m2(n4, n5, n6, n7);
+            glm::mat2 glmM2(n4, n5, n6, n7);
+            auto res = m1 * m2;
+            auto glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
+        }
+        {
+            // 2x2 * 3x2 = 2x2
+            mat2x3f m1(n0, n1, n2, n3, n4, n5);
+            glm::mat2x3 glmM1(n0, n1, n2, n3, n4, n5);
+            mat3x2f m2(n6, n7, n8, n9, n10, n11);
+            glm::mat3x2 glmM2(n6, n7, n8, n9, n10, n11);
+            auto res = m1 * m2;
+            auto glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
+        }
+        {
+            // 2x2 * 4x2 = 2x2
+            mat2x4f m1(n0, n1, n2, n3, n4, n5, n6, n7);
+            glm::mat2x4 glmM1(n0, n1, n2, n3, n4, n5, n6, n7);
+            mat4x2f m2(n8, n9, n10, n11, n12, n13, n14, n15);
+            glm::mat4x2 glmM2(n8, n9, n10, n11, n12, n13, n14, n15);
+            auto res = m1 * m2;
+            auto glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
+        }
+        {
+            // 3x2 * 2x3 = 3x3
+            mat3x2f m1(n0, n1, n2, n3, n4, n5);
+            glm::mat3x2 glmM1(n0, n1, n2, n3, n4, n5);
+            mat2x3f m2(n6, n7, n8, n9, n10, n11);
+            glm::mat2x3 glmM2(n6, n7, n8, n9, n10, n11);
+            auto res = m1 * m2;
+            auto glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes); // FIXME: bug here !
+        }
+        {
+            // 3x2 * 3x3 = 3x3
+        }
+        {
+            // 3x2 * 4x3 = 3x3
+        }
+        {
+            // 4x2 * 2x4 = 4x4
+        }
+        {
+            // 4x2 * 3x4 = 4x4
+        }
+        {
+            // 4x2 * 4x4 = 4x4
+        }
+        {
+            // 2x3 * 2x2 = 2x2
+        }
+        {
+            // 2x3 * 3x2 = 2x2
+        }
+        {
+            // 2x3 * 4x2 = 2x2
+        }
+        {
+            // 3x3 * 2x3 = 3x3
+        }
+        {
+            // 3x3 * 3x3 = 3x3
+        }
+        {
+            // 3x3 * 4x3 = 3x3
+        }
+        {
+            // 4x3 * 2x4 = 4x4
+        }
+        {
+            // 4x3 * 3x4 = 4x4
+        }
+        {
+            // 4x3 * 4x4 = 4x4
+        }
+        {
+            // 2x4 * 2x2 = 2x2
+        }
+        {
+            // 2x4 * 3x2 = 2x2
+        }
+        {
+            // 2x4 * 4x2 = 2x2
+        }
+        {
+            // 3x4 * 2x3 = 3x3
+        }
+        {
+            // 3x4 * 3x3 = 3x3
+        }
+        {
+            // 3x4 * 4x3 = 3x3
+        }
+        {
+            // 4x4 * 2x4 = 4x4
+        }
+        {
+            // 4x4 * 3x4 = 4x4
+        }
+        {
+            // 4x4 * 4x4 = 4x4
+        }
+    }
+}
+
 void refactorRunMatExample() {
     check_ctors();
     check_determinant();
     check_identity();
     check_addition_and_subtraction();
+    check_multiplication();
 }

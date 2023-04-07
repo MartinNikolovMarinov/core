@@ -293,6 +293,34 @@ constexpr mat<NCol, NRow, T> msub(const mat<NCol, NRow, T>& m, T value) {
     return res;
 }
 
+// Multiplication
+
+template<i32 NCol1, i32 NRow1, i32 NCol2, i32 NRow2, typename T>
+constexpr mat<NRow2, NCol1, T> mmul(const mat<NCol1, NRow1, T>& m1, const mat<NCol2, NRow2, T>& m2) {
+    static_assert(NCol1 == NRow2, "Matrices must be compatible");
+    mat<NRow2, NCol1, T> res;
+    for (i32 i = 0; i < NCol1; ++i) {
+        for (i32 j = 0; j < NRow2; ++j) {
+            T sum = 0;
+            for (i32 k = 0; k < NCol1; ++k) {
+                sum += m1[k][j] * m2[i][k];
+            }
+            res[i][j] = sum;
+        }
+    }
+    return res;
+}
+template<i32 NCol, i32 NRow, typename T>
+constexpr mat<NCol, NRow, T> mmul(const mat<NCol, NRow, T>& m, T value) {
+    mat<NCol, NRow, T> res;
+    for (i32 i = 0; i < m.NCol; ++i) {
+        for (i32 j = 0; j < m.NRow; ++j) {
+            res[i][j] = m[i][j] * value;
+        }
+    }
+    return res;
+}
+
 // Determinant
 
 template<i32 NCol, i32 NRow, typename T>
@@ -336,71 +364,164 @@ constexpr mat<NRow, NCol, T> mtranspose(const mat<NCol, NRow, T>& m) {
 
 // Negation
 
-template <i32 NCol, i32 NRow, typename T>
+template<i32 NCol, i32 NRow, typename T>
 constexpr mat<NCol, NRow, T> operator-(const mat<NCol, NRow, T>& m) {
     return mnegate(m);
 }
 
 // Equality
 
-template <i32 NCol, i32 NRow, typename T>
+template<i32 NCol, i32 NRow, typename T>
 constexpr bool operator==(const mat<NCol, NRow, T>& m1, const mat<NCol, NRow, T>& m2) {
     return mequals(m1, m2);
 }
-template <i32 NCol, i32 NRow, typename T>
+template<i32 NCol, i32 NRow, typename T>
 constexpr bool operator!=(const mat<NCol, NRow, T>& m1, const mat<NCol, NRow, T>& m2) {
     return !mequals(m1, m2);
 }
 
 // Addition
 
-template <i32 NCol, i32 NRow, typename T>
+template<i32 NCol, i32 NRow, typename T>
 constexpr mat<NCol, NRow, T> operator+(const mat<NCol, NRow, T>& m1, const mat<NCol, NRow, T>& m2) {
     return madd(m1, m2);
 }
-template <i32 NCol, i32 NRow, typename T>
+template<i32 NCol, i32 NRow, typename T>
 constexpr mat<NCol, NRow, T> operator+(const mat<NCol, NRow, T>& m, T value) {
     return madd(m, value);
 }
-template <i32 NCol, i32 NRow, typename T>
+template<i32 NCol, i32 NRow, typename T>
 constexpr mat<NCol, NRow, T> operator+(T value, const mat<NCol, NRow, T>& m) {
     return madd(m, value);
 }
 
 // Subtraction
 
-template <i32 NCol, i32 NRow, typename T>
+template<i32 NCol, i32 NRow, typename T>
 constexpr mat<NCol, NRow, T> operator-(const mat<NCol, NRow, T>& m1, const mat<NCol, NRow, T>& m2) {
     return msub(m1, m2);
 }
-template <i32 NCol, i32 NRow, typename T>
+template<i32 NCol, i32 NRow, typename T>
 constexpr mat<NCol, NRow, T> operator-(const mat<NCol, NRow, T>& m, T value) {
     return msub(m, value);
 }
-template <i32 NCol, i32 NRow, typename T>
+template<i32 NCol, i32 NRow, typename T>
 constexpr mat<NCol, NRow, T> operator-(T value, const mat<NCol, NRow, T>& m) {
     return msub(m, value);
 }
 
+// Multiplication
+
+// 2x2 * 2x2 = 2x2
+template<typename T>
+constexpr mat<2, 2, T> operator*(const mat<2, 2, T>& m1, const mat<2, 2, T>& m2) { return mmul(m1, m2); }
+// 2x2 * 3x2 = 2x2
+template<typename T>
+constexpr mat<2, 2, T> operator*(const mat<2, 2, T>& m1, const mat<3, 2, T>& m2) { return mmul(m1, m2); }
+// 2x2 * 4x2 = 2x2
+template<typename T>
+constexpr mat<2, 2, T> operator*(const mat<2, 2, T>& m1, const mat<4, 2, T>& m2) { return mmul(m1, m2); }
+// 3x2 * 2x3 = 3x3
+template<typename T>
+constexpr mat<3, 3, T> operator*(const mat<3, 2, T>& m1, const mat<2, 3, T>& m2) { return mmul(m1, m2); }
+// 3x2 * 3x3 = 3x3
+template<typename T>
+constexpr mat<3, 3, T> operator*(const mat<3, 2, T>& m1, const mat<3, 3, T>& m2) { return mmul(m1, m2); }
+// 3x2 * 4x3 = 3x3
+template<typename T>
+constexpr mat<3, 3, T> operator*(const mat<3, 2, T>& m1, const mat<4, 3, T>& m2) { return mmul(m1, m2); }
+// 4x2 * 2x4 = 4x4
+template<typename T>
+constexpr mat<4, 4, T> operator*(const mat<4, 2, T>& m1, const mat<2, 4, T>& m2) { return mmul(m1, m2); }
+// 4x2 * 3x4 = 4x4
+template<typename T>
+constexpr mat<4, 4, T> operator*(const mat<4, 2, T>& m1, const mat<3, 4, T>& m2) { return mmul(m1, m2); }
+// 4x2 * 4x4 = 4x4
+template<typename T>
+constexpr mat<4, 4, T> operator*(const mat<4, 2, T>& m1, const mat<4, 4, T>& m2) { return mmul(m1, m2); }
+// 2x3 * 2x2 = 2x2
+template<typename T>
+constexpr mat<2, 2, T> operator*(const mat<2, 3, T>& m1, const mat<2, 2, T>& m2) { return mmul(m1, m2); }
+// 2x3 * 3x2 = 2x2
+template<typename T>
+constexpr mat<2, 2, T> operator*(const mat<2, 3, T>& m1, const mat<3, 2, T>& m2) { return mmul(m1, m2); }
+// 2x3 * 4x2 = 2x2
+template<typename T>
+constexpr mat<2, 2, T> operator*(const mat<2, 3, T>& m1, const mat<4, 2, T>& m2) { return mmul(m1, m2); }
+// 3x3 * 2x3 = 3x3
+template<typename T>
+constexpr mat<3, 3, T> operator*(const mat<3, 3, T>& m1, const mat<2, 3, T>& m2) { return mmul(m1, m2); }
+// 3x3 * 3x3 = 3x3
+template<typename T>
+constexpr mat<3, 3, T> operator*(const mat<3, 3, T>& m1, const mat<3, 3, T>& m2) { return mmul(m1, m2); }
+// 3x3 * 4x3 = 3x3
+template<typename T>
+constexpr mat<3, 3, T> operator*(const mat<3, 3, T>& m1, const mat<4, 3, T>& m2) { return mmul(m1, m2); }
+// 4x3 * 2x4 = 4x4
+template<typename T>
+constexpr mat<4, 4, T> operator*(const mat<4, 3, T>& m1, const mat<2, 4, T>& m2) { return mmul(m1, m2); }
+// 4x3 * 3x4 = 4x4
+template<typename T>
+constexpr mat<4, 4, T> operator*(const mat<4, 3, T>& m1, const mat<3, 4, T>& m2) { return mmul(m1, m2); }
+// 4x3 * 4x4 = 4x4
+template<typename T>
+constexpr mat<4, 4, T> operator*(const mat<4, 3, T>& m1, const mat<4, 4, T>& m2) { return mmul(m1, m2); }
+// 2x4 * 2x2 = 2x2
+template<typename T>
+constexpr mat<2, 2, T> operator*(const mat<2, 4, T>& m1, const mat<2, 2, T>& m2) { return mmul(m1, m2); }
+// 2x4 * 3x2 = 2x2
+template<typename T>
+constexpr mat<2, 2, T> operator*(const mat<2, 4, T>& m1, const mat<3, 2, T>& m2) { return mmul(m1, m2); }
+// 2x4 * 4x2 = 2x2
+template<typename T>
+constexpr mat<2, 2, T> operator*(const mat<2, 4, T>& m1, const mat<4, 2, T>& m2) { return mmul(m1, m2); }
+// 3x4 * 2x3 = 3x3
+template<typename T>
+constexpr mat<3, 3, T> operator*(const mat<3, 4, T>& m1, const mat<2, 3, T>& m2) { return mmul(m1, m2); }
+// 3x4 * 3x3 = 3x3
+template<typename T>
+constexpr mat<3, 3, T> operator*(const mat<3, 4, T>& m1, const mat<3, 3, T>& m2) { return mmul(m1, m2); }
+// 3x4 * 4x3 = 3x3
+template<typename T>
+constexpr mat<3, 3, T> operator*(const mat<3, 4, T>& m1, const mat<4, 3, T>& m2) { return mmul(m1, m2); }
+// 4x4 * 2x4 = 4x4
+template<typename T>
+constexpr mat<4, 4, T> operator*(const mat<4, 4, T>& m1, const mat<2, 4, T>& m2) { return mmul(m1, m2); }
+// 4x4 * 3x4 = 4x4
+template<typename T>
+constexpr mat<4, 4, T> operator*(const mat<4, 4, T>& m1, const mat<3, 4, T>& m2) { return mmul(m1, m2); }
+// 4x4 * 4x4 = 4x4
+template<typename T>
+constexpr mat<4, 4, T> operator*(const mat<4, 4, T>& m1, const mat<4, 4, T>& m2) { return mmul(m1, m2); }
+
+template<i32 NCol, i32 NRow, typename T>
+constexpr mat<NCol, NRow, T> operator*(const mat<NCol, NRow, T>& m, typename mat<NCol, NRow, T>::DataType value) {
+    return mmul(m, value);
+}
+template<i32 NCol, i32 NRow, typename T>
+constexpr mat<NCol, NRow, T> operator*(typename mat<NCol, NRow, T>::DataType value, const mat<NCol, NRow, T>& m) {
+    return mmul(m, value);
+}
+
 // Increment and Decrement
 
-template <i32 NCol, i32 NRow, typename T>
+template<i32 NCol, i32 NRow, typename T>
 constexpr mat<NCol, NRow, T>& operator++(mat<NCol, NRow, T>& m) {
     m = madd(m, 1);
     return m;
 }
-template <i32 NCol, i32 NRow, typename T>
+template<i32 NCol, i32 NRow, typename T>
 constexpr mat<NCol, NRow, T> operator++(mat<NCol, NRow, T>& m, int) {
     mat<NCol, NRow, T> res = m;
     m = madd(m, 1);
     return res;
 }
-template <i32 NCol, i32 NRow, typename T>
+template<i32 NCol, i32 NRow, typename T>
 constexpr mat<NCol, NRow, T>& operator--(mat<NCol, NRow, T>& m) {
     m = msub(m, 1);
     return m;
 }
-template <i32 NCol, i32 NRow, typename T>
+template<i32 NCol, i32 NRow, typename T>
 constexpr mat<NCol, NRow, T> operator--(mat<NCol, NRow, T>& m, int) {
     mat<NCol, NRow, T> res = m;
     m = msub(m, 1);
@@ -409,26 +530,38 @@ constexpr mat<NCol, NRow, T> operator--(mat<NCol, NRow, T>& m, int) {
 
 // Assignment
 
-template <i32 NCol, i32 NRow, typename T>
+template<i32 NCol, i32 NRow, typename T>
 constexpr mat<NCol, NRow, T>& operator+=(mat<NCol, NRow, T>& m1, const mat<NCol, NRow, T>& m2) {
     m1 = madd(m1, m2);
     return m1;
 }
-template <i32 NCol, i32 NRow, typename T>
+template<i32 NCol, i32 NRow, typename T>
 constexpr mat<NCol, NRow, T>& operator+=(mat<NCol, NRow, T>& m, T value) {
     m = madd(m, value);
     return m;
 }
 
-template <i32 NCol, i32 NRow, typename T>
+template<i32 NCol, i32 NRow, typename T>
 constexpr mat<NCol, NRow, T>& operator-=(mat<NCol, NRow, T>& m1, const mat<NCol, NRow, T>& m2) {
     m1 = msub(m1, m2);
     return m1;
 }
-template <i32 NCol, i32 NRow, typename T>
+template<i32 NCol, i32 NRow, typename T>
 constexpr mat<NCol, NRow, T>& operator-=(mat<NCol, NRow, T>& m, T value) {
     m = msub(m, value);
     return m;
+}
+
+template<i32 NCol, i32 NRow, typename T>
+constexpr mat<NCol, NRow, T>& operator*=(mat<NCol, NRow, T>& m, T value) {
+    m = mmul(m, value);
+    return m;
+}
+
+template<i32 NCol, i32 NRow, typename T>
+constexpr mat<NCol, NRow, T>& operator*=(mat<NCol, NRow, T>& m1, const mat<NCol, NRow, T>& m2) {
+    m1 = mmul(m1, m2);
+    return m1;
 }
 
 #pragma endregion

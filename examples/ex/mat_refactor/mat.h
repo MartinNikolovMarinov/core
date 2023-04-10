@@ -22,6 +22,7 @@ struct mat<2, 2, T> {
     DataType data[NCol][NRow] = {};
 
     constexpr explicit mat() = default;
+    constexpr explicit mat(DataType uniform) : data{{uniform, uniform}, {uniform, uniform}} {}
     constexpr explicit mat(DataType x0, DataType y0, DataType x1, DataType y1)
         : data{{x0, y0}, {x1, y1}} {}
     constexpr explicit mat(core::vec2<DataType> col1, core::vec2<DataType> col2)
@@ -44,6 +45,7 @@ struct mat<2, 3, T> {
     DataType data[NCol][NRow] = {};
 
     constexpr explicit mat() = default;
+    constexpr explicit mat(DataType uniform) : data{{uniform, uniform, uniform}, {uniform, uniform, uniform}} {}
     constexpr explicit mat(DataType x0, DataType y0, DataType z0, DataType x1, DataType y1, DataType z1)
         : data{{x0, y0, z0}, {x1, y1, z1}} {}
     constexpr explicit mat(core::vec2<DataType> col1, core::vec2<DataType> col2, core::vec2<DataType> col3)
@@ -66,6 +68,7 @@ struct mat<2, 4, T> {
     DataType data[NCol][NRow] = {};
 
     constexpr explicit mat() = default;
+    constexpr explicit mat(DataType uniform) : data{{uniform, uniform, uniform, uniform}, {uniform, uniform, uniform, uniform}} {}
     constexpr explicit mat(DataType x0, DataType y0, DataType z0, DataType w0, DataType x1, DataType y1, DataType z1, DataType w1)
         : data{{x0, y0, z0, w0}, {x1, y1, z1, w1}} {}
     constexpr explicit mat(core::vec2<DataType> col1, core::vec2<DataType> col2, core::vec2<DataType> col3, core::vec2<DataType> col4)
@@ -88,6 +91,7 @@ struct mat<3, 2, T> {
     DataType data[NCol][NRow] = {};
 
     constexpr explicit mat() = default;
+    constexpr explicit mat(DataType uniform) : data{{uniform, uniform}, {uniform, uniform}, {uniform, uniform}} {}
     constexpr explicit mat(DataType x0, DataType y0, DataType x1, DataType y1, DataType x2, DataType y2)
         : data{{x0, y0}, {x1, y1}, {x2, y2}} {}
     constexpr explicit mat(core::vec3<DataType> col1, core::vec3<DataType> col2, core::vec3<DataType> col3)
@@ -112,6 +116,7 @@ struct mat<3, 3, T> {
     DataType data[NCol][NRow] = {};
 
     constexpr explicit mat() = default;
+    constexpr explicit mat(DataType uniform) : data{{uniform, uniform, uniform}, {uniform, uniform, uniform}, {uniform, uniform, uniform}} {}
     constexpr explicit mat(DataType x0, DataType y0, DataType z0, DataType x1, DataType y1, DataType z1, DataType x2, DataType y2, DataType z2)
         : data{{x0, y0, z0}, {x1, y1, z1}, {x2, y2, z2}} {}
     constexpr explicit mat(core::vec3<DataType> col1, core::vec3<DataType> col2, core::vec3<DataType> col3)
@@ -134,6 +139,7 @@ struct mat<3, 4, T> {
     DataType data[NCol][NRow] = {};
 
     constexpr explicit mat() = default;
+    constexpr explicit mat(DataType uniform) : data{{uniform, uniform, uniform, uniform}, {uniform, uniform, uniform, uniform}, {uniform, uniform, uniform, uniform}} {}
     constexpr explicit mat(DataType x0, DataType y0, DataType z0, DataType w0, DataType x1, DataType y1, DataType z1, DataType w1, DataType x2, DataType y2, DataType z2, DataType w2)
         : data{{x0, y0, z0, w0}, {x1, y1, z1, w1}, {x2, y2, z2, w2}} {}
     constexpr explicit mat(core::vec3<DataType> col1, core::vec3<DataType> col2, core::vec3<DataType> col3, core::vec3<DataType> col4)
@@ -156,6 +162,7 @@ struct mat<4, 2, T> {
     DataType data[NCol][NRow] = {};
 
     constexpr explicit mat() = default;
+    constexpr explicit mat(DataType uniform) : data{{uniform, uniform}, {uniform, uniform}, {uniform, uniform}, {uniform, uniform}} {}
     constexpr explicit mat(DataType x0, DataType y0, DataType x1, DataType y1, DataType x2, DataType y2, DataType x3, DataType y3)
         : data{{x0, y0}, {x1, y1}, {x2, y2}, {x3, y3}} {}
     constexpr explicit mat(core::vec4<DataType> col1, core::vec4<DataType> col2, core::vec4<DataType> col3, core::vec4<DataType> col4)
@@ -178,6 +185,7 @@ struct mat<4, 3, T> {
     DataType data[NCol][NRow] = {};
 
     constexpr explicit mat() = default;
+    constexpr explicit mat(DataType uniform) : data{{uniform, uniform, uniform}, {uniform, uniform, uniform}, {uniform, uniform, uniform}, {uniform, uniform, uniform}} {}
     constexpr explicit mat(DataType x0, DataType y0, DataType z0, DataType x1, DataType y1, DataType z1, DataType x2, DataType y2, DataType z2, DataType x3, DataType y3, DataType z3)
         : data{{x0, y0, z0}, {x1, y1, z1}, {x2, y2, z2}, {x3, y3, z3}} {}
     constexpr explicit mat(core::vec4<DataType> col1, core::vec4<DataType> col2, core::vec4<DataType> col3, core::vec4<DataType> col4)
@@ -202,6 +210,7 @@ struct mat<4, 4, T> {
     DataType data[NCol][NRow] = {};
 
     constexpr explicit mat() = default;
+    constexpr explicit mat(DataType uniform) : data{{uniform, uniform, uniform, uniform}, {uniform, uniform, uniform, uniform}, {uniform, uniform, uniform, uniform}, {uniform, uniform, uniform, uniform}} {}
     constexpr explicit mat(DataType x0, DataType y0, DataType z0, DataType w0, DataType x1, DataType y1, DataType z1, DataType w1, DataType x2, DataType y2, DataType z2, DataType w2, DataType x3, DataType y3, DataType z3, DataType w3)
         : data{{x0, y0, z0, w0}, {x1, y1, z1, w1}, {x2, y2, z2, w2}, {x3, y3, z3, w3}} {}
     constexpr explicit mat(core::vec4<DataType> col1, core::vec4<DataType> col2, core::vec4<DataType> col3, core::vec4<DataType> col4)
@@ -323,18 +332,17 @@ constexpr mat<NCol, NRow, T> mmul(const mat<NCol, NRow, T>& m, T value) {
 
 // Determinant
 
-template<i32 NCol, i32 NRow, typename T>
-constexpr T det(const mat<NCol, NRow, T>& m) {
-    static_assert(NCol == NRow, "Matrix must be square");
-    if constexpr (NCol == 2) {
+template<i32 NDim, typename T>
+constexpr T det(const mat<NDim, NDim, T>& m) {
+    if constexpr (NDim == 2) {
         return m[0][0] * m[1][1] - m[1][0] * m[0][1];
     }
-    else if constexpr (NCol == 3) {
+    else if constexpr (NDim == 3) {
         return + m[0][0] * (m[1][1] * m[2][2] - m[2][1] * m[1][2])
                - m[1][0] * (m[0][1] * m[2][2] - m[2][1] * m[0][2])
                + m[2][0] * (m[0][1] * m[1][2] - m[1][1] * m[0][2]);
     }
-    else if constexpr (NCol == 4) {
+    else if constexpr (NDim == 4) {
         return + m[0][0] * (m[1][1] * (m[2][2] * m[3][3] - m[3][2] * m[2][3]) - m[2][1] * (m[1][2] * m[3][3] - m[3][2] * m[1][3]) + m[3][1] * (m[1][2] * m[2][3] - m[2][2] * m[1][3]))
                - m[1][0] * (m[0][1] * (m[2][2] * m[3][3] - m[3][2] * m[2][3]) - m[2][1] * (m[0][2] * m[3][3] - m[3][2] * m[0][3]) + m[3][1] * (m[0][2] * m[2][3] - m[2][2] * m[0][3]))
                + m[2][0] * (m[0][1] * (m[1][2] * m[3][3] - m[3][2] * m[1][3]) - m[1][1] * (m[0][2] * m[3][3] - m[3][2] * m[0][3]) + m[3][1] * (m[0][2] * m[1][3] - m[1][2] * m[0][3]))
@@ -356,6 +364,76 @@ constexpr mat<NRow, NCol, T> mtranspose(const mat<NCol, NRow, T>& m) {
         }
     }
     return res;
+}
+
+// Inverse
+
+template<i32 NDim, typename T>
+constexpr mat<NDim, NDim, T> minverse(const mat<NDim, NDim, T>& m) {
+    mat<NDim, NDim, T> ret { T(INFINITY) };
+    T d = det(m);
+    if (d == 0) return ret;
+    T idet = 1 / d;
+    if constexpr (NDim == 2) {
+        ret[0][0] = m[1][1] * idet;
+        ret[0][1] = -m[0][1] * idet;
+        ret[1][0] = -m[1][0] * idet;
+        ret[1][1] = m[0][0] * idet;
+    }
+    else if constexpr (NDim == 3) {
+        ret[0][0] = (m[1][1] * m[2][2] - m[2][1] * m[1][2]) * idet;
+        ret[0][1] = (m[0][2] * m[2][1] - m[0][1] * m[2][2]) * idet;
+        ret[0][2] = (m[0][1] * m[1][2] - m[0][2] * m[1][1]) * idet;
+        ret[1][0] = (m[1][2] * m[2][0] - m[1][0] * m[2][2]) * idet;
+        ret[1][1] = (m[0][0] * m[2][2] - m[0][2] * m[2][0]) * idet;
+        ret[1][2] = (m[1][0] * m[0][2] - m[0][0] * m[1][2]) * idet;
+        ret[2][0] = (m[1][0] * m[2][1] - m[2][0] * m[1][1]) * idet;
+        ret[2][1] = (m[2][0] * m[0][1] - m[0][0] * m[2][1]) * idet;
+        ret[2][2] = (m[0][0] * m[1][1] - m[1][0] * m[0][1]) * idet;
+    }
+    else if constexpr (NDim == 4) {
+        ret[0][0] = m[1][1] * m[2][2] * m[3][3] - m[1][1] * m[2][3] * m[3][2] - m[2][1] * m[1][2] * m[3][3]
+                    + m[2][1] * m[1][3] * m[3][2] + m[3][1] * m[1][2] * m[2][3] - m[3][1] * m[1][3] * m[2][2];
+        ret[0][1] = -m[0][1] * m[2][2] * m[3][3] + m[0][1] * m[2][3] * m[3][2] + m[2][1] * m[0][2] * m[3][3]
+                    - m[2][1] * m[0][3] * m[3][2] - m[3][1] * m[0][2] * m[2][3] + m[3][1] * m[0][3] * m[2][2];
+        ret[0][2] = m[0][1] * m[1][2] * m[3][3] - m[0][1] * m[1][3] * m[3][2] - m[1][1] * m[0][2] * m[3][3]
+                    + m[1][1] * m[0][3] * m[3][2] + m[3][1] * m[0][2] * m[1][3] - m[3][1] * m[0][3] * m[1][2];
+        ret[0][3] = -m[0][1] * m[1][2] * m[2][3] + m[0][1] * m[1][3] * m[2][2] + m[1][1] * m[0][2] * m[2][3]
+                    - m[1][1] * m[0][3] * m[2][2] - m[2][1] * m[0][2] * m[1][3] + m[2][1] * m[0][3] * m[1][2];
+        ret[1][0] = -m[1][0] * m[2][2] * m[3][3] + m[1][0] * m[2][3] * m[3][2] + m[2][0] * m[1][2] * m[3][3]
+                    - m[2][0] * m[1][3] * m[3][2] - m[3][0] * m[1][2] * m[2][3] + m[3][0] * m[1][3] * m[2][2];
+        ret[1][1] = m[0][0] * m[2][2] * m[3][3] - m[0][0] * m[2][3] * m[3][2] - m[2][0] * m[0][2] * m[3][3]
+                    + m[2][0] * m[0][3] * m[3][2] + m[3][0] * m[0][2] * m[2][3] - m[3][0] * m[0][3] * m[2][2];
+        ret[1][2] = -m[0][0] * m[1][2] * m[3][3] + m[0][0] * m[1][3] * m[3][2] + m[1][0] * m[0][2] * m[3][3]
+                    - m[1][0] * m[0][3] * m[3][2] - m[3][0] * m[0][2] * m[1][3] + m[3][0] * m[0][3] * m[1][2];
+        ret[1][3] = m[0][0] * m[1][2] * m[2][3] - m[0][0] * m[1][3] * m[2][2] - m[1][0] * m[0][2] * m[2][3]
+                    + m[1][0] * m[0][3] * m[2][2] + m[2][0] * m[0][2] * m[1][3] - m[2][0] * m[0][3] * m[1][2];
+        ret[2][0] = m[1][0] * m[2][1] * m[3][3] - m[1][0] * m[2][3] * m[3][1] - m[2][0] * m[1][1] * m[3][3]
+                    + m[2][0] * m[1][3] * m[3][1] + m[3][0] * m[1][1] * m[2][3] - m[3][0] * m[1][3] * m[2][1];
+        ret[2][1] = -m[0][0] * m[2][1] * m[3][3] + m[0][0] * m[2][3] * m[3][1] + m[2][0] * m[0][1] * m[3][3]
+                    - m[2][0] * m[0][3] * m[3][1] - m[3][0] * m[0][1] * m[2][3] + m[3][0] * m[0][3] * m[2][1];
+        ret[2][2] = m[0][0] * m[1][1] * m[3][3] - m[0][0] * m[1][3] * m[3][1] - m[1][0] * m[0][1] * m[3][3]
+                    + m[1][0] * m[0][3] * m[3][1] + m[3][0] * m[0][1] * m[1][3] - m[3][0] * m[0][3] * m[1][1];
+        ret[2][3] = -m[0][0] * m[1][1] * m[2][3] + m[0][0] * m[1][3] * m[2][1] + m[1][0] * m[0][1] * m[2][3]
+                    - m[1][0] * m[0][3] * m[2][1] - m[2][0] * m[0][1] * m[1][3] + m[2][0] * m[0][3] * m[1][1];
+        ret[3][0] = -m[1][0] * m[2][1] * m[3][2] + m[1][0] * m[2][2] * m[3][1] + m[2][0] * m[1][1] * m[3][2]
+                    - m[2][0] * m[1][2] * m[3][1] - m[3][0] * m[1][1] * m[2][2] + m[3][0] * m[1][2] * m[2][1];
+        ret[3][1] = m[0][0] * m[2][1] * m[3][2] - m[0][0] * m[2][2] * m[3][1] - m[2][0] * m[0][1] * m[3][2]
+                    + m[2][0] * m[0][2] * m[3][1] + m[3][0] * m[0][1] * m[2][2] - m[3][0] * m[0][2] * m[2][1];
+        ret[3][2] = -m[0][0] * m[1][1] * m[3][2] + m[0][0] * m[1][2] * m[3][1] + m[1][0] * m[0][1] * m[3][2]
+                    - m[1][0] * m[0][2] * m[3][1] - m[3][0] * m[0][1] * m[1][2] + m[3][0] * m[0][2] * m[1][1];
+        ret[3][3] = m[0][0] * m[1][1] * m[2][2] - m[0][0] * m[1][2] * m[2][1] - m[1][0] * m[0][1] * m[2][2]
+                    + m[1][0] * m[0][2] * m[2][1] + m[2][0] * m[0][1] * m[1][2] - m[2][0] * m[0][2] * m[1][1];
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                ret[i][j] *= idet;
+            }
+        }
+    }
+    else {
+        static_assert(core::AlwaysFalse<T>, "Matrix must be 2x2, 3x3 or 4x4");
+    }
+    return ret;
 }
 
 #pragma endregion

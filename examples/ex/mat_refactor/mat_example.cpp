@@ -591,10 +591,48 @@ void check_multiplication() {
     }
 }
 
+void check_inverse() {
+    i32 c = fuzzCount;
+    while (c-- > 0) {
+        auto [n0, n1, n2, n3] = get_f32_fuzz();
+        auto [n4, n5, n6, n7] = get_f32_fuzz();
+        auto [n8, n9, n10, n11] = get_f32_fuzz();
+        auto [n12, n13, n14, n15] = get_f32_fuzz();
+        {
+            // 2x2
+            mat2x2f m(n0, n1, n2, n3);
+            glm::mat2 glmM(n0, n1, n2, n3);
+            auto res = minverse(m);
+            if (res[0][0] == INFINITY) continue;
+            glm::mat2 glmRes = glm::inverse(glmM);
+            compare_to_glm(res, glmRes);
+        }
+        {
+            // 3x3
+            mat3x3f m(n0, n1, n2, n3, n4, n5, n6, n7, n8);
+            glm::mat3 glmM(n0, n1, n2, n3, n4, n5, n6, n7, n8);
+            auto res = minverse(m);
+            if (res[0][0] == INFINITY) continue;
+            glm::mat3 glmRes = glm::inverse(glmM);
+            compare_to_glm(res, glmRes);
+        }
+        {
+            // 4x4
+            mat4x4f m(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, n14, n15);
+            glm::mat4 glmM(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, n14, n15);
+            auto res = minverse(m);
+            if (res[0][0] == INFINITY) continue;
+            glm::mat4 glmRes = glm::inverse(glmM);
+            compare_to_glm(res, glmRes);
+        }
+    }
+}
+
 void refactorRunMatExample() {
     check_ctors();
     check_determinant();
     check_identity();
     check_addition_and_subtraction();
     check_multiplication();
+    check_inverse();
 }

@@ -1,13 +1,7 @@
-void mat2xN_constructors() {}
-
-void mat3xN_constructors() {}
-
-void mat4xN_constructors() {}
-
 void mat_equals() {
-    auto m1 = core::mat2x2f(1.0f, 2.0f, 3.0f, 4.0f);
-    auto m2 = core::mat2x2f(1.0f, 2.0f, 3.0f, 4.0f);
-    auto m3 = core::mat2x2f(9.0f, 9.0f, 9.0f, 9.0f);
+    auto m1 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
+    auto m2 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
+    auto m3 = core::mat2x2f({ 9.0f, 9.0f }, { 9.0f, 9.0f });
     Assert(core::mequals(m1, m2));
     Assert(core::mequals(m2, m1));
     Assert(m1 == m2);
@@ -18,211 +12,740 @@ void mat_equals() {
     Assert(m3 != m2);
 
     // test safe msafeequals
-    auto m4 = core::mat2x2f(1.0f, 2.0f, 3.0f, 4.0f);
-    auto m5 = core::mat2x2f(1.000001f, 2.00002f, 3.0003f, 4.000999f);
+    auto m4 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
+    auto m5 = core::mat2x2f({ 1.000001f, 2.00002f }, { 3.0003f, 4.000999f });
     Assert(core::msafeequals(m4, m5, 0.001f));
     Assert(core::msafeequals(m5, m4, 0.0001f) == false);
 
-    // uneven matrices
-    auto m6 = core::mat2x3i(core::v<i32>(1, 2, 3), core::v<i32>(5, 6, 7));
-    auto m7 = core::mat2x3i(core::v<i32>(1, 2, 3), core::v<i32>(5, 6, 7));
+    // non-square matrices
+    auto m6 = core::mat2x3i({ 1, 2, 3 }, { 5, 6, 7 });
+    auto m7 = core::mat2x3i({ 1, 2, 3 }, { 5, 6, 7 });
     Assert(core::mequals(m6, m7));
     Assert(core::mequals(m7, m6));
+
+    auto m8 = core::mat3x2i({ 1, 2 }, { 3, 4 }, { 5, 6 });
+    auto m9 = core::mat3x2i({ 1, 2 }, { 3, 4 }, { 5, 6 });
+    Assert(core::mequals(m8, m9));
+    Assert(core::mequals(m9, m8));
+}
+
+void mat2xN_constructors() {
+    {
+        // 2x2
+        auto m1 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
+        Assert(m1[0][0] == 1.0f);
+        Assert(m1[0][1] == 2.0f);
+        Assert(m1[1][0] == 3.0f);
+        Assert(m1[1][1] == 4.0f);
+
+        auto m2 = core::mat2x2f(1.0f, 2.0f, 3.0f, 4.0f);
+        Assert(m2[0][0] == 1.0f);
+        Assert(m2[0][1] == 2.0f);
+        Assert(m2[1][0] == 3.0f);
+        Assert(m2[1][1] == 4.0f);
+
+        Assert(m1 == m2);
+    }
+    {
+        // 2x3
+        auto m1 = core::mat2x3f({ 1.0f, 2.0f, 3.0f }, { 4.0f, 5.0f, 6.0f });
+        Assert(m1[0][0] == 1.0f);
+        Assert(m1[0][1] == 2.0f);
+        Assert(m1[0][2] == 3.0f);
+        Assert(m1[1][0] == 4.0f);
+        Assert(m1[1][1] == 5.0f);
+        Assert(m1[1][2] == 6.0f);
+
+        auto m2 = core::mat2x3f(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f);
+        Assert(m2[0][0] == 1.0f);
+        Assert(m2[0][1] == 2.0f);
+        Assert(m2[0][2] == 3.0f);
+        Assert(m2[1][0] == 4.0f);
+        Assert(m2[1][1] == 5.0f);
+        Assert(m2[1][2] == 6.0f);
+
+        Assert(m1 == m2);
+    }
+    {
+        // 2x4
+        auto m1 = core::mat2x4f({ 1.0f, 2.0f, 3.0f, 4.0f },
+                                { 5.0f, 6.0f, 7.0f, 8.0f });
+        Assert(m1[0][0] == 1.0f);
+        Assert(m1[0][1] == 2.0f);
+        Assert(m1[0][2] == 3.0f);
+        Assert(m1[0][3] == 4.0f);
+        Assert(m1[1][0] == 5.0f);
+        Assert(m1[1][1] == 6.0f);
+        Assert(m1[1][2] == 7.0f);
+        Assert(m1[1][3] == 8.0f);
+
+        auto m2 = core::mat2x4f(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
+        Assert(m2[0][0] == 1.0f);
+        Assert(m2[0][1] == 2.0f);
+        Assert(m2[0][2] == 3.0f);
+        Assert(m2[0][3] == 4.0f);
+        Assert(m2[1][0] == 5.0f);
+        Assert(m2[1][1] == 6.0f);
+        Assert(m2[1][2] == 7.0f);
+        Assert(m2[1][3] == 8.0f);
+
+        Assert(m1 == m2);
+    }
+}
+
+void mat3xN_constructors() {
+    {
+        // 3x2
+        auto m1 = core::mat3x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f }, { 5.0f, 6.0f });
+        Assert(m1[0][0] == 1.0f);
+        Assert(m1[0][1] == 2.0f);
+        Assert(m1[1][0] == 3.0f);
+        Assert(m1[1][1] == 4.0f);
+        Assert(m1[2][0] == 5.0f);
+        Assert(m1[2][1] == 6.0f);
+
+        auto m2 = core::mat3x2f(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f);
+        Assert(m2[0][0] == 1.0f);
+        Assert(m2[0][1] == 2.0f);
+        Assert(m2[1][0] == 3.0f);
+        Assert(m2[1][1] == 4.0f);
+        Assert(m2[2][0] == 5.0f);
+        Assert(m2[2][1] == 6.0f);
+
+        Assert(m1 == m2);
+    }
+    {
+        // 3x3
+        auto m1 = core::mat3x3f({ 1.0f, 2.0f, 3.0f },
+                                { 4.0f, 5.0f, 6.0f },
+                                { 7.0f, 8.0f, 9.0f });
+        Assert(m1[0][0] == 1.0f);
+        Assert(m1[0][1] == 2.0f);
+        Assert(m1[0][2] == 3.0f);
+        Assert(m1[1][0] == 4.0f);
+        Assert(m1[1][1] == 5.0f);
+        Assert(m1[1][2] == 6.0f);
+        Assert(m1[2][0] == 7.0f);
+        Assert(m1[2][1] == 8.0f);
+        Assert(m1[2][2] == 9.0f);
+
+        auto m2 = core::mat3x3f(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f);
+        Assert(m2[0][0] == 1.0f);
+        Assert(m2[0][1] == 2.0f);
+        Assert(m2[0][2] == 3.0f);
+        Assert(m2[1][0] == 4.0f);
+        Assert(m2[1][1] == 5.0f);
+        Assert(m2[1][2] == 6.0f);
+        Assert(m2[2][0] == 7.0f);
+        Assert(m2[2][1] == 8.0f);
+        Assert(m2[2][2] == 9.0f);
+
+        Assert(m1 == m2);
+    }
+    {
+        // 3x4
+        auto m1 = core::mat3x4f({ 1.0f, 2.0f, 3.0f, 4.0f },
+                                { 5.0f, 6.0f, 7.0f, 8.0f },
+                                { 9.0f, 10.0f, 11.0f, 12.0f });
+        Assert(m1[0][0] == 1.0f);
+        Assert(m1[0][1] == 2.0f);
+        Assert(m1[0][2] == 3.0f);
+        Assert(m1[0][3] == 4.0f);
+        Assert(m1[1][0] == 5.0f);
+        Assert(m1[1][1] == 6.0f);
+        Assert(m1[1][2] == 7.0f);
+        Assert(m1[1][3] == 8.0f);
+        Assert(m1[2][0] == 9.0f);
+        Assert(m1[2][1] == 10.0f);
+        Assert(m1[2][2] == 11.0f);
+        Assert(m1[2][3] == 12.0f);
+
+        auto m2 = core::mat3x4f(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f);
+        Assert(m2[0][0] == 1.0f);
+        Assert(m2[0][1] == 2.0f);
+        Assert(m2[0][2] == 3.0f);
+        Assert(m2[0][3] == 4.0f);
+        Assert(m2[1][0] == 5.0f);
+        Assert(m2[1][1] == 6.0f);
+        Assert(m2[1][2] == 7.0f);
+        Assert(m2[1][3] == 8.0f);
+        Assert(m2[2][0] == 9.0f);
+        Assert(m2[2][1] == 10.0f);
+        Assert(m2[2][2] == 11.0f);
+        Assert(m2[2][3] == 12.0f);
+
+        Assert(m1 == m2);
+    }
+}
+
+void mat4xN_constructors() {
+    {
+        // 4x2
+        auto m1 = core::mat4x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f }, { 5.0f, 6.0f }, { 7.0f, 8.0f });
+        Assert(m1[0][0] == 1.0f);
+        Assert(m1[0][1] == 2.0f);
+        Assert(m1[1][0] == 3.0f);
+        Assert(m1[1][1] == 4.0f);
+        Assert(m1[2][0] == 5.0f);
+        Assert(m1[2][1] == 6.0f);
+        Assert(m1[3][0] == 7.0f);
+        Assert(m1[3][1] == 8.0f);
+
+        auto m2 = core::mat4x2f(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
+        Assert(m2[0][0] == 1.0f);
+        Assert(m2[0][1] == 2.0f);
+        Assert(m2[1][0] == 3.0f);
+        Assert(m2[1][1] == 4.0f);
+        Assert(m2[2][0] == 5.0f);
+        Assert(m2[2][1] == 6.0f);
+        Assert(m2[3][0] == 7.0f);
+        Assert(m2[3][1] == 8.0f);
+
+        Assert(m1 == m2);
+    }
+    {
+        // 4x3
+        auto m1 = core::mat4x3f({ 1.0f, 2.0f, 3.0f }, { 4.0f, 5.0f, 6.0f }, { 7.0f, 8.0f, 9.0f }, { 10.0f, 11.0f, 12.0f });
+        Assert(m1[0][0] == 1.0f);
+        Assert(m1[0][1] == 2.0f);
+        Assert(m1[0][2] == 3.0f);
+        Assert(m1[1][0] == 4.0f);
+        Assert(m1[1][1] == 5.0f);
+        Assert(m1[1][2] == 6.0f);
+        Assert(m1[2][0] == 7.0f);
+        Assert(m1[2][1] == 8.0f);
+        Assert(m1[2][2] == 9.0f);
+        Assert(m1[3][0] == 10.0f);
+        Assert(m1[3][1] == 11.0f);
+        Assert(m1[3][2] == 12.0f);
+
+        auto m2 = core::mat4x3f(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f);
+        Assert(m2[0][0] == 1.0f);
+        Assert(m2[0][1] == 2.0f);
+        Assert(m2[0][2] == 3.0f);
+        Assert(m2[1][0] == 4.0f);
+        Assert(m2[1][1] == 5.0f);
+        Assert(m2[1][2] == 6.0f);
+        Assert(m2[2][0] == 7.0f);
+        Assert(m2[2][1] == 8.0f);
+        Assert(m2[2][2] == 9.0f);
+        Assert(m2[3][0] == 10.0f);
+        Assert(m2[3][1] == 11.0f);
+        Assert(m2[3][2] == 12.0f);
+
+        Assert(m1 == m2);
+    }
+    {
+        // 4x4
+        auto m1 = core::mat4x4f({ 1.0f, 2.0f, 3.0f, 4.0f },
+                                { 5.0f, 6.0f, 7.0f, 8.0f },
+                                { 9.0f, 10.0f, 11.0f, 12.0f },
+                                { 13.0f, 14.0f, 15.0f, 16.0f });
+        Assert(m1[0][0] == 1.0f);
+        Assert(m1[0][1] == 2.0f);
+        Assert(m1[0][2] == 3.0f);
+        Assert(m1[0][3] == 4.0f);
+        Assert(m1[1][0] == 5.0f);
+        Assert(m1[1][1] == 6.0f);
+        Assert(m1[1][2] == 7.0f);
+        Assert(m1[1][3] == 8.0f);
+        Assert(m1[2][0] == 9.0f);
+        Assert(m1[2][1] == 10.0f);
+        Assert(m1[2][2] == 11.0f);
+        Assert(m1[2][3] == 12.0f);
+        Assert(m1[3][0] == 13.0f);
+        Assert(m1[3][1] == 14.0f);
+        Assert(m1[3][2] == 15.0f);
+        Assert(m1[3][3] == 16.0f);
+
+        auto m2 = core::mat4x4f(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f);
+        Assert(m2[0][0] == 1.0f);
+        Assert(m2[0][1] == 2.0f);
+        Assert(m2[0][2] == 3.0f);
+        Assert(m2[0][3] == 4.0f);
+        Assert(m2[1][0] == 5.0f);
+        Assert(m2[1][1] == 6.0f);
+        Assert(m2[1][2] == 7.0f);
+        Assert(m2[1][3] == 8.0f);
+        Assert(m2[2][0] == 9.0f);
+        Assert(m2[2][1] == 10.0f);
+        Assert(m2[2][2] == 11.0f);
+        Assert(m2[2][3] == 12.0f);
+        Assert(m2[3][0] == 13.0f);
+        Assert(m2[3][1] == 14.0f);
+        Assert(m2[3][2] == 15.0f);
+        Assert(m2[3][3] == 16.0f);
+
+        Assert(m1 == m2);
+    }
+}
+
+template<i32 NCol, i32 NRow>
+void __test_fill_mat_with_rnd_ints(core::mat<NCol, NRow, i32>& m) {
+    for (i32 i = 0; i < NCol; ++i) {
+        for (i32 j = 0; j < NRow; ++j) {
+            m[i][j] = core::rnd_i32(-1000, 1000);
+        }
+    }
 }
 
 void mat_add() {
-    {
-        auto m1 = core::mat2x2f(1.0f, 2.0f, 3.0f, 4.0f);
-        auto m2 = core::mat2x2f(1.0f, 2.0f, 3.0f, 4.0f);
-        m1.add(m2);
-        Assert(m1 == core::mat2x2f(2.0f, 4.0f, 6.0f, 8.0f));
-        m1 += m2;
-        Assert(m1 == core::mat2x2f(3.0f, 6.0f, 9.0f, 12.0f));
-        m1++;
-        Assert(m1 == core::mat2x2f(4.0f, 7.0f, 10.0f, 13.0f));
-        ++m1;
-        Assert(m1 == core::mat2x2f(5.0f, 8.0f, 11.0f, 14.0f));
-        m1 += 2.0f;
-        Assert(m1 == core::mat2x2f(7.0f, 10.0f, 13.0f, 16.0f));
+    auto test_case = [](auto&& m1, auto&& m2, i32 i) {
+        while(i-- > 0) {
+            __test_fill_mat_with_rnd_ints(m1);
+            __test_fill_mat_with_rnd_ints(m2);
+            auto res = m1 + m2;
+            for (i32 i = 0; i < m1.NCol; ++i) {
+                for (i32 j = 0; j < m1.NRow; ++j) {
+                    Assert(res[i][j] == m1[i][j] + m2[i][j])
+                }
+            }
+        }
+    };
 
-        auto m3 = core::mat3x3f(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f);
-        auto m4 = core::mat3x3f(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f);
-        m3.add(m4);
-        Assert(m3 == core::mat3x3f(2.0f, 4.0f, 6.0f, 8.0f, 10.0f, 12.0f, 14.0f, 16.0f, 18.0f));
-        m3 += m4;
-        Assert(m3 == core::mat3x3f(3.0f, 6.0f, 9.0f, 12.0f, 15.0f, 18.0f, 21.0f, 24.0f, 27.0f));
-        m3++;
-        Assert(m3 == core::mat3x3f(4.0f, 7.0f, 10.0f, 13.0f, 16.0f, 19.0f, 22.0f, 25.0f, 28.0f));
-        ++m3;
-        Assert(m3 == core::mat3x3f(5.0f, 8.0f, 11.0f, 14.0f, 17.0f, 20.0f, 23.0f, 26.0f, 29.0f));
-        m3 += 2.0f;
-        Assert(m3 == core::mat3x3f(7.0f, 10.0f, 13.0f, 16.0f, 19.0f, 22.0f, 25.0f, 28.0f, 31.0f));
-    }
-    {
-        auto m1 = core::mat2x2f(1.0f, 2.0f, 3.0f, 4.0f);
-        auto m2 = core::mat2x2f(1.0f, 2.0f, 3.0f, 4.0f);
-        Assert(m1 + m2 == core::mat2x2f(2.0f, 4.0f, 6.0f, 8.0f));
-        Assert(m2 + m1 == core::mat2x2f(2.0f, 4.0f, 6.0f, 8.0f));
-        auto c = core::mat2x2f(1.0f, 1.0f, 1.0f, 1.0f);
-        Assert(m1 + m2 - c == core::mat2x2f(1.0f, 3.0f, 5.0f, 7.0f));
-
-        auto m3 = core::mat3x3f(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f);
-        auto m4 = core::mat3x3f(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f);
-        auto c2 = core::mat3x3f(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-        Assert(m3 + m4 == core::mat3x3f(2.0f, 4.0f, 6.0f, 8.0f, 10.0f, 12.0f, 14.0f, 16.0f, 18.0f));
-        Assert(m4 + m3 == core::mat3x3f(2.0f, 4.0f, 6.0f, 8.0f, 10.0f, 12.0f, 14.0f, 16.0f, 18.0f));
-        Assert(-c2 + m3 + m4 == core::mat3x3f(1.0f, 3.0f, 5.0f, 7.0f, 9.0f, 11.0f, 13.0f, 15.0f, 17.0f));
-    }
+    i32 itters = 1000;
+    test_case(core::mat2x2i(), core::mat2x2i(), itters);
+    test_case(core::mat2x3i(), core::mat2x3i(), itters);
+    test_case(core::mat2x4i(), core::mat2x4i(), itters);
+    test_case(core::mat3x2i(), core::mat3x2i(), itters);
+    test_case(core::mat3x3i(), core::mat3x3i(), itters);
+    test_case(core::mat3x4i(), core::mat3x4i(), itters);
+    test_case(core::mat4x2i(), core::mat4x2i(), itters);
+    test_case(core::mat4x3i(), core::mat4x3i(), itters);
+    test_case(core::mat4x4i(), core::mat4x4i(), itters);
 }
 
 void mat_sub() {
-    {
-        auto m1 = core::mat2x2f(2.0f, 3.0f, 4.0f, 5.0f);
-        auto m2 = core::mat2x2f(1.0f, 2.0f, 3.0f, 4.0f);
-        m1.sub(m2);
-        Assert(m1 == core::mat2x2f(1.0f, 1.0f, 1.0f, 1.0f));
-        m1 -= m2;
-        Assert(m1 == core::mat2x2f(0.0f, -1.0f, -2.0f, -3.0f));
-        m1--;
-        Assert(m1 == core::mat2x2f(-1.0f, -2.0f, -3.0f, -4.0f));
-        --m1;
-        Assert(m1 == core::mat2x2f(-2.0f, -3.0f, -4.0f, -5.0f));
-        m1 -= 2.0f;
-        Assert(m1 == core::mat2x2f(-4.0f, -5.0f, -6.0f, -7.0f));
+      auto test_case = [](auto&& m1, auto&& m2, i32 i) {
+        while(i-- > 0) {
+            __test_fill_mat_with_rnd_ints(m1);
+            __test_fill_mat_with_rnd_ints(m2);
+            auto res = m1 - m2;
+            for (i32 i = 0; i < m1.NCol; ++i) {
+                for (i32 j = 0; j < m1.NRow; ++j) {
+                    Assert(res[i][j] == m1[i][j] - m2[i][j]);
+                }
+            }
+        }
+    };
 
-        auto m3 = core::mat3x3f(2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f);
-        auto m4 = core::mat3x3f(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f);
-        m3.sub(m4);
-        Assert(m3 == core::mat3x3f(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f));
-        m3 -= m4;
-        Assert(m3 == core::mat3x3f(0.0f, -1.0f, -2.0f, -3.0f, -4.0f, -5.0f, -6.0f, -7.0f, -8.0f));
-        m3--;
-        Assert(m3 == core::mat3x3f(-1.0f, -2.0f, -3.0f, -4.0f, -5.0f, -6.0f, -7.0f, -8.0f, -9.0f));
-        --m3;
-        Assert(m3 == core::mat3x3f(-2.0f, -3.0f, -4.0f, -5.0f, -6.0f, -7.0f, -8.0f, -9.0f, -10.0f));
-        m3 -= 2.0f;
-        Assert(m3 == core::mat3x3f(-4.0f, -5.0f, -6.0f, -7.0f, -8.0f, -9.0f, -10.0f, -11.0f, -12.0f));
-    }
-    {
-        auto m1 = core::mat2x2f(2.0f, 3.0f, 4.0f, 5.0f);
-        auto m2 = core::mat2x2f(1.0f, 2.0f, 3.0f, 4.0f);
-        Assert(m1 - m2 == core::mat2x2f(1.0f, 1.0f, 1.0f, 1.0f));
-        Assert(m2 - m1 == core::mat2x2f(-1.0f, -1.0f, -1.0f, -1.0f));
-        auto c1 = core::mat2x2f(1.0f, 1.0f, 1.0f, 1.0f);
-        Assert(m1 - m2 - c1 == core::mat2x2f(0.0f, 0.0f, 0.0f, 0.0f));
-
-        auto m3 = core::mat3x3f(2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f);
-        auto m4 = core::mat3x3f(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f);
-        Assert(m3 - m4 == core::mat3x3f(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f));
-        Assert(m4 - m3 == core::mat3x3f(-1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f));
-    }
-    {
-        auto m1 = core::mat2x2f(2.0f, 3.0f, 4.0f, 5.0f);
-        auto m2 = core::m2x2i(1, 2, 3, 4);
-        m1.sub(m2);
-        Assert(m1 == core::mat2x2f(1.0f, 1.0f, 1.0f, 1.0f));
-    }
+    i32 itters = 1000;
+    test_case(core::mat2x2i(), core::mat2x2i(), itters);
+    test_case(core::mat2x3i(), core::mat2x3i(), itters);
+    test_case(core::mat2x4i(), core::mat2x4i(), itters);
+    test_case(core::mat3x2i(), core::mat3x2i(), itters);
+    test_case(core::mat3x3i(), core::mat3x3i(), itters);
+    test_case(core::mat3x4i(), core::mat3x4i(), itters);
+    test_case(core::mat4x2i(), core::mat4x2i(), itters);
+    test_case(core::mat4x3i(), core::mat4x3i(), itters);
+    test_case(core::mat4x4i(), core::mat4x4i(), itters);
 }
 
 void mat_mul() {
-    // Matrix multiplication with scalars:
     {
-        auto m1 = core::mat2x2f(1.0f, 2.0f, 3.0f, 4.0f);
-        m1.mul(2.0f);
-        Assert(m1 == core::mat2x2f(2.0f, 4.0f, 6.0f, 8.0f));
-        m1 *= 2.0f;
-        Assert(m1 == core::mat2x2f(4.0f, 8.0f, 12.0f, 16.0f));
-        m1 = m1 * 2.0f;
-        Assert(m1 == core::mat2x2f(8.0f, 16.0f, 24.0f, 32.0f));
-        m1 = 2.0f * m1;
-        Assert(m1 == core::mat2x2f(16.0f, 32.0f, 48.0f, 64.0f));
-
-        auto m3 = core::mat3x3f(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f);
-        m3.mul(2.0f);
-        Assert(m3 == core::mat3x3f(2.0f, 4.0f, 6.0f, 8.0f, 10.0f, 12.0f, 14.0f, 16.0f, 18.0f));
-        m3 *= 2.0f;
-        Assert(m3 == core::mat3x3f(4.0f, 8.0f, 12.0f, 16.0f, 20.0f, 24.0f, 28.0f, 32.0f, 36.0f));
-        m3 = m3 * 2.0f;
-        Assert(m3 == core::mat3x3f(8.0f, 16.0f, 24.0f, 32.0f, 40.0f, 48.0f, 56.0f, 64.0f, 72.0f));
-        m3 = 2.0f * m3;
-        Assert(m3 == core::mat3x3f(16.0f, 32.0f, 48.0f, 64.0f, 80.0f, 96.0f, 112.0f, 128.0f, 144.0f));
-
-        auto m4 = core::m4x4(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f);
-        m4.mul(2.0f);
-        Assert(m4 == core::m4x4(2.0f, 4.0f, 6.0f, 8.0f, 10.0f, 12.0f, 14.0f, 16.0f, 18.0f, 20.0f, 22.0f, 24.0f, 26.0f, 28.0f, 30.0f, 32.0f));
-        m4 *= 2.0f;
-        Assert(m4 == core::m4x4(4.0f, 8.0f, 12.0f, 16.0f, 20.0f, 24.0f, 28.0f, 32.0f, 36.0f, 40.0f, 44.0f, 48.0f, 52.0f, 56.0f, 60.0f, 64.0f));
-        m4 = m4 * 2.0f;
-        Assert(m4 == core::m4x4(8.0f, 16.0f, 24.0f, 32.0f, 40.0f, 48.0f, 56.0f, 64.0f, 72.0f, 80.0f, 88.0f, 96.0f, 104.0f, 112.0f, 120.0f, 128.0f));
-        m4 = 2.0f * m4;
-        Assert(m4 == core::m4x4(16.0f, 32.0f, 48.0f, 64.0f, 80.0f, 96.0f, 112.0f, 128.0f, 144.0f, 160.0f, 176.0f, 192.0f, 208.0f, 224.0f, 240.0f, 256.0f));
+        // 2x2 * 2x2 = 2x2
+        core::mat2x2i m1(1, 2, 3, 4);
+        core::mat2x2i m2(1, 2, 3, 4);
+        core::mat2x2i res = m1 * m2;
+        Assert(res[0][0] == 7);
+        Assert(res[0][1] == 10);
+        Assert(res[1][0] == 15);
+        Assert(res[1][1] == 22);
     }
-    // Matrix by matrix multiplication:
     {
-        auto m1 = core::mat2x2f(1.0f, 2.0f, 3.0f, 4.0f);
-        auto m2 = core::mat2x2f(5.0f, 6.0f, 7.0f, 8.0f);
-        Assert(m1 * m2 == core::mat2x2f(19.0f, 22.0f, 43.0f, 50.0f));
-        Assert(m2 * m1 == core::mat2x2f(23.0f, 34.0f, 31.0f, 46.0f));
-
-        auto m3 = core::mat3x3f(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f);
-        auto m4 = core::mat3x3f(10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f, 17.0f, 18.0f);
-        Assert(m3 * m4 == core::mat3x3f(84.0f, 90.0f, 96.0f, 201.0f, 216.0f, 231.0f, 318.0f, 342.0f, 366.0f));
-        Assert(m4 * m3 == core::mat3x3f(138.0f, 171.0f, 204.0f, 174.0f, 216.0f, 258.0f, 210.0f, 261.0f, 312.0f));
-
-        auto m5 = core::m4x4(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f);
-        auto m6 = core::m4x4(17.0f, 18.0f, 19.0f, 20.0f, 21.0f, 22.0f, 23.0f, 24.0f, 25.0f, 26.0f, 27.0f, 28.0f, 29.0f, 30.0f, 31.0f, 32.0f);
-        Assert(m5 * m6 == core::m4x4(250.0f, 260.0f, 270.0f, 280.0f, 618.0f, 644.0f, 670.0f, 696.0f, 986.0f, 1028.0f, 1070.0f, 1112.0f, 1354.0f, 1412.0f, 1470.0f, 1528.0f));
-        Assert(m6 * m5 == core::m4x4(538.0f, 612.0f, 686.0f, 760.0f, 650.0f, 740.0f, 830.0f, 920.0f, 762.0f, 868.0f, 974.0f, 1080.0f, 874.0f, 996.0f, 1118.0f, 1240.0f));
-
-        auto m7 = core::m2x3f({ 1.0f, 2.0f, 3.0f }, { 4.0f, 5.0f, 6.0f });
-        auto m8 = core::m3x2f({ 7.0f, 8.0f }, { 9.0f, 10.0f }, { 11.0f, 12.0f });
-        // m7 * m8 is ambiguous, so use a function call instead:
-        Assert(core::mmul(m7, m8) == core::mat2x2f({ 58.0f, 64.0f }, { 139.0f, 154.0f }));
-        Assert(core::mmul(m8, m7) == core::m3x3f({ 39.0f, 54.0f, 69.0f }, { 49.0f, 68.0f, 87.0f }, { 59.0f, 82.0f, 105.0f }));
-
-        auto m9 = core::m3x4f({ 1.0f, 2.0f, 3.0f, 4.0f }, { 5.0f, 6.0f, 7.0f, 8.0f }, { 9.0f, 10.0f, 11.0f, 12.0f });
-        auto m10 = core::m4x3f({ 13.0f, 14.0f, 15.0f }, { 16.0f, 17.0f, 18.0f }, { 19.0f, 20.0f, 21.0f }, { 22.0f, 23.0f, 24.0f });
-        Assert(core::mmul(m9, m10) == core::m3x3f({ 190.0f, 200.0f, 210.0f }, { 470.0f, 496.0f, 522.0f }, { 750.0f, 792.0f, 834.0f }));
-        Assert(core::mmul(m10, m9) == core::m4x4f({ 218.0f, 260.0f, 302.0f, 344.0f }, { 263.0f, 314.0f, 365.0f, 416.0f }, { 308.0f, 368.0f, 428.0f, 488.0f }, { 353.0f, 422.0f, 491.0f, 560.0f }));
-
-        auto m11 = core::m4x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f }, { 5.0f, 6.0f }, { 7.0f, 8.0f });
-        auto m12 = core::mat2x2f({ 9.0f, 10.0f }, { 11.0f, 12.0f });
-        Assert(core::mmul(m11, m12) == core::m4x2f({ 31.0f, 34.0f }, { 71.0f, 78.0f }, { 111.0f, 122.0f }, { 151.0f, 166.0f }));
-        // m12 * m11 is not allowed.
+        // 2x2 * 3x2 = 3x2
+        core::mat2x2i m1(1, 2, 3, 4);
+        core::mat3x2i m2(1, 2, 3, 4, 5, 6);
+        core::mat3x2i res = m1 * m2;
+        Assert(res[0][0] == 7);
+        Assert(res[0][1] == 10);
+        Assert(res[1][0] == 15);
+        Assert(res[1][1] == 22);
+        Assert(res[2][0] == 23);
+        Assert(res[2][1] == 34);
     }
-    // Matrix by vector multiplication:
     {
-        auto m1 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
-        auto v1 = core::v(5.0f, 6.0f);
-        Assert(m1 * v1 == core::v(17.0f, 39.0f));
-
-        auto m2 = core::m3x3f({ 1.0f, 2.0f, 3.0f }, { 4.0f, 5.0f, 6.0f }, { 7.0f, 8.0f, 9.0f });
-        auto v2 = core::v(10.0f, 11.0f, 12.0f);
-        Assert(m2 * v2 == core::v(68.0f, 167.0f, 266.0f));
-
-        auto m3 = core::m4x4f({ 1.0f, 2.0f, 3.0f, 4.0f }, { 5.0f, 6.0f, 7.0f, 8.0f }, { 9.0f, 10.0f, 11.0f, 12.0f }, { 13.0f, 14.0f, 15.0f, 16.0f });
-        auto v3 = core::v(17.0f, 18.0f, 19.0f, 20.0f);
-        Assert(m3 * v3 == core::v(190.0f, 486.0f, 782.0f, 1078.0f));
-
-        auto m4 = core::m3x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f }, { 5.0f, 6.0f });
-        auto v4 = core::v(7.0f, 8.0f);
-        Assert(m4 * v4 == core::vf(23.0f, 53.0f, 83.0f));
-
-        auto m5 = core::m1x2f({ 1.0f, 2.0f });
-        auto v5 = core::v(3.0f, 4.0f);
-        Assert(m5 * v5 == core::v(11.0f));
-
-        auto m6 = core::m1x3f({ 1.0f, 2.0f, 3.0f });
-        auto v6 = core::v(4.0f, 5.0f, 6.0f);
-        Assert(m6 * v6 == core::v(32.0f));
-
-        auto m7 = core::m1x4f({ 1.0f, 2.0f, 3.0f, 4.0f });
-        auto v7 = core::v(5.0f, 6.0f, 7.0f, 8.0f);
-        Assert(m7 * v7 == core::v(70.0f));
-
-        auto m8 = core::m2x1f(1.0f, 2.0f);
-        auto v8 = core::v(3.0f);
-        Assert(m8 * v8 == core::v(3.0f, 6.0f));
+        // 2x2 * 4x2 = 4x2
+        core::mat2x2i m1(1, 2, 3, 4);
+        core::mat4x2i m2(1, 2, 3, 4, 5, 6, 7, 8);
+        core::mat4x2i res = m1 * m2;
+        Assert(res[0][0] == 7);
+        Assert(res[0][1] == 10);
+        Assert(res[1][0] == 15);
+        Assert(res[1][1] == 22);
+        Assert(res[2][0] == 23);
+        Assert(res[2][1] == 34);
+        Assert(res[3][0] == 31);
+        Assert(res[3][1] == 46);
+    }
+    {
+        // 2x3 * 2x2 = 2x3
+        core::mat2x3i m1(1, 2, 3, 4, 5, 6);
+        core::mat2x2i m2(1, 2, 3, 4);
+        core::mat2x3i res = m1 * m2;
+        Assert(res[0][0] == 9);
+        Assert(res[0][1] == 12);
+        Assert(res[0][2] == 15);
+        Assert(res[1][0] == 19);
+        Assert(res[1][1] == 26);
+        Assert(res[1][2] == 33);
+    }
+    {
+        // 2x3 * 3x2 = 3x3
+        core::mat2x3i m1(1, 2, 3, 4, 5, 6);
+        core::mat3x2i m2(1, 2, 3, 4, 5, 6);
+        core::mat3x3i res = m1 * m2;
+        Assert(res[0][0] == 9);
+        Assert(res[0][1] == 12);
+        Assert(res[0][2] == 15);
+        Assert(res[1][0] == 19);
+        Assert(res[1][1] == 26);
+        Assert(res[1][2] == 33);
+        Assert(res[2][0] == 29);
+        Assert(res[2][1] == 40);
+        Assert(res[2][2] == 51);
+    }
+    {
+        // 2x3 * 4x2 = 4x3
+        core::mat2x3i m1(1, 2, 3, 4, 5, 6);
+        core::mat4x2i m2(1, 2, 3, 4, 5, 6, 7, 8);
+        core::mat4x3i res = m1 * m2;
+        Assert(res[0][0] == 9);
+        Assert(res[0][1] == 12);
+        Assert(res[0][2] == 15);
+        Assert(res[1][0] == 19);
+        Assert(res[1][1] == 26);
+        Assert(res[1][2] == 33);
+        Assert(res[2][0] == 29);
+        Assert(res[2][1] == 40);
+        Assert(res[2][2] == 51);
+        Assert(res[3][0] == 39);
+        Assert(res[3][1] == 54);
+        Assert(res[3][2] == 69);
+    }
+    {
+        // 2x4 * 2x2 = 2x4
+        core::mat2x4i m1(1, 2, 3, 4, 5, 6, 7, 8);
+        core::mat2x2i m2(1, 2, 3, 4);
+        core::mat2x4i res = m1 * m2;
+        Assert(res[0][0] == 11);
+        Assert(res[0][1] == 14);
+        Assert(res[0][2] == 17);
+        Assert(res[0][3] == 20);
+        Assert(res[1][0] == 23);
+        Assert(res[1][1] == 30);
+        Assert(res[1][2] == 37);
+        Assert(res[1][3] == 44);
+    }
+    {
+        // 2x4 * 3x2 = 3x4
+        core::mat2x4i m1(1, 2, 3, 4, 5, 6, 7, 8);
+        core::mat3x2i m2(1, 2, 3, 4, 5, 6);
+        core::mat3x4i res = m1 * m2;
+        Assert(res[0][0] == 11);
+        Assert(res[0][1] == 14);
+        Assert(res[0][2] == 17);
+        Assert(res[0][3] == 20);
+        Assert(res[1][0] == 23);
+        Assert(res[1][1] == 30);
+        Assert(res[1][2] == 37);
+        Assert(res[1][3] == 44);
+        Assert(res[2][0] == 35);
+        Assert(res[2][1] == 46);
+        Assert(res[2][2] == 57);
+        Assert(res[2][3] == 68);
+    }
+    {
+        // 2x4 * 4x2 = 4x4
+        core::mat2x4i m1(1, 2, 3, 4, 5, 6, 7, 8);
+        core::mat4x2i m2(1, 2, 3, 4, 5, 6, 7, 8);
+        core::mat4x4i res = m1 * m2;
+        Assert(res[0][0] == 11);
+        Assert(res[0][1] == 14);
+        Assert(res[0][2] == 17);
+        Assert(res[0][3] == 20);
+        Assert(res[1][0] == 23);
+        Assert(res[1][1] == 30);
+        Assert(res[1][2] == 37);
+        Assert(res[1][3] == 44);
+        Assert(res[2][0] == 35);
+        Assert(res[2][1] == 46);
+        Assert(res[2][2] == 57);
+        Assert(res[2][3] == 68);
+        Assert(res[3][0] == 47);
+        Assert(res[3][1] == 62);
+        Assert(res[3][2] == 77);
+        Assert(res[3][3] == 92);
+    }
+    {
+        // 3x2 * 2x3 = 2x2
+        core::mat3x2i m1(1, 2, 3, 4, 5, 6);
+        core::mat2x3i m2(1, 2, 3, 4, 5, 6);
+        core::mat2x2i res = m1 * m2;
+        Assert(res[0][0] == 22);
+        Assert(res[0][1] == 28);
+        Assert(res[1][0] == 49);
+        Assert(res[1][1] == 64);
+    }
+    {
+        // 3x2 * 3x3 = 3x2
+        core::mat3x2i m1(1, 2, 3, 4, 5, 6);
+        core::mat3x3i m2(1, 2, 3, 4, 5, 6, 7, 8, 9);
+        core::mat3x2i res = m1 * m2;
+        Assert(res[0][0] == 22);
+        Assert(res[0][1] == 28);
+        Assert(res[1][0] == 49);
+        Assert(res[1][1] == 64);
+        Assert(res[2][0] == 76);
+        Assert(res[2][1] == 100);
+    }
+    {
+        // 3x2 * 4x3 = 4x2
+        core::mat3x2i m1(1, 2, 3, 4, 5, 6);
+        core::mat4x3i m2(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        core::mat4x2i res = m1 * m2;
+        Assert(res[0][0] == 22);
+        Assert(res[0][1] == 28);
+        Assert(res[1][0] == 49);
+        Assert(res[1][1] == 64);
+        Assert(res[2][0] == 76);
+        Assert(res[2][1] == 100);
+        Assert(res[3][0] == 103);
+        Assert(res[3][1] == 136);
+    }
+    {
+        // 3x3 * 2x3 = 2x3
+        core::mat3x3i m1(1, 2, 3, 4, 5, 6, 7, 8, 9);
+        core::mat2x3i m2(1, 2, 3, 4, 5, 6);
+        core::mat2x3i res = m1 * m2;
+        Assert(res[0][0] == 30);
+        Assert(res[0][1] == 36);
+        Assert(res[0][2] == 42);
+        Assert(res[1][0] == 66);
+        Assert(res[1][1] == 81);
+        Assert(res[1][2] == 96);
+    }
+    {
+        // 3x3 * 3x3 = 3x3
+        core::mat3x3i m1(1, 2, 3, 4, 5, 6, 7, 8, 9);
+        core::mat3x3i m2(1, 2, 3, 4, 5, 6, 7, 8, 9);
+        core::mat3x3i res = m1 * m2;
+        Assert(res[0][0] == 30);
+        Assert(res[0][1] == 36);
+        Assert(res[0][2] == 42);
+        Assert(res[1][0] == 66);
+        Assert(res[1][1] == 81);
+        Assert(res[1][2] == 96);
+        Assert(res[2][0] == 102);
+        Assert(res[2][1] == 126);
+        Assert(res[2][2] == 150);
+    }
+    {
+        // 3x3 * 4x3 = 4x3
+        core::mat3x3i m1(1, 2, 3, 4, 5, 6, 7, 8, 9);
+        core::mat4x3i m2(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        core::mat4x3i res = m1 * m2;
+        Assert(res[0][0] == 30);
+        Assert(res[0][1] == 36);
+        Assert(res[0][2] == 42);
+        Assert(res[1][0] == 66);
+        Assert(res[1][1] == 81);
+        Assert(res[1][2] == 96);
+        Assert(res[2][0] == 102);
+        Assert(res[2][1] == 126);
+        Assert(res[2][2] == 150);
+        Assert(res[3][0] == 138);
+        Assert(res[3][1] == 171);
+        Assert(res[3][2] == 204);
+    }
+    {
+        // 3x4 * 2x3 = 2x4
+        core::mat3x4i m1(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        core::mat2x3i m2(1, 2, 3, 4, 5, 6);
+        core::mat2x4i res = m1 * m2;
+        Assert(res[0][0] == 38);
+        Assert(res[0][1] == 44);
+        Assert(res[0][2] == 50);
+        Assert(res[0][3] == 56);
+        Assert(res[1][0] == 83);
+        Assert(res[1][1] == 98);
+        Assert(res[1][2] == 113);
+        Assert(res[1][3] == 128);
+    }
+    {
+        // 3x4 * 3x3 = 3x4
+        core::mat3x4i m1(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        core::mat3x3i m2(1, 2, 3, 4, 5, 6, 7, 8, 9);
+        core::mat3x4i res = m1 * m2;
+        Assert(res[0][0] == 38);
+        Assert(res[0][1] == 44);
+        Assert(res[0][2] == 50);
+        Assert(res[0][3] == 56);
+        Assert(res[1][0] == 83);
+        Assert(res[1][1] == 98);
+        Assert(res[1][2] == 113);
+        Assert(res[1][3] == 128);
+        Assert(res[2][0] == 128);
+        Assert(res[2][1] == 152);
+        Assert(res[2][2] == 176);
+        Assert(res[2][3] == 200);
+    }
+    {
+        // 3x4 * 4x3 = 4x4
+        core::mat3x4i m1(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        core::mat4x3i m2(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        core::mat4x4i res = m1 * m2;
+        Assert(res[0][0] == 38);
+        Assert(res[0][1] == 44);
+        Assert(res[0][2] == 50);
+        Assert(res[0][3] == 56);
+        Assert(res[1][0] == 83);
+        Assert(res[1][1] == 98);
+        Assert(res[1][2] == 113);
+        Assert(res[1][3] == 128);
+        Assert(res[2][0] == 128);
+        Assert(res[2][1] == 152);
+        Assert(res[2][2] == 176);
+        Assert(res[2][3] == 200);
+        Assert(res[3][0] == 173);
+        Assert(res[3][1] == 206);
+        Assert(res[3][2] == 239);
+        Assert(res[3][3] == 272);
+    }
+    {
+        // 4x2 * 2x4 = 2x2
+        core::mat4x2i m1(1, 2, 3, 4, 5, 6, 7, 8);
+        core::mat2x4i m2(1, 2, 3, 4, 5, 6, 7, 8);
+        core::mat2x2i res = m1 * m2;
+        Assert(res[0][0] == 50);
+        Assert(res[0][1] == 60);
+        Assert(res[1][0] == 114);
+        Assert(res[1][1] == 140);
+    }
+    {
+        // 4x2 * 3x4 = 3x2
+        core::mat4x2i m1(1, 2, 3, 4, 5, 6, 7, 8);
+        core::mat3x4i m2(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        core::mat3x2i res = m1 * m2;
+        Assert(res[0][0] == 50);
+        Assert(res[0][1] == 60);
+        Assert(res[1][0] == 114);
+        Assert(res[1][1] == 140);
+        Assert(res[2][0] == 178);
+        Assert(res[2][1] == 220);
+    }
+    {
+        // 4x2 * 4x4 = 4x2
+        core::mat4x2i m1(1, 2, 3, 4, 5, 6, 7, 8);
+        core::mat4x4i m2(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        core::mat4x2i res = m1 * m2;
+        Assert(res[0][0] == 50);
+        Assert(res[0][1] == 60);
+        Assert(res[1][0] == 114);
+        Assert(res[1][1] == 140);
+        Assert(res[2][0] == 178);
+        Assert(res[2][1] == 220);
+        Assert(res[3][0] == 242);
+        Assert(res[3][1] == 300);
+    }
+    {
+        // 4x3 * 2x4 = 2x3
+        core::mat4x3i m1(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        core::mat2x4i m2(1, 2, 3, 4, 5, 6, 7, 8);
+        core::mat2x3i res = m1 * m2;
+        Assert(res[0][0] == 70);
+        Assert(res[0][1] == 80);
+        Assert(res[0][2] == 90);
+        Assert(res[1][0] == 158);
+        Assert(res[1][1] == 184);
+        Assert(res[1][2] == 210);
+    }
+    {
+        // 4x3 * 3x4 = 3x3
+        core::mat4x3i m1(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        core::mat3x4i m2(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        core::mat3x3i res = m1 * m2;
+        Assert(res[0][0] == 70);
+        Assert(res[0][1] == 80);
+        Assert(res[0][2] == 90);
+        Assert(res[1][0] == 158);
+        Assert(res[1][1] == 184);
+        Assert(res[1][2] == 210);
+        Assert(res[2][0] == 246);
+        Assert(res[2][1] == 288);
+        Assert(res[2][2] == 330);
+    }
+    {
+        // 4x3 * 4x4 = 4x3
+        core::mat4x3i m1(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        core::mat4x4i m2(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        core::mat4x3i res = m1 * m2;
+        Assert(res[0][0] == 70);
+        Assert(res[0][1] == 80);
+        Assert(res[0][2] == 90);
+        Assert(res[1][0] == 158);
+        Assert(res[1][1] == 184);
+        Assert(res[1][2] == 210);
+        Assert(res[2][0] == 246);
+        Assert(res[2][1] == 288);
+        Assert(res[2][2] == 330);
+        Assert(res[3][0] == 334);
+        Assert(res[3][1] == 392);
+        Assert(res[3][2] == 450);
+    }
+    {
+        // 4x4 * 2x4 = 2x4
+        core::mat4x4i m1(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        core::mat2x4i m2(1, 2, 3, 4, 5, 6, 7, 8);
+        core::mat2x4i res = m1 * m2;
+        Assert(res[0][0] == 90);
+        Assert(res[0][1] == 100);
+        Assert(res[0][2] == 110);
+        Assert(res[0][3] == 120);
+        Assert(res[1][0] == 202);
+        Assert(res[1][1] == 228);
+        Assert(res[1][2] == 254);
+        Assert(res[1][3] == 280);
+    }
+    {
+        // 4x4 * 3x4 = 3x4
+        core::mat4x4i m1(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        core::mat3x4i m2(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        core::mat3x4i res = m1 * m2;
+        Assert(res[0][0] == 90);
+        Assert(res[0][1] == 100);
+        Assert(res[0][2] == 110);
+        Assert(res[0][3] == 120);
+        Assert(res[1][0] == 202);
+        Assert(res[1][1] == 228);
+        Assert(res[1][2] == 254);
+        Assert(res[1][3] == 280);
+        Assert(res[2][0] == 314);
+        Assert(res[2][1] == 356);
+        Assert(res[2][2] == 398);
+        Assert(res[2][3] == 440);
+    }
+    {
+        // 4x4 * 4x4 = 4x4
+        core::mat4x4i m1(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        core::mat4x4i m2(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        core::mat4x4i res = m1 * m2;
+        Assert(res[0][0] == 90);
+        Assert(res[0][1] == 100);
+        Assert(res[0][2] == 110);
+        Assert(res[0][3] == 120);
+        Assert(res[1][0] == 202);
+        Assert(res[1][1] == 228);
+        Assert(res[1][2] == 254);
+        Assert(res[1][3] == 280);
+        Assert(res[2][0] == 314);
+        Assert(res[2][1] == 356);
+        Assert(res[2][2] == 398);
+        Assert(res[2][3] == 440);
+        Assert(res[3][0] == 426);
+        Assert(res[3][1] == 484);
+        Assert(res[3][2] == 542);
+        Assert(res[3][3] == 600);
     }
 }
 
@@ -230,97 +753,155 @@ void mat_determinant() {
     auto m1 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
     Assert(core::mdet(m1) == -2.0f);
 
-    auto m2 = core::m2x2i({ 1, 2 }, { 3, 4 });
+    auto m2 = core::mat2x2i({ 1, 2 }, { 3, 4 });
     Assert(core::mdet(m2) == -2);
 
-    auto m3 = core::m3x3f({ 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 1.0f, 0.0f },
-                              { 1.0f, 0.0f, 1.0f });
+    auto m3 = core::mat3x3f({ 1.0f, 1.0f, 1.0f },
+                            { 0.0f, 1.0f, 0.0f },
+                            { 1.0f, 0.0f, 1.0f });
     Assert(core::mdet(m3) == 0.0f);
 
-    auto m4 = core::m3x3i({ 2, 8, 1 }, { 0, 1, 3 }, { 4, 5, 1 });
-    Assert(m4.det() == 64);
+    auto m4 = core::mat3x3i({ 2, 8, 1 }, { 0, 1, 3 }, { 4, 5, 1 });
+    Assert(core::mdet(m4) == 64);
 
-    auto m5 = core::m3x3f(0.0f);
+    auto m5 = core::mat3x3f(0.0f);
     Assert(core::mdet(m5) == 0.0f);
 
-    auto m6 = core::m4x4f({ 1.0f, 2.0f, 3.0f, 4.0f },
-                              { 5.0f, 56.0f, 7.0f, 8.0f },
-                              { 9.0f, 10.0f, 6.0f, 12.0f },
-                              { 13.0f, 14.0f, 15.0f, 16.0f });
-    Assert(m6.det() == 9000.0f);
-
-    core::mat<5, 5, f32> m7;
-    m7[0] = core::v(3.0f, 12.0f, 3.0f, 4.0f, 5.0f);
-    m7[1] = core::v(2.0f, 34.0f, 12.0f, 1.0f, 3.0f);
-    m7[2] = core::v(4.0f, 2.0f, 1.0f, 4.0f, 4.0f);
-    m7[3] = core::v(5.0f, 6.0f, 2.0f, 3.0f, 5.0f);
-    m7[4] = core::v(9.0f, 9.0f, 8.0f, 6.0f, 1.0f);
-    Assert(core::nearly_eq(core::mdet(m7), 1494.99988f, 0.00001f));
+    auto m6 = core::mat4x4f({ 1.0f, 2.0f, 3.0f, 4.0f },
+                            { 5.0f, 56.0f, 7.0f, 8.0f },
+                            { 9.0f, 10.0f, 6.0f, 12.0f },
+                            { 13.0f, 14.0f, 15.0f, 16.0f });
+    Assert(core::mdet(m6) == 9000.0f);
 }
 
 void mat_identity() {
+    auto m1 = core::mat2x2f::identity();
+    Assert(m1[0][0] == 1.0f);
+    Assert(m1[0][1] == 0.0f);
+    Assert(m1[1][0] == 0.0f);
+    Assert(m1[1][1] == 1.0f);
+
+    auto m2 = core::mat3x3f::identity();
+    Assert(m2[0][0] == 1.0f);
+    Assert(m2[0][1] == 0.0f);
+    Assert(m2[0][2] == 0.0f);
+    Assert(m2[1][0] == 0.0f);
+    Assert(m2[1][1] == 1.0f);
+    Assert(m2[1][2] == 0.0f);
+    Assert(m2[2][0] == 0.0f);
+    Assert(m2[2][1] == 0.0f);
+    Assert(m2[2][2] == 1.0f);
+
+    auto m3 = core::mat4x4f::identity();
+    Assert(m3[0][0] == 1.0f);
+    Assert(m3[0][1] == 0.0f);
+    Assert(m3[0][2] == 0.0f);
+    Assert(m3[0][3] == 0.0f);
+    Assert(m3[1][0] == 0.0f);
+    Assert(m3[1][1] == 1.0f);
+    Assert(m3[1][2] == 0.0f);
+    Assert(m3[1][3] == 0.0f);
+    Assert(m3[2][0] == 0.0f);
+    Assert(m3[2][1] == 0.0f);
+    Assert(m3[2][2] == 1.0f);
+    Assert(m3[2][3] == 0.0f);
+    Assert(m3[3][0] == 0.0f);
+    Assert(m3[3][1] == 0.0f);
+    Assert(m3[3][2] == 0.0f);
+    Assert(m3[3][3] == 1.0f);
+
+    // multiply by identity matrix
+    auto m4 = core::mat4x4f({ 1.0f, 2.0f, 3.0f, 4.0f },
+                            { 5.0f, 6.0f, 7.0f, 8.0f },
+                            { 9.0f, 10.0f, 11.0f, 12.0f },
+                            { 13.0f, 14.0f, 15.0f, 16.0f });
+    Assert(m4 * core::mat4x4f::identity() == m4);
+    Assert(core::mat4x4f::identity() * m4 == m4);
+
+    auto m5 = core::mat3x3f({ 1.0f, 2.0f, 3.0f },
+                            { 4.0f, 5.0f, 6.0f },
+                            { 7.0f, 8.0f, 9.0f });
+    Assert(m5 * core::mat3x3f::identity() == m5);
+    Assert(core::mat3x3f::identity() * m5 == m5);
+
+    auto m6 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
+    Assert(m6 * core::mat2x2f::identity() == m6);
+    Assert(core::mat2x2f::identity() * m6 == m6);
+
+    // multiply by zero matrix
+    Assert(m1 * core::mat2f(0.0f) == core::mat2f(0.0f));
+    Assert(m2 * core::mat3f(0.0f) == core::mat3f(0.0f));
+    Assert(m3 * core::mat4f(0.0f) == core::mat4f(0.0f));
+}
+
+void mat_transpose() {
     auto m1 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
-    Assert(m1.identity() == core::mat2x2f({ 1.0f, 0.0f }, { 0.0f, 1.0f }));
-    Assert(m1.identity() * m1 == m1);
-    Assert(m1 * m1.identity() == m1);
+    auto m1t = core::mat2x2f({ 1.0f, 3.0f }, { 2.0f, 4.0f });
+    Assert(core::mtranspose(m1) == m1t);
 
-    auto m2 = core::m3x3f({ 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 1.0f, 0.0f },
-                              { 1.0f, 0.0f, 1.0f });
-    Assert(m2.identity() == core::m3x3f({ 1.0f, 0.0f, 0.0f },
-                                            { 0.0f, 1.0f, 0.0f },
-                                            { 0.0f, 0.0f, 1.0f }));
-    Assert(m2.identity() * m2 == m2);
-    Assert(m2 * m2.identity() == m2);
+    auto m2 = core::mat3x3f({ 1.0f, 2.0f, 3.0f },
+                            { 4.0f, 5.0f, 6.0f },
+                            { 7.0f, 8.0f, 9.0f });
+    auto m2t = core::mat3x3f({ 1.0f, 4.0f, 7.0f },
+                             { 2.0f, 5.0f, 8.0f },
+                             { 3.0f, 6.0f, 9.0f });
+    Assert(core::mtranspose(m2) == m2t);
 
-    auto m3 = core::m4x4f({ 1.0f, 2.0f, 3.0f, 4.0f },
-                              { 5.0f, 56.0f, 7.0f, 8.0f },
-                              { 9.0f, 10.0f, 6.0f, 12.0f },
-                              { 13.0f, 14.0f, 15.0f, 16.0f });
-    Assert(m3.identity() == core::m4x4f({ 1.0f, 0.0f, 0.0f, 0.0f },
-                                            { 0.0f, 1.0f, 0.0f, 0.0f },
-                                            { 0.0f, 0.0f, 1.0f, 0.0f },
-                                            { 0.0f, 0.0f, 0.0f, 1.0f }));
-    Assert(m3.identity() * m3 == m3);
-    Assert(m3 * m3.identity() == m3);
+    auto m3 = core::mat4x4f({ 1.0f, 2.0f, 3.0f, 4.0f },
+                            { 5.0f, 6.0f, 7.0f, 8.0f },
+                            { 9.0f, 10.0f, 11.0f, 12.0f },
+                            { 13.0f, 14.0f, 15.0f, 16.0f });
+    auto m3t = core::mat4x4f({ 1.0f, 5.0f, 9.0f, 13.0f },
+                             { 2.0f, 6.0f, 10.0f, 14.0f },
+                             { 3.0f, 7.0f, 11.0f, 15.0f },
+                             { 4.0f, 8.0f, 12.0f, 16.0f });
+    Assert(core::mtranspose(m3) == m3t);
+}
 
-    // Identity for non-square matrices is allowed but there is a difference between left and right identity.
-    // So the api is a bit more complex:
-    auto m4 = core::m2x3f({ 1.0f, 2.0f, 3.0f }, { 4.0f, 5.0f, 6.0f });
-    Assert(core::mmul(m4, core::midentity<m4.dimensionsCols(), f32>()) == m4);
-    Assert(core::mmul(core::midentity<m4.dimensionsRows(), f32>(), m4) == m4);
-
-    auto m5 = core::m3x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f }, { 5.0f, 6.0f });
-    Assert(core::mmul(m5, core::midentity<m5.dimensionsCols(), f32>()) == m5);
-    Assert(core::mmul(core::midentity<m5.dimensionsRows(), f32>(), m5) == m5);
-
-    auto m6 = core::m3x4f({ 1.0f, 2.0f, 3.0f, 4.0f },
-                              { 5.0f, 6.0f, 7.0f, 8.0f },
-                              { 9.0f, 10.0f, 11.0f, 12.0f });
-    Assert(core::mmul(m6, core::midentity<m6.dimensionsCols(), f32>()) == m6);
-    Assert(core::mmul(core::midentity<m6.dimensionsRows(), f32>(), m6) == m6);
-
-    auto m7 = core::m4x3f({ 1.0f, 2.0f, 3.0f },
-                              { 4.0f, 5.0f, 6.0f },
-                              { 7.0f, 8.0f, 9.0f },
-                              { 10.0f, 11.0f, 12.0f });
-    Assert(core::mmul(m7, core::midentity<m7.dimensionsCols(), f32>()) == m7);
-    Assert(core::mmul(core::midentity<m7.dimensionsRows(), f32>(), m7) == m7);
-
-    auto m8 = core::m4x1f(1.0f, 2.0f, 3.0f, 4.0f);
-    Assert(core::mmul(m8, core::midentity<m8.dimensionsCols(), f32>()) == m8);
-    Assert(core::mmul(core::midentity<m8.dimensionsRows(), f32>(), m8) == m8);
+void mat_inverse() {
+    {
+        // 2x2
+        auto m = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
+        auto mi = core::mat2x2f({ -2.0f, 1.0f }, { 1.5f, -0.5f });
+        auto res = core::minverse(m);
+        Assert(res == mi);
+    }
+    {
+        // 3x3
+        auto m = core::mat3x3f({ 1, 2, 3 },
+                               { 3, 2, 1 },
+                               { 2, 1, 3 });
+        auto mi = core::mat3x3f({ -0.416666687, 0.25f, 0.333333343f },
+                                { 0.583333373f, 0.25f, -0.666666687f },
+                                { 0.0833333358, -0.25f, 0.333333343f });
+        auto res = core::minverse(m);
+        Assert(res == mi);
+    }
+    {
+        // 4x4
+        auto m = core::mat4x4f({ 1, 4, 5, -1 },
+                               { -2, 3, -1, 0 },
+                               { 2, 1, 1, 0 },
+                               { 3, -1, 2, 1 });
+        auto mi = core::mat4x4f({ -0.100000001, -0.100000001, 0.600000024, -0.100000001 },
+                                { 0, 0.25f, 0.25f, 0 },
+                                { 0.200000003, -0.0500000007, -0.450000018, 0.200000003 },
+                                { -0.100000001, 0.650000036, -0.650000036, 0.900000036 });
+        auto res = core::minverse(m);
+        Assert(res == mi);
+    }
 }
 
 void run_mat_tests_suite() {
+    RunTest(mat_equals);
     RunTest(mat2xN_constructors);
     RunTest(mat3xN_constructors);
     RunTest(mat4xN_constructors);
-    RunTest(mat_equals);
     RunTest(mat_add);
     RunTest(mat_sub);
     RunTest(mat_mul);
     RunTest(mat_determinant);
     RunTest(mat_identity);
+    RunTest(mat_transpose);
+    RunTest(mat_inverse);
 }

@@ -12,6 +12,7 @@ using namespace coretypes;
 // TODO: Need to implement at least the following:
 //       Implement here:
 //       - lookat ( look at matrix )
+//       - matrix division
 
 using namespace coretypes;
 
@@ -31,7 +32,7 @@ struct mat<2, 2, T> {
 
     DataType data[NCol][NRow] = {};
 
-    constexpr explicit mat() = default;
+    constexpr mat() = default;
     constexpr explicit mat(DataType uniform) : data{{uniform, uniform}, {uniform, uniform}} {}
     constexpr explicit mat(DataType x0, DataType y0, DataType x1, DataType y1)
         : data{{x0, y0}, {x1, y1}} {}
@@ -54,11 +55,11 @@ struct mat<2, 3, T> {
 
     DataType data[NCol][NRow] = {};
 
-    constexpr explicit mat() = default;
+    constexpr mat() = default;
     constexpr explicit mat(DataType uniform) : data{{uniform, uniform, uniform}, {uniform, uniform, uniform}} {}
     constexpr explicit mat(DataType x0, DataType y0, DataType z0, DataType x1, DataType y1, DataType z1)
         : data{{x0, y0, z0}, {x1, y1, z1}} {}
-    constexpr explicit mat(core::vec2<DataType> col1, core::vec2<DataType> col2)
+    constexpr explicit mat(core::vec3<DataType> col1, core::vec3<DataType> col2)
         : data{{col1.x(), col1.y(), col1.z()}, {col2.x(), col2.y(), col2.z()}} {}
 
     constexpr DataType* operator[](i32 i) { return data[i]; }
@@ -77,12 +78,12 @@ struct mat<2, 4, T> {
 
     DataType data[NCol][NRow] = {};
 
-    constexpr explicit mat() = default;
+    constexpr mat() = default;
     constexpr explicit mat(DataType uniform) : data{{uniform, uniform, uniform, uniform}, {uniform, uniform, uniform, uniform}} {}
     constexpr explicit mat(DataType x0, DataType y0, DataType z0, DataType w0, DataType x1, DataType y1, DataType z1, DataType w1)
         : data{{x0, y0, z0, w0}, {x1, y1, z1, w1}} {}
-    constexpr explicit mat(core::vec2<DataType> col1, core::vec2<DataType> col2, core::vec2<DataType> col3, core::vec2<DataType> col4)
-        : data{{col1.x(), col1.y(), col1.z(), col1.w()}, {col2.x(), col2.y(), col2.z(), col2.w()}, {col3.x(), col3.y(), col3.z(), col3.w()}, {col4.x(), col4.y(), col4.z(), col4.w()}} {}
+    constexpr explicit mat(core::vec4<DataType> col1, core::vec4<DataType> col2)
+        : data{{col1.x(), col1.y(), col1.z(), col1.w()}, {col2.x(), col2.y(), col2.z(), col2.w()}} {}
 
     constexpr DataType* operator[](i32 i) { return data[i]; }
     constexpr const DataType* operator[](i32 i) const { return data[i]; }
@@ -100,7 +101,7 @@ struct mat<3, 2, T> {
 
     DataType data[NCol][NRow] = {};
 
-    constexpr explicit mat() = default;
+    constexpr mat() = default;
     constexpr explicit mat(DataType uniform) : data{{uniform, uniform}, {uniform, uniform}, {uniform, uniform}} {}
     constexpr explicit mat(DataType x0, DataType y0, DataType x1, DataType y1, DataType x2, DataType y2)
         : data{{x0, y0}, {x1, y1}, {x2, y2}} {}
@@ -125,7 +126,7 @@ struct mat<3, 3, T> {
 
     DataType data[NCol][NRow] = {};
 
-    constexpr explicit mat() = default;
+    constexpr mat() = default;
     constexpr explicit mat(DataType uniform) : data{{uniform, uniform, uniform}, {uniform, uniform, uniform}, {uniform, uniform, uniform}} {}
     constexpr explicit mat(DataType x0, DataType y0, DataType z0, DataType x1, DataType y1, DataType z1, DataType x2, DataType y2, DataType z2)
         : data{{x0, y0, z0}, {x1, y1, z1}, {x2, y2, z2}} {}
@@ -148,12 +149,12 @@ struct mat<3, 4, T> {
 
     DataType data[NCol][NRow] = {};
 
-    constexpr explicit mat() = default;
+    constexpr mat() = default;
     constexpr explicit mat(DataType uniform) : data{{uniform, uniform, uniform, uniform}, {uniform, uniform, uniform, uniform}, {uniform, uniform, uniform, uniform}} {}
     constexpr explicit mat(DataType x0, DataType y0, DataType z0, DataType w0, DataType x1, DataType y1, DataType z1, DataType w1, DataType x2, DataType y2, DataType z2, DataType w2)
         : data{{x0, y0, z0, w0}, {x1, y1, z1, w1}, {x2, y2, z2, w2}} {}
-    constexpr explicit mat(core::vec3<DataType> col1, core::vec3<DataType> col2, core::vec3<DataType> col3, core::vec3<DataType> col4)
-        : data{{col1.x(), col1.y(), col1.z(), col1.w()}, {col2.x(), col2.y(), col2.z(), col2.w()}, {col3.x(), col3.y(), col3.z(), col3.w()}, {col4.x(), col4.y(), col4.z(), col4.w()}} {}
+    constexpr explicit mat(core::vec4<DataType> col1, core::vec4<DataType> col2, core::vec4<DataType> col3)
+        : data{{col1.x(), col1.y(), col1.z(), col1.w()}, {col2.x(), col2.y(), col2.z(), col2.w()}, {col3.x(), col3.y(), col3.z(), col3.w()}} {}
 
     constexpr DataType* operator[](i32 i) { return data[i]; }
     constexpr const DataType* operator[](i32 i) const { return data[i]; }
@@ -171,7 +172,7 @@ struct mat<4, 2, T> {
 
     DataType data[NCol][NRow] = {};
 
-    constexpr explicit mat() = default;
+    constexpr mat() = default;
     constexpr explicit mat(DataType uniform) : data{{uniform, uniform}, {uniform, uniform}, {uniform, uniform}, {uniform, uniform}} {}
     constexpr explicit mat(DataType x0, DataType y0, DataType x1, DataType y1, DataType x2, DataType y2, DataType x3, DataType y3)
         : data{{x0, y0}, {x1, y1}, {x2, y2}, {x3, y3}} {}
@@ -194,7 +195,7 @@ struct mat<4, 3, T> {
 
     DataType data[NCol][NRow] = {};
 
-    constexpr explicit mat() = default;
+    constexpr mat() = default;
     constexpr explicit mat(DataType uniform) : data{{uniform, uniform, uniform}, {uniform, uniform, uniform}, {uniform, uniform, uniform}, {uniform, uniform, uniform}} {}
     constexpr explicit mat(DataType x0, DataType y0, DataType z0, DataType x1, DataType y1, DataType z1, DataType x2, DataType y2, DataType z2, DataType x3, DataType y3, DataType z3)
         : data{{x0, y0, z0}, {x1, y1, z1}, {x2, y2, z2}, {x3, y3, z3}} {}
@@ -219,7 +220,7 @@ struct mat<4, 4, T> {
 
     DataType data[NCol][NRow] = {};
 
-    constexpr explicit mat() = default;
+    constexpr mat() = default;
     constexpr explicit mat(DataType uniform) : data{{uniform, uniform, uniform, uniform}, {uniform, uniform, uniform, uniform}, {uniform, uniform, uniform, uniform}, {uniform, uniform, uniform, uniform}} {}
     constexpr explicit mat(DataType x0, DataType y0, DataType z0, DataType w0, DataType x1, DataType y1, DataType z1, DataType w1, DataType x2, DataType y2, DataType z2, DataType w2, DataType x3, DataType y3, DataType z3, DataType w3)
         : data{{x0, y0, z0, w0}, {x1, y1, z1, w1}, {x2, y2, z2, w2}, {x3, y3, z3, w3}} {}
@@ -235,7 +236,7 @@ struct mat<4, 4, T> {
 // Equality
 
 template<i32 NCol, i32 NRow, typename T>
-constexpr bool mequals(const mat<NCol, NRow, T>& m1, const mat<NCol, NCol, T>& m2) {
+constexpr bool mequals(const mat<NCol, NRow, T>& m1, const mat<NCol, NRow, T>& m2) {
     for (i32 i = 0; i < m1.NCol; ++i) {
         for (i32 j = 0; j < m1.NRow; ++j) {
             if (m1[i][j] != m2[i][j]) return false;
@@ -343,7 +344,7 @@ constexpr mat<NCol, NRow, T> mmul(const mat<NCol, NRow, T>& m, T value) {
 // Determinant
 
 template<i32 NDim, typename T>
-constexpr T det(const mat<NDim, NDim, T>& m) {
+constexpr T mdet(const mat<NDim, NDim, T>& m) {
     if constexpr (NDim == 2) {
         return m[0][0] * m[1][1] - m[1][0] * m[0][1];
     }
@@ -381,7 +382,7 @@ constexpr mat<NRow, NCol, T> mtranspose(const mat<NCol, NRow, T>& m) {
 template<i32 NDim, typename T>
 constexpr mat<NDim, NDim, T> minverse(const mat<NDim, NDim, T>& m) {
     mat<NDim, NDim, T> ret { T(INFINITY) };
-    T d = det(m);
+    T d = mdet(m);
     if (d == 0) return ret;
     T idet = 1 / d;
     if constexpr (NDim == 2) {

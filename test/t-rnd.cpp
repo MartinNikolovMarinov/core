@@ -42,6 +42,8 @@ void rnd_raw_str() {
 }
 
 void run_rnd_tests_suite() {
+    core::rnd_init();
+
     RunTest(rnd_signed_integers);
     RunTest(rnd_raw_str);
 }

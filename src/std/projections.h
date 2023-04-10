@@ -42,7 +42,7 @@ constexpr mat4x4f orthoLH(f32 left, f32 right, f32 bottom, f32 top) {
 }
 
 constexpr mat4x4f perspective(f32 fovy, f32 aspect, f32 near, f32 far) {
-    auto ret = m4x4<f32>(0);
+    auto ret = mat4x4<f32>(0);
     f32 tanHalfFov = std::tan(fovy / 2.0f);
     ret[0][0] = 1.0f / (aspect * tanHalfFov);
     ret[1][1] = 1.0f / (tanHalfFov);
@@ -53,7 +53,7 @@ constexpr mat4x4f perspective(f32 fovy, f32 aspect, f32 near, f32 far) {
 }
 
 constexpr mat4x4f perspectiveLH(f32 fovy, f32 aspect, f32 near, f32 far) {
-    auto ret = m4x4<f32>(0);
+    auto ret = mat4x4<f32>(0);
     f32 tanHalfFov = std::tan(fovy / 2.0f);
     ret[0][0] = 1.0f / (aspect * tanHalfFov);
     ret[1][1] = 1.0f / (tanHalfFov);

@@ -1,4 +1,3 @@
-#include "mat.h"
 #include "mat_example.h"
 
 #include <fmt/format.h>
@@ -7,6 +6,8 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include <tuple>
+
+using namespace core;
 
 template<typename TMat>
 void mat_print_row_major(TMat m) {

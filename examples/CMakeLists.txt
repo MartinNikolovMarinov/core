@@ -25,27 +25,26 @@ add_executable(${PROJECT_NAME}
     src/shape.cpp
 
     # Examples:
-    ex/experiment_app.h
-    ex/experiment_app.cpp
-    ex/raytracing.h
-    ex/raytracing.cpp
-    ex/ray_in_voxel_space.h
-    ex/ray_in_voxel_space.cpp
-    ex/experiment_01_triangle_and_quad.h
-    ex/experiment_01_triangle_and_quad.cpp
-    ex/experiment_02_textures.h
-    ex/experiment_02_textures.cpp
-    ex/experiment_03_transformations.h
-    ex/experiment_03_transformations.cpp
-    ex/experiment_04_rotating_cube.h
-    ex/experiment_04_rotating_cube.cpp
-    ex/common.h
-    ex/common.cpp
+    # ex/experiment_app.h
+    # ex/experiment_app.cpp
+    # ex/raytracing.h
+    # ex/raytracing.cpp
+    # ex/ray_in_voxel_space.h
+    # ex/ray_in_voxel_space.cpp
+    # ex/experiment_01_triangle_and_quad.h
+    # ex/experiment_01_triangle_and_quad.cpp
+    # ex/experiment_02_textures.h
+    # ex/experiment_02_textures.cpp
+    # ex/experiment_03_transformations.h
+    # ex/experiment_03_transformations.cpp
+    # ex/experiment_04_rotating_cube.h
+    # ex/experiment_04_rotating_cube.cpp
+    # ex/common.h
+    # ex/common.cpp
 
     # FIXME: remove temporary experiments:
     ex/mat_refactor/mat_example.h
     ex/mat_refactor/mat_example.cpp
-    ex/mat_refactor/mat.h
 )
 
 # Compilation options:

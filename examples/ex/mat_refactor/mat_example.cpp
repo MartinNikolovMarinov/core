@@ -314,10 +314,10 @@ void check_multiplication() {
         auto [n4, n5, n6, n7] = get_f32_fuzz();
         auto [n8, n9, n10, n11] = get_f32_fuzz();
         auto [n12, n13, n14, n15] = get_f32_fuzz();
-        // auto [n16, n17, n18, n19] = get_f32_fuzz();
-        // auto [n20, n21, n22, n23] = get_f32_fuzz();
-        // auto [n24, n25, n26, n27] = get_f32_fuzz();
-        // auto [n28, n29, n30, n31] = get_f32_fuzz();
+        auto [n16, n17, n18, n19] = get_f32_fuzz();
+        auto [n20, n21, n22, n23] = get_f32_fuzz();
+        auto [n24, n25, n26, n27] = get_f32_fuzz();
+        auto [n28, n29, n30, n31] = get_f32_fuzz();
         {
             // 2x2 * 2x2 = 2x2
             mat2f m1(n0, n1, n2, n3);
@@ -325,107 +325,268 @@ void check_multiplication() {
             mat2f m2(n4, n5, n6, n7);
             glm::mat2 glmM2(n4, n5, n6, n7);
             auto res = m1 * m2;
-            auto glmRes = glmM1 * glmM2;
+            glm::mat2 glmRes = glmM1 * glmM2;
             compare_to_glm(res, glmRes);
         }
         {
-            // 2x2 * 3x2 = 2x2
+            // 2x2 * 3x2 = 3x2
+            mat2f m1(n0, n1, n2, n3);
+            glm::mat2 glmM1(n0, n1, n2, n3);
+            mat3x2f m2(n4, n5, n6, n7, n8, n9);
+            glm::mat3x2 glmM2(n4, n5, n6, n7, n8, n9);
+            auto res = m1 * m2;
+            glm::mat3x2 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
+        }
+        {
+            // 2x2 * 4x2 = 4x2
+            mat2f m1(n0, n1, n2, n3);
+            glm::mat2 glmM1(n0, n1, n2, n3);
+            mat4x2f m2(n4, n5, n6, n7, n8, n9, n10, n11);
+            glm::mat4x2 glmM2(n4, n5, n6, n7, n8, n9, n10, n11);
+            auto res = m1 * m2;
+            glm::mat4x2 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
+        }
+        {
+            // 2x3 * 2x2 = 2x3
+            mat2x3f m1(n0, n1, n2, n3, n4, n5);
+            glm::mat2x3 glmM1(n0, n1, n2, n3, n4, n5);
+            mat2f m2(n6, n7, n8, n9);
+            glm::mat2 glmM2(n6, n7, n8, n9);
+            auto res = m1 * m2;
+            glm::mat2x3 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
+        }
+        {
+            // 2x3 * 3x2 = 3x3
             mat2x3f m1(n0, n1, n2, n3, n4, n5);
             glm::mat2x3 glmM1(n0, n1, n2, n3, n4, n5);
             mat3x2f m2(n6, n7, n8, n9, n10, n11);
             glm::mat3x2 glmM2(n6, n7, n8, n9, n10, n11);
             auto res = m1 * m2;
-            auto glmRes = glmM1 * glmM2;
+            glm::mat3 glmRes = glmM1 * glmM2;
             compare_to_glm(res, glmRes);
         }
         {
-            // 2x2 * 4x2 = 2x2
+            // 2x3 * 4x2 = 4x3
+            mat2x3f m1(n0, n1, n2, n3, n4, n5);
+            glm::mat2x3 glmM1(n0, n1, n2, n3, n4, n5);
+            mat4x2f m2(n6, n7, n8, n9, n10, n11, n12, n13);
+            glm::mat4x2 glmM2(n6, n7, n8, n9, n10, n11, n12, n13);
+            auto res = m1 * m2;
+            glm::mat4x3 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
+        }
+        {
+            // 2x4 * 2x2 = 2x4
+            mat2x4f m1(n0, n1, n2, n3, n4, n5, n6, n7);
+            glm::mat2x4 glmM1(n0, n1, n2, n3, n4, n5, n6, n7);
+            mat2f m2(n8, n9, n10, n11);
+            glm::mat2 glmM2(n8, n9, n10, n11);
+            auto res = m1 * m2;
+            glm::mat2x4 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
+        }
+        {
+            // 2x4 * 3x2 = 3x4
+            mat2x4f m1(n0, n1, n2, n3, n4, n5, n6, n7);
+            glm::mat2x4 glmM1(n0, n1, n2, n3, n4, n5, n6, n7);
+            mat3x2f m2(n8, n9, n10, n11, n12, n13);
+            glm::mat3x2 glmM2(n8, n9, n10, n11, n12, n13);
+            auto res = m1 * m2;
+            glm::mat3x4 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
+        }
+        {
+            // 2x4 * 4x2 = 4x4
             mat2x4f m1(n0, n1, n2, n3, n4, n5, n6, n7);
             glm::mat2x4 glmM1(n0, n1, n2, n3, n4, n5, n6, n7);
             mat4x2f m2(n8, n9, n10, n11, n12, n13, n14, n15);
             glm::mat4x2 glmM2(n8, n9, n10, n11, n12, n13, n14, n15);
             auto res = m1 * m2;
-            auto glmRes = glmM1 * glmM2;
+            glm::mat4x4 glmRes = glmM1 * glmM2;
             compare_to_glm(res, glmRes);
         }
         {
-            // 3x2 * 2x3 = 3x3
+            // 3x2 * 2x3 = 2x2
             mat3x2f m1(n0, n1, n2, n3, n4, n5);
             glm::mat3x2 glmM1(n0, n1, n2, n3, n4, n5);
             mat2x3f m2(n6, n7, n8, n9, n10, n11);
             glm::mat2x3 glmM2(n6, n7, n8, n9, n10, n11);
             auto res = m1 * m2;
-            auto glmRes = glmM1 * glmM2;
-            compare_to_glm(res, glmRes); // FIXME: bug here !
+            glm::mat2x2 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
         }
         {
-            // 3x2 * 3x3 = 3x3
+            // 3x2 * 3x3 = 3x2
+            mat3x2f m1(n0, n1, n2, n3, n4, n5);
+            glm::mat3x2 glmM1(n0, n1, n2, n3, n4, n5);
+            mat3x3f m2(n6, n7, n8, n9, n10, n11, n12, n13, n14);
+            glm::mat3x3 glmM2(n6, n7, n8, n9, n10, n11, n12, n13, n14);
+            auto res = m1 * m2;
+            glm::mat3x2 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
         }
         {
-            // 3x2 * 4x3 = 3x3
+            // 3x2 * 4x3 = 4x2
+            mat3x2f m1(n0, n1, n2, n3, n4, n5);
+            glm::mat3x2 glmM1(n0, n1, n2, n3, n4, n5);
+            mat4x3f m2(n6, n7, n8, n9, n10, n11, n12, n13, n14, n15, n16, n17);
+            glm::mat4x3 glmM2(n6, n7, n8, n9, n10, n11, n12, n13, n14, n15, n16, n17);
+            auto res = m1 * m2;
+            glm::mat4x2 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
         }
         {
-            // 4x2 * 2x4 = 4x4
-        }
-        {
-            // 4x2 * 3x4 = 4x4
-        }
-        {
-            // 4x2 * 4x4 = 4x4
-        }
-        {
-            // 2x3 * 2x2 = 2x2
-        }
-        {
-            // 2x3 * 3x2 = 2x2
-        }
-        {
-            // 2x3 * 4x2 = 2x2
-        }
-        {
-            // 3x3 * 2x3 = 3x3
+            // 3x3 * 2x3 = 2x3
+            mat3x3f m1(n0, n1, n2, n3, n4, n5, n6, n7, n8);
+            glm::mat3x3 glmM1(n0, n1, n2, n3, n4, n5, n6, n7, n8);
+            mat2x3f m2(n9, n10, n11, n12, n13, n14);
+            glm::mat2x3 glmM2(n9, n10, n11, n12, n13, n14);
+            auto res = m1 * m2;
+            glm::mat2x3 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
         }
         {
             // 3x3 * 3x3 = 3x3
+            mat3x3f m1(n0, n1, n2, n3, n4, n5, n6, n7, n8);
+            glm::mat3x3 glmM1(n0, n1, n2, n3, n4, n5, n6, n7, n8);
+            mat3x3f m2(n9, n10, n11, n12, n13, n14, n15, n16, n17);
+            glm::mat3x3 glmM2(n9, n10, n11, n12, n13, n14, n15, n16, n17);
+            auto res = m1 * m2;
+            glm::mat3x3 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
         }
         {
-            // 3x3 * 4x3 = 3x3
+            // 3x3 * 4x3 = 4x3
+            mat3x3f m1(n0, n1, n2, n3, n4, n5, n6, n7, n8);
+            glm::mat3x3 glmM1(n0, n1, n2, n3, n4, n5, n6, n7, n8);
+            mat4x3f m2(n9, n10, n11, n12, n13, n14, n15, n16, n17, n18, n19, n20);
+            glm::mat4x3 glmM2(n9, n10, n11, n12, n13, n14, n15, n16, n17, n18, n19, n20);
+            auto res = m1 * m2;
+            glm::mat4x3 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
         }
         {
-            // 4x3 * 2x4 = 4x4
+            // 3x4 * 2x3 = 2x4
+            mat3x4f m1(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11);
+            glm::mat3x4 glmM1(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11);
+            mat2x3f m2(n12, n13, n14, n15, n16, n17);
+            glm::mat2x3 glmM2(n12, n13, n14, n15, n16, n17);
+            auto res = m1 * m2;
+            glm::mat2x4 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
         }
         {
-            // 4x3 * 3x4 = 4x4
+            // 3x4 * 3x3 = 3x4
+            mat3x4f m1(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11);
+            glm::mat3x4 glmM1(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11);
+            mat3x3f m2(n12, n13, n14, n15, n16, n17, n18, n19, n20);
+            glm::mat3x3 glmM2(n12, n13, n14, n15, n16, n17, n18, n19, n20);
+            auto res = m1 * m2;
+            glm::mat3x4 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
         }
         {
-            // 4x3 * 4x4 = 4x4
+            // 3x4 * 4x3 = 4x4
+            mat3x4f m1(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11);
+            glm::mat3x4 glmM1(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11);
+            mat4x3f m2(n12, n13, n14, n15, n16, n17, n18, n19, n20, n21, n22, n23);
+            glm::mat4x3 glmM2(n12, n13, n14, n15, n16, n17, n18, n19, n20, n21, n22, n23);
+            auto res = m1 * m2;
+            glm::mat4x4 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
         }
         {
-            // 2x4 * 2x2 = 2x2
+            // 4x2 * 2x4 = 2x2
+            mat4x2f m1(n0, n1, n2, n3, n4, n5, n6, n7);
+            glm::mat4x2 glmM1(n0, n1, n2, n3, n4, n5, n6, n7);
+            mat2x4f m2(n8, n9, n10, n11, n12, n13, n14, n15);
+            glm::mat2x4 glmM2(n8, n9, n10, n11, n12, n13, n14, n15);
+            auto res = m1 * m2;
+            glm::mat2x2 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
         }
         {
-            // 2x4 * 3x2 = 2x2
+            // 4x2 * 3x4 = 3x2
+            mat4x2f m1(n0, n1, n2, n3, n4, n5, n6, n7);
+            glm::mat4x2 glmM1(n0, n1, n2, n3, n4, n5, n6, n7);
+            mat3x4f m2(n8, n9, n10, n11, n12, n13, n14, n15, n16, n17, n18, n19);
+            glm::mat3x4 glmM2(n8, n9, n10, n11, n12, n13, n14, n15, n16, n17, n18, n19);
+            auto res = m1 * m2;
+            glm::mat3x2 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
         }
         {
-            // 2x4 * 4x2 = 2x2
+            // 4x2 * 4x4 = 4x2
+            mat4x2f m1(n0, n1, n2, n3, n4, n5, n6, n7);
+            glm::mat4x2 glmM1(n0, n1, n2, n3, n4, n5, n6, n7);
+            mat4x4f m2(n8, n9, n10, n11, n12, n13, n14, n15, n16, n17, n18, n19, n20, n21, n22, n23);
+            glm::mat4x4 glmM2(n8, n9, n10, n11, n12, n13, n14, n15, n16, n17, n18, n19, n20, n21, n22, n23);
+            auto res = m1 * m2;
+            glm::mat4x2 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
         }
         {
-            // 3x4 * 2x3 = 3x3
+            // 4x3 * 2x4 = 2x3
+            mat4x3f m1(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11);
+            glm::mat4x3 glmM1(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11);
+            mat2x4f m2(n12, n13, n14, n15, n16, n17, n18, n19);
+            glm::mat2x4 glmM2(n12, n13, n14, n15, n16, n17, n18, n19);
+            auto res = m1 * m2;
+            glm::mat2x3 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
         }
         {
-            // 3x4 * 3x3 = 3x3
+            // 4x3 * 3x4 = 3x3
+            mat4x3f m1(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11);
+            glm::mat4x3 glmM1(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11);
+            mat3x4f m2(n12, n13, n14, n15, n16, n17, n18, n19, n20, n21, n22, n23);
+            glm::mat3x4 glmM2(n12, n13, n14, n15, n16, n17, n18, n19, n20, n21, n22, n23);
+            auto res = m1 * m2;
+            glm::mat3x3 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
         }
         {
-            // 3x4 * 4x3 = 3x3
+            // 4x3 * 4x4 = 4x3
+            mat4x3f m1(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11);
+            glm::mat4x3 glmM1(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11);
+            mat4x4f m2(n12, n13, n14, n15, n16, n17, n18, n19, n20, n21, n22, n23, n24, n25, n26, n27);
+            glm::mat4x4 glmM2(n12, n13, n14, n15, n16, n17, n18, n19, n20, n21, n22, n23, n24, n25, n26, n27);
+            auto res = m1 * m2;
+            glm::mat4x3 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
         }
         {
-            // 4x4 * 2x4 = 4x4
+            // 4x4 * 2x4 = 2x4
+            mat4x4f m1(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, n14, n15);
+            glm::mat4x4 glmM1(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, n14, n15);
+            mat2x4f m2(n16, n17, n18, n19, n20, n21, n22, n23);
+            glm::mat2x4 glmM2(n16, n17, n18, n19, n20, n21, n22, n23);
+            auto res = m1 * m2;
+            glm::mat2x4 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
         }
         {
-            // 4x4 * 3x4 = 4x4
+            // 4x4 * 3x4 = 3x4
+            mat4x4f m1(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, n14, n15);
+            glm::mat4x4 glmM1(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, n14, n15);
+            mat3x4f m2(n16, n17, n18, n19, n20, n21, n22, n23, n24, n25, n26, n27);
+            glm::mat3x4 glmM2(n16, n17, n18, n19, n20, n21, n22, n23, n24, n25, n26, n27);
+            auto res = m1 * m2;
+            glm::mat3x4 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
         }
         {
-            // 4x4 * 4x4 = 4x4
+            // 4x4 * 4x4 = 4
+            mat4x4f m1(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, n14, n15);
+            glm::mat4x4 glmM1(n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, n14, n15);
+            mat4x4f m2(n16, n17, n18, n19, n20, n21, n22, n23, n24, n25, n26, n27, n28, n29, n30, n31);
+            glm::mat4x4 glmM2(n16, n17, n18, n19, n20, n21, n22, n23, n24, n25, n26, n27, n28, n29, n30, n31);
+            auto res = m1 * m2;
+            glm::mat4x4 glmRes = glmM1 * glmM2;
+            compare_to_glm(res, glmRes);
         }
     }
 }

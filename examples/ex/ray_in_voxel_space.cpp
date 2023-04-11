@@ -222,15 +222,16 @@ namespace {
 void render_cell(const Cell& cell, const core::vec4f& color, bool fill = true) {
     State& g_s = state();
 
-    auto topLeftCornerOfCell = cell.pos + core::v(f32(g_s.cellWidth/2), f32(g_s.cellHeight/2));
+    // FIXME: Fix this:
+    // auto topLeftCornerOfCell = cell.pos + core::v(f32(g_s.cellWidth/2), f32(g_s.cellHeight/2));
 
     core::mat4x4f mvp = core::mat4x4f::identity();
-    auto cellViewPos = g_s.worldSpaceToViewSpaceMatrix * core::v(topLeftCornerOfCell.x(), topLeftCornerOfCell.y(), 0.0f, 1.0f);
-    core::translate(mvp, core::v(cellViewPos.x(), cellViewPos.y(), 0.0f));
-    auto cellViewSize = g_s.worldSpaceToViewSpaceMatrix * core::v(f32(g_s.cellWidth/2), f32(g_s.cellHeight/2), 0.0f, 1.0f);
-    cellViewSize.x() = g_s.viewSpaceGrid.min.x() - cellViewSize.x();
-    cellViewSize.y() = g_s.viewSpaceGrid.min.y() - cellViewSize.y();
-    core::scale(mvp, core::v(cellViewSize.x(), cellViewSize.y(), 0.0f));
+    // auto cellViewPos = g_s.worldSpaceToViewSpaceMatrix * core::v(topLeftCornerOfCell.x(), topLeftCornerOfCell.y(), 0.0f, 1.0f);
+    // core::translate(mvp, core::v(cellViewPos.x(), cellViewPos.y(), 0.0f));
+    // auto cellViewSize = g_s.worldSpaceToViewSpaceMatrix * core::v(f32(g_s.cellWidth/2), f32(g_s.cellHeight/2), 0.0f, 1.0f);
+    // cellViewSize.x() = g_s.viewSpaceGrid.min.x() - cellViewSize.x();
+    // cellViewSize.y() = g_s.viewSpaceGrid.min.y() - cellViewSize.y();
+    // core::scale(mvp, core::v(cellViewSize.x(), cellViewSize.y(), 0.0f));
 
     g_s.shaderProg.setUniform_m("u_mvp", mvp);
     g_s.shaderProg.setUniform_v("color", color);
@@ -265,10 +266,11 @@ void mainLoop(CommonState& commonState) {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_s.quadEBO);
 
         auto model = core::mat4x4f::identity();
-        core::scale(model, core::v(1.0f, 0.2f, 1.0f));
+        core::scale(model, core::v(1.0f, 0.001f, 1.0f));
+        core::rotate(model, core::v(0.0f, 0.0f, 1.0f), core::deg_to_rad(commonState.frameCount));
 
         auto view = core::mat4x4f::identity();
-        core::translate(view, core::v(0.0f, 0.0f, -3.0f));
+        core::translate(view, core::v(0.0f, 0.0f, -0.5f));
 
         auto projection = core::mat4x4f::identity();
         projection = core::perspective(core::deg_to_rad(45.0f), (f32)g_s.viewportWidth / (f32)g_s.viewportHeight, 0.1f, 100.0f);

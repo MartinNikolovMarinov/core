@@ -163,10 +163,10 @@ void mainLoop(CommonState& commonState) {
     glUseProgram(0);
 
     // Combining transformations:
-    g_s.quadTransform = core::midentity<4, f32>();
-    core::rotate_right(g_s.quadTransform, core::v(0.0f, 0.0f, 1.0f), core::deg_to_rad(35));
-    core::translate(g_s.quadTransform, core::v(0.3f, -0.4f, 0.0f));
+    g_s.quadTransform = core::mat4f::identity();
+    core::rotate_right(g_s.quadTransform, core::v(0.0f, 0.0f, 1.0f), core::deg_to_rad(35.0f));
     core::scale(g_s.quadTransform, core::v(0.2f, 0.01f, 0.2f));
+    core::translate(g_s.quadTransform, core::v(0.3f, -0.4f, 0.0f));
 
     g_s.shaderProg.use();
     g_s.shaderProg.setUniform_v("u_color", g_s.quadColor);

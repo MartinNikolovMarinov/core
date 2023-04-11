@@ -6,6 +6,7 @@
 #include <std/mat.h>
 
 #include <type_traits>
+#include <cmath>
 
 // FIXME: Create a concrete type for radians! The api should make it obvious that radians are used.
 
@@ -31,7 +32,12 @@ constexpr void translate(arr<vec<Dim, T>>& arrv, const vec<Dim, T>& t) {
 
 template<typename T>
 constexpr void translate(mat4x4<T>& m, const vec3<T>& t) {
-    // FIXME: fix this!
+    // Result[3] = m[0] * v[0] + m[1] * v[1] + m[2] * v[2] + m[3];
+
+    m[3][0] += m[0][0] * t[0] + m[1][0] * t[1] + m[2][0] * t[2];
+    m[3][1] += m[0][1] * t[0] + m[1][1] * t[1] + m[2][1] * t[2];
+    m[3][2] += m[0][2] * t[0] + m[1][2] * t[1] + m[2][2] * t[2];
+    m[3][3] += m[0][3] * t[0] + m[1][3] * t[1] + m[2][3] * t[2];
 }
 
 // Scale
@@ -66,9 +72,9 @@ constexpr void scale(arr<vec<Dim, T>>& arrv, const vec<Dim, T>& axis, const vec<
 
 template<typename T>
 constexpr void scale(mat4x4<T>& m, const vec3<T>& s) {
-    m[0][0] = s[0];
-    m[1][1] = s[1];
-    m[2][2] = s[2];
+    m[0][0] *= s[0]; m[0][1] *= s[0]; m[0][2] *= s[0];
+    m[1][0] *= s[1]; m[1][1] *= s[1]; m[1][2] *= s[1];
+    m[2][0] *= s[2]; m[2][1] *= s[2]; m[2][2] *= s[2];
 }
 
 // Rotate
@@ -91,48 +97,33 @@ constexpr void rotate(arr<vec<Dim, TFloat>>& v, const vec<Dim, TFloat>& axis, TF
 }
 
 template<typename TFloat>
-constexpr void rotate(mat4x4<TFloat>& m, const vec3<TFloat>& axis, TFloat angle) {
+constexpr void rotate(mat4x4<TFloat>& m, const vec3<TFloat>& v, TFloat angle) {
     static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
 
     TFloat c = std::cos(angle);
     TFloat s = std::sin(angle);
-    TFloat t = 1 - c;
+    TFloat t = TFloat(1) - c;
 
-    auto naxis = core::vnorm(axis);
-    TFloat x = naxis.x();
-    TFloat y = naxis.y();
-    TFloat z = naxis.z();
+    vec3<TFloat> axis = v.norm();
 
-    TFloat x2 = x * x;
-    TFloat y2 = y * y;
-    TFloat z2 = z * z;
+    auto m00 = t * axis.x() * axis.x() + c;
+    auto m10 = t * axis.x() * axis.y() - s * axis.z();
+    auto m20 = t * axis.x() * axis.z() + s * axis.y();
+    auto m01 = t * axis.x() * axis.y() + s * axis.z();
+    auto m11 = t * axis.y() * axis.y() + c;
+    auto m21 = t * axis.y() * axis.z() - s * axis.x();
+    auto m02 = t * axis.x() * axis.z() - s * axis.y();
+    auto m12 = t * axis.y() * axis.z() + s * axis.x();
+    auto m22 = t * axis.z() * axis.z() + c;
 
-    TFloat xy = x * y;
-    TFloat xz = x * z;
-    TFloat yz = y * z;
-
-    TFloat xs = x * s;
-    TFloat ys = y * s;
-    TFloat zs = z * s;
-
-    TFloat m00 = t * x2 + c;
-    TFloat m01 = t * xy - zs;
-    TFloat m02 = t * xz + ys;
-    TFloat m10 = t * xy + zs;
-    TFloat m11 = t * y2 + c;
-    TFloat m12 = t * yz - xs;
-    TFloat m20 = t * xz - ys;
-    TFloat m21 = t * yz + xs;
-    TFloat m22 = t * z2 + c;
-
-    auto r = core::mat4x4<TFloat>(
-        m00, m01, m02, 0, // right
-        m10, m11, m12, 0, // up
-        m20, m21, m22, 0, // forward
-        0,   0,   0,   1
+    core::mat4<TFloat> rotate (
+        m00, m10, m20, 0,
+        m01, m11, m21, 0,
+        m02, m12, m22, 0,
+          0,   0,   0, 1
     );
 
-    m = r * m;
+    m = rotate * m;
 }
 
 

@@ -333,9 +333,19 @@ constexpr mat<NCol2, NRow1, T> mmul(const mat<NCol1, NRow1, T>& m1, const mat<NC
 template<i32 NCol, i32 NRow, typename T>
 constexpr mat<NCol, NRow, T> mmul(const mat<NCol, NRow, T>& m, T value) {
     mat<NCol, NRow, T> res;
-    for (i32 i = 0; i < m.NCol; ++i) {
-        for (i32 j = 0; j < m.NRow; ++j) {
+    for (i32 i = 0; i < res.NCol; ++i) {
+        for (i32 j = 0; j < res.NRow; ++j) {
             res[i][j] = m[i][j] * value;
+        }
+    }
+    return res;
+}
+template<i32 NCol, i32 NRow, typename T>
+constexpr vec<NRow, T> mmul(const mat<NCol, NRow, T>& m, const vec<NCol, T>& v) {
+    vec<NRow, T> res;
+    for (i32 i = 0; i < m.NRow; ++i) {
+        for (i32 j = 0; j < m.NCol; ++j) {
+            res[i] += m[j][i] * v[j];
         }
     }
     return res;
@@ -591,6 +601,11 @@ constexpr mat<3, 4, T> operator*(const mat<4, 4, T>& m1, const mat<3, 4, T>& m2)
 template<typename T>
 constexpr mat<4, 4, T> operator*(const mat<4, 4, T>& m1, const mat<4, 4, T>& m2) { return mmul(m1, m2); }
 
+// Multiplication with vector
+template<i32 NCol, i32 NRow, typename T>
+constexpr vec<NRow, T> operator*(const mat<NCol, NRow, T>& m, const vec<NCol, T>& v) { return mmul(m, v); }
+
+// Scalar multiplication
 template<i32 NCol, i32 NRow, typename T>
 constexpr mat<NCol, NRow, T> operator*(const mat<NCol, NRow, T>& m, typename mat<NCol, NRow, T>::DataType value) {
     return mmul(m, value);

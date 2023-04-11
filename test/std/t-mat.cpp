@@ -749,6 +749,90 @@ void mat_mul() {
     }
 }
 
+void mat_mul_vector() {
+    {
+        // 2x2 * 2x1 = 2x1
+        core::mat2x2i m1(1, 2, 3, 4);
+        core::vec2i v1 = core::v(5, 6);
+        core::vec2i ret = m1 * v1;
+        Assert(ret[0] == 23);
+        Assert(ret[1] == 34);
+    }
+    {
+        // 2x3 * 2x1 = 3x1
+        core::mat2x3i m1(1, 2, 3, 4, 5, 6);
+        core::vec2i v1 = core::v(7, 8);
+        core::vec3i ret = m1 * v1;
+        Assert(ret[0] == 39);
+        Assert(ret[1] == 54);
+        Assert(ret[2] == 69);
+    }
+    {
+        // 2x4 * 2x1 = 4x1
+        core::mat2x4i m1(1, 2, 3, 4, 5, 6, 7, 8);
+        core::vec2i v1 = core::v(9, 10);
+        core::vec4i ret = m1 * v1;
+        Assert(ret[0] == 59);
+        Assert(ret[1] == 78);
+        Assert(ret[2] == 97);
+        Assert(ret[3] == 116);
+    }
+    {
+        // 3x2 * 3x1 = 2x1
+        core::mat3x2i m1(1, 2, 3, 4, 5, 6);
+        core::vec3i v1 = core::v(7, 8, 9);
+        core::vec2i ret = m1 * v1;
+        Assert(ret[0] == 76);
+        Assert(ret[1] == 100);
+    }
+    {
+        // 3x3 * 3x1 = 3x1
+        core::mat3x3i m1(1, 2, 3, 4, 5, 6, 7, 8, 9);
+        core::vec3i v1 = core::v(10, 11, 12);
+        core::vec3i ret = m1 * v1;
+        Assert(ret[0] == 138);
+        Assert(ret[1] == 171);
+        Assert(ret[2] == 204);
+    }
+    {
+        // 3x4 * 3x1 = 4x1
+        core::mat3x4i m1(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        core::vec3i v1 = core::v(13, 14, 15);
+        core::vec4i ret = m1 * v1;
+        Assert(ret[0] == 218);
+        Assert(ret[1] == 260);
+        Assert(ret[2] == 302);
+        Assert(ret[3] == 344);
+    }
+    {
+        // 4x2 * 4x1 = 2x1
+        core::mat4x2i m1(1, 2, 3, 4, 5, 6, 7, 8);
+        core::vec4i v1 = core::v(9, 10, 11, 12);
+        core::vec2i ret = m1 * v1;
+        Assert(ret[0] == 178);
+        Assert(ret[1] == 220);
+    }
+    {
+        // 4x3 * 4x1 = 3x1
+        core::mat4x3i m1(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        core::vec4i v1 = core::v(13, 14, 15, 16);
+        core::vec3i ret = m1 * v1;
+        Assert(ret[0] == 334);
+        Assert(ret[1] == 392);
+        Assert(ret[2] == 450);
+    }
+    {
+        // 4x4 * 4x1 = 4x1
+        core::mat4x4i m1(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        core::vec4i v1 = core::v(17, 18, 19, 20);
+        core::vec4i ret = m1 * v1;
+        Assert(ret[0] == 538);
+        Assert(ret[1] == 612);
+        Assert(ret[2] == 686);
+        Assert(ret[3] == 760);
+    }
+}
+
 void mat_determinant() {
     auto m1 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
     Assert(core::mdet(m1) == -2.0f);
@@ -900,6 +984,7 @@ void run_mat_tests_suite() {
     RunTest(mat_add);
     RunTest(mat_sub);
     RunTest(mat_mul);
+    RunTest(mat_mul_vector);
     RunTest(mat_determinant);
     RunTest(mat_identity);
     RunTest(mat_transpose);

@@ -26,15 +26,43 @@ State& state(bool clear = false) {
     return g_state;
 }
 
+core::vec3f randomVector(f32 min, f32 max) {
+    return core::v(core::rnd_f32(min, max), core::rnd_f32(min, max), core::rnd_f32(min, max));
+}
+
+core::vec3f randomUnitVector() {
+    return core::vnorm(randomVector(-1, 1));
+}
+
+core::vec3f randomVectorInUnitSphere() {
+    while (true) {
+        auto p = randomVector(-1, 1);
+        if (core::vlengthsq(p) >= 1) continue;
+        return p;
+    }
+}
+
+core::vec3f randomInHemisphere(const core::vec3f& normal) {
+    core::vec3f inUnitSphere = randomVectorInUnitSphere();
+    if (core::vdot(inUnitSphere, normal) > 0.0f) // In the same hemisphere as the normal
+        return inUnitSphere;
+    else
+        return -inUnitSphere;
+}
+
+core::vec3f reflect(const core::vec3f& v, const core::vec3f& n) {
+    return v - 2 * core::vdot(v, n) * n;
+}
+
 void writeColor(u8* data, const core::vec3f& color, i32 samplesPerPixel) {
     auto r = color.r();
     auto g = color.g();
     auto b = color.b();
 
     auto scale = 1.0f / samplesPerPixel;
-    r *= scale;
-    g *= scale;
-    b *= scale;
+    r = std::sqrt(scale * r);
+    g = std::sqrt(scale * g);
+    b = std::sqrt(scale * b);
 
     data[0] = static_cast<u8>(256.0f * core::clamp(r, 0.0f, 0.999f));
     data[1] = static_cast<u8>(256.0f * core::clamp(g, 0.0f, 0.999f));
@@ -50,9 +78,12 @@ struct ray {
     }
 };
 
+class material;
+
 struct hitRecord {
     core::vec3f p;
     core::vec3f normal;
+    std::shared_ptr<material> matPtr;
     f32 t;
     bool frontFace;
 
@@ -66,6 +97,12 @@ class hittable {
 public:
     virtual ~hittable() = default;
     virtual bool hit(const ray& r, f32 tMin, f32 tMax, hitRecord& rec) const = 0;
+};
+
+class material {
+public:
+    virtual ~material() = default;
+    virtual bool scatter(const ray& rIn, const hitRecord& rec, core::vec3f& attenuation, ray& scattered) const = 0;
 };
 
 class hittableList : public hittable {
@@ -96,17 +133,17 @@ private:
 
 class sphere : public hittable {
 public:
-    core::vec3f m_center;
-    f32 m_radius;
+    core::vec3f center;
+    f32 radius;
+    std::shared_ptr<material> matPtr;
 
-    sphere() = default;
-    sphere(const core::vec3f& center, f32 radius) : m_center(center), m_radius(radius) {}
+    sphere(const core::vec3f& c, f32 r, std::shared_ptr<material> m) : center(c), radius(r), matPtr(m) {}
 
     virtual bool hit(const ray& r, f32 tMin, f32 tMax, hitRecord& rec) const override {
-        core::vec3f oc = r.origin - m_center;
+        core::vec3f oc = r.origin - center;
         auto a = core::vlengthsq(r.direction);
         auto halfB = core::vdot(oc, r.direction);
-        auto c = core::vlengthsq(oc) - m_radius * m_radius;
+        auto c = core::vlengthsq(oc) - radius * radius;
         auto discriminant = halfB * halfB - a * c;
         if (discriminant < 0) {
             return false;
@@ -124,29 +161,58 @@ public:
 
         rec.t = root;
         rec.p = r.at(rec.t);
-        core::vec3f outwardNormal = (rec.p - m_center) / m_radius;
+        core::vec3f outwardNormal = (rec.p - center) / radius;
         rec.setFaceNormal(r, outwardNormal);
+        rec.matPtr = matPtr;
         return true;
     }
 };
 
-f32 hitSphere(const core::vec3f& center, double radius, const ray& r) {
-    core::vec3f oc = r.origin - center;
-    auto a = core::vlengthsq(r.direction);
-    auto halfB = core::vdot(oc, r.direction);
-    auto c = core::vlengthsq(oc) - radius * radius;
-    auto discriminant = halfB * halfB - a * c;
-    if (discriminant < 0) {
-        return -1.0f;
-    }
-    return (-halfB - std::sqrt(discriminant)) / a;
-}
+class metal : public material {
+public:
+    core::vec3f albedo;
+    f32 fuzz;
 
-core::vec3f rayColor(const ray& r, const hittable& world) {
-    hitRecord rec;
-    if (world.hit(r, 0, INFINITY, rec)) {
-        return 0.5f * (rec.normal + core::v(1.f, 1.f, 1.f));
+    metal(const core::vec3f& a, f32 fuzz) : albedo(a), fuzz(fuzz < 1 ? fuzz : 1) {}
+
+    virtual bool scatter(const ray& rIn, const hitRecord& rec, core::vec3f& attenuation, ray& scattered) const override {
+        core::vec3f reflected = reflect(core::vnorm(rIn.direction), rec.normal);
+        scattered = ray{ rec.p, reflected + fuzz * randomVectorInUnitSphere() };
+        attenuation = albedo;
+        return (core::vdot(scattered.direction, rec.normal) > 0);
     }
+};
+
+class lambertian : public material {
+public:
+    core::vec3f albedo;
+
+    lambertian(const core::vec3f& a) : albedo(a) {}
+
+    virtual bool scatter(const ray&, const hitRecord& rec, core::vec3f& attenuation, ray& scattered) const override {
+        auto scatterDirection = rec.normal + randomUnitVector();
+        // Catch degenerate scatter direction
+        bool nearZero = scatterDirection.equals(core::v(0.0f, 0.0f, 0.0f), 0.0001f);
+        if (nearZero) scatterDirection = rec.normal;
+        scattered = ray{ rec.p, scatterDirection };
+        attenuation = albedo;
+        return true;
+    }
+};
+
+core::vec3f rayColor(const ray& r, const hittable& world, i32 depth) {
+    if (depth <= 0) return core::v(0.0f, 0.0f, 0.0f);
+
+    hitRecord rec;
+    if (world.hit(r, 0.001f, INFINITY, rec)) {
+        ray scattered;
+        core::vec3f attenuation;
+        if (rec.matPtr->scatter(r, rec, attenuation, scattered)) {
+            return attenuation * rayColor(scattered, world, depth - 1);
+        }
+        return core::v(0.0f, 0.0f, 0.0f);
+    }
+
     core::vec3f unitDirection = core::vnorm(r.direction);
     auto t = 0.5f * (unitDirection.y() + 1.0f);
     constexpr auto colorA = core::v(1.0f, 1.0f, 1.0f);
@@ -319,11 +385,20 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         constexpr u32 imageWidth = 400;
         constexpr u32 imageHeight = u32(f32(imageWidth) / aspectRatio);
         constexpr i32 samplesPerPixel = 100;
+        constexpr i32 maxDepth = 50;
 
         // World
+
+        auto materialGround = std::make_shared<lambertian>(core::v(0.8f, 0.8f, 0.0f));
+        auto materialCenter = std::make_shared<lambertian>(core::v(0.7f, 0.3f, 0.3f));
+        auto materialLeft = std::make_shared<metal>(core::v(0.8f, 0.8f, 0.8f), 0.3f);
+        auto materialRight = std::make_shared<metal>(core::v(0.8f, 0.6f, 0.2f), 1.0f);
+
         hittableList world;
-        world.add(std::make_shared<sphere>(core::v(0.0f, 0.0f, -1.0f), 0.5f));
-        world.add(std::make_shared<sphere>(core::v(0.0f, -100.5f, -1.0f), 100.0f));
+        world.add(std::make_shared<sphere>(core::v(0.0f, -100.5f, -1.0f), 100.0f, materialGround));
+        world.add(std::make_shared<sphere>(core::v(0.0f, 0.0f, -1.0f), 0.5f, materialCenter));
+        world.add(std::make_shared<sphere>(core::v(-1.0f, 0.0f, -1.0f), 0.5f, materialLeft));
+        world.add(std::make_shared<sphere>(core::v(1.0f, 0.0f, -1.0f), 0.5f, materialRight));
 
         // Camera
         camera cam;
@@ -339,7 +414,7 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
                     auto u = (f32(i) + core::rnd_f32()) / f32(imageWidth - 1);
                     auto v = (f32(j) + core::rnd_f32()) / f32(imageHeight - 1);
                     ray r = cam.getRay(u, v);
-                    color += rayColor(r, world);
+                    color += rayColor(r, world, maxDepth);
                 }
                 i32 offset = i * nchannels + j * imageWidth * nchannels;
                 writeColor(pixelData + offset, color, samplesPerPixel);

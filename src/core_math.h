@@ -47,6 +47,11 @@ constexpr tuple<T, T> minmax(T a, T b) {
     return a < b ? tuple<T, T>(a, b) : tuple<T, T>(b, a);
 }
 
+template <typename T>
+inline T clamp(T value, T min, T max) {
+    return core::max(min, core::min(max, value));
+}
+
 // NOTE: This is pretty fast branchless check. Its collapsed to a single instruction on x86 and ARM by most compilers.
 inline f32 abs(f32 a) {
     i32* ip = reinterpret_cast<i32*>(&a);

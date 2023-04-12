@@ -26,10 +26,19 @@ State& state(bool clear = false) {
     return g_state;
 }
 
-void writeColor(u8* data, const core::vec3f& color) {
-    data[0] = static_cast<u8>(color.r() * 255.999f);
-    data[1] = static_cast<u8>(color.g() * 255.999f);
-    data[2] = static_cast<u8>(color.b() * 255.999f);
+void writeColor(u8* data, const core::vec3f& color, i32 samplesPerPixel) {
+    auto r = color.r();
+    auto g = color.g();
+    auto b = color.b();
+
+    auto scale = 1.0f / samplesPerPixel;
+    r *= scale;
+    g *= scale;
+    b *= scale;
+
+    data[0] = static_cast<u8>(256.0f * core::clamp(r, 0.0f, 0.999f));
+    data[1] = static_cast<u8>(256.0f * core::clamp(g, 0.0f, 0.999f));
+    data[2] = static_cast<u8>(256.0f * core::clamp(b, 0.0f, 0.999f));
 }
 
 struct ray {
@@ -144,6 +153,31 @@ core::vec3f rayColor(const ray& r, const hittable& world) {
     constexpr auto colorB = core::v(0.5f, 0.7f, 1.0f);
     return core::lerp(colorA, colorB, t);
 }
+
+class camera {
+public:
+    static constexpr f32 aspectRatio = 16.0f / 9.0f;
+    static constexpr f32 viewportHeight = 2.0f;
+    static constexpr f32 viewportWidth = aspectRatio * viewportHeight;
+    static constexpr f32 focalLength = 1.0f;
+
+    camera()
+        : m_origin(core::v(0.f, 0.f, 0.f))
+        , m_horizontal(core::v(viewportWidth, 0.f, 0.f))
+        , m_vertical(core::v(0.f, viewportHeight, 0.f))
+        , m_lowerLeftCorner(m_origin - m_horizontal / 2 - m_vertical / 2 - core::v(0.f, 0.f, focalLength)) {}
+
+    ray getRay(f32 u, f32 v) const {
+        ray ret = { m_origin, m_lowerLeftCorner + u * m_horizontal + v * m_vertical - m_origin };
+        return ret;
+    }
+
+private:
+    core::vec3f m_origin;
+    core::vec3f m_horizontal;
+    core::vec3f m_vertical;
+    core::vec3f m_lowerLeftCorner;
+};
 
 }
 
@@ -284,6 +318,7 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         constexpr f32 aspectRatio = 16.0f / 9.0f;
         constexpr u32 imageWidth = 400;
         constexpr u32 imageHeight = u32(f32(imageWidth) / aspectRatio);
+        constexpr i32 samplesPerPixel = 100;
 
         // World
         hittableList world;
@@ -291,14 +326,7 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         world.add(std::make_shared<sphere>(core::v(0.0f, -100.5f, -1.0f), 100.0f));
 
         // Camera
-        constexpr f32 viewportHeight = 2.0f;
-        constexpr f32 viewportWidth = aspectRatio * viewportHeight;
-        constexpr f32 focalLength = 1.0f;
-
-        constexpr core::vec3f origin = core::v(0.0f, 0.0f, 0.0f);
-        constexpr core::vec3f horizontal = core::v(viewportWidth, 0.0f, 0.0f);
-        constexpr core::vec3f vertical = core::v(0.0f, viewportHeight, 0.0f);
-        constexpr core::vec3f lowerLeftCorner = origin - horizontal / 2.0f - vertical / 2.0f - core::v(0.0f, 0.0f, focalLength);
+        camera cam;
 
         // Render raytraced scene:
         constexpr u32 nchannels = 3;
@@ -306,15 +334,15 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         u8 pixelData[pixelCount];
         for (u32 j = 0; j < imageHeight; ++j) {
             for (u32 i = 0; i < imageWidth; ++i) {
-                const f32 u = f32(i) / f32(imageWidth - 1);
-                const f32 v = f32(j) / f32(imageHeight - 1);
-                ray r;
-                r.origin = origin;
-                r.direction = lowerLeftCorner + u * horizontal + v * vertical - origin;
-                core::vec3f color = rayColor(r, world);
-
+                core::vec3f color = core::v(0.0f, 0.0f, 0.0f);
+                for (i32 s = 0; s < samplesPerPixel; ++s) {
+                    auto u = (f32(i) + core::rnd_f32()) / f32(imageWidth - 1);
+                    auto v = (f32(j) + core::rnd_f32()) / f32(imageHeight - 1);
+                    ray r = cam.getRay(u, v);
+                    color += rayColor(r, world);
+                }
                 i32 offset = i * nchannels + j * imageWidth * nchannels;
-                writeColor(pixelData + offset, color);
+                writeColor(pixelData + offset, color, samplesPerPixel);
             }
         }
 

@@ -28,6 +28,8 @@ struct Example {
     void (*destroy)() = nullptr;
     bool waitForEvents = false;
     core::vec4f clearColor = {0.2f, 0.3f, 0.3f, 1.0f};
+    i32 windowWidth;
+    i32 windowHeight;
 };
 
 inline i32 runExample(Example&& ex) {
@@ -49,8 +51,8 @@ inline i32 runExample(Example&& ex) {
 
     common::InitProps iprops;
     iprops.title = "Experiment 01 - Triangle";
-    iprops.width = 800;
-    iprops.height = 600;
+    iprops.width = ex.windowWidth;
+    iprops.height = ex.windowHeight;
     iprops.clearColor = ex.clearColor;
     iprops.initStateCb = ex.init;
     iprops.preMainLoopCb = ex.preMainLoop;
@@ -76,6 +78,8 @@ i32 example_app() {
     ex.preMainLoop = app::preMainLoop;
     ex.mainLoop = app::mainLoop;
     ex.waitForEvents = true;
+    ex.windowWidth = 800;
+    ex.windowHeight = 600;
     return runExample(core::move(ex));
 }
 
@@ -86,6 +90,8 @@ i32 example_raytracing() {
     ex.preMainLoop = raytracing::preMainLoop;
     ex.mainLoop = raytracing::mainLoop;
     ex.waitForEvents = false;
+    ex.windowWidth = 1920;
+    ex.windowHeight = 1080;
     return runExample(core::move(ex));
 }
 
@@ -96,6 +102,8 @@ i32 example_ray_in_voxel_space() {
     ex.preMainLoop = ray_in_voxel_space::preMainLoop;
     ex.mainLoop = ray_in_voxel_space::mainLoop;
     ex.waitForEvents = false;
+    ex.windowWidth = 800;
+    ex.windowHeight = 600;
     ex.clearColor = core::WHITE;
     return runExample(core::move(ex));
 }
@@ -107,6 +115,8 @@ i32 example_01() {
     ex.preMainLoop = triangle_and_quad_ex_01::preMainLoop;
     ex.mainLoop = triangle_and_quad_ex_01::mainLoop;
     ex.waitForEvents = false;
+    ex.windowWidth = 800;
+    ex.windowHeight = 600;
     return runExample(core::move(ex));
 }
 
@@ -117,6 +127,8 @@ i32 example_02() {
     ex.preMainLoop = textures_ex_02::preMainLoop;
     ex.mainLoop = textures_ex_02::mainLoop;
     ex.waitForEvents = false;
+    ex.windowWidth = 800;
+    ex.windowHeight = 600;
     return runExample(core::move(ex));
 }
 
@@ -127,6 +139,8 @@ i32 example_03() {
     ex.preMainLoop = transformation_ex_03::preMainLoop;
     ex.mainLoop = transformation_ex_03::mainLoop;
     ex.waitForEvents = false;
+    ex.windowWidth = 800;
+    ex.windowHeight = 600;
     return runExample(core::move(ex));
 }
 
@@ -138,6 +152,8 @@ i32 example_04() {
     ex.preMainLoop = rotating_cube_ex_04::preMainLoop;
     ex.mainLoop = rotating_cube_ex_04::mainLoop;
     ex.waitForEvents = false;
+    ex.windowWidth = 800;
+    ex.windowHeight = 600;
     return runExample(core::move(ex));
 }
 

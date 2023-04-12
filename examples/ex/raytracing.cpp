@@ -5,6 +5,12 @@
 
 #include <memory>
 
+// NOTE:
+// This example comes from the book "Ray Tracing in One Weekend" by Peter Shirley.
+// The scenes are rendered in a OpenGL texture instead of a PPM image.
+// Original can be found here - https://raytracing.github.io/books/RayTracingInOneWeekend.html
+// If the link is broken, google "Ray Tracing in One Weekend".
+
 namespace raytracing {
 
 namespace {
@@ -37,6 +43,14 @@ core::vec3f randomUnitVector() {
 core::vec3f randomVectorInUnitSphere() {
     while (true) {
         auto p = randomVector(-1, 1);
+        if (core::vlengthsq(p) >= 1) continue;
+        return p;
+    }
+}
+
+core::vec3f randomVectorInUnitDisk() {
+    while (true) {
+        auto p = core::v(core::rnd_f32(-1, 1), core::rnd_f32(-1, 1), 0.0f);
         if (core::vlengthsq(p) >= 1) continue;
         return p;
     }
@@ -267,24 +281,39 @@ core::vec3f rayColor(const ray& r, const hittable& world, i32 depth) {
 class camera {
 public:
 
-    camera(core::vec3f lookfrom, core::vec3f lookat, core::vec3f vup, f32 verticalFov, f32 aspectRatio) {
+    camera(
+        core::vec3f lookfrom,
+        core::vec3f lookat,
+        core::vec3f vup,
+        f32 verticalFov,
+        f32 aspectRatio,
+        f32 aperture,
+        f32 focusDist
+    ) {
         f32 theta = core::deg_to_rad(verticalFov);
         f32 h = std::tan(theta / 2);
         f32 viewportHeight = 2.0f * h;
         f32 viewportWidth = aspectRatio * viewportHeight;
 
-        auto w = core::vnorm(lookfrom - lookat);
-        auto u = core::vnorm(core::vcross(vup, w));
-        auto v = core::vcross(w, u);
+        m_w = core::vnorm(lookfrom - lookat);
+        m_u = core::vnorm(core::vcross(vup, m_w));
+        m_v = core::vcross(m_w, m_u);
 
         m_origin = lookfrom;
-        m_horizontal = viewportWidth * u;
-        m_vertical = viewportHeight * v;
-        m_lowerLeftCorner = m_origin - m_horizontal / 2 - m_vertical / 2 - w;
+        m_horizontal = focusDist * viewportWidth * m_u;
+        m_vertical = focusDist * viewportHeight * m_v;
+        m_lowerLeftCorner = m_origin - m_horizontal / 2 - m_vertical / 2 - focusDist * m_w;
+
+        m_lensRadius = aperture / 2;
     }
 
     ray getRay(f32 s, f32 t) const {
-        ray ret = { m_origin, m_lowerLeftCorner + s * m_horizontal + t * m_vertical - m_origin };
+        core::vec3f rd = m_lensRadius * randomVectorInUnitDisk();
+        core::vec3f offset = m_u * rd.x() + m_v * rd.y();
+        ray ret = {
+            m_origin + offset,
+            m_lowerLeftCorner + s * m_horizontal + t * m_vertical - m_origin - offset
+        };
         return ret;
     }
 
@@ -293,7 +322,57 @@ private:
     core::vec3f m_horizontal;
     core::vec3f m_vertical;
     core::vec3f m_lowerLeftCorner;
+    core::vec3f m_u;
+    core::vec3f m_v;
+    core::vec3f m_w;
+    f32 m_lensRadius;
 };
+
+hittableList generateRandomScene() {
+    hittableList world;
+
+    auto groundMaterial = std::make_shared<lambertian>(core::v(0.5f, 0.5f, 0.5f));
+    world.add(std::make_shared<sphere>(core::v(0.0f, -1000.0f, 0.0f), 1000.0f, groundMaterial));
+
+    for (i32 i = -11; i < 11; i++) {
+        for (i32 j = -11; j < 11; j++) {
+            f32 chooseMat = core::rnd_f32();
+            core::vec3f center = core::v(f32(i) + 0.9f * core::rnd_f32(), 0.2f, f32(j) + 0.9f * core::rnd_f32());
+
+            if (core::vlength(center - core::v(4.0f, 0.2f, 0.0f)) > 0.9f) {
+                std::shared_ptr<material> sphereMaterial;
+
+                if (chooseMat < 0.8f) {
+                    // diffuse
+                    auto albedo = randomVector(0.0f, 1.0f) * randomVector(0.0f, 1.0f);
+                    sphereMaterial = std::make_shared<lambertian>(albedo);
+                    world.add(std::make_shared<sphere>(center, 0.2f, sphereMaterial));
+                } else if (chooseMat < 0.95f) {
+                    // metal
+                    auto albedo = randomVector(0.0f, 1.0f);
+                    auto fuzz = core::rnd_f32(0.0f, 0.5f);
+                    sphereMaterial = std::make_shared<metal>(albedo, fuzz);
+                    world.add(std::make_shared<sphere>(center, 0.2f, sphereMaterial));
+                } else {
+                    // glass
+                    sphereMaterial = std::make_shared<dielectric>(1.5f);
+                    world.add(std::make_shared<sphere>(center, 0.2f, sphereMaterial));
+                }
+            }
+        }
+    }
+
+    auto material1 = std::make_shared<dielectric>(1.5f);
+    world.add(std::make_shared<sphere>(core::v(0.0f, 1.0f, 0.0f), 1.0f, material1));
+
+    auto material2 = std::make_shared<lambertian>(core::v(0.4f, 0.2f, 0.1f));
+    world.add(std::make_shared<sphere>(core::v(-4.0f, 1.0f, 0.0f), 1.0f, material2));
+
+    auto material3 = std::make_shared<metal>(core::v(0.7f, 0.6f, 0.5f), 0.0f);
+    world.add(std::make_shared<sphere>(core::v(4.0f, 1.0f, 0.0f), 1.0f, material3));
+
+    return world;
+}
 
 }
 
@@ -345,7 +424,7 @@ void destroy() {
     state(true);
 }
 
-core::expected<GraphicsLibError> preMainLoop(CommonState&) {
+core::expected<GraphicsLibError> preMainLoop(CommonState& commonState) {
     State& g_s = state();
 
     // Create shader program:
@@ -432,34 +511,30 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
 
         // Image
         constexpr f32 aspectRatio = 16.0f / 9.0f;
-        constexpr u32 imageWidth = 400;
-        constexpr u32 imageHeight = u32(f32(imageWidth) / aspectRatio);
-        constexpr i32 samplesPerPixel = 100;
+        constexpr i32 samplesPerPixel = 500;
         constexpr i32 maxDepth = 50;
+        u32 imageWidth = commonState.mainWindow.width;
+        u32 imageHeight = u32(f32(imageWidth) / aspectRatio);
 
         // World
 
-        hittableList world;
-
-        auto materialGround = std::make_shared<lambertian>(core::v(0.8f, 0.8f, 0.0f));
-        auto materialCenter = std::make_shared<lambertian>(core::v(0.1f, 0.2f, 0.5f));
-        auto materialLeft = std::make_shared<dielectric>(1.5);
-        auto materialRight = std::make_shared<metal>(core::v(0.8f, 0.6f, 0.2f), 0.0);
-
-        world.add(std::make_shared<sphere>(core::v(0.0f, -100.5f, -1.0f), 100.0f, materialGround));
-        world.add(std::make_shared<sphere>(core::v(0.0f, 0.0f, -1.0f), 0.5f, materialCenter));
-        world.add(std::make_shared<sphere>(core::v(-1.0f, 0.0f, -1.0f), 0.5f, materialLeft));
-        world.add(std::make_shared<sphere>(core::v(-1.0f, 0.0f, -1.0f), -0.45f, materialLeft));
-        world.add(std::make_shared<sphere>(core::v(1.0f, 0.0f, -1.0f), 0.5f, materialRight));
+        hittableList world = generateRandomScene();
 
         // Camera
-        camera cam(core::v(-2.0f, 2.0f, 1.0f), core::v(0.0f, 0.0f, -1.0f), core::v(0.0f, 1.0f, 0.0f), 90.0f, aspectRatio);
+        auto lookfrom     = core::v(13.f, 2.f , 3.f);
+        auto lookat       = core::v(0.f, 0.f , 0.f);
+        auto vup          = core::v(0.f, 1.f , 0.f);
+        f32 dist_to_focus = 10.0f;
+        f32 aperture      = 0.1f;
+        f32 vfov          = 20.0f;
+        camera cam(lookfrom, lookat, vup, vfov, aspectRatio, aperture, dist_to_focus);
 
         // Render raytraced scene:
         constexpr u32 nchannels = 3;
-        constexpr u32 pixelCount = imageWidth * imageHeight * nchannels;
+        u32 pixelCount = imageWidth * imageHeight * nchannels;
         u8 pixelData[pixelCount];
         for (u32 j = 0; j < imageHeight; ++j) {
+            fmt::print("Scanlines remaining: {}\n", imageHeight - j);
             for (u32 i = 0; i < imageWidth; ++i) {
                 core::vec3f color = core::v(0.0f, 0.0f, 0.0f);
                 for (i32 s = 0; s < samplesPerPixel; ++s) {

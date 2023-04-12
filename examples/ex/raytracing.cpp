@@ -42,6 +42,7 @@ core::vec3f randomVectorInUnitSphere() {
     }
 }
 
+[[maybe_unused]]
 core::vec3f randomInHemisphere(const core::vec3f& normal) {
     core::vec3f inUnitSphere = randomVectorInUnitSphere();
     if (core::vdot(inUnitSphere, normal) > 0.0f) // In the same hemisphere as the normal
@@ -52,6 +53,13 @@ core::vec3f randomInHemisphere(const core::vec3f& normal) {
 
 core::vec3f reflect(const core::vec3f& v, const core::vec3f& n) {
     return v - 2 * core::vdot(v, n) * n;
+}
+
+core::vec3f refract(const core::vec3f& uv, const core::vec3f& n, f32 etaiOverEtat) {
+    f64 cosTheta = core::min(core::vdot(-uv, n), 1.0);
+    core::vec3f rOutParallel = etaiOverEtat * (uv + cosTheta * n);
+    core::vec3f rOutPerp = -std::sqrt(std::abs(1.0f - core::vlengthsq(rOutParallel))) * n;
+    return rOutParallel + rOutPerp;
 }
 
 void writeColor(u8* data, const core::vec3f& color, i32 samplesPerPixel) {
@@ -200,6 +208,42 @@ public:
     }
 };
 
+class dielectric : public material {
+public:
+    f32 refIdx;
+
+    dielectric(f32 ri) : refIdx(ri) {}
+
+    virtual bool scatter(const ray& rIn, const hitRecord& rec, core::vec3f& attenuation, ray& scattered) const override {
+        attenuation = core::v(1.0f, 1.0f, 1.0f);
+        f32 refractionRatio = rec.frontFace ? (1.0f / refIdx) : refIdx;
+
+        core::vec3f unitDirection = core::vnorm(rIn.direction);
+        f64 cosTheta = core::min(-core::vdot(unitDirection, rec.normal), 1.0);
+        f64 sinTheta = std::sqrt(1.0f - cosTheta * cosTheta);
+
+        bool cannotRefract = refractionRatio * sinTheta > 1.0;
+        core::vec3f direction;
+
+        if (cannotRefract || reflectance(cosTheta, refractionRatio) > core::rnd_f32()) {
+            direction = reflect(unitDirection, rec.normal);
+        } else {
+            direction = refract(unitDirection, rec.normal, refractionRatio);
+        }
+
+        scattered = ray{ rec.p, direction };
+        return true;
+    };
+
+private:
+    static f32 reflectance(f32 cosine, f32 refIdx) {
+        // Use Schlick's approximation for reflectance.
+        auto r0 = (1 - refIdx) / (1 + refIdx);
+        r0 = r0 * r0;
+        return r0 + (1 - r0) * std::pow((1 - cosine), 5);
+    }
+};
+
 core::vec3f rayColor(const ray& r, const hittable& world, i32 depth) {
     if (depth <= 0) return core::v(0.0f, 0.0f, 0.0f);
 
@@ -222,19 +266,25 @@ core::vec3f rayColor(const ray& r, const hittable& world, i32 depth) {
 
 class camera {
 public:
-    static constexpr f32 aspectRatio = 16.0f / 9.0f;
-    static constexpr f32 viewportHeight = 2.0f;
-    static constexpr f32 viewportWidth = aspectRatio * viewportHeight;
-    static constexpr f32 focalLength = 1.0f;
 
-    camera()
-        : m_origin(core::v(0.f, 0.f, 0.f))
-        , m_horizontal(core::v(viewportWidth, 0.f, 0.f))
-        , m_vertical(core::v(0.f, viewportHeight, 0.f))
-        , m_lowerLeftCorner(m_origin - m_horizontal / 2 - m_vertical / 2 - core::v(0.f, 0.f, focalLength)) {}
+    camera(core::vec3f lookfrom, core::vec3f lookat, core::vec3f vup, f32 verticalFov, f32 aspectRatio) {
+        f32 theta = core::deg_to_rad(verticalFov);
+        f32 h = std::tan(theta / 2);
+        f32 viewportHeight = 2.0f * h;
+        f32 viewportWidth = aspectRatio * viewportHeight;
 
-    ray getRay(f32 u, f32 v) const {
-        ray ret = { m_origin, m_lowerLeftCorner + u * m_horizontal + v * m_vertical - m_origin };
+        auto w = core::vnorm(lookfrom - lookat);
+        auto u = core::vnorm(core::vcross(vup, w));
+        auto v = core::vcross(w, u);
+
+        m_origin = lookfrom;
+        m_horizontal = viewportWidth * u;
+        m_vertical = viewportHeight * v;
+        m_lowerLeftCorner = m_origin - m_horizontal / 2 - m_vertical / 2 - w;
+    }
+
+    ray getRay(f32 s, f32 t) const {
+        ray ret = { m_origin, m_lowerLeftCorner + s * m_horizontal + t * m_vertical - m_origin };
         return ret;
     }
 
@@ -389,19 +439,21 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
 
         // World
 
-        auto materialGround = std::make_shared<lambertian>(core::v(0.8f, 0.8f, 0.0f));
-        auto materialCenter = std::make_shared<lambertian>(core::v(0.7f, 0.3f, 0.3f));
-        auto materialLeft = std::make_shared<metal>(core::v(0.8f, 0.8f, 0.8f), 0.3f);
-        auto materialRight = std::make_shared<metal>(core::v(0.8f, 0.6f, 0.2f), 1.0f);
-
         hittableList world;
+
+        auto materialGround = std::make_shared<lambertian>(core::v(0.8f, 0.8f, 0.0f));
+        auto materialCenter = std::make_shared<lambertian>(core::v(0.1f, 0.2f, 0.5f));
+        auto materialLeft = std::make_shared<dielectric>(1.5);
+        auto materialRight = std::make_shared<metal>(core::v(0.8f, 0.6f, 0.2f), 0.0);
+
         world.add(std::make_shared<sphere>(core::v(0.0f, -100.5f, -1.0f), 100.0f, materialGround));
         world.add(std::make_shared<sphere>(core::v(0.0f, 0.0f, -1.0f), 0.5f, materialCenter));
         world.add(std::make_shared<sphere>(core::v(-1.0f, 0.0f, -1.0f), 0.5f, materialLeft));
+        world.add(std::make_shared<sphere>(core::v(-1.0f, 0.0f, -1.0f), -0.45f, materialLeft));
         world.add(std::make_shared<sphere>(core::v(1.0f, 0.0f, -1.0f), 0.5f, materialRight));
 
         // Camera
-        camera cam;
+        camera cam(core::v(-2.0f, 2.0f, 1.0f), core::v(0.0f, 0.0f, -1.0f), core::v(0.0f, 1.0f, 0.0f), 90.0f, aspectRatio);
 
         // Render raytraced scene:
         constexpr u32 nchannels = 3;

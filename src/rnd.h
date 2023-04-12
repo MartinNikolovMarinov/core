@@ -29,6 +29,10 @@ CORE_API_EXPORT i32  rnd_i32();
 CORE_API_EXPORT i32  rnd_i32(i32 min, i32 max);
 CORE_API_EXPORT i64  rnd_i64();
 CORE_API_EXPORT i64  rnd_i64(i64 min, i64 max);
+CORE_API_EXPORT f32  rnd_f32();
+CORE_API_EXPORT f32  rnd_f32(f32 min, f32 max);
+CORE_API_EXPORT f64  rnd_f64();
+CORE_API_EXPORT f64  rnd_f64(f64 min, f64 max);
 CORE_API_EXPORT void rnd_cptr(char* out, ptr_size len);
 
 } // namespace core

@@ -3,6 +3,8 @@
 #include <keyboard.h>
 #include <shader_prog.h>
 
+#include <memory>
+
 namespace raytracing {
 
 namespace {
@@ -39,26 +41,105 @@ struct ray {
     }
 };
 
+struct hitRecord {
+    core::vec3f p;
+    core::vec3f normal;
+    f32 t;
+    bool frontFace;
+
+    inline void setFaceNormal(const ray& r, const core::vec3f& outwardNormal) {
+        frontFace = core::vdot(r.direction, outwardNormal) < 0;
+        normal = frontFace ? outwardNormal : -outwardNormal;
+    }
+};
+
+class hittable {
+public:
+    virtual ~hittable() = default;
+    virtual bool hit(const ray& r, f32 tMin, f32 tMax, hitRecord& rec) const = 0;
+};
+
+class hittableList : public hittable {
+public:
+    void clear() { m_objects.clear(); }
+    hittableList& add(std::shared_ptr<hittable> object) { m_objects.append(object); return *this; }
+
+    virtual bool hit(const ray& r, f32 tMin, f32 tMax, hitRecord& rec) const override {
+        hitRecord tempRec;
+        bool hitAnything = false;
+        auto closestSoFar = tMax;
+
+        for (i32 i = 0; i < m_objects.len(); ++i) {
+            const auto& object = m_objects[i];
+            if (object->hit(r, tMin, closestSoFar, tempRec)) {
+                hitAnything = true;
+                closestSoFar = tempRec.t;
+                rec = tempRec;
+            }
+        }
+
+        return hitAnything;
+    }
+
+private:
+    core::arr<std::shared_ptr<hittable>> m_objects;
+};
+
+class sphere : public hittable {
+public:
+    core::vec3f m_center;
+    f32 m_radius;
+
+    sphere() = default;
+    sphere(const core::vec3f& center, f32 radius) : m_center(center), m_radius(radius) {}
+
+    virtual bool hit(const ray& r, f32 tMin, f32 tMax, hitRecord& rec) const override {
+        core::vec3f oc = r.origin - m_center;
+        auto a = core::vlengthsq(r.direction);
+        auto halfB = core::vdot(oc, r.direction);
+        auto c = core::vlengthsq(oc) - m_radius * m_radius;
+        auto discriminant = halfB * halfB - a * c;
+        if (discriminant < 0) {
+            return false;
+        }
+        auto sqrtd = std::sqrt(discriminant);
+
+        // Find the nearest root that lies in the acceptable range.
+        auto root = (-halfB - sqrtd) / a;
+        if (root < tMin || tMax < root) {
+            root = (-halfB + sqrtd) / a;
+            if (root < tMin || tMax < root) {
+                return false;
+            }
+        }
+
+        rec.t = root;
+        rec.p = r.at(rec.t);
+        core::vec3f outwardNormal = (rec.p - m_center) / m_radius;
+        rec.setFaceNormal(r, outwardNormal);
+        return true;
+    }
+};
+
 f32 hitSphere(const core::vec3f& center, double radius, const ray& r) {
     core::vec3f oc = r.origin - center;
-    auto a = core::vdot(r.direction, r.direction);
-    auto b = 2.0 * core::vdot(oc, r.direction);
-    auto c = core::vdot(oc, oc) - radius*radius;
-    auto discriminant = b*b - 4*a*c;
+    auto a = core::vlengthsq(r.direction);
+    auto halfB = core::vdot(oc, r.direction);
+    auto c = core::vlengthsq(oc) - radius * radius;
+    auto discriminant = halfB * halfB - a * c;
     if (discriminant < 0) {
         return -1.0f;
     }
-    return (-b - std::sqrt(discriminant)) / (2.0f * a);
+    return (-halfB - std::sqrt(discriminant)) / a;
 }
 
-core::vec3f rayColor(const ray& r) {
-    auto t = hitSphere(core::v(0.f, 0.f, -1.f), 0.5, r);
-    if (t > 0.0f) {
-        core::vec3f N = core::vnorm(r.at(t) - core::v(0.f, 0.f, -1.f));
-        return 0.5f * core::v(N.x() + 1.f, N.y() + 1.f, N.z() + 1.f);
+core::vec3f rayColor(const ray& r, const hittable& world) {
+    hitRecord rec;
+    if (world.hit(r, 0, INFINITY, rec)) {
+        return 0.5f * (rec.normal + core::v(1.f, 1.f, 1.f));
     }
     core::vec3f unitDirection = core::vnorm(r.direction);
-    t = 0.5f * (unitDirection.y() + 1.0f);
+    auto t = 0.5f * (unitDirection.y() + 1.0f);
     constexpr auto colorA = core::v(1.0f, 1.0f, 1.0f);
     constexpr auto colorB = core::v(0.5f, 0.7f, 1.0f);
     return core::lerp(colorA, colorB, t);
@@ -204,6 +285,11 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         constexpr u32 imageWidth = 400;
         constexpr u32 imageHeight = u32(f32(imageWidth) / aspectRatio);
 
+        // World
+        hittableList world;
+        world.add(std::make_shared<sphere>(core::v(0.0f, 0.0f, -1.0f), 0.5f));
+        world.add(std::make_shared<sphere>(core::v(0.0f, -100.5f, -1.0f), 100.0f));
+
         // Camera
         constexpr f32 viewportHeight = 2.0f;
         constexpr f32 viewportWidth = aspectRatio * viewportHeight;
@@ -225,8 +311,7 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
                 ray r;
                 r.origin = origin;
                 r.direction = lowerLeftCorner + u * horizontal + v * vertical - origin;
-                // core::vec3f color = core::v(f32(i) / f32(imageWidth - 1), f32(j) / f32(imageHeight - 1), 0.25f);
-                core::vec3f color = rayColor(r);
+                core::vec3f color = rayColor(r, world);
 
                 i32 offset = i * nchannels + j * imageWidth * nchannels;
                 writeColor(pixelData + offset, color);

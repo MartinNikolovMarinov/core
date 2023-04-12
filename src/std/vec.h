@@ -79,11 +79,17 @@ constexpr void vdiv(vec<Dim, T>& dst, typename vec<Dim, T>::DataType val) {
 // Length
 
 template<i32 Dim, typename T>
-constexpr f64 vlength(const vec<Dim, T>& v) {
+constexpr f64 vlengthsq(const vec<Dim, T>& v) {
     f64 ret = 0;
     for (i32 i = 0; i < v.dimensions(); ++i) {
         ret += static_cast<f64>(v[i]) * static_cast<f64>(v[i]);
     }
+    return ret;
+}
+
+template<i32 Dim, typename T>
+constexpr f64 vlength(const vec<Dim, T>& v) {
+    f64 ret = vlengthsq(v);
     ret = std::sqrt(ret);
     return ret;
 }

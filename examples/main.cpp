@@ -143,5 +143,5 @@ i32 example_04() {
 
 i32 main(i32, char const**) {
     initCore();
-    return example_ray_in_voxel_space();
+    return example_raytracing();
 }

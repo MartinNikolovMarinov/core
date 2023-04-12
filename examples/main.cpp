@@ -30,6 +30,7 @@ struct Example {
     core::vec4f clearColor = {0.2f, 0.3f, 0.3f, 1.0f};
     i32 windowWidth;
     i32 windowHeight;
+    const char* title;
 };
 
 inline i32 runExample(Example&& ex) {
@@ -50,7 +51,7 @@ inline i32 runExample(Example&& ex) {
     };
 
     common::InitProps iprops;
-    iprops.title = "Experiment 01 - Triangle";
+    iprops.title = ex.title;
     iprops.width = ex.windowWidth;
     iprops.height = ex.windowHeight;
     iprops.clearColor = ex.clearColor;
@@ -80,6 +81,7 @@ i32 example_app() {
     ex.waitForEvents = true;
     ex.windowWidth = 800;
     ex.windowHeight = 600;
+    ex.title = "Example App";
     return runExample(core::move(ex));
 }
 
@@ -92,6 +94,7 @@ i32 example_raytracing() {
     ex.waitForEvents = false;
     ex.windowWidth = 1920;
     ex.windowHeight = 1080;
+    ex.title = "Raytracing";
     return runExample(core::move(ex));
 }
 
@@ -105,6 +108,7 @@ i32 example_ray_in_voxel_space() {
     ex.windowWidth = 800;
     ex.windowHeight = 600;
     ex.clearColor = core::WHITE;
+    ex.title = "Ray in Voxel Space";
     return runExample(core::move(ex));
 }
 
@@ -117,6 +121,7 @@ i32 example_01() {
     ex.waitForEvents = false;
     ex.windowWidth = 800;
     ex.windowHeight = 600;
+    ex.title = "Triangle and Quad Example 01";
     return runExample(core::move(ex));
 }
 
@@ -129,6 +134,7 @@ i32 example_02() {
     ex.waitForEvents = false;
     ex.windowWidth = 800;
     ex.windowHeight = 600;
+    ex.title = "Textures Example 02";
     return runExample(core::move(ex));
 }
 
@@ -141,6 +147,7 @@ i32 example_03() {
     ex.waitForEvents = false;
     ex.windowWidth = 800;
     ex.windowHeight = 600;
+    ex.title = "Transformation Example 03";
     return runExample(core::move(ex));
 }
 
@@ -154,6 +161,7 @@ i32 example_04() {
     ex.waitForEvents = false;
     ex.windowWidth = 800;
     ex.windowHeight = 600;
+    ex.title = "Rotating Cube Example 04";
     return runExample(core::move(ex));
 }
 

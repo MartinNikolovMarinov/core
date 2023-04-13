@@ -4,6 +4,7 @@
 #include <shader_prog.h>
 
 #include <memory>
+#include <thread>
 
 // NOTE:
 // This example comes from the book "Ray Tracing in One Weekend" by Peter Shirley.
@@ -533,19 +534,42 @@ core::expected<GraphicsLibError> preMainLoop(CommonState& commonState) {
         constexpr u32 nchannels = 3;
         u32 pixelCount = imageWidth * imageHeight * nchannels;
         u8 pixelData[pixelCount];
-        for (u32 j = 0; j < imageHeight; ++j) {
-            fmt::print("Scanlines remaining: {}\n", imageHeight - j);
-            for (u32 i = 0; i < imageWidth; ++i) {
-                core::vec3f color = core::v(0.0f, 0.0f, 0.0f);
-                for (i32 s = 0; s < samplesPerPixel; ++s) {
-                    auto u = (f32(i) + core::rnd_f32()) / f32(imageWidth - 1);
-                    auto v = (f32(j) + core::rnd_f32()) / f32(imageHeight - 1);
-                    ray r = cam.getRay(u, v);
-                    color += rayColor(r, world, maxDepth);
+
+        auto raytrace = [&](i32 start, i32 end) {
+            for (i32 j = start; j < end; ++j) {
+                fmt::print("Scanlines remaining: {}\n", end - j);
+                for (i32 i = 0; i < i32(imageWidth); ++i) {
+                    core::vec3f color = core::v(0.0f, 0.0f, 0.0f);
+                    for (i32 s = 0; s < samplesPerPixel; ++s) {
+                        auto u = (f32(i) + core::rnd_f32()) / f32(imageWidth - 1);
+                        auto v = (f32(j) + core::rnd_f32()) / f32(imageHeight - 1);
+                        ray r = cam.getRay(u, v);
+                        color += rayColor(r, world, maxDepth);
+                    }
+                    i32 offset = i * nchannels + j * imageWidth * nchannels;
+                    writeColor(pixelData + offset, color, samplesPerPixel);
                 }
-                i32 offset = i * nchannels + j * imageWidth * nchannels;
-                writeColor(pixelData + offset, color, samplesPerPixel);
             }
+        };
+
+        i32 nthreads = std::thread::hardware_concurrency() - 2; // leave at least one core for the OS
+        core::arr<std::thread> threads(0, nthreads + 1); // allow for one extra thread in case the work can't be evenly split.
+        i32 start = 0;
+        i32 step = std::floor(f32(imageHeight) / f32(nthreads));
+        i32 end = step;
+        for (i32 i = 0; i < nthreads; ++i) {
+            threads.append(std::thread(raytrace, start, end));
+            start = end;
+            end += step;
+        }
+
+        if (end < i32(imageHeight)) {
+            threads.append(std::thread(raytrace, start, imageHeight));
+        }
+
+        for (i32 i = 0; i < nthreads; ++i) {
+            auto& t = threads[i];
+            t.join();
         }
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, pixelData);

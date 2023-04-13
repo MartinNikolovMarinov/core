@@ -110,7 +110,7 @@ AtExitCb g_atExit;
 
 void os_exit(i64 exitCode) {
     if (g_atExit) g_atExit(exitCode);
-    return _exit(exitCode);
+    _exit(exitCode);
 }
 
 void at_exit(AtExitCb atExit) {

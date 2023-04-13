@@ -195,8 +195,6 @@ private:
 };
 
 // [[nodiscard]] static err_type    read_full(std::string_view path, u64 flag, u64 mode, data_buffer_type& out);
-// [[nodiscard]] static err_type    read_full(data_buffer_type& out);
 // [[nodiscard]] static err_type    write_full(std::string_view path, u64 flag, u64 mode, const data_buffer_type& in);
-// [[nodiscard]] static err_type    write_full(const data_buffer_type& in);
 
 } // namespace core

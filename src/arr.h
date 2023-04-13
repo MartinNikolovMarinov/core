@@ -18,19 +18,25 @@ struct CORE_API_EXPORT arr {
     using allocator_type = TAllocator;
 
     constexpr arr() : m_data(nullptr), m_cap(0), m_len(0) {}
-    constexpr arr(size_type len) : m_cap(len), m_len(len) {
-        m_data = reinterpret_cast<data_type *>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
-        Assert(m_data != nullptr);
+    constexpr arr(size_type len) : m_data(nullptr), m_cap(len), m_len(len) {
+        if (m_cap > 0) {
+            m_data = reinterpret_cast<data_type *>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
+            Assert(m_data != nullptr);
+        }
     }
-    constexpr arr(size_type len, size_type cap) : m_cap(cap), m_len(len) {
-        m_data = reinterpret_cast<data_type *>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
-        Assert(m_data != nullptr);
+    constexpr arr(size_type len, size_type cap) : m_data(nullptr), m_cap(cap), m_len(len) {
         Assert(m_cap >= m_len);
+        if (m_cap > 0) {
+            m_data = reinterpret_cast<data_type *>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
+            Assert(m_data != nullptr);
+        }
     }
-    constexpr arr(const arr& other) : m_cap(other.m_cap), m_len(other.m_len) {
-        m_data = reinterpret_cast<data_type *>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
-        Assert(m_data != nullptr);
-        core::memcopy(m_data, other.m_data, m_len * sizeof(data_type));
+    constexpr arr(const arr& other) : m_data(nullptr), m_cap(other.m_cap), m_len(other.m_len) {
+        if (m_cap > 0) {
+            m_data = reinterpret_cast<data_type *>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
+            Assert(m_data != nullptr);
+            core::memcopy(m_data, other.m_data, m_len * sizeof(data_type));
+        }
     }
     constexpr arr(arr&& other) : m_data(other.m_data), m_cap(other.m_cap), m_len(other.m_len) {
         other.m_data = nullptr;
@@ -106,6 +112,26 @@ struct CORE_API_EXPORT arr {
         return *this;
     }
 
+    constexpr arr& append(data_type* val, size_type len, bool doNotCallCtors = false) {
+        if (m_len + len > m_cap) {
+            resize(m_cap == 0 ? len : m_cap * 2);
+        }
+        if (doNotCallCtors) {
+            // We are allowed to go fast, but the drawback is that we cannot use this in constexpr functions.
+            // Can't assume destructors will be called!
+            // For example, this can NOT be used to append array of arrays, or memory leaks will happen.
+            // TODO: I could probably write some trait checking magic to detect if the type is NOT
+            //       trivially constructable and disallow this code path in those cases!
+            core::memcopy(m_data + m_len, val, len * sizeof(data_type));
+        }
+        else {
+            for (size_type i = 0; i < len; ++i) {
+                copy_data_at(val[i], m_len++);
+            }
+        }
+        return *this;
+    }
+
     constexpr arr& fill(const data_type& val) {
         for (size_type i = 0; i < m_len; ++i) {
             copy_data_at(val, i);
@@ -122,6 +148,10 @@ struct CORE_API_EXPORT arr {
 
     constexpr void resize(size_type newCap) {
         if (newCap <= m_cap) {
+            // FIXME: There is a subtle bug here. Just by manipulating len and cap I can shrink the array pretty fast,
+            //        but the destructors of the shrunk elements will not be called.
+            //        I need to either remove the shrinking functionality, or call destructors manually!
+            //        When this gets fixed write some tests for it!
             m_len = m_len > newCap ? newCap : m_len;
             m_cap = newCap;
             return;

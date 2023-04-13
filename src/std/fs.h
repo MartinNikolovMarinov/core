@@ -3,6 +3,7 @@
 #include <types.h>
 #include <expected.h>
 #include <mem.h>
+#include <arr.h>
 #include <std/plt.h>
 
 #include <string>
@@ -140,17 +141,21 @@ struct File {
                 };
                 return core::unexpected(err);
             }
-            readBytes += currRead;
+
             if (currRead == 0) {
                 Error err = { Error::Type::ERR_EOF, {} };
                 return core::unexpected(err);
             }
+
+            readBytes += currRead;
+            if (readBytes >= size) break;
         }
 
         return {};
     }
 
 private:
+    // TODO: Keep track of the file descriptor possition in order to be able to implement seeking.
     file_desc m_fd;
     std::string m_name;
     bool m_isOpen = false;
@@ -200,6 +205,37 @@ expected<File<TBlockSize>, typename File<TBlockSize>::Error> openfile(const char
     auto fd = res.value();
     File<TBlockSize> f (core::move(fd), std::string(path));
     return f;
+}
+
+template<ptr_size TBlockSize = FS_DEFAULT_BLOCK_SIZE, typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
+expected<core::arr<u8, TAllocator>, typename File<TBlockSize>::Error> readfull(const char* path, u64 flag, u64 mode, u64 initBufferSize = FS_DEFAULT_BLOCK_SIZE) {
+    // TODO: I should create an abstraction for flag and mode which is cross platform.
+    //       After that I should remove flag and mode from this function declaration.
+    //       It simply does not make sense to have them here.
+    //       I do it just because this file should not leak os specific stuff.
+
+    auto res = core::openfile<TBlockSize>(path, flag, mode);
+    if (res.has_err()) return core::unexpected(res.err());
+
+    File<TBlockSize> f = core::move(res.value());
+    defer { f.close(); };
+
+    core::arr<u8, TAllocator> ret(0, initBufferSize);
+    while(true) {
+        ptr_size currReadBytes = 0;
+        u8 buffer[TBlockSize];
+        if (auto err = f.read(buffer, TBlockSize, currReadBytes); err.has_err()) {
+            if (err.err().isEOF()) {
+                ret.append(buffer, currReadBytes);
+                break;
+            }
+            return core::unexpected(err.err());
+        }
+        if (currReadBytes == 0) break;
+        ret.append(buffer, currReadBytes);
+    }
+
+    return ret;
 }
 
 } // namespace core

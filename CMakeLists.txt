@@ -47,6 +47,11 @@ else()
     message(FATAL_ERROR "Unsupported compiler!")
 endif()
 
+ # Definitions:
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    -DPATH_TO_TEST_DATA="${CMAKE_CURRENT_SOURCE_DIR}/test/data"
+)
+
 # Core library related:
 option(CORE_LIBRARY_SHARED "" ON)
 target_link_libraries(${PROJECT_NAME} core)

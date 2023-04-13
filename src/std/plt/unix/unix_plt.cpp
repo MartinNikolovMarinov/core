@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <cstring>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -96,12 +97,33 @@ expected<plt_err_code> os_rmfile(const char* path) {
     return {};
 }
 
+expected<plt_err_code> os_mkdir(const char* path, u64 mode) {
+    i32 res = mkdir(path, mode);
+    if (res < 0) {
+        return unexpected(u64(errno));
+    }
+    return {};
+}
+
 expected<plt_err_code> os_rmdir(const char* path) {
     i32 res = rmdir(path);
     if (res < 0) {
         return unexpected(u64(errno));
     }
     return {};
+}
+
+expected<bool, plt_err_code> os_exists(const char* path) {
+    i32 res = access(path, F_OK);
+    if (res < 0) {
+        if (errno == ENOENT) {
+            // File was simply not found.
+            return false;
+        }
+        // Some other unexpected error occurred:
+        return unexpected(u64(errno));
+    }
+    return true;
 }
 
 namespace {
@@ -115,6 +137,10 @@ void os_exit(i64 exitCode) {
 
 void at_exit(AtExitCb atExit) {
     g_atExit = atExit;
+}
+
+CORE_API_EXPORT const char* os_getErrCptr(plt_err_code err) {
+    return std::strerror(i32(err));
 }
 
 } // namespace core::plt

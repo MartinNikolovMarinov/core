@@ -191,7 +191,7 @@ expected<typename File<TBlockSize>::Error> rmfile(File<TBlockSize>& f) {
 }
 
 template<ptr_size TBlockSize = FS_DEFAULT_BLOCK_SIZE>
-expected<File<TBlockSize>, typename File<TBlockSize>::Error> openfile(const char* path, u64 flag, u64 mode) {
+expected<File<TBlockSize>, typename File<TBlockSize>::Error> openFile(const char* path, u64 flag, u64 mode) {
     using Error = typename File<TBlockSize>::Error;
 
     auto res = core::os_open(path, flag, mode);
@@ -208,13 +208,13 @@ expected<File<TBlockSize>, typename File<TBlockSize>::Error> openfile(const char
 }
 
 template<ptr_size TBlockSize = FS_DEFAULT_BLOCK_SIZE, typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
-expected<core::arr<u8, TAllocator>, typename File<TBlockSize>::Error> readfull(const char* path, u64 flag, u64 mode, u64 initBufferSize = FS_DEFAULT_BLOCK_SIZE) {
+expected<core::arr<u8, TAllocator>, typename File<TBlockSize>::Error> readFull(const char* path, u64 flag, u64 mode, u64 initBufferSize = FS_DEFAULT_BLOCK_SIZE) {
     // TODO: I should create an abstraction for flag and mode which is cross platform.
     //       After that I should remove flag and mode from this function declaration.
     //       It simply does not make sense to have them here.
     //       I do it just because this file should not leak os specific stuff.
 
-    auto res = core::openfile<TBlockSize>(path, flag, mode);
+    auto res = core::openFile<TBlockSize>(path, flag, mode);
     if (res.has_err()) return core::unexpected(res.err());
 
     File<TBlockSize> f = core::move(res.value());

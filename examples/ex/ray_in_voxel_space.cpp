@@ -23,7 +23,7 @@ struct Cell {
 struct State {
     static constexpr Grid2D viewSpaceGrid  = { core::v(-1.0f, 1.0f), core::v(1.0f, -1.0f) };
     static constexpr Grid2D worldSpaceGrid = { core::v(0.0f, 0.0f), core::v(1000.0f, 1000.0f) };
-    static constexpr core::mat4x4f worldSpaceToViewSpaceMatrix = worldSpaceGrid.getToConvMatrix(viewSpaceGrid);
+    static constexpr core::mat4f worldSpaceToViewSpaceMatrix = worldSpaceGrid.getToConvMatrix(viewSpaceGrid);
 
     u32 viewportWidth;
     u32 viewportHeight;
@@ -186,8 +186,7 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         glEnableVertexAttribArray(attribPosLoc);
     }
 
-    g_s.projectionMat = core::perspective(core::deg_to_rad(45.0f), (f32)g_s.viewportWidth / (f32)g_s.viewportHeight, 0.1f, 100.0f);
-    g_s.viewMat = core::translate(core::mat4x4f::identity(), core::v(0.0f, 0.0f, -0.5f));
+    g_s.viewMat = core::mat4f::identity(); // FIXME: remove this if using ortho projection.
 
     // Create cells:
     {
@@ -230,7 +229,7 @@ void render_cell(const Cell& cell, const core::vec4f& color, bool fill = true) {
     // FIXME: Fix this:
     // auto topLeftCornerOfCell = cell.pos + core::v(f32(g_s.cellWidth/2), f32(g_s.cellHeight/2));
 
-    core::mat4x4f mvp = core::mat4x4f::identity();
+    core::mat4f mvp = core::mat4f::identity();
     // auto cellViewPos = g_s.worldSpaceToViewSpaceMatrix * core::v(topLeftCornerOfCell.x(), topLeftCornerOfCell.y(), 0.0f, 1.0f);
     // core::translate(mvp, core::v(cellViewPos.x(), cellViewPos.y(), 0.0f));
     // auto cellViewSize = g_s.worldSpaceToViewSpaceMatrix * core::v(f32(g_s.cellWidth/2), f32(g_s.cellHeight/2), 0.0f, 1.0f);
@@ -243,6 +242,17 @@ void render_cell(const Cell& cell, const core::vec4f& color, bool fill = true) {
 
     if (fill) glDrawElements(GL_TRIANGLES, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
     else      glDrawElements(GL_LINE_LOOP, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
+}
+
+f32 lineLenInViewSpace(core::vec2f lineStart, core::vec2f lineEnd) {
+    State& g_s = state();
+    auto start = g_s.worldSpaceGrid.convertTo_v(lineStart, g_s.viewSpaceGrid);
+    auto end = g_s.worldSpaceGrid.convertTo_v(lineEnd, g_s.viewSpaceGrid);
+    core::vec2f diff = end - start;
+    f32 diffLen = static_cast<f32>(diff.length());
+    f32 lineMax = static_cast<f32>((g_s.viewSpaceGrid.max - g_s.viewSpaceGrid.min).length());
+    f32 lineLenLerpFrom0to1 = core::blend(0.0f, lineMax, 0.0f, 1.0f, diffLen);
+    return lineLenLerpFrom0to1;
 }
 
 } // namespace
@@ -263,6 +273,16 @@ void mainLoop(CommonState& commonState) {
     //     }
     // }
 
+    // g_s.projectionMat = core::perspective(core::deg_to_rad(45.0f), (f32)g_s.viewportWidth / (f32)g_s.viewportHeight, 0.0f, 1000.0f);
+    g_s.projectionMat = core::ortho(-1, 1, -1, 1, -1, 1);
+
+    constexpr f32 lineWidth = 0.01f;
+    core::vec2f lineStart = core::v(0.0f, 0.0f);
+    core::vec2f lineEnd = core::v(1000.0f, 1000.0f);
+    auto lineLen = lineLenInViewSpace(lineStart, lineEnd);
+    auto lineAngle = core::slope_to_deg(lineStart.x(), lineStart.y(), lineEnd.x(), lineEnd.y());
+    auto lineStartVS = g_s.worldSpaceGrid.convertTo_v(lineStart, g_s.viewSpaceGrid);
+
     resetOpenGLBinds();
     {
         g_s.shaderProg.use();
@@ -270,9 +290,10 @@ void mainLoop(CommonState& commonState) {
         glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_s.quadEBO);
 
-        auto model = core::mat4x4f::identity();
-        model = core::scale(model, core::v(1.0f, 0.001f, 1.0f));
-        model = core::rotate(model, core::v(0.0f, 0.0f, 1.0f), core::deg_to_rad(commonState.frameCount));
+        auto model = core::mat4f::identity();
+        model = core::scale(model, core::v(lineLen, lineWidth, 1.0f)); // scale the quad to be a line
+        model = core::rotate(model, core::v(0.0f, 0.0f, 1.0f), core::deg_to_rad(lineAngle));
+        // model = core::translate(model, core::v(lineStartVS.x(), lineStartVS.y(), 0.0f));
 
         auto mvp = g_s.projectionMat * g_s.viewMat * model;
         g_s.shaderProg.setUniform_m("u_mvp", mvp);

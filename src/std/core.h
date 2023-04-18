@@ -11,3 +11,4 @@
 #include "transforms.h"
 #include "stacktrace.h"
 #include "projections.h"
+#include "lines.h"

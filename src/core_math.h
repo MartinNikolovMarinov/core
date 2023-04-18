@@ -134,4 +134,10 @@ inline bool nearly_eq(f64 a, f64 b, f64 epsilon) {
     return diff / core::min((absA + absB), MAX_F64) < epsilon;
 }
 
+template <typename TFloat>
+inline TFloat blend(TFloat x1, TFloat y1, TFloat x2, TFloat y2, TFloat t) {
+    Assert((y1 - x1) != 0, "division by zero");
+    return ((t - x1) / (y1 - x1)) * (y2 - x2) + x2;
+}
+
 } // namespace core

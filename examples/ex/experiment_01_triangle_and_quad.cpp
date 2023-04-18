@@ -117,8 +117,10 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         vertices.append({ 0.5f, -0.5f });  // right
         vertices.append({ 0.0f, 0.5f });   // top
 
-        core::scale(vertices, core::v(0.0f, 0.0f), core::v(0.5f, 0.5f));
-        core::translate(vertices, core::v(0.5f, 0.0f));
+        for (i32 i = 0; i < vertices.len(); ++i) {
+            vertices[i] = core::scale(vertices[i], core::v(0.0f, 0.0f), core::v(0.5f, 0.5f));
+            vertices[i] = core::translate(vertices[i], core::v(0.5f, 0.0f));
+        }
 
         // Create VBO, bind it and store the vertex buffer data:
         glGenBuffers(1, &g_s.trinagleVBOId);
@@ -148,8 +150,10 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         vertices.append({ -0.5f, -0.5f }); // top
         vertices.append({ -0.5f, 0.5f });  // bottom
 
-        core::scale(vertices, core::v(0.0f, 0.0f), core::v(0.5f, 0.5f));
-        core::translate(vertices, core::v(-0.5f, 0.0f));
+        for (i32 i = 0; i < vertices.len(); ++i) {
+            vertices[i] = core::scale(vertices[i], core::v(0.0f, 0.0f), core::v(0.5f, 0.5f));
+            vertices[i] = core::translate(vertices[i], core::v(-0.5f, 0.0f));
+        }
 
         core::arr<u32> indices(0, 6);
         // First triangle:

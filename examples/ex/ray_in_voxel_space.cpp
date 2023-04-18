@@ -29,6 +29,8 @@ struct State {
     u32 viewportHeight;
 
     ShaderProg shaderProg;
+    core::mat4f projectionMat;
+    core::mat4f viewMat;
 
     u32 quadVAO = 0;
     u32 quadVBO = 0;
@@ -184,6 +186,9 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         glEnableVertexAttribArray(attribPosLoc);
     }
 
+    g_s.projectionMat = core::perspective(core::deg_to_rad(45.0f), (f32)g_s.viewportWidth / (f32)g_s.viewportHeight, 0.1f, 100.0f);
+    g_s.viewMat = core::translate(core::mat4x4f::identity(), core::v(0.0f, 0.0f, -0.5f));
+
     // Create cells:
     {
         for (u32 i = 0; i < g_s.cellCount; ++i) {
@@ -266,16 +271,10 @@ void mainLoop(CommonState& commonState) {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_s.quadEBO);
 
         auto model = core::mat4x4f::identity();
-        core::scale(model, core::v(1.0f, 0.001f, 1.0f));
-        core::rotate(model, core::v(0.0f, 0.0f, 1.0f), core::deg_to_rad(commonState.frameCount));
+        model = core::scale(model, core::v(1.0f, 0.001f, 1.0f));
+        model = core::rotate(model, core::v(0.0f, 0.0f, 1.0f), core::deg_to_rad(commonState.frameCount));
 
-        auto view = core::mat4x4f::identity();
-        core::translate(view, core::v(0.0f, 0.0f, -0.5f));
-
-        auto projection = core::mat4x4f::identity();
-        projection = core::perspective(core::deg_to_rad(45.0f), (f32)g_s.viewportWidth / (f32)g_s.viewportHeight, 0.1f, 100.0f);
-
-        auto mvp = projection * view * model;
+        auto mvp = g_s.projectionMat * g_s.viewMat * model;
         g_s.shaderProg.setUniform_m("u_mvp", mvp);
         g_s.shaderProg.setUniform_v("color", core::BLACK);
 

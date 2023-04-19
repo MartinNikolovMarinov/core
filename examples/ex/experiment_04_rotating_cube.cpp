@@ -198,8 +198,14 @@ void mainLoop(CommonState& commonState) {
     glUseProgram(0);
 
     auto model = core::mat4x4f::identity();
-    model = core::rotate_right(model, core::v(0.0f, 1.0f, 1.0f), core::deg_to_rad(50.0f) * (f32)timeSiceStart_seconds);
     model = core::scale(model, core::v(0.2f, 1.0f, 0.3f));
+    {
+        // model = core::rotateZ_right(model, core::deg_to_rad(50.0f) * (f32)timeSiceStart_seconds);
+        // model = core::rotateY_right(model, core::deg_to_rad(50.0f) * (f32)timeSiceStart_seconds);
+    }
+    // I can combine rotations on multiple axes:
+    model = core::rotate_right(model, core::v(1.0f, 1.0f, 0.0f), core::deg_to_rad(50.0f) * (f32)timeSiceStart_seconds);
+    model = core::translate(model, core::v(0.0f, -0.5f, 0.0f));
 
     auto view = core::mat4x4f::identity();
     view = core::translate(view, core::v(0.0f, 0.0f, -3.0f));

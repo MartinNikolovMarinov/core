@@ -164,9 +164,12 @@ void mainLoop(CommonState& commonState) {
 
     // Combining transformations:
     g_s.quadTransform = core::mat4f::identity();
-    g_s.quadTransform = core::rotate_right(g_s.quadTransform, core::v(0.0f, 0.0f, 1.0f), core::deg_to_rad(35.0f));
+
+    // IMPORTANT: Order of operations really matters if you want to rotate at the point of translation:
+    //            S * R * T
     g_s.quadTransform = core::scale(g_s.quadTransform, core::v(0.2f, 0.01f, 0.2f));
-    g_s.quadTransform = core::translate(g_s.quadTransform, core::v(0.3f, -0.4f, 0.0f));
+    g_s.quadTransform = core::rotateZ(g_s.quadTransform, core::deg_to_rad(commonState.frameCount));
+    g_s.quadTransform = core::translate(g_s.quadTransform, core::v(0.4f, -0.7f, 0.0f));
 
     g_s.shaderProg.use();
     g_s.shaderProg.setUniform_v("u_color", g_s.quadColor);

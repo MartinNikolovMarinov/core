@@ -186,7 +186,8 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         glEnableVertexAttribArray(attribPosLoc);
     }
 
-    g_s.viewMat = core::mat4f::identity(); // FIXME: remove this if using ortho projection.
+    g_s.viewMat = core::mat4f::identity();
+    g_s.projectionMat = core::ortho(-1, 1, -1, 1, -1, 1);
 
     // Create cells:
     {
@@ -244,15 +245,31 @@ void render_cell(const Cell& cell, const core::vec4f& color, bool fill = true) {
     else      glDrawElements(GL_LINE_LOOP, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
 }
 
-f32 lineLenInViewSpace(core::vec2f lineStart, core::vec2f lineEnd) {
+void renderLine(f32 x1, f32 y1, f32 x2, f32 y2, f32 lineWidth, const core::vec4f& color) {
     State& g_s = state();
-    auto start = g_s.worldSpaceGrid.convertTo_v(lineStart, g_s.viewSpaceGrid);
-    auto end = g_s.worldSpaceGrid.convertTo_v(lineEnd, g_s.viewSpaceGrid);
+    auto start = g_s.worldSpaceGrid.convertTo_v(core::v(x1, y1), g_s.viewSpaceGrid);
+    auto end = g_s.worldSpaceGrid.convertTo_v(core::v(x2, y2), g_s.viewSpaceGrid);
     core::vec2f diff = end - start;
-    f32 diffLen = static_cast<f32>(diff.length());
-    f32 lineMax = static_cast<f32>((g_s.viewSpaceGrid.max - g_s.viewSpaceGrid.min).length());
-    f32 lineLenLerpFrom0to1 = core::blend(0.0f, lineMax, 0.0f, 1.0f, diffLen);
-    return lineLenLerpFrom0to1;
+    core::vec2f mid = (start + end) / 2;
+    f32 lineLen = static_cast<f32>(diff.length());
+    f32 halfLen = lineLen / 2.0f;
+    f32 lineAngle = core::slope_to_deg(x1, y1, x2, y2);
+
+    g_s.shaderProg.use();
+    glBindVertexArray(g_s.quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_s.quadEBO);
+
+    auto model = core::mat4f::identity();
+    model = core::scale(model, core::v(halfLen, lineWidth, 1.0f)); // scale the quad to be a line
+    model = core::rotateZ_right(model, core::deg_to_rad(lineAngle));
+    model = core::translate(model, core::v(mid.x(), mid.y(), 0.0f));
+
+    auto mvp = g_s.projectionMat * g_s.viewMat * model;
+    g_s.shaderProg.setUniform_m("u_mvp", mvp);
+    g_s.shaderProg.setUniform_v("color", color);
+
+    glDrawElements(GL_TRIANGLES, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
 }
 
 } // namespace
@@ -273,33 +290,26 @@ void mainLoop(CommonState& commonState) {
     //     }
     // }
 
-    // g_s.projectionMat = core::perspective(core::deg_to_rad(45.0f), (f32)g_s.viewportWidth / (f32)g_s.viewportHeight, 0.0f, 1000.0f);
-    g_s.projectionMat = core::ortho(-1, 1, -1, 1, -1, 1);
-
-    constexpr f32 lineWidth = 0.01f;
-    core::vec2f lineStart = core::v(0.0f, 0.0f);
-    core::vec2f lineEnd = core::v(1000.0f, 1000.0f);
-    auto lineLen = lineLenInViewSpace(lineStart, lineEnd);
-    auto lineAngle = core::slope_to_deg(lineStart.x(), lineStart.y(), lineEnd.x(), lineEnd.y());
-    auto lineStartVS = g_s.worldSpaceGrid.convertTo_v(lineStart, g_s.viewSpaceGrid);
-
     resetOpenGLBinds();
     {
-        g_s.shaderProg.use();
-        glBindVertexArray(g_s.quadVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_s.quadEBO);
+        constexpr f32 lineWidth = 0.01f;
+        core::arr<f32> lines;
+        lines.append(0.0f).append(1000.0f).append(1000.0f).append(0.0f);
+        lines.append(0.0f).append(0.0f).append(1000.0f).append(1000.0f);
+        lines.append(0.0f).append(500.0f).append(1000.0f).append(500.0f);
+        lines.append(500.0f).append(0.0f).append(500.0f).append(1000.0f);
+        lines.append(0.0f).append(200.0f).append(1000.0f).append(200.0f);
+        lines.append(800.0f).append(0.0f).append(800.0f).append(1000.0f);
+        lines.append(0.0f).append(800.0f).append(1000.0f).append(800.0f);
+        lines.append(200.0f).append(0.0f).append(200.0f).append(1000.0f);
 
-        auto model = core::mat4f::identity();
-        model = core::scale(model, core::v(lineLen, lineWidth, 1.0f)); // scale the quad to be a line
-        model = core::rotate(model, core::v(0.0f, 0.0f, 1.0f), core::deg_to_rad(lineAngle));
-        // model = core::translate(model, core::v(lineStartVS.x(), lineStartVS.y(), 0.0f));
-
-        auto mvp = g_s.projectionMat * g_s.viewMat * model;
-        g_s.shaderProg.setUniform_m("u_mvp", mvp);
-        g_s.shaderProg.setUniform_v("color", core::BLACK);
-
-        glDrawElements(GL_TRIANGLES, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
+        for (u32 i = 0; i < lines.len(); i+=4) {
+            f32 x1 = lines[i + 0];
+            f32 y1 = lines[i + 1];
+            f32 x2 = lines[i + 2];
+            f32 y2 = lines[i + 3];
+            renderLine(x1, y1, x2, y2, lineWidth, core::RED);
+        }
     }
 
     glfwSwapBuffers(commonState.mainWindow.glfwWindow);

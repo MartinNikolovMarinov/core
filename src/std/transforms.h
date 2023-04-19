@@ -28,10 +28,9 @@ constexpr vec<Dim, T> translate(const vec<Dim, T>& v, const vec<Dim, T>& t) {
 template<typename T>
 constexpr mat4<T> translate(const mat4<T>& m, const vec3<T>& t) {
     mat4<T> ret = m;
-    ret[3][0] += m[0][0] * t[0] + m[1][0] * t[1] + m[2][0] * t[2];
-    ret[3][1] += m[0][1] * t[0] + m[1][1] * t[1] + m[2][1] * t[2];
-    ret[3][2] += m[0][2] * t[0] + m[1][2] * t[1] + m[2][2] * t[2];
-    ret[3][3] += m[0][3] * t[0] + m[1][3] * t[1] + m[2][3] * t[2];
+    ret[3][0] += t[0];
+    ret[3][1] += t[1];
+    ret[3][2] += t[2];
     return ret;
 }
 
@@ -64,7 +63,7 @@ constexpr mat4<T> scale(const mat4<T>& m, const vec3<T>& s) {
     return ret;
 }
 
-// Rotate
+// Rotate 2D
 
 template<typename TFloat>
 constexpr vec2<TFloat> rotate(const vec2<TFloat>& v, const vec2<TFloat>& origin, TFloat angle) {
@@ -79,19 +78,21 @@ constexpr vec2<TFloat> rotate(const vec2<TFloat>& v, const vec2<TFloat>& origin,
 }
 
 template<typename TFloat>
-constexpr vec2<TFloat> rotate_right(const vec2<TFloat>& v, const vec2<TFloat>& axis, TFloat angle) {
-    return rotate(v, axis, -angle);
+constexpr vec2<TFloat> rotate_right(const vec2<TFloat>& v, const vec2<TFloat>& origin, TFloat angle) {
+    return rotate(v, origin, -angle);
 }
 
+// Rotate 3D
+
 template<typename TFloat>
-constexpr mat4<TFloat> rotate(const mat4<TFloat>& m, const vec3<TFloat>& v, TFloat angle) {
+constexpr mat4<TFloat> rotate(const mat4<TFloat>& m, const vec3<TFloat>& a, TFloat angle) {
     static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
 
     TFloat c = std::cos(angle);
     TFloat s = std::sin(angle);
     TFloat t = TFloat(1) - c;
 
-    vec3<TFloat> axis = v.norm();
+    vec3<TFloat> axis = a.norm(); // I could assume that the axis is always normalized to avoid this call.
 
     auto m00 = t * axis.x() * axis.x() + c;
     auto m10 = t * axis.x() * axis.y() - s * axis.z();
@@ -118,5 +119,68 @@ template<typename TFloat>
 constexpr mat4<TFloat> rotate_right(const mat4<TFloat>& v, const vec3<TFloat>& axis, TFloat angle) {
     return rotate(v, axis, -angle);
 }
+
+template<typename TFloat>
+constexpr mat4<TFloat> rotateX(const mat4<TFloat>& m, TFloat angle) {
+    static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
+
+    TFloat c = std::cos(angle);
+    TFloat s = std::sin(angle);
+
+    mat4<TFloat> r (
+        1, 0, 0, 0,
+        0, c, s, 0,
+        0,-s, c, 0,
+        0, 0, 0, 1
+    );
+
+    auto ret = r * m;
+    return ret;
+}
+
+template<typename TFloat>
+constexpr mat4<TFloat> rotateX_right(const mat4<TFloat>& m, TFloat angle) { return rotateX(m, -angle); }
+
+template<typename TFloat>
+constexpr mat4<TFloat> rotateY(const mat4<TFloat>& m, TFloat angle) {
+    static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
+
+    TFloat c = std::cos(angle);
+    TFloat s = std::sin(angle);
+
+    mat4<TFloat> r (
+        c, 0,-s, 0,
+        0, 1, 0, 0,
+        s, 0, c, 0,
+        0, 0, 0, 1
+    );
+
+    auto ret = r * m;
+    return ret;
+}
+
+template<typename TFloat>
+constexpr mat4<TFloat> rotateY_right(const mat4<TFloat>& m, TFloat angle) { return rotateY(m, -angle); }
+
+template<typename TFloat>
+constexpr mat4<TFloat> rotateZ(const mat4<TFloat>& m, TFloat angle) {
+    static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
+
+    TFloat c = std::cos(angle);
+    TFloat s = std::sin(angle);
+
+    mat4<TFloat> r (
+        c, s, 0, 0,
+       -s, c, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    );
+
+    auto ret = r * m;
+    return ret;
+}
+
+template<typename TFloat>
+constexpr mat4<TFloat> rotateZ_right(const mat4<TFloat>& m, TFloat angle) { return rotateZ(m, -angle); }
 
 }

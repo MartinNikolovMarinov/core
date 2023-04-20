@@ -10,9 +10,13 @@ namespace ray_in_voxel_space {
 
 namespace {
 
-struct Ray {
-    core::vec2f start;
-    core::vec2f end;
+struct Ray2D {
+    core::vec2f origin;
+    core::vec2f direction;
+
+    core::vec2f at(f32 t) const {
+        return origin + t * direction;
+    }
 };
 
 struct Cell {
@@ -44,8 +48,9 @@ struct State {
     static constexpr core::vec2f gridOffset = worldSpaceGrid.center() - core::uniform<2, f32>(cellsPerRow * cellWidth / 2);
     Cell cells[cellCount] = {};
 
-    u32 rayVAO = 0;
-    u32 rayVBO = 0;
+    u32 lineVAO = 0;
+    u32 lineVBO = 0;
+    Ray2D ray = {};
 };
 
 State& state(bool clear = false) {
@@ -193,10 +198,16 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
     {
         for (u32 i = 0; i < g_s.cellCount; ++i) {
             Cell& cell = g_s.cells[i];
-            cell.isOn = true;
+            cell.isOn = false;
             cell.pos = core::v(f32(i % g_s.cellsPerRow) * (g_s.cellWidth) + g_s.gridOffset.x(),
                                f32(i / g_s.cellsPerRow) * (g_s.cellHeight) + g_s.gridOffset.y());
         }
+
+        g_s.cells[0].isOn = true;
+        g_s.cells[1].isOn = true;
+        g_s.cells[2].isOn = true;
+        g_s.cells[3].isOn = true;
+        g_s.cells[4].isOn = true;
     }
 
     // Create line vertices:
@@ -206,12 +217,12 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
              1.0f, 0.0f, 0.0f,
         };
 
-        glGenBuffers(1, &g_s.rayVBO);
-        glBindBuffer(GL_ARRAY_BUFFER, g_s.rayVBO);
+        glGenBuffers(1, &g_s.lineVBO);
+        glBindBuffer(GL_ARRAY_BUFFER, g_s.lineVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
 
-        glGenVertexArrays(1, &g_s.rayVAO);
-        glBindVertexArray(g_s.rayVAO);
+        glGenVertexArrays(1, &g_s.lineVAO);
+        glBindVertexArray(g_s.lineVAO);
         constexpr i32 stride = 3 * sizeof(f32);
         constexpr i32 dimmensions = 3;
         u32 attribPosLoc = ValueOrDie(g_s.shaderProg.getAttribLocation("a_pos"));
@@ -224,25 +235,22 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
 
 namespace {
 
-void render_cell(const Cell& cell, const core::vec4f& color, bool fill = true) {
+void renderCell(const Cell& cell, const core::vec4f& color) {
     State& g_s = state();
 
-    // FIXME: Fix this:
-    // auto topLeftCornerOfCell = cell.pos + core::v(f32(g_s.cellWidth/2), f32(g_s.cellHeight/2));
+    auto model = core::mat4f::identity();
+    auto pos = g_s.worldSpaceGrid.convertTo_v(cell.pos, g_s.viewSpaceGrid);
+    f32 width = core::blend(g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f, f32(g_s.cellWidth));
+    f32 height = core::blend(g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y(), 0.0f, 1.0f, f32(g_s.cellHeight));
+    model = core::scale(model, core::v(width, height, 1.0f));
+    model = core::translate(model, core::v(pos.x(), pos.y(), 0.0f));
 
-    core::mat4f mvp = core::mat4f::identity();
-    // auto cellViewPos = g_s.worldSpaceToViewSpaceMatrix * core::v(topLeftCornerOfCell.x(), topLeftCornerOfCell.y(), 0.0f, 1.0f);
-    // core::translate(mvp, core::v(cellViewPos.x(), cellViewPos.y(), 0.0f));
-    // auto cellViewSize = g_s.worldSpaceToViewSpaceMatrix * core::v(f32(g_s.cellWidth/2), f32(g_s.cellHeight/2), 0.0f, 1.0f);
-    // cellViewSize.x() = g_s.viewSpaceGrid.min.x() - cellViewSize.x();
-    // cellViewSize.y() = g_s.viewSpaceGrid.min.y() - cellViewSize.y();
-    // core::scale(mvp, core::v(cellViewSize.x(), cellViewSize.y(), 0.0f));
-
+    auto mvp = g_s.projectionMat * g_s.viewMat * model;
     g_s.shaderProg.setUniform_m("u_mvp", mvp);
     g_s.shaderProg.setUniform_v("color", color);
 
-    if (fill) glDrawElements(GL_TRIANGLES, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
-    else      glDrawElements(GL_LINE_LOOP, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
+    if (cell.isOn) glDrawElements(GL_TRIANGLES, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
+    else           glDrawElements(GL_LINE_LOOP, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
 }
 
 void renderLine(f32 x1, f32 y1, f32 x2, f32 y2, f32 lineWidth, const core::vec4f& color) {
@@ -277,39 +285,25 @@ void renderLine(f32 x1, f32 y1, f32 x2, f32 y2, f32 lineWidth, const core::vec4f
 void mainLoop(CommonState& commonState) {
     State& g_s = state();
 
-    // resetOpenGLBinds();
-    // {
-    //     g_s.shaderProg.use();
-    //     glBindVertexArray(g_s.quadVAO);
-    //     glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBO);
-    //     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_s.quadEBO);
+    resetOpenGLBinds();
+    {
+        g_s.shaderProg.use();
+        glBindVertexArray(g_s.quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_s.quadEBO);
 
-    //     for (u32 i = 0; i < g_s.cellCount; ++i) {
-    //         Cell& cell = g_s.cells[i];
-    //         render_cell(cell, core::RED, i % 2 == 0);
-    //     }
-    // }
+        for (u32 i = 0; i < g_s.cellCount; ++i) {
+            Cell& cell = g_s.cells[i];
+            renderCell(cell, core::BLACK);
+        }
+    }
 
     resetOpenGLBinds();
     {
         constexpr f32 lineWidth = 0.01f;
-        core::arr<f32> lines;
-        lines.append(0.0f).append(1000.0f).append(1000.0f).append(0.0f);
-        lines.append(0.0f).append(0.0f).append(1000.0f).append(1000.0f);
-        lines.append(0.0f).append(500.0f).append(1000.0f).append(500.0f);
-        lines.append(500.0f).append(0.0f).append(500.0f).append(1000.0f);
-        lines.append(0.0f).append(200.0f).append(1000.0f).append(200.0f);
-        lines.append(800.0f).append(0.0f).append(800.0f).append(1000.0f);
-        lines.append(0.0f).append(800.0f).append(1000.0f).append(800.0f);
-        lines.append(200.0f).append(0.0f).append(200.0f).append(1000.0f);
-
-        for (u32 i = 0; i < lines.len(); i+=4) {
-            f32 x1 = lines[i + 0];
-            f32 y1 = lines[i + 1];
-            f32 x2 = lines[i + 2];
-            f32 y2 = lines[i + 3];
-            renderLine(x1, y1, x2, y2, lineWidth, core::RED);
-        }
+        g_s.ray = { core::v(0.0f, 0.0f), core::v(1.0f, 1.0f) };
+        auto end = g_s.ray.at(1000.0f);
+        renderLine(g_s.ray.origin.x(), g_s.ray.origin.y(), end.x(), end.y(), lineWidth, core::RED);
     }
 
     glfwSwapBuffers(commonState.mainWindow.glfwWindow);

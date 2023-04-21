@@ -335,6 +335,8 @@ void renderCell(const Cell& cell, const core::vec4f& color) {
 }
 
 void renderLine(f32 x1, f32 y1, f32 x2, f32 y2, f32 lineWidth, const core::vec4f& color) {
+    // TODO: I should extract and immediate render line functions from this. It's not so trivial though.
+
     State& g_s = state();
     auto start = g_s.worldSpaceGrid.convertTo_v(core::v(x1, y1), g_s.viewSpaceGrid);
     auto end = g_s.worldSpaceGrid.convertTo_v(core::v(x2, y2), g_s.viewSpaceGrid);
@@ -378,7 +380,7 @@ void mainLoop(CommonState& commonState) {
             glBindVertexArray(g_s.quadVAO);
             glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBO);
 
-            constexpr f32 lineWidth = 0.01f;
+            constexpr f32 lineWidth = 0.005f;
             auto end = g_s.b;
             renderLine(g_s.a.x(), g_s.a.y(), end.x(), end.y(), lineWidth, core::RED);
         }

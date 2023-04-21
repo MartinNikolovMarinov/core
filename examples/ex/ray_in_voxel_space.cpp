@@ -1,6 +1,7 @@
 #include "ray_in_voxel_space.h"
 
 #include <keyboard.h>
+#include <mouse.h>
 #include <shader_prog.h>
 #include <grid.h>
 
@@ -9,15 +10,6 @@
 namespace ray_in_voxel_space {
 
 namespace {
-
-struct Ray2D {
-    core::vec2f origin;
-    core::vec2f direction;
-
-    core::vec2f at(f32 t) const {
-        return origin + t * direction;
-    }
-};
 
 struct Cell {
     core::vec2f pos = {};
@@ -28,6 +20,9 @@ struct State {
     static constexpr Grid2D viewSpaceGrid  = { core::v(-1.0f, 1.0f), core::v(1.0f, -1.0f) };
     static constexpr Grid2D worldSpaceGrid = { core::v(0.0f, 0.0f), core::v(1000.0f, 1000.0f) };
     static constexpr core::mat4f worldSpaceToViewSpaceMatrix = worldSpaceGrid.getToConvMatrix(viewSpaceGrid);
+
+    Mouse mouse;
+    u64 lastMouseClickTimeMs = 0;
 
     u32 viewportWidth;
     u32 viewportHeight;
@@ -50,7 +45,10 @@ struct State {
 
     u32 lineVAO = 0;
     u32 lineVBO = 0;
-    Ray2D ray = {};
+
+    core::vec2f a = core::uniform<2, f32>(-1.f);
+    core::vec2f b = core::uniform<2, f32>(-1.f);
+    bool canRenderLine = false;
 };
 
 State& state(bool clear = false) {
@@ -65,6 +63,31 @@ void resetOpenGLBinds() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glUseProgram(0);
+}
+
+void handleMousePress() {
+    State& g_s = state();
+    Mouse& mouse = g_s.mouse;
+    constexpr i32 delayMs = 5;
+    auto currTimeMs = ValueOrDie(core::os_unix_time_stamp_in_ms());
+
+    // Left mouse button controls point a:
+    if (mouse.leftButton.isPressed() && currTimeMs > g_s.lastMouseClickTimeMs) {
+        g_s.lastMouseClickTimeMs = currTimeMs + delayMs;
+        g_s.a = core::v(f32(mouse.x), f32(mouse.y));
+        if (g_s.b.x() != -1) g_s.canRenderLine = true;
+    }
+
+    // Right mouse button cotnrols point b:
+    if (mouse.rightButton.isPressed() && currTimeMs > g_s.lastMouseClickTimeMs) {
+        g_s.lastMouseClickTimeMs = currTimeMs + delayMs;
+        g_s.b = core::v(f32(mouse.x), f32(mouse.y));
+        if (g_s.a.x() != -1) g_s.canRenderLine = true;
+    }
+}
+
+void handleUserInput() {
+    handleMousePress();
 }
 
 } // namespace
@@ -93,6 +116,34 @@ core::expected<GraphicsLibError> init(CommonState& s) {
         return core::unexpected(core::move(err));
     }
 
+    // Mouse event handlers:
+
+    glfwSetCursorPosCallback(glfwWindow, [](GLFWwindow*, f64 xpos, f64 ypos) {
+        State& g_s = state();
+        xpos = core::blend(0.0f, f32(g_s.viewportWidth), g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), f32(xpos));
+        ypos = core::blend(0.0f, f32(g_s.viewportHeight), g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y(), f32(ypos));
+        g_s.mouse.setPos(xpos, ypos);
+    });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set glfwSetCursorPosCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
+
+    glfwSetMouseButtonCallback(glfwWindow, [](GLFWwindow*, i32 button, i32 action, i32 mods) {
+        State& g_s = state();
+        KeyInfo mouseButton = KeyInfo::createFromGLFW(button, 0, action);
+        g_s.mouse.setButton(mouseButton);
+    });
+    if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
+        GraphicsLibError err;
+        err.code = errCode;
+        err.msg = fmt::format("Failed to set glfwSetMouseButtonCallback, reason: {}\n", errDesc ? errDesc : "Unknown");
+        return core::unexpected(core::move(err));
+    }
+
+    // Resize event handler:
     glfwSetFramebufferSizeCallback(glfwWindow, [](GLFWwindow*, i32 width, i32 height) {
         State& g_s = state();
         glViewport(0, 0, width, height);
@@ -285,6 +336,9 @@ void renderLine(f32 x1, f32 y1, f32 x2, f32 y2, f32 lineWidth, const core::vec4f
 void mainLoop(CommonState& commonState) {
     State& g_s = state();
 
+    g_s.mouse.clear();
+    handleUserInput();
+
     resetOpenGLBinds();
     {
         g_s.shaderProg.use();
@@ -298,16 +352,20 @@ void mainLoop(CommonState& commonState) {
         }
     }
 
-    resetOpenGLBinds();
-    {
-        constexpr f32 lineWidth = 0.01f;
-        g_s.ray = { core::v(0.0f, 0.0f), core::v(1.0f, 1.0f) };
-        auto end = g_s.ray.at(1000.0f);
-        renderLine(g_s.ray.origin.x(), g_s.ray.origin.y(), end.x(), end.y(), lineWidth, core::RED);
+    if (g_s.canRenderLine) {
+        resetOpenGLBinds();
+        {
+            constexpr f32 lineWidth = 0.01f;
+            auto end = g_s.b;
+            renderLine(g_s.a.x(), g_s.a.y(), end.x(), end.y(), lineWidth, core::RED);
+        }
     }
 
     glfwSwapBuffers(commonState.mainWindow.glfwWindow);
-    fmt::print("Frame: {}, FPS: {:f}\n", commonState.frameCount, commonState.fps);
+
+    // DEBUG LOGGING:
+    // fmt::print("Frame: {}, FPS: {:f}\n", commonState.frameCount, commonState.fps);
+    // fmt::print("Mouse: pos:{},{}; right_btn: is_pressed:{};\n", g_s.mouse.x, g_s.mouse.y, g_s.mouse.leftButton.isPressed());
 }
 
 } // namespace ray_in_voxel_space

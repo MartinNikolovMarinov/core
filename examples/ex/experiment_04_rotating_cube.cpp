@@ -119,7 +119,7 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
 
     // Create cube:
     {
-        g_s.cubeColor = core::v(0.2f, 0.7f, 0.5f, 1.0f);
+        g_s.cubeColor = core::v(0.835f, 0.66f, 0.055f, 1.0f); // Potato yellow.
 
         core::arr<core::vec3f> vertices(0, 6*6);
         vertices.append(core::v(-0.5f, -0.5f, -0.5f))

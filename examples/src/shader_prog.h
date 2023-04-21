@@ -10,6 +10,8 @@
 
 using namespace coretypes;
 
+// IMPORTANT: Nothing in the shader prog is thread safe. It is designed to be used on exclusively on the render thread.
+
 struct ShaderProg {
     // TODO2: using a string as the error type is a bit crazy, but it's for this stage.
     using error_type = std::string;
@@ -24,7 +26,13 @@ struct ShaderProg {
     u32 fragShaderId()   const { return m_fragShaderId; }
 
     void destroy() { glDeleteProgram(m_id); }
-    void use()     { glUseProgram(m_id); }
+    void use() {
+        static u32 lastUsedProgId = 0;
+        if (lastUsedProgId != m_id) {
+            glUseProgram(m_id);
+            lastUsedProgId = m_id;
+        }
+    }
 
     template <i32 Dim, typename T>
     core::expected<error_type> setUniform_v(std::string_view name, const core::vec<Dim, T>& v) {

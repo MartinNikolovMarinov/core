@@ -57,14 +57,6 @@ State& state(bool clear = false) {
     return g_state;
 }
 
-void resetOpenGLBinds() {
-    // Debug reset binds to make sure everyting is bound correctly later on.
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glUseProgram(0);
-}
-
 void handleMousePress() {
     State& g_s = state();
     Mouse& mouse = g_s.mouse;
@@ -286,22 +278,60 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
 
 namespace {
 
-void renderCell(const Cell& cell, const core::vec4f& color) {
+void bindVertexArray_memorized(u32 vao) {
+    static u32 lastBoundVAO = 0;
+    if (lastBoundVAO != vao) {
+        glBindVertexArray(vao);
+        lastBoundVAO = vao;
+    }
+}
+
+void bindArrayBuffer_memorized(u32 vbo) {
+    static u32 lastBoundVBO = 0;
+    if (lastBoundVBO != vbo) {
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        lastBoundVBO = vbo;
+    }
+}
+
+void bindElementArrayBuffer_memorized(u32 ebo) {
+    static u32 lastBoundEBO = 0;
+    if (lastBoundEBO != ebo) {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        lastBoundEBO = ebo;
+    }
+}
+
+// Renders a quad on the screen. The quad is rendered in the range [-1, 1] on the x and y axis. All values are in NDC.
+// Not efficient, but good enough for this example.
+void renderQuad_immediate(f32 x, f32 y, f32 width, f32 height, const core::vec4f& color, bool fill) {
     State& g_s = state();
 
     auto model = core::mat4f::identity();
-    auto pos = g_s.worldSpaceGrid.convertTo_v(cell.pos, g_s.viewSpaceGrid);
-    f32 width = core::blend(g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f, f32(g_s.cellWidth));
-    f32 height = core::blend(g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y(), 0.0f, 1.0f, f32(g_s.cellHeight));
     model = core::scale(model, core::v(width, height, 1.0f));
-    model = core::translate(model, core::v(pos.x(), pos.y(), 0.0f));
+    model = core::translate(model, core::v(x, y, 0.0f));
 
     auto mvp = g_s.projectionMat * g_s.viewMat * model;
     g_s.shaderProg.setUniform_m("u_mvp", mvp);
     g_s.shaderProg.setUniform_v("color", color);
 
-    if (cell.isOn) glDrawElements(GL_TRIANGLES, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
-    else           glDrawElements(GL_LINE_LOOP, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
+    g_s.shaderProg.use();
+    bindVertexArray_memorized(g_s.quadVAO);
+    bindArrayBuffer_memorized(g_s.quadVBO);
+    bindElementArrayBuffer_memorized(g_s.quadEBO);
+
+    if (fill) glDrawElements(GL_TRIANGLES, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
+    else      glDrawElements(GL_LINE_LOOP, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
+}
+
+void renderCell(const Cell& cell, const core::vec4f& color) {
+    State& g_s = state();
+
+    auto pos = g_s.worldSpaceGrid.convertTo_v(cell.pos, g_s.viewSpaceGrid);
+    f32 width = core::blend(g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f, f32(g_s.cellWidth));
+    f32 height = core::blend(g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y(), 0.0f, 1.0f, f32(g_s.cellHeight));
+
+    renderQuad_immediate(pos.x() + width/2, pos.y() - height/2, width, height, color, cell.isOn);
 }
 
 void renderLine(f32 x1, f32 y1, f32 x2, f32 y2, f32 lineWidth, const core::vec4f& color) {
@@ -313,11 +343,6 @@ void renderLine(f32 x1, f32 y1, f32 x2, f32 y2, f32 lineWidth, const core::vec4f
     f32 lineLen = static_cast<f32>(diff.length());
     f32 halfLen = lineLen / 2.0f;
     f32 lineAngle = core::slope_to_deg(x1, y1, x2, y2);
-
-    g_s.shaderProg.use();
-    glBindVertexArray(g_s.quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_s.quadEBO);
 
     auto model = core::mat4f::identity();
     model = core::scale(model, core::v(halfLen, lineWidth, 1.0f)); // scale the quad to be a line
@@ -339,22 +364,20 @@ void mainLoop(CommonState& commonState) {
     g_s.mouse.clear();
     handleUserInput();
 
-    resetOpenGLBinds();
+    // Render Cells:
     {
-        g_s.shaderProg.use();
-        glBindVertexArray(g_s.quadVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_s.quadEBO);
-
-        for (u32 i = 0; i < g_s.cellCount; ++i) {
-            Cell& cell = g_s.cells[i];
-            renderCell(cell, core::BLACK);
-        }
+        // for (u32 i = 0; i < g_s.cellCount; ++i) {
+        //     Cell& cell = g_s.cells[i];
+        //     renderCell(cell, core::BLACK);
+        // }
     }
 
     if (g_s.canRenderLine) {
-        resetOpenGLBinds();
         {
+            g_s.shaderProg.use();
+            glBindVertexArray(g_s.quadVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBO);
+
             constexpr f32 lineWidth = 0.01f;
             auto end = g_s.b;
             renderLine(g_s.a.x(), g_s.a.y(), end.x(), end.y(), lineWidth, core::RED);
@@ -364,7 +387,7 @@ void mainLoop(CommonState& commonState) {
     glfwSwapBuffers(commonState.mainWindow.glfwWindow);
 
     // DEBUG LOGGING:
-    // fmt::print("Frame: {}, FPS: {:f}\n", commonState.frameCount, commonState.fps);
+    fmt::print("Frame: {}, FPS: {:f}\n", commonState.frameCount, commonState.fps);
     // fmt::print("Mouse: pos:{},{}; right_btn: is_pressed:{};\n", g_s.mouse.x, g_s.mouse.y, g_s.mouse.leftButton.isPressed());
 }
 

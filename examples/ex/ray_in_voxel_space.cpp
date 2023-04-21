@@ -366,10 +366,10 @@ void mainLoop(CommonState& commonState) {
 
     // Render Cells:
     {
-        // for (u32 i = 0; i < g_s.cellCount; ++i) {
-        //     Cell& cell = g_s.cells[i];
-        //     renderCell(cell, core::BLACK);
-        // }
+        for (u32 i = 0; i < g_s.cellCount; ++i) {
+            Cell& cell = g_s.cells[i];
+            renderCell(cell, core::BLACK);
+        }
     }
 
     if (g_s.canRenderLine) {

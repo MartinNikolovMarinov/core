@@ -35,9 +35,9 @@ using PreMainLoopCb = core::expected<GraphicsLibError> (*)(CommonState& s);
 using MainLoopCb = void (*)(CommonState& s);
 
 struct CommonState {
-    u64 firstFrameTimestamp_ms = 0;        // timestamp of the first frame in milliseconds.
     u64 frameCount = 0;                    // number of frames since program started.
     f64 fps = 0;                           // frames per second.
+
     PreMainLoopCb preMainLoopCb = nullptr; // user defined callback that will be called once before the main loop starts.
     MainLoopCb mainLoopCb = nullptr;       // user defined callback that will be called on every frame.
     bool waitForEvents = false;            // the main loop will wait for events instead of polling.

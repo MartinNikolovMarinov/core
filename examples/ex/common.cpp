@@ -80,7 +80,6 @@ core::expected<GraphicsLibError> init(InitProps&& props) {
     g_s.debugWireFrameMode = props.debugWireFrameMode;
     g_s.clearColor = props.clearColor;
     g_s.waitForEvents = props.waitForEvents;
-    g_s.firstFrameTimestamp_ms = 0;
     g_s.frameCount = 0;
 
     // Create the glfw main window:
@@ -123,7 +122,6 @@ void destroy() {
 i32 run() {
     CommonState& g_s = state();
 
-    g_s.firstFrameTimestamp_ms = ValueOrDie(core::os_unix_time_stamp_in_ms());
     if (g_s.preMainLoopCb) {
         auto ret = g_s.preMainLoopCb(g_s);
         if (ret.has_err()) {
@@ -132,9 +130,15 @@ i32 run() {
         }
     }
 
+    constexpr u64 minFramesPerMeasure = 10;
+    constexpr f64 minTimeForMeasure_seconds = 0.25;
+    u64 measureStartTime_ms = ValueOrDie(core::os_unix_time_stamp_in_ms());
+    u64 framesSinceMeasure = 0;
+
     while (!glfwWindowShouldClose(g_s.mainWindow.glfwWindow)) {
-        u64 elapsedTime_ms = ValueOrDie(core::os_unix_time_stamp_in_ms()) - g_s.firstFrameTimestamp_ms;
+        u64 elapsedTime_ms = ValueOrDie(core::os_unix_time_stamp_in_ms());
         g_s.frameCount++;
+        framesSinceMeasure++;
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         if (g_s.waitForEvents) glfwWaitEvents();
@@ -142,11 +146,11 @@ i32 run() {
 
         g_s.mainLoopCb(g_s);
 
-        if (elapsedTime_ms) {
-            f64 elapsedSeconds = elapsedTime_ms / 1000.0;
-            constexpr f64 epsilon = 0.000000001;
-            if (core::safe_eq(elapsedSeconds, 0.0, epsilon)) continue;
-            g_s.fps = g_s.frameCount / elapsedSeconds;
+        f64 diff_seconds = (elapsedTime_ms - measureStartTime_ms) / 1000.0;
+        if (diff_seconds > minTimeForMeasure_seconds && framesSinceMeasure > minFramesPerMeasure) {
+            g_s.fps = f64(framesSinceMeasure) / diff_seconds;
+            measureStartTime_ms = elapsedTime_ms;
+            framesSinceMeasure = 0;
         }
     }
 

@@ -4,6 +4,7 @@
 #include <mouse.h>
 #include <shader_prog.h>
 #include <grid.h>
+#include <bbox.h>
 
 #include <std/stringer.h>
 
@@ -20,6 +21,7 @@ struct State {
     static constexpr Grid2D viewSpaceGrid  = { core::v(-1.0f, 1.0f), core::v(1.0f, -1.0f) };
     static constexpr Grid2D worldSpaceGrid = { core::v(0.0f, 0.0f), core::v(1000.0f, 1000.0f) };
     static constexpr core::mat4f worldSpaceToViewSpaceMatrix = worldSpaceGrid.getToConvMatrix(viewSpaceGrid);
+    static constexpr bool renderGrid = false;
 
     Mouse mouse;
     u64 lastMouseClickTimeMs = 0;
@@ -40,8 +42,8 @@ struct State {
     static constexpr u32 cellWidth = 20;
     static constexpr u32 cellHeight = 20;
     static constexpr u32 cellsPerRow = 40;
-    static constexpr core::vec2f gridOffset = worldSpaceGrid.center() - core::uniform<2, f32>(cellsPerRow * cellWidth / 2);
     Cell cells[cellCount] = {};
+    Bbox2D cellsBbox;
 
     u32 lineVAO = 0;
     u32 lineVBO = 0;
@@ -239,11 +241,12 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
 
     // Create cells:
     {
+        core::vec2f gridShift = g_s.worldSpaceGrid.center() - core::uniform<2, f32>(g_s.cellsPerRow * g_s.cellWidth / 2);
         for (u32 i = 0; i < g_s.cellCount; ++i) {
             Cell& cell = g_s.cells[i];
             cell.isOn = false;
-            cell.pos = core::v(f32(i % g_s.cellsPerRow) * (g_s.cellWidth) + g_s.gridOffset.x(),
-                               f32(i / g_s.cellsPerRow) * (g_s.cellHeight) + g_s.gridOffset.y());
+            cell.pos = core::v(f32(i % g_s.cellsPerRow) * (g_s.cellWidth) + gridShift.x(),
+                               f32(i / g_s.cellsPerRow) * (g_s.cellHeight) + gridShift.y());
         }
 
         g_s.cells[0].isOn = true;
@@ -251,6 +254,8 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         g_s.cells[2].isOn = true;
         g_s.cells[3].isOn = true;
         g_s.cells[4].isOn = true;
+
+        g_s.cellsBbox = Bbox2D(g_s.cells[0].pos, g_s.cells[g_s.cellCount - 1].pos + core::v(f32(g_s.cellWidth), f32(g_s.cellHeight)));
     }
 
     // Create line vertices:
@@ -302,14 +307,36 @@ void bindElementArrayBuffer_memorized(u32 ebo) {
     }
 }
 
-// Renders a quad on the screen. The quad is rendered in the range [-1, 1] on the x and y axis. All values are in NDC.
-// Not efficient, but good enough for this example.
-void renderQuad_immediate(f32 x, f32 y, f32 width, f32 height, const core::vec4f& color, bool fill) {
-    State& g_s = state();
-
+core::mat4f renderModel_quad2D(f32 x, f32 y, f32 z, f32 width, f32 height) {
     auto model = core::mat4f::identity();
     model = core::scale(model, core::v(width, height, 1.0f));
-    model = core::translate(model, core::v(x, y, 0.0f));
+    model = core::translate(model, core::v(x, y, z));
+    return model;
+}
+
+core::mat4f renderModel_line(f32 x1, f32 y1, f32 x2, f32 y2, f32 lineWidth) {
+    auto start = core::v(x1, y1);
+    auto end = core::v(x2, y2);
+    core::vec2f diff = end - start;
+    core::vec2f mid = (start + end) / 2;
+    f32 lineLen = static_cast<f32>(diff.length());
+    f32 halfLen = lineLen / 2.0f;
+    f32 lineAngle = core::slope(x1, -y1, x2, -y2);
+    auto model = core::mat4f::identity();
+    model = core::scale(model, core::v(halfLen, lineWidth, 1.0f)); // scale the quad to be a line
+    model = core::rotateZ_right(model, lineAngle);
+    model = core::translate(model, core::v(mid.x(), mid.y(), 0.0f));
+    return model;
+}
+
+void renderQuad(f32 x, f32 y, f32 width, f32 height, const core::vec4f& color, bool fill) {
+    State& g_s = state();
+
+    auto topLeft = core::v(x + width / 2, y + height / 2);
+    auto pos = g_s.worldSpaceGrid.convertTo_v(topLeft, g_s.viewSpaceGrid);
+    width = core::blend(g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f, width);
+    height = core::blend(g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y(), 0.0f, 1.0f, height);
+    auto model = renderModel_quad2D(pos.x(), pos.y(), 0.0f, width, height);
 
     auto mvp = g_s.projectionMat * g_s.viewMat * model;
     g_s.shaderProg.setUniform_m("u_mvp", mvp);
@@ -326,36 +353,39 @@ void renderQuad_immediate(f32 x, f32 y, f32 width, f32 height, const core::vec4f
 
 void renderCell(const Cell& cell, const core::vec4f& color) {
     State& g_s = state();
-
-    auto pos = g_s.worldSpaceGrid.convertTo_v(cell.pos, g_s.viewSpaceGrid);
-    f32 width = core::blend(g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f, f32(g_s.cellWidth));
-    f32 height = core::blend(g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y(), 0.0f, 1.0f, f32(g_s.cellHeight));
-
-    renderQuad_immediate(pos.x() + width/2, pos.y() - height/2, width, height, color, cell.isOn);
+    renderQuad(cell.pos.x(), cell.pos.y(), g_s.cellWidth, g_s.cellHeight, color, cell.isOn);
 }
 
 void renderLine(f32 x1, f32 y1, f32 x2, f32 y2, f32 lineWidth, const core::vec4f& color) {
-    // TODO: I should extract and immediate render line functions from this. It's not so trivial though.
-
     State& g_s = state();
+
+    g_s.shaderProg.use();
+    bindVertexArray_memorized(g_s.quadVAO);
+    bindArrayBuffer_memorized(g_s.quadVBO);
+    bindElementArrayBuffer_memorized(g_s.quadEBO);
+
     auto start = g_s.worldSpaceGrid.convertTo_v(core::v(x1, y1), g_s.viewSpaceGrid);
     auto end = g_s.worldSpaceGrid.convertTo_v(core::v(x2, y2), g_s.viewSpaceGrid);
-    core::vec2f diff = end - start;
-    core::vec2f mid = (start + end) / 2;
-    f32 lineLen = static_cast<f32>(diff.length());
-    f32 halfLen = lineLen / 2.0f;
-    f32 lineAngle = core::slope_to_deg(x1, y1, x2, y2);
-
-    auto model = core::mat4f::identity();
-    model = core::scale(model, core::v(halfLen, lineWidth, 1.0f)); // scale the quad to be a line
-    model = core::rotateZ_right(model, core::deg_to_rad(lineAngle));
-    model = core::translate(model, core::v(mid.x(), mid.y(), 0.0f));
+    lineWidth = core::blend(g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f, lineWidth);
+    auto model = renderModel_line(start.x(), start.y(), end.x(), end.y(), lineWidth);
 
     auto mvp = g_s.projectionMat * g_s.viewMat * model;
     g_s.shaderProg.setUniform_m("u_mvp", mvp);
     g_s.shaderProg.setUniform_v("color", color);
 
     glDrawElements(GL_TRIANGLES, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
+}
+
+void renderGrid(const Grid2D& grid, u32 rows, u32 cols, f32 lineWidth, const core::vec4f& color) {
+    State& g_s = state();
+    f32 rowDist = grid.max.x() / f32(rows);
+    for (u32 i = 0; i <= rows; i++) {
+        renderLine(rowDist * f32(i), g_s.worldSpaceGrid.min.x(), rowDist * f32(i), g_s.worldSpaceGrid.max.x(), lineWidth, color);
+    }
+    f32 colDist = grid.max.y() / f32(cols);
+    for (u32 i = 0; i <= cols; i++) {
+        renderLine(g_s.worldSpaceGrid.min.y(), colDist * f32(i), g_s.worldSpaceGrid.max.y(), colDist * f32(i), lineWidth, color);
+    }
 }
 
 } // namespace
@@ -368,21 +398,26 @@ void mainLoop(CommonState& commonState) {
 
     // Render Cells:
     {
-        for (u32 i = 0; i < g_s.cellCount; ++i) {
-            Cell& cell = g_s.cells[i];
-            renderCell(cell, core::BLACK);
-        }
+        // for (u32 i = 0; i < g_s.cellCount; ++i) {
+        //     Cell& cell = g_s.cells[i];
+        //     renderCell(cell, core::BLACK);
+        // }
+
+        // Render bounding box:
+        renderQuad(g_s.cellsBbox.topLeft.x(), g_s.cellsBbox.topLeft.y(), g_s.cellsBbox.width(), g_s.cellsBbox.height(), core::BLACK, false);
+    }
+
+    // Render Grid:
+    if (g_s.renderGrid) {
+        renderGrid(g_s.worldSpaceGrid, 10, 10, 1, core::RED);
     }
 
     if (g_s.canRenderLine) {
         {
-            g_s.shaderProg.use();
-            glBindVertexArray(g_s.quadVAO);
-            glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBO);
-
-            constexpr f32 lineWidth = 0.005f;
+            constexpr f32 lineWidth = 2;
+            // TODO: use https://www.geometrictools.com/Documentation/IntersectionLineBox.pdf for line-box intersection algorithm!
             auto end = g_s.b;
-            renderLine(g_s.a.x(), g_s.a.y(), end.x(), end.y(), lineWidth, core::RED);
+            renderLine(g_s.a.x(), g_s.a.y(), end.x(), end.y(), lineWidth, core::GREEN);
         }
     }
 

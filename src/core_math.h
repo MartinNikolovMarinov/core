@@ -22,6 +22,26 @@ constexpr u64 pow_u64(i64 n, u32 p) {
     return result;
 }
 
+template <typename TFloat>
+constexpr TFloat round(TFloat n) {
+    return n < 0.0f ? n - 0.5f : n + 0.5f;
+}
+
+template <typename TFloat>
+constexpr TFloat round_to(TFloat n, u32 to) {
+    return TFloat(round(n * TFloat(10*to))) / TFloat(10*to);
+}
+
+template <typename TFloat>
+constexpr TFloat floor(TFloat n) {
+    return n < 0.0f ? n - 1.0f : n;
+}
+
+template <typename TFloat>
+constexpr TFloat ceil(TFloat n) {
+    return n < 0.0f ? n : n + 1.0f;
+}
+
 constexpr f32 deg_to_rad(f32 n) {
     return n * (PI / 180.0f);
 }

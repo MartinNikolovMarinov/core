@@ -116,6 +116,8 @@ core::expected<GraphicsLibError> init(CommonState& s) {
         State& g_s = state();
         xpos = core::blend(0.0f, f32(g_s.viewportWidth), g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), f32(xpos));
         ypos = core::blend(0.0f, f32(g_s.viewportHeight), g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y(), f32(ypos));
+        xpos = core::round_to(xpos, 3);
+        ypos = core::round_to(ypos, 3);
         g_s.mouse.setPos(xpos, ypos);
     });
     if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
@@ -396,29 +398,64 @@ void mainLoop(CommonState& commonState) {
     g_s.mouse.clear();
     handleUserInput();
 
+    if (g_s.canRenderLine) {
+        constexpr f32 lineWidth = 3;
+        auto res = g_s.cellsBbox.intersection(g_s.a, g_s.b);
+        if (res.intersectionCount == 2) {
+            auto start = g_s.a;
+            auto end = res.intersections[0];
+            renderLine(start.x(), start.y(), end.x(), end.y(), lineWidth, core::GREEN);
+
+            start = res.intersections[0];
+            end = res.intersections[1];
+            renderLine(start.x(), start.y(), end.x(), end.y(), lineWidth, core::RED);
+
+            start = res.intersections[1];
+            end = g_s.b;
+            renderLine(start.x(), start.y(), end.x(), end.y(), lineWidth, core::GREEN);
+        }
+        else if (res.intersectionCount == 1) {
+            if (res.hasEntry) {
+                auto start = g_s.a;
+                auto end = res.intersections[0];
+                renderLine(start.x(), start.y(), end.x(), end.y(), lineWidth, core::GREEN);
+
+                start = res.intersections[0];
+                end = g_s.b;
+                renderLine(start.x(), start.y(), end.x(), end.y(), lineWidth, core::RED);
+            }
+            else if (res.hasExit) {
+                auto start = g_s.a;
+                auto end = res.intersections[1];
+                renderLine(start.x(), start.y(), end.x(), end.y(), lineWidth, core::RED);
+
+                start = res.intersections[1];
+                end = g_s.b;
+                renderLine(start.x(), start.y(), end.x(), end.y(), lineWidth, core::GREEN);
+            }
+            else {
+                Assert(false, "This should not happen!");
+            }
+        }
+        else {
+            renderLine(g_s.a.x(), g_s.a.y(), g_s.b.x(), g_s.b.y(), lineWidth, core::GREEN);
+        }
+    }
+
     // Render Cells:
     {
-        // for (u32 i = 0; i < g_s.cellCount; ++i) {
-        //     Cell& cell = g_s.cells[i];
-        //     renderCell(cell, core::BLACK);
-        // }
+        for (u32 i = 0; i < g_s.cellCount; ++i) {
+            Cell& cell = g_s.cells[i];
+            renderCell(cell, core::BLACK);
+        }
 
         // Render bounding box:
-        renderQuad(g_s.cellsBbox.topLeft.x(), g_s.cellsBbox.topLeft.y(), g_s.cellsBbox.width(), g_s.cellsBbox.height(), core::BLACK, false);
+        renderQuad(g_s.cellsBbox.min.x(), g_s.cellsBbox.min.y(), g_s.cellsBbox.width(), g_s.cellsBbox.height(), core::BLACK, false);
     }
 
     // Render Grid:
     if (g_s.renderGrid) {
         renderGrid(g_s.worldSpaceGrid, 10, 10, 1, core::RED);
-    }
-
-    if (g_s.canRenderLine) {
-        {
-            constexpr f32 lineWidth = 2;
-            // TODO: use https://www.geometrictools.com/Documentation/IntersectionLineBox.pdf for line-box intersection algorithm!
-            auto end = g_s.b;
-            renderLine(g_s.a.x(), g_s.a.y(), end.x(), end.y(), lineWidth, core::GREEN);
-        }
     }
 
     glfwSwapBuffers(commonState.mainWindow.glfwWindow);

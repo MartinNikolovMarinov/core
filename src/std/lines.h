@@ -60,5 +60,15 @@ inline bool lineToLineIntersection(const core::vec2<TFloat>& a, const core::vec2
     y = t.y();
     return ret;
 }
+template <typename TFloat>
+inline bool lineToLineIntersection(TFloat x1, TFloat y1, TFloat x2, TFloat y2,
+                                   TFloat x3, TFloat y3, TFloat x4, TFloat y4,
+                                   TFloat& x, TFloat& y) {
+    auto t = core::v(x, y);
+    bool ret = lineToLineIntersection(core::v(x1, y1), core::v(x2, y2), core::v(x3, y3), core::v(x4, y4), t);
+    x = t.x();
+    y = t.y();
+    return ret;
+}
 
 } // namespace core

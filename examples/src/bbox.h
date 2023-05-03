@@ -7,9 +7,10 @@ using namespace coretypes;
 struct Bbox2D {
 
     constexpr Bbox2D() : min({}), max({}) {}
-    constexpr Bbox2D(const core::vec2f& topLeft, const core::vec2f& bottomRight) : min(topLeft), max(bottomRight) {
-        Assert(topLeft.x() < bottomRight.x(), "Invalid bbox!");
-        Assert(topLeft.y() < bottomRight.y(), "Invalid bbox!");
+    constexpr Bbox2D(const core::vec2f& min, const core::vec2f& max) : min(min), max(max) {
+        // It's good to assume
+        Assert(this->min.x() < this->max.x(), "Invalid bbox!");
+        Assert(this->min.y() < this->max.y(), "Invalid bbox!");
     }
 
     constexpr core::vec2f center() const {
@@ -41,6 +42,8 @@ struct Bbox2D {
     };
 
     // IMPORTANT: This code assumes y increses from top to bottom.
+    // TODO: Perhaps this could be implemented faster without using lineToLineIntersection.
+    //       Also the high epsilon value sticks out like a soar thumb.
     constexpr IntersectionResult intersection(const core::vec2f& lp0, const core::vec2f& lp1) const {
         constexpr f32 epsilon = 0.0001f;
         IntersectionResult res = {};
@@ -121,6 +124,13 @@ struct Bbox2D {
             res.intersectionCount++;
         }
 
+        return res;
+    }
+
+    core::vec2f interpolate(const Bbox2D& other, const core::vec2f& t) {
+        core::vec2f from = max - min;
+        core::vec2f to = other.max - other.min;
+        core::vec2f res = from + t * (to - from);
         return res;
     }
 

@@ -42,6 +42,7 @@ struct State {
     static constexpr u32 cellWidth = 20;
     static constexpr u32 cellHeight = 20;
     static constexpr u32 cellsPerRow = 40;
+    static constexpr u32 cellsPerCol = cellCount / cellsPerRow;
     Cell cells[cellCount] = {};
     Bbox2D cellsBbox;
 
@@ -51,6 +52,12 @@ struct State {
     core::vec2f a = core::uniform<2, f32>(-1.f);
     core::vec2f b = core::uniform<2, f32>(-1.f);
     bool canRenderLine = false;
+
+    Cell& getCellAt(u32 x, u32 y) {
+        Assert(x < cellsPerRow, "Invalid x!");
+        Assert(y < cellsPerCol, "Invalid y!");
+        return cells[y * cellsPerRow + x];
+    }
 };
 
 State& state(bool clear = false) {
@@ -251,12 +258,6 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
                                f32(i / g_s.cellsPerRow) * (g_s.cellHeight) + gridShift.y());
         }
 
-        g_s.cells[0].isOn = true;
-        g_s.cells[1].isOn = true;
-        g_s.cells[2].isOn = true;
-        g_s.cells[3].isOn = true;
-        g_s.cells[4].isOn = true;
-
         g_s.cellsBbox = Bbox2D(g_s.cells[0].pos, g_s.cells[g_s.cellCount - 1].pos + core::v(f32(g_s.cellWidth), f32(g_s.cellHeight)));
     }
 
@@ -390,6 +391,16 @@ void renderGrid(const Grid2D& grid, u32 rows, u32 cols, f32 lineWidth, const cor
     }
 }
 
+Cell& calcEntryCell(core::vec2f rayEntry) {
+    State& g_s = state();
+    auto cellsDelta = core::v(f32(g_s.cellWidth), f32(g_s.cellHeight));
+    auto t = (rayEntry - g_s.cellsBbox.min) / cellsDelta;
+    u32 cellX = u32(core::clamp(t.x(), 0.0f, f32(g_s.cellsPerRow - 1)));
+    u32 cellY = u32(core::clamp(t.y(), 0.0f, f32(g_s.cellsPerCol - 1)));
+    fmt::print("x={}, y={}\n", cellX, cellY);
+    return g_s.getCellAt(cellX, cellY);
+}
+
 } // namespace
 
 void mainLoop(CommonState& commonState) {
@@ -397,6 +408,11 @@ void mainLoop(CommonState& commonState) {
 
     g_s.mouse.clear();
     handleUserInput();
+
+    // Clear cells
+    for (u32 i = 0; i < g_s.cellCount; ++i) {
+        g_s.cells[i].isOn = false;
+    }
 
     if (g_s.canRenderLine) {
         constexpr f32 lineWidth = 3;
@@ -440,6 +456,11 @@ void mainLoop(CommonState& commonState) {
         else {
             renderLine(g_s.a.x(), g_s.a.y(), g_s.b.x(), g_s.b.y(), lineWidth, core::GREEN);
         }
+
+        if(res.hasEntry) {
+            auto rayEntry = res.intersections[0];
+            Cell& entryCell = calcEntryCell(rayEntry);
+        }
     }
 
     // Render Cells:
@@ -461,7 +482,7 @@ void mainLoop(CommonState& commonState) {
     glfwSwapBuffers(commonState.mainWindow.glfwWindow);
 
     // DEBUG LOGGING:
-    fmt::print("Frame: {}, FPS: {:f}\n", commonState.frameCount, commonState.fps);
+    // fmt::print("Frame: {}, FPS: {:f}\n", commonState.frameCount, commonState.fps);
     // fmt::print("Mouse: pos:{},{}; right_btn: is_pressed:{};\n", g_s.mouse.x, g_s.mouse.y, g_s.mouse.leftButton.isPressed());
 }
 

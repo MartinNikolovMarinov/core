@@ -39,10 +39,10 @@ Mouse& Mouse::setInWindow(bool isInWindow) {
 }
 
 void Mouse::clear() {
-    // Mouse scrollwheels can't be held down, so we can clear the scroll on every frame.
+    // Mouse scrollwheels can't be held down, so clear the scroll on every frame.
     scrollX = 0;
     scrollY = 0;
-    // Mouse buttons act the same as keyboard keys, so we do the same thing here.
+    // Mouse buttons act the same as keyboard keys, so do the same thing here.
     if (leftButton.isRelease()) leftButton.action.type = KeyboardAction::Type::NONE;
     if (middleButton.isRelease()) middleButton.action.type = KeyboardAction::Type::NONE;
     if (rightButton.isRelease()) rightButton.action.type = KeyboardAction::Type::NONE;

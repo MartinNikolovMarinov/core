@@ -4,6 +4,9 @@
 #include <types.h>
 #include <utils.h>
 
+// FIXME: Make this thing more usable. Every time I try to use it I spend inordinate amount of time trying to figure out
+//        how to use it. It should have a much more convinient and obvious constructor. The get function is kinda fine.
+
 namespace core {
 
 using namespace coretypes;
@@ -15,7 +18,6 @@ struct CORE_API_EXPORT tuple<T1> {
     static constexpr u32 len = 1;
 
     constexpr tuple() : v1({}) {}
-    constexpr tuple(T1 a) : v1(a) {}
     constexpr tuple(T1&& a) : v1(a) {}
 
     template <i32 TIdx>
@@ -43,7 +45,6 @@ struct CORE_API_EXPORT tuple<T1, T2> {
     static constexpr u32 len = 2;
 
     constexpr tuple() : v1({}), v2({}) {}
-    constexpr tuple(T1 a, T2 b) : v1(a), v2(b) {}
     constexpr tuple(T1&& a, T2&& b) : v1(a), v2(b) {}
 
     template <i32 TIdx>
@@ -70,7 +71,6 @@ struct CORE_API_EXPORT tuple<T1, T2, T3> {
     static constexpr u32 len = 3;
 
     constexpr tuple() : v1({}), v2({}), v3({}) {}
-    constexpr tuple(T1 a, T2 b, T3 c) : v1(a), v2(b), v3(c) {}
     constexpr tuple(T1&& a, T2&& b, T3&& c) : v1(a), v2(b), v3(c) {}
 
     template <i32 TIdx>
@@ -100,7 +100,6 @@ struct CORE_API_EXPORT tuple<T1, T2, T3, T4> {
     static constexpr u32 len = 4;
 
     constexpr tuple() : v1({}), v2({}), v3({}), v4({}) {}
-    constexpr tuple(T1 a, T2 b, T3 c, T4 d) : v1(a), v2(b), v3(c), v4(d) {}
     constexpr tuple(T1&& a, T2&& b, T3&& c, T4&& d) : v1(a), v2(b), v3(c), v4(d) {}
 
     template <i32 TIdx>

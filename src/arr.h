@@ -117,7 +117,7 @@ struct CORE_API_EXPORT arr {
             resize(m_cap == 0 ? len : m_cap * 2);
         }
         if (doNotCallCtors) {
-            // We are allowed to go fast, but the drawback is that we cannot use this in constexpr functions.
+            // You can go faster, but the drawback to this is that you cannot use this in constexpr functions.
             // Can't assume destructors will be called!
             // For example, this can NOT be used to append array of arrays, or memory leaks will happen.
             // TODO: I could probably write some trait checking magic to detect if the type is NOT

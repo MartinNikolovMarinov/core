@@ -99,7 +99,7 @@ core::expected<GraphicsLibError> init(InitProps&& props) {
     // Enable vsync:
     glfwSwapInterval(1);
 
-    // Init glew after we have a window:
+    // Init glew after there is a window:
     ValueOrReturn(initGlew());
 
     // Initialize OpenGL:

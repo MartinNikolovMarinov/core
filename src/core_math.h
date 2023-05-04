@@ -22,6 +22,11 @@ constexpr u64 pow_u64(i64 n, u32 p) {
     return result;
 }
 
+template <typename T>
+constexpr T sign(T n) {
+    return n < 0 ? -1 : 1;
+}
+
 template <typename TFloat>
 constexpr TFloat round(TFloat n) {
     return n < 0.0f ? n - 0.5f : n + 0.5f;

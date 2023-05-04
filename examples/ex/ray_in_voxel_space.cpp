@@ -2,6 +2,7 @@
 
 #include <keyboard.h>
 #include <mouse.h>
+#include <keyboard.h>
 #include <shader_prog.h>
 #include <grid.h>
 #include <bbox.h>
@@ -20,10 +21,11 @@ struct Cell {
 struct State {
     static constexpr Grid2D viewSpaceGrid  = { core::v(-1.0f, 1.0f), core::v(1.0f, -1.0f) };
     static constexpr Grid2D worldSpaceGrid = { core::v(0.0f, 0.0f), core::v(1000.0f, 1000.0f) };
-    static constexpr core::mat4f worldSpaceToViewSpaceMatrix = worldSpaceGrid.getToConvMatrix(viewSpaceGrid);
+    // static constexpr core::mat4f worldSpaceToViewSpaceMatrix = worldSpaceGrid.getToConvMatrix(viewSpaceGrid);
     static constexpr bool renderGrid = false;
 
     Mouse mouse;
+    Keyboard keyboard;
     u64 lastMouseClickTimeMs = 0;
 
     u32 viewportWidth;
@@ -104,8 +106,11 @@ core::expected<GraphicsLibError> init(CommonState& s) {
     g_s.viewportHeight = s.mainWindow.height;
 
     glfwSetKeyCallback(glfwWindow, [](GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods) {
-        [[maybe_unused]] KeyboardModifiers keyModifiers = KeyboardModifiers::createFromGLFW(mods);
+        State& g_s = state();
+        KeyboardModifiers keyModifiers = KeyboardModifiers::createFromGLFW(mods);
         KeyInfo keyInfo = KeyInfo::createFromGLFW(key, scancode, action);
+        g_s.keyboard.setModifiers(core::move(keyModifiers)).setKey(core::move(keyInfo));
+
         if (keyInfo.value == GLFW_KEY_ESCAPE && keyInfo.isPressed()) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
@@ -258,6 +263,12 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
                                f32(i / g_s.cellsPerRow) * (g_s.cellHeight) + gridShift.y());
         }
 
+        g_s.cells[0 + 11 * g_s.cellsPerRow].isOn = true;
+        g_s.cells[1 + 11 * g_s.cellsPerRow].isOn = true;
+        g_s.cells[2 + 11 * g_s.cellsPerRow].isOn = true;
+        g_s.cells[3 + 11 * g_s.cellsPerRow].isOn = true;
+        g_s.cells[4 + 11 * g_s.cellsPerRow].isOn = true;
+
         g_s.cellsBbox = Bbox2D(g_s.cells[0].pos, g_s.cells[g_s.cellCount - 1].pos + core::v(f32(g_s.cellWidth), f32(g_s.cellHeight)));
     }
 
@@ -391,14 +402,13 @@ void renderGrid(const Grid2D& grid, u32 rows, u32 cols, f32 lineWidth, const cor
     }
 }
 
-Cell& calcEntryCell(core::vec2f rayEntry) {
+core::tuple<u32, u32> toCellCoordinates(const core::vec2f& x) {
     State& g_s = state();
     auto cellsDelta = core::v(f32(g_s.cellWidth), f32(g_s.cellHeight));
-    auto t = (rayEntry - g_s.cellsBbox.min) / cellsDelta;
+    auto t = (x - g_s.cellsBbox.min) / cellsDelta;
     u32 cellX = u32(core::clamp(t.x(), 0.0f, f32(g_s.cellsPerRow - 1)));
     u32 cellY = u32(core::clamp(t.y(), 0.0f, f32(g_s.cellsPerCol - 1)));
-    fmt::print("x={}, y={}\n", cellX, cellY);
-    return g_s.getCellAt(cellX, cellY);
+    return core::create_tuple(std::move(cellX), std::move(cellY));
 }
 
 } // namespace
@@ -407,12 +417,9 @@ void mainLoop(CommonState& commonState) {
     State& g_s = state();
 
     g_s.mouse.clear();
+    // FIXME: Modifiers work totally wrong. Need to fix them! Just fix the keyboard handler nightmare!
+    g_s.keyboard.clear();
     handleUserInput();
-
-    // Clear cells
-    for (u32 i = 0; i < g_s.cellCount; ++i) {
-        g_s.cells[i].isOn = false;
-    }
 
     if (g_s.canRenderLine) {
         constexpr f32 lineWidth = 3;
@@ -458,9 +465,54 @@ void mainLoop(CommonState& commonState) {
         }
 
         if(res.hasEntry) {
-            auto rayEntry = res.intersections[0];
-            Cell& entryCell = calcEntryCell(rayEntry);
+            auto start = res.intersections[0];
+            auto end = res.hasExit ? res.intersections[1] : g_s.b;
+            auto dir = end - start;
+
+            f32 dx = g_s.cellWidth;
+            f32 dy = g_s.cellHeight;
+            u32 cellX, cellY, endCellX, endCellY;
+            {
+                auto res = toCellCoordinates(start);
+                cellX = core::move(res.get<0>());
+                cellY = core::move(res.get<1>());
+            }
+            {
+                auto res = toCellCoordinates(end);
+                endCellX = core::move(res.get<0>());
+                endCellY = core::move(res.get<1>());
+            }
+            f32 tMaxX = dx / core::abs(end.x() - start.x());
+            f32 tMaxY = dy / core::abs(end.y() - start.y());
+            f32 axu = tMaxX;
+            f32 ayu = tMaxY;
+            i32 stepX = dir.x() > 0 ? 1 : -1;
+            i32 stepY = dir.y() > 0 ? 1 : -1;
+
+            while(true) {
+                auto& cell = g_s.cells[cellY * g_s.cellsPerRow + cellX];
+                if (cell.isOn) {
+                    // Collision detected in this cell
+                    renderQuad(cell.pos.x(), cell.pos.y(), 10, 10, core::BLUE, true);
+                    break;
+                }
+
+                if (axu < ayu) {
+                    axu += tMaxX;
+                    cellX += stepX;
+                }
+                else {
+                    ayu += tMaxY;
+                    cellY += stepY;
+                }
+
+                if (cellX >= g_s.cellsPerRow || cellY >= g_s.cellsPerCol) {
+                    break;
+                }
+            }
         }
+
+        // TODO: If the ray is inside the grid there I should just find the starting cell and start from there.
     }
 
     // Render Cells:
@@ -482,7 +534,7 @@ void mainLoop(CommonState& commonState) {
     glfwSwapBuffers(commonState.mainWindow.glfwWindow);
 
     // DEBUG LOGGING:
-    // fmt::print("Frame: {}, FPS: {:f}\n", commonState.frameCount, commonState.fps);
+    fmt::print("Frame: {}, FPS: {:f}\n", commonState.frameCount, commonState.fps);
     // fmt::print("Mouse: pos:{},{}; right_btn: is_pressed:{};\n", g_s.mouse.x, g_s.mouse.y, g_s.mouse.leftButton.isPressed());
 }
 

@@ -36,92 +36,145 @@ struct Bbox2D {
     }
 
     struct IntersectionResult {
-        core::vec2f intersections[2];
-        bool hasEntry, hasExit;
-        u32 intersectionCount;
+        core::vec2f entry;
+        core::vec2f exit;
+        bool hasEntry = false;
+        bool hasExit = false;
     };
 
-    // IMPORTANT: This code assumes y increses from top to bottom.
-    // TODO: Perhaps this could be implemented faster without using lineToLineIntersection.
-    //       Also the high epsilon value sticks out like a soar thumb.
-    constexpr IntersectionResult intersection(const core::vec2f& lp0, const core::vec2f& lp1) const {
-        constexpr f32 epsilon = 0.0001f;
+    /**
+     * @brief Returns the intersection of the line [start, end] with the bounding box. NOT the line segment!
+     *        The returned values are POTENTIAL intersection points along the line.
+     *
+     * @param start The start of the line.
+     * @param end The end of the line.
+     * @return IntersectionResult The intersection result.
+    */
+    constexpr IntersectionResult intersectionWithLine(const core::vec2f& start, const core::vec2f& end) const {
+        IntersectionResult res;
+
+        const auto dir = end - start;
+
+        if (dir.x() == 0 && dir.y() == 0) {
+            // Not moving - no intersection
+            res.hasEntry = false;
+            res.hasExit = false;
+            return res;
+        }
+
+        f32 tMin = core::MIN_F32;
+        f32 tMax = core::MAX_F32;
+
+        if (dir.x() != 0) {
+            const f32 invDirX = 1.0f / dir.x();
+            f32 tMinX = (min.x() - start.x()) * invDirX;
+            f32 tMaxX = (max.x() - start.x()) * invDirX;
+            if (tMinX > tMaxX) core::swap(tMinX, tMaxX);
+            tMin = core::max(tMin, tMinX);
+            tMax = core::min(tMax, tMaxX);
+        }
+
+        if (dir.y() != 0) {
+            const f32 invDirY = 1.0f / dir.y();
+            f32 tMinY = (min.y() - start.y()) * invDirY;
+            f32 tMaxY = (max.y() - start.y()) * invDirY;
+            if (tMinY > tMaxY) core::swap(tMinY, tMaxY);
+            tMin = core::max(tMin, tMinY);
+            tMax = core::min(tMax, tMaxY);
+        }
+
+        if (tMin >= tMax) {
+            // No intersection
+            res.hasEntry = false;
+            res.hasExit = false;
+            return res;
+        }
+
+        res.entry = start + tMin * dir;
+        res.exit = start + tMax * dir;
+        res.hasEntry = true;
+        res.hasExit = true;
+
+        return res;
+    }
+
+    /**
+     * @brief Returns the intersection of the line segment [lp0, lp1] with the bounding box.
+     *        This is slightly slower than intersectionWithLine, but provides exact entry and exit points.
+     *
+     * @param start The start of the line segment.
+     * @param end The end of the line segment.
+     * @return IntersectionResult The intersection result.
+    */
+    constexpr IntersectionResult intersectionWithLineSegment(const core::vec2f& start, const core::vec2f& end) const {
         IntersectionResult res = {};
-        core::vec2f t, entry, exit;
-        const f32 dx = lp1.x() - lp0.x();
-        const f32 dy = lp1.y() - lp0.y();
+        core::vec2f ipoint; // intersection point
+        const f32 dx = end.x() - start.x();
+        const f32 dy = end.y() - start.y();
 
         core::vec2f p0 = min; // top left
         core::vec2f p1 = core::v(max.x(), min.y()); // top right
         core::vec2f p2 = core::v(min.x(), max.y()); // bottom left
         core::vec2f p3 = max; // bottom right
 
-        auto intersectionWithBoxLineSegment = [&, this](const core::vec2f& p0, const core::vec2f& p1, core::vec2f& t) -> bool {
-            core::lineToLineIntersection(lp0, lp1, p0, p1, t);
-            bool ret = min.x() - t.x() <= epsilon &&
-                       t.x() - max.x() <= epsilon &&
-                       min.y() - t.y() <= epsilon &&
-                       t.y() - max.y() <= epsilon;
+        auto intersectionWithBoxLineSegment = [&, this](const core::vec2f& a, const core::vec2f& b, core::vec2f& p) -> bool {
+            constexpr f32 epsilon = 0.0001f;
+            core::lineToLineIntersection(start, end, a, b, p);
+            bool ret = min.x() - p.x() <= epsilon &&
+                       p.x() - max.x() <= epsilon &&
+                       min.y() - p.y() <= epsilon &&
+                       p.y() - max.y() <= epsilon;
             return ret;
         };
 
         if (dy > 0) {
-            if (p1.y() >= lp0.y() && p1.y() <= lp1.y() && intersectionWithBoxLineSegment(p0, p1, t)) {
+            if (p1.y() >= start.y() && p1.y() <= end.y() && intersectionWithBoxLineSegment(p0, p1, ipoint)) {
                 // Intersection with top line.
-                entry = t;
+                res.entry = ipoint;
                 res.hasEntry = true;
             }
-            if (p2.y() >= lp0.y() && p2.y() <= lp1.y() && intersectionWithBoxLineSegment(p2, p3, t)) {
+            if (p2.y() >= start.y() && p2.y() <= end.y() && intersectionWithBoxLineSegment(p2, p3, ipoint)) {
                 // Intersection with bottom line.
-                exit = t;
+                res.exit = ipoint;
                 res.hasExit = true;
             }
         }
         else {
-            if (p1.y() <= lp0.y() && p1.y() >= lp1.y() && intersectionWithBoxLineSegment(p0, p1, t)) {
+            if (p1.y() <= start.y() && p1.y() >= end.y() && intersectionWithBoxLineSegment(p0, p1, ipoint)) {
                 // Intersection with top line.
-                exit = t;
+                res.exit = ipoint;
                 res.hasExit = true;
             }
-            if (p2.y() <= lp0.y() && p2.y() >= lp1.y() && intersectionWithBoxLineSegment(p2, p3, t)) {
+            if (p2.y() <= start.y() && p2.y() >= end.y() && intersectionWithBoxLineSegment(p2, p3, ipoint)) {
                 // Intersection with bottom line.
-                entry = t;
+                res.entry = ipoint;
                 res.hasEntry = true;
             }
         }
 
         if (dx > 0) {
-            if (p3.x() >= lp0.x() && p3.x() <= lp1.x() && intersectionWithBoxLineSegment(p1, p3, t)) {
+            if (p3.x() >= start.x() && p3.x() <= end.x() && intersectionWithBoxLineSegment(p1, p3, ipoint)) {
                 // Intersection with right line.
-                exit = t;
+                res.exit = ipoint;
                 res.hasExit = true;
             }
-            if (p0.x() >= lp0.x() && p0.x() <= lp1.x() && intersectionWithBoxLineSegment(p0, p2, t)) {
+            if (p0.x() >= start.x() && p0.x() <= end.x() && intersectionWithBoxLineSegment(p0, p2, ipoint)) {
                 // Intersection with left line.
-                entry = t;
+                res.entry = ipoint;
                 res.hasEntry = true;
             }
         }
         else {
-            if (p3.x() <= lp0.x() && p3.x() >= lp1.x() && intersectionWithBoxLineSegment(p1, p3, t)) {
+            if (p3.x() <= start.x() && p3.x() >= end.x() && intersectionWithBoxLineSegment(p1, p3, ipoint)) {
                 // Intersection with right line.
-                entry = t;
+                res.entry = ipoint;
                 res.hasEntry = true;
             }
-            if (p0.x() <= lp0.x() && p0.x() >= lp1.x() && intersectionWithBoxLineSegment(p0, p2, t)) {
+            if (p0.x() <= start.x() && p0.x() >= end.x() && intersectionWithBoxLineSegment(p0, p2, ipoint)) {
                 // Intersection with left line.
-                exit = t;
+                res.exit = ipoint;
                 res.hasExit = true;
             }
-        }
-
-        if (res.hasEntry) {
-            res.intersections[0] = entry;
-            res.intersectionCount++;
-        }
-        if (res.hasExit) {
-            res.intersections[1] = exit;
-            res.intersectionCount++;
         }
 
         return res;

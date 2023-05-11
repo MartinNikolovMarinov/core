@@ -402,12 +402,12 @@ void renderGrid(const Grid2D& grid, u32 rows, u32 cols, f32 lineWidth, const cor
     }
 }
 
-core::tuple<u32, u32> toCellCoordinates(const core::vec2f& x) {
+core::tuple<i32, i32> toCellCoordinates(const core::vec2f& x) {
     State& g_s = state();
     auto cellsDelta = core::v(f32(g_s.cellWidth), f32(g_s.cellHeight));
     auto t = (x - g_s.cellsBbox.min) / cellsDelta;
-    u32 cellX = u32(core::clamp(t.x(), 0.0f, f32(g_s.cellsPerRow - 1)));
-    u32 cellY = u32(core::clamp(t.y(), 0.0f, f32(g_s.cellsPerCol - 1)));
+    i32 cellX = i32(core::clamp(t.x(), 0.0f, f32(g_s.cellsPerRow - 1)));
+    i32 cellY = i32(core::clamp(t.y(), 0.0f, f32(g_s.cellsPerCol - 1)));
     return core::create_tuple(std::move(cellX), std::move(cellY));
 }
 
@@ -423,94 +423,124 @@ void mainLoop(CommonState& commonState) {
 
     if (g_s.canRenderLine) {
         constexpr f32 lineWidth = 3;
-        auto res = g_s.cellsBbox.intersection(g_s.a, g_s.b);
-        if (res.intersectionCount == 2) {
+        auto res = g_s.cellsBbox.intersectionWithLineSegment(g_s.a, g_s.b);
+        if (res.hasEntry && res.hasExit) {
             auto start = g_s.a;
-            auto end = res.intersections[0];
+            auto end = res.entry;
             renderLine(start.x(), start.y(), end.x(), end.y(), lineWidth, core::GREEN);
 
-            start = res.intersections[0];
-            end = res.intersections[1];
+            start = res.entry;
+            end = res.exit;
             renderLine(start.x(), start.y(), end.x(), end.y(), lineWidth, core::RED);
 
-            start = res.intersections[1];
+            start = res.exit;
             end = g_s.b;
             renderLine(start.x(), start.y(), end.x(), end.y(), lineWidth, core::GREEN);
         }
-        else if (res.intersectionCount == 1) {
-            if (res.hasEntry) {
-                auto start = g_s.a;
-                auto end = res.intersections[0];
-                renderLine(start.x(), start.y(), end.x(), end.y(), lineWidth, core::GREEN);
+        else if (res.hasEntry) {
+            auto start = g_s.a;
+            auto end = res.entry;
+            renderLine(start.x(), start.y(), end.x(), end.y(), lineWidth, core::GREEN);
 
-                start = res.intersections[0];
-                end = g_s.b;
-                renderLine(start.x(), start.y(), end.x(), end.y(), lineWidth, core::RED);
-            }
-            else if (res.hasExit) {
-                auto start = g_s.a;
-                auto end = res.intersections[1];
-                renderLine(start.x(), start.y(), end.x(), end.y(), lineWidth, core::RED);
+            start = res.entry;
+            end = g_s.b;
+            renderLine(start.x(), start.y(), end.x(), end.y(), lineWidth, core::RED);
+        }
+        else if (res.hasExit) {
+            auto start = g_s.a;
+            auto end = res.exit;
+            renderLine(start.x(), start.y(), end.x(), end.y(), lineWidth, core::RED);
 
-                start = res.intersections[1];
-                end = g_s.b;
-                renderLine(start.x(), start.y(), end.x(), end.y(), lineWidth, core::GREEN);
-            }
-            else {
-                Assert(false, "This should not happen!");
-            }
+            start = res.exit;
+            end = g_s.b;
+            renderLine(start.x(), start.y(), end.x(), end.y(), lineWidth, core::GREEN);
         }
         else {
             renderLine(g_s.a.x(), g_s.a.y(), g_s.b.x(), g_s.b.y(), lineWidth, core::GREEN);
         }
 
-        if(res.hasEntry) {
-            auto start = res.intersections[0];
-            auto end = res.hasExit ? res.intersections[1] : g_s.b;
+        if (res.hasEntry) {
+            auto start = res.entry;
+            auto end = res.exit;
             auto dir = end - start;
 
-            f32 dx = g_s.cellWidth;
-            f32 dy = g_s.cellHeight;
-            u32 cellX, cellY, endCellX, endCellY;
-            {
-                auto res = toCellCoordinates(start);
-                cellX = core::move(res.get<0>());
-                cellY = core::move(res.get<1>());
-            }
-            {
-                auto res = toCellCoordinates(end);
-                endCellX = core::move(res.get<0>());
-                endCellY = core::move(res.get<1>());
-            }
-            f32 tMaxX = dx / core::abs(end.x() - start.x());
-            f32 tMaxY = dy / core::abs(end.y() - start.y());
-            f32 axu = tMaxX;
-            f32 ayu = tMaxY;
+            i32 cellX = core::move(toCellCoordinates(start).get<0>());
+            i32 cellY = core::move(toCellCoordinates(start).get<1>());
             i32 stepX = dir.x() > 0 ? 1 : -1;
             i32 stepY = dir.y() > 0 ? 1 : -1;
 
-            while(true) {
-                auto& cell = g_s.cells[cellY * g_s.cellsPerRow + cellX];
+            f32 tMaxX = ((cellX + 1)*g_s.cellWidth - start.x()) / dir.x();
+            f32 tMaxY = ((cellY + 1)*g_s.cellHeight - start.y()) / dir.y();
+            f32 tDeltaX = g_s.cellWidth / dir.x();
+            f32 tDeltaY = g_s.cellHeight / dir.y();
+
+            while (cellX < g_s.cellsPerRow && cellY < g_s.cellsPerCol) {
+                const auto currPos = core::v(start.x() + tMaxX * dir.x(), start.y() + tMaxY * dir.y());
+                fmt::print("currPos: {}\n", core::to_string(currPos).c_str());
+                auto& cell = g_s.cells[cellX + cellY * g_s.cellsPerRow];
                 if (cell.isOn) {
-                    // Collision detected in this cell
-                    renderQuad(cell.pos.x(), cell.pos.y(), 10, 10, core::BLUE, true);
+                    renderQuad(cell.pos.x(), cell.pos.y(), 10, 10, core::YELLOW, true);
                     break;
                 }
 
-                if (axu < ayu) {
-                    axu += tMaxX;
+                if (tMaxX < tMaxY) {
+                    tMaxX += tDeltaX;
                     cellX += stepX;
                 }
                 else {
-                    ayu += tMaxY;
+                    tMaxY += tDeltaY;
                     cellY += stepY;
-                }
-
-                if (cellX >= g_s.cellsPerRow || cellY >= g_s.cellsPerCol) {
-                    break;
                 }
             }
         }
+
+        // if(res.hasEntry) {
+        //     auto start = res.intersections[0];
+        //     auto end = res.hasExit ? res.intersections[1] : g_s.b;
+        //     auto dir = end - start;
+
+        //     f32 dx = g_s.cellWidth;
+        //     f32 dy = g_s.cellHeight;
+        //     u32 cellX, cellY, endCellX, endCellY;
+        //     {
+        //         auto res = toCellCoordinates(start);
+        //         cellX = core::move(res.get<0>());
+        //         cellY = core::move(res.get<1>());
+        //     }
+        //     {
+        //         auto res = toCellCoordinates(end);
+        //         endCellX = core::move(res.get<0>());
+        //         endCellY = core::move(res.get<1>());
+        //     }
+        //     f32 tMaxX = dx / core::abs(end.x() - start.x());
+        //     f32 tMaxY = dy / core::abs(end.y() - start.y());
+        //     f32 axu = tMaxX;
+        //     f32 ayu = tMaxY;
+        //     i32 stepX = dir.x() > 0 ? 1 : -1;
+        //     i32 stepY = dir.y() > 0 ? 1 : -1;
+
+        //     while(true) {
+        //         auto& cell = g_s.cells[cellY * g_s.cellsPerRow + cellX];
+        //         if (cell.isOn) {
+        //             // Collision detected in this cell
+        //             renderQuad(cell.pos.x(), cell.pos.y(), 10, 10, core::BLUE, true);
+        //             break;
+        //         }
+
+        //         if (axu < ayu) {
+        //             axu += tMaxX;
+        //             cellX += stepX;
+        //         }
+        //         else {
+        //             ayu += tMaxY;
+        //             cellY += stepY;
+        //         }
+
+        //         if (cellX >= g_s.cellsPerRow || cellY >= g_s.cellsPerCol) {
+        //             break;
+        //         }
+        //     }
+        // }
 
         // TODO: If the ray is inside the grid there I should just find the starting cell and start from there.
     }

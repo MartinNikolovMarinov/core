@@ -46,13 +46,13 @@ static constexpr i16 MIN_I16 = ((i16)((MAX_U16 >> 1) ^ MAX_U16)); // -32768
 static constexpr i8  MIN_I8  = ((i8)((MAX_U8 >> 1) ^ MAX_U8));    // -128
 
 // Max floating point constants
-static constexpr f64 MAX_F64 = ((f64)1.7976931348623157e+308);
-static constexpr f32 MAX_F32 = ((f32)3.402823466e+38f);
+static constexpr f64 MAX_F64 = ((f64)1.79769313486231570814527423731704357e+308L);
+static constexpr f32 MAX_F32 = ((f32)3.40282346638528859811704183484516925e+38f);
 
 // Min floating point constants
-static constexpr f64 MIN_F64 = ((f64)2.2250738585072014e-308);
+static constexpr f64 MIN_F64 =        ((f64)MAX_F64);
 static constexpr f64 MIN_NORMAL_F64 = ((f64)2.2250738585072014e-308);
-static constexpr f32 MIN_F32 = ((f32)1.175494351e-38f);
+static constexpr f32 MIN_F32 =        ((f32)-MAX_F32);
 static constexpr f32 MIN_NORMAL_F32 = ((f32)1.175494351e-38f);
 
 static constexpr f32 EPSILON_F32 = 1.19209e-07;

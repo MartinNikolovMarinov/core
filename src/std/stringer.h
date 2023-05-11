@@ -2,6 +2,7 @@
 
 #include <string>
 #include <std/mat.h>
+#include <std/vec.h>
 
 namespace core {
 
@@ -19,6 +20,20 @@ std::string to_string(const mat<TRow, TCol, T>& m) {
         }
         ret += "}";
         if (i != m.dimensionsRows() - 1) {
+            ret += ", ";
+        }
+    }
+    ret += "}";
+    return ret;
+}
+
+template <i32 TSize, typename T>
+std::string to_string(const vec<TSize, T>& v) {
+    std::string ret;
+    ret += "{";
+    for (i32 i = 0; i < v.dimensions(); ++i) {
+        ret += std::to_string(v[i]);
+        if (i != v.dimensions() - 1) {
             ret += ", ";
         }
     }

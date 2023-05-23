@@ -139,7 +139,7 @@ core::expected<GraphicsLibError> init(CommonState& s) {
         return core::unexpected(core::move(err));
     }
 
-    glfwSetMouseButtonCallback(glfwWindow, [](GLFWwindow*, i32 button, i32 action, i32 mods) {
+    glfwSetMouseButtonCallback(glfwWindow, [](GLFWwindow*, i32 button, i32 action, i32) {
         State& g_s = state();
         KeyInfo mouseButton = KeyInfo::createFromGLFW(button, 0, action);
         g_s.mouse.setButton(mouseButton);
@@ -459,88 +459,61 @@ void mainLoop(CommonState& commonState) {
             renderLine(g_s.a.x(), g_s.a.y(), g_s.b.x(), g_s.b.y(), lineWidth, core::GREEN);
         }
 
-        if (res.hasEntry) {
-            auto start = res.entry;
-            auto end = res.exit;
-            auto dir = end - start;
+        if(res.hasEntry) {
+            auto src = res.entry;
+            auto end = res.hasExit ? res.exit : g_s.b;
+            auto dir = end - src;
+            auto invDir = core::v(dir.x() != 0 ? 1 / dir.x() : core::MAX_F32,
+                                  dir.y() != 0 ? 1 / dir.y() : core::MAX_F32);
+            auto size = core::v(f32(g_s.cellWidth), f32(g_s.cellHeight));
+            core::vec2i step = core::v(dir.x() > 0 ? 1 : -1,
+                                       dir.y() > 0 ? 1 : -1);
 
-            i32 cellX = core::move(toCellCoordinates(start).get<0>());
-            i32 cellY = core::move(toCellCoordinates(start).get<1>());
-            i32 stepX = dir.x() > 0 ? 1 : -1;
-            i32 stepY = dir.y() > 0 ? 1 : -1;
+            core::vec2f idx = src / size;
+            core::vec2f entryIdxUp = core::vceil(idx);
+            core::vec2f entryIdxDown = core::vfloor(idx);
+            core::vec2f tUp = (size * entryIdxUp - src) * invDir;
+            core::vec2f tDown = (size * entryIdxDown - src) * invDir;
 
-            f32 tMaxX = ((cellX + 1)*g_s.cellWidth - start.x()) / dir.x();
-            f32 tMaxY = ((cellY + 1)*g_s.cellHeight - start.y()) / dir.y();
-            f32 tDeltaX = g_s.cellWidth / dir.x();
-            f32 tDeltaY = g_s.cellHeight / dir.y();
+            core::vec2f tU = size * core::vabs(invDir);
+            core::vec2f t = core::vmax(tUp, tDown);
 
-            while (cellX < g_s.cellsPerRow && cellY < g_s.cellsPerCol) {
-                const auto currPos = core::v(start.x() + tMaxX * dir.x(), start.y() + tMaxY * dir.y());
-                fmt::print("currPos: {}\n", core::to_string(currPos).c_str());
-                auto& cell = g_s.cells[cellX + cellY * g_s.cellsPerRow];
+            core::vec2i cellIdx;
+            auto ret = toCellCoordinates(size * entryIdxDown);
+            cellIdx.x() = core::move(ret.get<0>());
+            cellIdx.y() = core::move(ret.get<1>());
+
+            f32 curT = core::min(t.x(), t.y());
+            f32 maxT = core::min(end.x(), end.y());
+
+            auto loopCondition = [&]() {
+                // Spliting the condition into two parts to simplify debugging.
+                bool ret = true;
+                ret &= 0 <= cellIdx.x() && cellIdx.x() < i32(g_s.cellsPerRow);
+                ret &= 0 <= cellIdx.y() && cellIdx.y() < i32(g_s.cellsPerCol);
+                ret &= curT < maxT;
+                return ret;
+            };
+
+            while (loopCondition()) {
+                auto &cell = g_s.cells[i32(cellIdx.x()) + i32(cellIdx.y()) * g_s.cellsPerRow];
                 if (cell.isOn) {
-                    renderQuad(cell.pos.x(), cell.pos.y(), 10, 10, core::YELLOW, true);
+                    renderCell(cell, core::BLUE);
                     break;
                 }
 
-                if (tMaxX < tMaxY) {
-                    tMaxX += tDeltaX;
-                    cellX += stepX;
+                if (t.x() < t.y()) {
+                    curT = t.x();
+                    t.x() += tU.x();
+                    cellIdx.x() += step.x();
                 }
                 else {
-                    tMaxY += tDeltaY;
-                    cellY += stepY;
+                    curT = t.y();
+                    t.y() += tU.y();
+                    cellIdx.y() += step.y();
                 }
             }
         }
-
-        // if(res.hasEntry) {
-        //     auto start = res.intersections[0];
-        //     auto end = res.hasExit ? res.intersections[1] : g_s.b;
-        //     auto dir = end - start;
-
-        //     f32 dx = g_s.cellWidth;
-        //     f32 dy = g_s.cellHeight;
-        //     u32 cellX, cellY, endCellX, endCellY;
-        //     {
-        //         auto res = toCellCoordinates(start);
-        //         cellX = core::move(res.get<0>());
-        //         cellY = core::move(res.get<1>());
-        //     }
-        //     {
-        //         auto res = toCellCoordinates(end);
-        //         endCellX = core::move(res.get<0>());
-        //         endCellY = core::move(res.get<1>());
-        //     }
-        //     f32 tMaxX = dx / core::abs(end.x() - start.x());
-        //     f32 tMaxY = dy / core::abs(end.y() - start.y());
-        //     f32 axu = tMaxX;
-        //     f32 ayu = tMaxY;
-        //     i32 stepX = dir.x() > 0 ? 1 : -1;
-        //     i32 stepY = dir.y() > 0 ? 1 : -1;
-
-        //     while(true) {
-        //         auto& cell = g_s.cells[cellY * g_s.cellsPerRow + cellX];
-        //         if (cell.isOn) {
-        //             // Collision detected in this cell
-        //             renderQuad(cell.pos.x(), cell.pos.y(), 10, 10, core::BLUE, true);
-        //             break;
-        //         }
-
-        //         if (axu < ayu) {
-        //             axu += tMaxX;
-        //             cellX += stepX;
-        //         }
-        //         else {
-        //             ayu += tMaxY;
-        //             cellY += stepY;
-        //         }
-
-        //         if (cellX >= g_s.cellsPerRow || cellY >= g_s.cellsPerCol) {
-        //             break;
-        //         }
-        //     }
-        // }
 
         // TODO: If the ray is inside the grid there I should just find the starting cell and start from there.
     }

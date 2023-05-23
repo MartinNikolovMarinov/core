@@ -205,6 +205,61 @@ constexpr vec<Dim, T> lerp(const vec<Dim, T>& a, const vec<Dim, T>& b, f32 t) {
     return (1.0f - t) * a + t * b;
 }
 
+// Absolute Value
+
+template<i32 Dim, typename T>
+constexpr vec<Dim, T> vabs(const vec<Dim, T>& v) {
+    vec<Dim, T> ret;
+    for (i32 i = 0; i < v.dimensions(); ++i) {
+        ret[i] = core::abs(v[i]);
+    }
+    return ret;
+}
+
+// Max Value
+
+template<i32 Dim, typename T>
+constexpr vec<Dim, T> vmax(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
+    vec<Dim, T> ret;
+    for (i32 i = 0; i < v1.dimensions(); ++i) {
+        ret[i] = core::max(v1[i], v2[i]);
+    }
+    return ret;
+}
+
+// Min Value
+
+template<i32 Dim, typename T>
+constexpr vec<Dim, T> vmin(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
+    vec<Dim, T> ret;
+    for (i32 i = 0; i < v1.dimensions(); ++i) {
+        ret[i] = core::min(v1[i], v2[i]);
+    }
+    return ret;
+}
+
+// Ceiling
+
+template<i32 Dim, typename T>
+constexpr vec<Dim, T> vceil(const vec<Dim, T>& v) {
+    vec<Dim, T> ret;
+    for (i32 i = 0; i < v.dimensions(); ++i) {
+        ret[i] = core::ceil(v[i]);
+    }
+    return ret;
+}
+
+// Floor
+
+template<i32 Dim, typename T>
+constexpr vec<Dim, T> vfloor(const vec<Dim, T>& v) {
+    vec<Dim, T> ret;
+    for (i32 i = 0; i < v.dimensions(); ++i) {
+        ret[i] = core::floor(v[i]);
+    }
+    return ret;
+}
+
 #pragma endregion
 
 template<i32 Dim, typename T>

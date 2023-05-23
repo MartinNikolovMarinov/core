@@ -402,12 +402,12 @@ void renderGrid(const Grid2D& grid, u32 rows, u32 cols, f32 lineWidth, const cor
     }
 }
 
-core::tuple<i32, i32> toCellCoordinates(const core::vec2f& x) {
+core::tuple<i32, i32> toCellCoordinates(const core::vec2d& x) {
     State& g_s = state();
-    auto cellsDelta = core::v(f32(g_s.cellWidth), f32(g_s.cellHeight));
-    auto t = (x - g_s.cellsBbox.min) / cellsDelta;
-    i32 cellX = i32(core::clamp(t.x(), 0.0f, f32(g_s.cellsPerRow - 1)));
-    i32 cellY = i32(core::clamp(t.y(), 0.0f, f32(g_s.cellsPerCol - 1)));
+    auto cellsDelta = core::v(f64(g_s.cellWidth), f64(g_s.cellHeight));
+    auto t = (x -  core::v_conv<core::vec2d>(g_s.cellsBbox.min)) / cellsDelta;
+    i32 cellX = i32(core::clamp(t.x(), 0.0, f64(g_s.cellsPerRow - 1)));
+    i32 cellY = i32(core::clamp(t.y(), 0.0, f64(g_s.cellsPerCol - 1)));
     return core::create_tuple(std::move(cellX), std::move(cellY));
 }
 
@@ -460,31 +460,31 @@ void mainLoop(CommonState& commonState) {
         }
 
         if(res.hasEntry) {
-            auto src = res.entry;
-            auto end = res.hasExit ? res.exit : g_s.b;
-            auto dir = end - src;
-            auto invDir = core::v(dir.x() != 0 ? 1 / dir.x() : core::MAX_F32,
+            core::vec2d src = core::v_conv<core::vec2d>(res.entry);
+            core::vec2d end = res.hasExit ? core::v_conv<core::vec2d>(res.exit) : core::v_conv<core::vec2d>(g_s.b);
+            core::vec2d dir = end - src;
+            core::vec2d invDir = core::v(dir.x() != 0 ? 1 / dir.x() : core::MAX_F32,
                                   dir.y() != 0 ? 1 / dir.y() : core::MAX_F32);
-            auto size = core::v(f32(g_s.cellWidth), f32(g_s.cellHeight));
+            core::vec2d size = core::v(f64(g_s.cellWidth), f64(g_s.cellHeight));
             core::vec2i step = core::v(dir.x() > 0 ? 1 : -1,
                                        dir.y() > 0 ? 1 : -1);
 
-            core::vec2f idx = src / size;
-            core::vec2f entryIdxUp = core::vceil(idx);
-            core::vec2f entryIdxDown = core::vfloor(idx);
-            core::vec2f tUp = (size * entryIdxUp - src) * invDir;
-            core::vec2f tDown = (size * entryIdxDown - src) * invDir;
+            core::vec2d idx = src / size;
+            core::vec2d entryIdxUp = core::vceil(idx);
+            core::vec2d entryIdxDown = core::vfloor(idx);
+            core::vec2d tUp = (size * entryIdxUp - src) * invDir;
+            core::vec2d tDown = (size * entryIdxDown - src) * invDir;
 
-            core::vec2f tU = size * core::vabs(invDir);
-            core::vec2f t = core::vmax(tUp, tDown);
+            core::vec2d tU = size * core::vabs(invDir);
+            core::vec2d t = core::vmax(tUp, tDown);
 
             core::vec2i cellIdx;
             auto ret = toCellCoordinates(size * entryIdxDown);
             cellIdx.x() = core::move(ret.get<0>());
             cellIdx.y() = core::move(ret.get<1>());
 
-            f32 curT = core::min(t.x(), t.y());
-            f32 maxT = core::min(end.x(), end.y());
+            f64 curT = core::min(t.x(), t.y());
+            f64 maxT = core::min(end.x(), end.y());
 
             auto loopCondition = [&]() {
                 // Spliting the condition into two parts to simplify debugging.
@@ -501,6 +501,9 @@ void mainLoop(CommonState& commonState) {
                     renderCell(cell, core::BLUE);
                     break;
                 }
+                cell.isOn = true;
+                renderCell(cell, core::BLUE);
+                cell.isOn = false;
 
                 if (t.x() < t.y()) {
                     curT = t.x();

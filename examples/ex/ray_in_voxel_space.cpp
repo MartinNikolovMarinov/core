@@ -126,8 +126,8 @@ core::expected<GraphicsLibError> init(CommonState& s) {
 
     glfwSetCursorPosCallback(glfwWindow, [](GLFWwindow*, f64 xpos, f64 ypos) {
         State& g_s = state();
-        xpos = core::blend(0.0f, f32(g_s.viewportWidth), g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), f32(xpos));
-        ypos = core::blend(0.0f, f32(g_s.viewportHeight), g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y(), f32(ypos));
+        xpos = core::map2DRange(0.0f, f32(g_s.viewportWidth), g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), f32(xpos));
+        ypos = core::map2DRange(0.0f, f32(g_s.viewportHeight), g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y(), f32(ypos));
         xpos = core::round_to(xpos, 3);
         ypos = core::round_to(ypos, 3);
         g_s.mouse.setPos(xpos, ypos);
@@ -348,8 +348,8 @@ void renderQuad(f32 x, f32 y, f32 width, f32 height, const core::vec4f& color, b
 
     auto topLeft = core::v(x + width / 2, y + height / 2);
     auto pos = g_s.worldSpaceGrid.convertTo_v(topLeft, g_s.viewSpaceGrid);
-    width = core::blend(g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f, width);
-    height = core::blend(g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y(), 0.0f, 1.0f, height);
+    width = core::map2DRange(g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f, width);
+    height = core::map2DRange(g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y(), 0.0f, 1.0f, height);
     auto model = renderModel_quad2D(pos.x(), pos.y(), 0.0f, width, height);
 
     auto mvp = g_s.projectionMat * g_s.viewMat * model;
@@ -380,7 +380,7 @@ void renderLine(f32 x1, f32 y1, f32 x2, f32 y2, f32 lineWidth, const core::vec4f
 
     auto start = g_s.worldSpaceGrid.convertTo_v(core::v(x1, y1), g_s.viewSpaceGrid);
     auto end = g_s.worldSpaceGrid.convertTo_v(core::v(x2, y2), g_s.viewSpaceGrid);
-    lineWidth = core::blend(g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f, lineWidth);
+    lineWidth = core::map2DRange(g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f, lineWidth);
     auto model = renderModel_line(start.x(), start.y(), end.x(), end.y(), lineWidth);
 
     auto mvp = g_s.projectionMat * g_s.viewMat * model;
@@ -464,7 +464,7 @@ void mainLoop(CommonState& commonState) {
             core::vec2d end = res.hasExit ? core::v_conv<core::vec2d>(res.exit) : core::v_conv<core::vec2d>(g_s.b);
             core::vec2d dir = end - src;
             core::vec2d invDir = core::v(dir.x() != 0 ? 1 / dir.x() : core::MAX_F32,
-                                  dir.y() != 0 ? 1 / dir.y() : core::MAX_F32);
+                                         dir.y() != 0 ? 1 / dir.y() : core::MAX_F32);
             core::vec2d size = core::v(f64(g_s.cellWidth), f64(g_s.cellHeight));
             core::vec2i step = core::v(dir.x() > 0 ? 1 : -1,
                                        dir.y() > 0 ? 1 : -1);

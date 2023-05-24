@@ -276,7 +276,7 @@ core::vec3f rayColor(const ray& r, const hittable& world, i32 depth) {
     auto t = 0.5f * (unitDirection.y() + 1.0f);
     constexpr auto colorA = core::v(1.0f, 1.0f, 1.0f);
     constexpr auto colorB = core::v(0.5f, 0.7f, 1.0f);
-    return core::lerp(colorA, colorB, t);
+    return core::vlerp(colorA, colorB, t);
 }
 
 class camera {

@@ -201,8 +201,8 @@ constexpr vec<Dim, T> vnorm(const vec<Dim, T>& v) {
 // Linear Interpolation
 
 template<i32 Dim, typename T>
-constexpr vec<Dim, T> lerp(const vec<Dim, T>& a, const vec<Dim, T>& b, f32 t) {
-    return (1.0f - t) * a + t * b;
+constexpr vec<Dim, T> vlerp(const vec<Dim, T>& a, const vec<Dim, T>& b, f32 t) {
+    return (1 - t) * a + t * b;
 }
 
 // Absolute Value

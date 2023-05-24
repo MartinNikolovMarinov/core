@@ -18,12 +18,12 @@ void int_to_cptr_test() {
         { -2147483648, "-2147483648" }
     };
 
-    for (auto& c : cases) {
+    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         char buf[20] = {};
         u32 digitCount = core::digit_count(c.in);
         core::int_to_cptr(c.in, buf, digitCount);
-        Assert(core::cptr_eq(buf, core::cptr_len(buf), c.expected, core::cptr_len(c.expected)));
-    }
+        Assert(core::cptr_eq(buf, core::cptr_len(buf), c.expected, core::cptr_len(c.expected)), cErr);
+    });
 }
 
 constexpr void cptr_len_test() {
@@ -48,10 +48,10 @@ constexpr void cptr_len_test() {
         { "asd\0aszxc", 3 } // This is where danger lies.
     };
 
-    for (auto& c : cases) {
+    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         ptr_size len = core::cptr_len(c.in);
-        Assert(len == c.expected);
-    }
+        Assert(len == c.expected, cErr);
+    });
 }
 
 constexpr void cptr_cmp_tests() {
@@ -76,13 +76,13 @@ constexpr void cptr_cmp_tests() {
         { "abb",   "abc",   test_case::negative },
     };
 
-    for (auto& c : cases) {
+    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         switch (c.expected) {
-            case 1:  Assert(core::cptr_cmp(c.a, core::cptr_len(c.a), c.b, core::cptr_len(c.b)) > 0);  break;
-            case -1: Assert(core::cptr_cmp(c.a, core::cptr_len(c.a), c.b, core::cptr_len(c.b)) < 0);  break;
-            case 0:  Assert(core::cptr_cmp(c.a, core::cptr_len(c.a), c.b, core::cptr_len(c.b)) == 0); break;
+            case 1:  Assert(core::cptr_cmp(c.a, core::cptr_len(c.a), c.b, core::cptr_len(c.b)) > 0, cErr);  break;
+            case -1: Assert(core::cptr_cmp(c.a, core::cptr_len(c.a), c.b, core::cptr_len(c.b)) < 0, cErr);  break;
+            case 0:  Assert(core::cptr_cmp(c.a, core::cptr_len(c.a), c.b, core::cptr_len(c.b)) == 0, cErr); break;
         }
-    }
+    });
 }
 
 void cptr_cpy_test() {
@@ -136,10 +136,10 @@ constexpr void cptr_idx_of_char_test() {
         { "1234567890", 'z', -1 },
     };
 
-    for (auto& c : cases) {
+    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         ptr_size idx = core::cptr_idx_of_char(c.src, core::cptr_len(c.src), c.val);
-        Assert(idx == c.idx);
-    }
+        Assert(idx == c.idx, cErr);
+    });
 }
 
 constexpr void cptr_idx_of_test() {
@@ -168,10 +168,10 @@ constexpr void cptr_idx_of_test() {
         { "1234", "12345", -1 },
     };
 
-    for (auto& c : cases) {
+    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         ptr_size idx = core::cptr_idx_of(c.src, core::cptr_len(c.src), c.val, core::cptr_len(c.val));
-        Assert(idx == c.idx);
-    }
+        Assert(idx == c.idx, cErr);
+    });
 }
 
 void run_cptr_ptr_tests_suite() {

@@ -163,7 +163,7 @@ void is_positive_test() {
     Assert(core::is_positive(f64(-1)) == false);
 }
 
-void float_safe_eq() {
+void float_safe_eq_test() {
     struct test_case {
         f32 startA;
         f32 startB;
@@ -201,7 +201,7 @@ void float_safe_eq() {
     }
 }
 
-void float_nearly_eq() {
+void float_nearly_eq_test() {
     struct test_case {
         f32 a;
         f32 b;
@@ -263,7 +263,7 @@ void float_nearly_eq() {
         { 0.0f, -1e-40f, 0.00000001f, false },
 
         { MAX_F32, MAX_F32, defaultEpsilon, true },
-        // { MAX_F32, -MAX_F32, defaultEpsilon, false }, // FIXME: These 2 look like a bug.
+        // { MAX_F32, -MAX_F32, defaultEpsilon, false }, // TODO: These 2 look like a bug. But I might not care.
         // { -MAX_F32, MAX_F32, defaultEpsilon, false },
         { MAX_F32, MAX_F32 / 2, defaultEpsilon, false },
         { MAX_F32, -MAX_F32 / 2, defaultEpsilon, false },
@@ -282,16 +282,66 @@ void float_nearly_eq() {
         { -MIN_F32, 0.000000001f, defaultEpsilon, false },
     };
 
+    executeTestTable("float_nearly_eq test case failed at index: ", cases, [](auto& c, const char* cErr) {
+        Assert(core::nearly_eq(c.a, c.b, c.epsilon) == c.expected, cErr);
+    });
+}
 
-    i32 i = 0;
-    constexpr const char* iterAsCptrFmt = "float_nearly_eq test case failed at index: ";
-    constexpr const ptr_size iterAsCptrFmtLen = core::cptr_len(iterAsCptrFmt);
-    char iterAsCptr[iterAsCptrFmtLen + 20] = {};
-    core::memcopy(iterAsCptr, iterAsCptrFmt, iterAsCptrFmtLen);
-    char* appendIdx = &iterAsCptr[iterAsCptrFmtLen];
-    for (auto& c : cases) {
-        core::int_to_cptr(i++, appendIdx, 2);
-        Assert(core::nearly_eq(c.a, c.b, c.epsilon) == c.expected, iterAsCptr);
+void sign_test() {
+    {
+        struct test_case {
+            f32 a;
+            i32 expected;
+        };
+
+        constexpr test_case cases[] = {
+            { 0.f, 0 },
+            { -0.f, 1 }, // damn that is a weird one.
+            { 1.f, 0 },
+            { -1.f, 1 },
+            { 100.f, 0 },
+            { -100.f, 1 },
+            { 1000000.f, 0 },
+            { -1000000.f, 1 },
+            { 0.000000001f, 0 },
+            { -0.000000001f, 1 },
+            { 0.000000000001f, 0 },
+            { -0.000000000001f, 1 },
+            { 0.000000000000001f, 0 },
+            { -0.000000000000001f, 1 },
+        };
+
+        executeTestTable("sign test case for f32 failed at index: ", cases, [](auto& c, const char* cErr) {
+            Assert(core::sign(c.a) == c.expected, cErr);
+        });
+    }
+
+    {
+        struct test_case {
+            f64 a;
+            i32 expected;
+        };
+
+        constexpr test_case cases[] = {
+            { 0.0, 0 },
+            { -0.0, 1 }, // damn that is a weird one.
+            { 1.0, 0 },
+            { -1.0, 1 },
+            { 100.0, 0 },
+            { -100.0, 1 },
+            { 1000000.0, 0 },
+            { -1000000.0, 1 },
+            { 0.000000001, 0 },
+            { -0.000000001, 1 },
+            { 0.000000000001, 0 },
+            { -0.000000000001, 1 },
+            { 0.000000000000001, 0 },
+            { -0.000000000000001, 1 },
+        };
+
+        executeTestTable("sign test case for f64 failed at index: ", cases, [](auto& c, const char* cErr) {
+            Assert(core::sign(c.a) == c.expected, cErr);
+        });
     }
 }
 
@@ -300,6 +350,7 @@ void run_core_math_tests_suite() {
     RunTest(pow_u64_test);
     RunTest(abs_test);
     RunTest(is_positive_test);
-    RunTest(float_safe_eq);
-    RunTest(float_nearly_eq);
+    RunTest(float_safe_eq_test);
+    RunTest(float_nearly_eq_test);
+    RunTest(sign_test);
 }

@@ -23,8 +23,18 @@ constexpr u64 pow_u64(i64 n, u32 p) {
 }
 
 template <typename T>
-constexpr T sign(T n) {
+constexpr i32 sign_slow(T n) {
     return n < 0 ? -1 : 1;
+}
+
+constexpr i32 sign(f32 n) {
+    union { f32 f; u32 i; } u = { n };
+    return u.i >> 31;
+}
+
+constexpr i32 sign(f64 n) {
+    union { f64 f; u64 i; } u = { n };
+    return u.i >> 63;
 }
 
 template <typename TFloat>
@@ -77,8 +87,8 @@ inline T clamp(T value, T min, T max) {
     return core::max(min, core::min(max, value));
 }
 
-// NOTE: This is pretty fast branchless check. Its collapsed to a single instruction on x86 and ARM by most compilers.
 inline f32 abs(f32 a) {
+    // NOTE: This is pretty fast branchless check. Its collapsed to a single instruction on x86 and ARM by most compilers.
     i32* ip = reinterpret_cast<i32*>(&a);
     *ip &= 0x7fffffff;
     return a;
@@ -96,8 +106,8 @@ constexpr T abs(T a) {
     return a < 0 ? -a : a;
 }
 
-// NOTE: This is pretty fast branchless check. Its collapsed to a single instruction on x86 and ARM by most compilers.
 inline bool is_positive(f32 a) {
+    // NOTE: This is pretty fast branchless check. Its collapsed to a single instruction on x86 and ARM by most compilers.
     i32* ip = reinterpret_cast<i32*>(&a);
     *ip = (*ip >> 31) << 1;
     return *ip == 0;
@@ -129,14 +139,24 @@ constexpr bool is_positive(i64 a) {
     return temp == 0;
 }
 
+/**
+ * @brief Safely compare two floats for being equal. It's a very basic epsilon comparison.
+*/
 inline bool safe_eq(f32 a, f32 b, f32 epsilon) {
     return core::abs(a - b) < epsilon;
 }
 
+/**
+ * @brief Safely compare two floats for being equal. It's a very basic epsilon comparison.
+*/
 inline bool safe_eq(f64 a, f64 b, f64 epsilon) {
     return core::abs(a - b) < epsilon;
 }
 
+/**
+ * @brief Compares two floating point numbers for being nearly equal, depending on the given epsilon.
+ *        This is much more precise than the safe_eq function, but also significantly slower.
+*/
 inline bool nearly_eq(f32 a, f32 b, f32 epsilon) {
     if (a == b) return true;
     f32 absA = core::abs(a);
@@ -148,6 +168,10 @@ inline bool nearly_eq(f32 a, f32 b, f32 epsilon) {
     return diff / core::min((absA + absB), MAX_F32) < epsilon;
 }
 
+/**
+ * @brief Compares two floating point numbers for being nearly equal, depending on the given epsilon.
+ *        This is much more precise than the safe_eq function, but also significantly slower.
+*/
 inline bool nearly_eq(f64 a, f64 b, f64 epsilon) {
     if (a == b) return true;
     f64 absA = core::abs(a);
@@ -159,10 +183,51 @@ inline bool nearly_eq(f64 a, f64 b, f64 epsilon) {
     return diff / core::min((absA + absB), MAX_F64) < epsilon;
 }
 
+/**
+ * @brief Performs an affine transformation on a value from one 2d range to another.
+ *
+ * @param x1 The start of the first range.
+ * @param y1 The end of the first range.
+ * @param x2 The start of the second range.
+ * @param y2 The end of the second range.
+ * @param t The value to transform.
+ *
+ * @return The transformed value.
+*/
 template <typename TFloat>
-inline TFloat blend(TFloat x1, TFloat y1, TFloat x2, TFloat y2, TFloat t) {
+inline TFloat map2DRange(TFloat x1, TFloat y1, TFloat x2, TFloat y2, TFloat t) {
     Assert((y1 - x1) != 0, "division by zero");
     return ((t - x1) * (y2 - x2)) / (y1 - x1) + x2;
+}
+
+/**
+ * @brief Performs a precise monotonic linear interpolation between two values.
+ *        When t = 1, b is returned.
+ *
+ * @param a The start value.
+ * @param b The end value.
+ * @param t The interpolation factor.
+ *
+ * @return The interpolated value.
+*/
+template <typename TFloat>
+inline TFloat lerp(TFloat a, TFloat b, TFloat t) {
+    return (1 - t) * a + t * b;
+}
+
+/**
+ * @brief Performs an imprecise linear interpolation between two values.
+ *        This does not guarantee that when t = 1 that b is returned.
+ *
+ * @param a The start value.
+ * @param b The end value.
+ * @param t The interpolation factor.
+ *
+ * @return The interpolated value.
+*/
+template <typename TFloat>
+inline TFloat lerp_fast(TFloat a, TFloat b, TFloat t) {
+    return a + t * (b - a);
 }
 
 } // namespace core

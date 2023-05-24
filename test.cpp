@@ -15,6 +15,23 @@ using namespace coretypes;
     suite(__VA_ARGS__);                                                                                  \
     std::cout << "[SUITE " << ANSI_BOLD(ANSI_GREEN("PASSED")) << "] " << ANSI_BOLD(#suite) << std::endl;
 
+// This code is quite complex, because it is zero allocation, but it does somthing very simple.
+// It iterates over a table of test cases, and executes the assertion function on each one.
+// The assertion function, the test case table, and the error message prefix are all passed in as arguments.
+// Every error message is pre-allocated on the stack, and the test case index is manipulated inside the char array.
+template <i32 PLen, typename TCase, i32 NCases, typename Afunc>
+inline constexpr void executeTestTable(const char (&errMsgPrefix)[PLen], const TCase (&cases)[NCases], Afunc assertionFn) {
+    i32 i = 0;
+    char errMsg[PLen + 20] = {}; // The 20 is for the test case index number.
+    core::memcopy(errMsg, errMsgPrefix, PLen);
+    char* appendIdx = &errMsg[PLen - 1];
+    for (auto& c : cases) {
+        core::int_to_cptr(i, appendIdx, 2);
+        assertionFn(c, errMsg);
+        i++;
+    }
+}
+
 #include "test/run_tests.cpp"
 #include "test/std/run_tests.cpp"
 

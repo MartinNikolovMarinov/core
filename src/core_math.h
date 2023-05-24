@@ -39,6 +39,7 @@ constexpr i32 sign(f64 n) {
 
 template <typename TFloat>
 constexpr TFloat round(TFloat n) {
+    // FIXME: take musl fast implementation
     return n < 0.0f ? n - 0.5f : n + 0.5f;
 }
 
@@ -49,11 +50,13 @@ constexpr TFloat round_to(TFloat n, u32 to) {
 
 template <typename TFloat>
 constexpr TFloat floor(TFloat n) {
+    // FIXME: wrong implementation
     return n < 0.0f ? n - 1.0f : n;
 }
 
 template <typename TFloat>
 constexpr TFloat ceil(TFloat n) {
+    // FIXME: wrong implementation
     return n < 0.0f ? n : n + 1.0f;
 }
 
@@ -68,12 +71,14 @@ constexpr f32 rad_to_deg(f32 n) {
 template <typename T>
 constexpr T max(T a, T b) {
     // can be done branchless, but it's not faster.
+    // FIXME: cases where floats x and y are none should be handled somehow!
     return a > b ? a : b;
 }
 
 template <typename T>
 constexpr T min(T a, T b) {
     // can be done branchless, but it's not faster.
+    // FIXME: cases where floats x and y are none should be handled somehow!
     return a < b ? a : b;
 }
 

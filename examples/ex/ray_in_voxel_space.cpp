@@ -517,8 +517,6 @@ void mainLoop(CommonState& commonState) {
                 }
             }
         }
-
-        // TODO: If the ray is inside the grid there I should just find the starting cell and start from there.
     }
 
     // Render Cells:

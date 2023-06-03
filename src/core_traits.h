@@ -65,7 +65,7 @@ typename AddRValue<T>::type declval() noexcept {
 
 #pragma endregion
 
-#pragma region Is Trivially Destructible ------------------------------------------------------------------------------
+#pragma region Compiler Intrinsic Traits ------------------------------------------------------------------------------
 
 template<typename T>
 struct IsTriviallyDestructible {

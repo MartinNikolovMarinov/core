@@ -139,13 +139,6 @@ struct CORE_API_EXPORT arr {
         return *this;
     }
 
-    constexpr arr& fill(data_type&& val) {
-        for (size_type i = 0; i < m_len; ++i) {
-            steal_data_at(core::move(val), i);
-        }
-        return *this;
-    }
-
     constexpr void resize(size_type newCap) {
         if (newCap <= m_cap) {
             // FIXME: There is a subtle bug here. Just by manipulating len and cap I can shrink the array pretty fast,

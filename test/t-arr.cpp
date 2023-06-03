@@ -71,35 +71,80 @@ void resize_arr() {
 
 template<typename TAllocator>
 void fill_arr() {
-    core::arr<i32, TAllocator> arr(10);
-
-    arr.fill(0);
-    for (i32 i = 0; i < arr.len(); ++i) {
-        Assert(arr[i] == 0);
+    {
+        core::arr<i32, TAllocator> arr;
+        arr.fill(0); // should not crash
+        Assert(arr.len() == 0);
     }
 
-    arr.fill(1);
-    for (i32 i = 0; i < arr.len(); ++i) {
-        Assert(arr[i] == 1);
+    {
+        core::arr<i32, TAllocator> arr(10);
+
+        arr.fill(0);
+        for (i32 i = 0; i < arr.len(); ++i) {
+            Assert(arr[i] == 0);
+        }
+
+        arr.fill(1);
+        for (i32 i = 0; i < arr.len(); ++i) {
+            Assert(arr[i] == 1);
+        }
     }
 
-    // fill with struct
-    struct test_struct {
-        i32 a;
-        f64 b;
-    };
-    core::arr<test_struct*, TAllocator> arr2(10);
-    test_struct t = { 1, 2.0 };
+    {
+        // fill with struct
+        struct TestStruct {
+            i32 a;
+            f64 b;
+        };
+        core::arr<TestStruct*, TAllocator> arr2(10);
+        TestStruct t = { 1, 2.0 };
 
-    arr2.fill(&t);
-    for (i32 i = 0; i < arr2.len(); ++i) {
-        Assert(arr2[i]->a == 1);
-        Assert(arr2[i]->b == 2.0);
+        arr2.fill(&t);
+        for (i32 i = 0; i < arr2.len(); ++i) {
+            Assert(arr2[i]->a == 1);
+            Assert(arr2[i]->b == 2.0);
+        }
+
+        arr2.fill(nullptr);
+        for (i32 i = 0; i < arr2.len(); ++i) {
+            Assert(arr2[i] == nullptr);
+        }
     }
 
-    arr2.fill(nullptr);
-    for (i32 i = 0; i < arr2.len(); ++i) {
-        Assert(arr2[i] == nullptr);
+    {
+        static constexpr i32 testCount = 5;
+        static i32 destructorsCalled = 0;
+        // fill with non-trivial struct
+        struct TestStruct {
+            i32 a;
+            TestStruct() : a(7) {}
+            ~TestStruct() { destructorsCalled++; }
+        };
+        auto v = TestStruct{};
+
+        {
+            core::arr<TestStruct, TAllocator> arr(testCount);
+            arr.fill(v);
+            for (i32 i = 0; i < arr.len(); ++i) {
+                Assert(arr[i].a == 7);
+                arr[i].a = 8;
+            }
+        }
+        Assert(destructorsCalled == testCount, "Destructors where not called after the array went out of scope.");
+        Assert(v.a == 7, "The value passed to fill was modified.");
+
+        destructorsCalled = 0;
+
+        {
+            core::arr<TestStruct, TAllocator> arr(testCount);
+            core::arr<TestStruct, TAllocator> arr2;
+            arr.fill(v);
+            arr = core::move(arr2);
+            Assert(destructorsCalled == testCount, "Destructors were not called after a move assignment.");
+        }
+
+        destructorsCalled = 0;
     }
 }
 

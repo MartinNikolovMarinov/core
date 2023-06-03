@@ -25,38 +25,31 @@ void initialize_arr() {
     }
 
     {
-        static constexpr i32 testCount = 5;
-        static i32 destructorsCalled = 0;
-        static i32 constructorsCalled = 0;
-        struct TestStruct {
-            i32 a;
-            TestStruct() : a(7) { constructorsCalled++; }
-            TestStruct(const TestStruct& other) : a(other.a) { constructorsCalled++; }
-            TestStruct(TestStruct&& other) = delete;
-            ~TestStruct() { destructorsCalled++; }
-        };
-
+        defer { CT::resetAll(); };
+        constexpr i32 testCount = 10;
         {
-            core::arr<TestStruct, TAllocator> arr(testCount);
+            core::arr<CT, TAllocator> arr(testCount);
             for (i32 i = 0; i < arr.len(); ++i) {
                 Assert(arr[i].a == 7, "Initializer did not call constructors!");
             }
-            Assert(constructorsCalled == testCount, "Initializer did not call the exact number of constructors!");
-            constructorsCalled = 0;
+            Assert(CT::totalCtorsCalled() == testCount, "Initializer did not call the exact number of constructors!");
+            Assert(CT::defaultCtorCalled() == testCount, "Initializer did not call the exact number of copy constructors!");
+            CT::resetCtors();
             {
                 auto arrCpy = arr;
                 Assert(arrCpy.data() != arr.data());
                 for (i32 i = 0; i < arrCpy.len(); ++i) {
                     Assert(arrCpy[i].a == 7, "Copy constructor did not call constructors!");
                 }
-                Assert(constructorsCalled == testCount, "Copy constructor did not call the exact number of constructors!");
-                constructorsCalled = 0;
+                Assert(CT::totalCtorsCalled() == testCount, "Copy constructor did not call the exact number of constructors!");
+                Assert(CT::copyCtorCalled() == testCount, "Copy constructor did not call the exact number of copy constructors!");
+                CT::resetCtors();
             }
-            Assert(destructorsCalled == testCount, "Copy constructor did not call destructors!");
-            destructorsCalled = 0;
+            Assert(CT::dtorsCalled() == testCount, "Copy constructor did not call destructors!");
+            CT::resetDtors();
         }
-        Assert(destructorsCalled == testCount, "Copy constructor did not call destructors!");
-        destructorsCalled = 0;
+        Assert(CT::dtorsCalled() == testCount, "Copy constructor did not call destructors!");
+        CT::resetDtors();
     }
 }
 
@@ -98,13 +91,13 @@ void resize_arr() {
         Assert(arr.data() == nullptr);
         Assert(arr.empty());
 
-        arr.resize(10);
+        arr.reserve(10);
         Assert(arr.len() == 0);
         Assert(arr.cap() == 10);
         Assert(arr.data() != nullptr);
         Assert(arr.empty());
 
-        arr.resize(0);
+        arr.reserve(0);
         Assert(arr.len() == 0);
         Assert(arr.cap() == 0);
         Assert(arr.data() != nullptr);
@@ -156,38 +149,30 @@ void fill_arr() {
     }
 
     {
-        static constexpr i32 testCount = 5;
-        static i32 destructorsCalled = 0;
-        // fill with non-trivial struct
-        struct TestStruct {
-            i32 a;
-            TestStruct() : a(7) {}
-            ~TestStruct() { destructorsCalled++; }
-        };
-        auto v = TestStruct{};
+        defer { CT::resetAll(); };
+        constexpr i32 testCount = 10;
+        CT v;
 
         {
-            core::arr<TestStruct, TAllocator> arr(testCount);
+            core::arr<CT, TAllocator> arr(testCount);
             arr.fill(v);
             for (i32 i = 0; i < arr.len(); ++i) {
-                Assert(arr[i].a == 7);
+                Assert(arr[i].a == 7, "Fill did not call the default constructors.");
                 arr[i].a = 8;
             }
         }
-        Assert(destructorsCalled == testCount, "Destructors where not called after the array went out of scope.");
+        Assert(CT::dtorsCalled() == testCount, "Destructors where not called after the array went out of scope.");
         Assert(v.a == 7, "The value passed to the fill function was modified.");
-
-        destructorsCalled = 0;
+        CT::resetDtors();
 
         {
-            core::arr<TestStruct, TAllocator> arr(testCount);
-            core::arr<TestStruct, TAllocator> arr2;
+            core::arr<CT, TAllocator> arr(testCount);
+            core::arr<CT, TAllocator> arr2;
             arr.fill(v);
             arr = core::move(arr2);
-            Assert(destructorsCalled == testCount, "Destructors were not called after a move assignment.");
+            Assert(CT::dtorsCalled() == testCount, "Destructors were not called after a move assignment.");
         }
-
-        destructorsCalled = 0;
+        CT::resetDtors();
     }
 }
 
@@ -230,7 +215,7 @@ void append_arr() {
             Assert(arr.at(i) == i + 1);
         }
 
-        arr.resize(2);
+        arr.reserve(2);
 
         arr.append(3);
         Assert(arr.len() == 3);
@@ -255,62 +240,78 @@ void append_arr() {
             Assert(arr[i] == i + 1);
             Assert(arr.at(i) == i + 1);
         }
+
+        arr.clear();
+
+        // Append many trivial values.
+        int many[5] = { 1, 2, 3, 4, 5 };
+        arr.append(many, 5);
+        Assert(arr.len() == 5);
+        Assert(arr.cap() >= arr.len());
+        for (i32 i = 0; i < 5; ++i) {
+            Assert(arr[i] == i + 1);
+            Assert(arr.at(i) == i + 1);
+        }
     }
 
     {
-        static i32 destructorsCalled = 0;
-        static i32 copyCtorCalled = 0;
-        static i32 moveCtorCalled = 0;
-        struct TestStruct {
-            i32 a;
-            TestStruct() : a(7) { }
-            TestStruct(const TestStruct& other) : a(other.a) { copyCtorCalled++; }
-            TestStruct(TestStruct&& other) : a(core::move(other.a)) { moveCtorCalled++; }
-            ~TestStruct() { destructorsCalled++; }
-        };
-        TestStruct lv;
+        defer { CT::resetAll(); };
+        CT lv;
+        CT::resetCtors(); // Don't count the default ctors of the above code
 
         {
-            core::arr<TestStruct, TAllocator> arr;
-            arr.append(TestStruct{});
+            core::arr<CT, TAllocator> arr;
+            arr.append(CT{});
             arr.append(lv);
-            Assert(copyCtorCalled == 1);
-            Assert(moveCtorCalled == 1);
+            Assert(CT::copyCtorCalled() == 1);
+            Assert(CT::moveCtorCalled() == 1);
             for (i32 i = 0; i < arr.len(); ++i) {
-                Assert(arr[i].a == 7);
+                Assert(arr[i].a == 7, "Append did not call the default constructors.");
             }
         }
-        Assert(destructorsCalled == 3);
-        destructorsCalled = 0;
-        copyCtorCalled = 0;
-        moveCtorCalled = 0;
+        Assert(CT::dtorsCalled() == 3);
+        CT::resetAll();
 
-        // Testing a combination of append and resize.
+        // Testing a combination of append and reserve.
         {
-            core::arr<TestStruct, TAllocator> arr;
-            arr.resize(1);
+            core::arr<CT, TAllocator> arr;
+            arr.reserve(1);
             Assert(arr.len() == 0);
             Assert(arr.cap() == 1);
-            Assert(copyCtorCalled == 0);
-            Assert(moveCtorCalled == 0);
+            Assert(CT::noCtorsCalled());
 
-            arr.append(TestStruct{}); // calls ctor and dtor
+            arr.append(CT{}); // calls ctor and dtor
             arr.append(lv);
             for (i32 i = 0; i < arr.len(); ++i) {
-                Assert(arr[i].a == 7);
+                Assert(arr[i].a == 7, "Append did not call the default constructors.");
             }
             Assert(arr.len() == 2);
             Assert(arr.cap() == 2);
-            arr.resize(0); // This resize should call the destructors.
+            arr.reserve(0); // This reserve should call the destructors.
             Assert(arr.len() == 0);
             Assert(arr.cap() == 0);
-            Assert(destructorsCalled == 3);
+            Assert(CT::dtorsCalled() == 3);
         }
-        Assert(destructorsCalled == 3);
-        destructorsCalled = 0;
-        destructorsCalled = 0;
-        copyCtorCalled = 0;
-        moveCtorCalled = 0;
+        Assert(CT::dtorsCalled() == 3);
+        CT::resetAll();
+
+        // Test appending multiple values
+        CT staticArr[5];
+        CT::resetCtors(); // Don't count the default ctors of the above code
+        {
+            core::arr<CT, TAllocator> arr;
+            arr.append(staticArr, 5);
+            Assert(arr.len() == 5);
+            Assert(arr.cap() >= arr.len());
+            Assert(CT::copyCtorCalled() == 5);
+            Assert(CT::moveCtorCalled() == 0);
+            Assert(CT::defaultCtorCalled() == 0);
+            for (i32 i = 0; i < arr.len(); ++i) {
+                Assert(arr[i].a == 7, "Append multiple did not call the default constructors.");
+            }
+        }
+        Assert(CT::dtorsCalled() == 5);
+        CT::resetAll();
     }
 }
 

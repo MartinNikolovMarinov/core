@@ -105,7 +105,7 @@ struct CORE_API_EXPORT arr {
 
     constexpr arr& append(const data_type& val) {
         if (m_len == m_cap) {
-            resize(m_cap == 0 ? 1 : m_cap * 2);
+            reserve(m_cap == 0 ? 1 : m_cap * 2);
         }
         copyDataAt(val, m_len);
         m_len++;
@@ -114,7 +114,7 @@ struct CORE_API_EXPORT arr {
 
     constexpr arr& append(data_type&& val) {
         if (m_len == m_cap) {
-            resize(m_cap == 0 ? 1 : m_cap * 2);
+            reserve(m_cap == 0 ? 1 : m_cap * 2);
         }
         stealDataAt(core::move(val), m_len);
         m_len++;
@@ -123,7 +123,7 @@ struct CORE_API_EXPORT arr {
 
     constexpr arr& append(const data_type* val, size_type len) {
         if (m_len + len > m_cap) {
-            resize(m_cap == 0 ? len : m_cap * 2);
+            reserve(m_cap == 0 ? len : m_cap * 2);
         }
         copyDataAt(val, m_len, len);
         m_len += len;
@@ -137,7 +137,7 @@ struct CORE_API_EXPORT arr {
         return *this;
     }
 
-    constexpr void resize(size_type newCap) {
+    constexpr void reserve(size_type newCap) {
         if (newCap <= m_cap) {
             if constexpr (dataIsTrivial) {
                 m_len = m_len > newCap ? newCap : m_len;
@@ -156,7 +156,7 @@ struct CORE_API_EXPORT arr {
 
         // reallocate
         data_type* newData = reinterpret_cast<data_type *>(core::alloc<allocator_type>(newCap * sizeof(data_type)));
-        // NOTE: Choosing not to clear the new memory here might bite me in the ass later.
+        // NOTE: Choosing not to clear the new memory here might bite my ass later.
         Assert(newData != nullptr);
         if (m_data != nullptr) {
             core::memcopy(newData, m_data, m_len * sizeof(data_type));
@@ -171,18 +171,18 @@ private:
     size_type m_cap;
     size_type m_len;
 
-    inline void stealDataAt(data_type&& val, size_type pos) {
+    inline void stealDataAt(data_type&& rval, size_type pos) {
         auto& rawBytes = m_data[pos];
-        new (reinterpret_cast<void*>(&rawBytes)) data_type(core::move(val));
+        new (reinterpret_cast<void*>(&rawBytes)) data_type(core::move(rval));
     }
 
-    inline void copyDataAt(const data_type& rval, size_type pos) {
+    inline void copyDataAt(const data_type& lval, size_type pos) {
         if constexpr (dataIsTrivial) {
-            core::memcopy(m_data + pos, &rval, sizeof(data_type));
+            core::memcopy(m_data + pos, &lval, sizeof(data_type));
         }
         else {
             auto& rawBytes = m_data[pos];
-            new (reinterpret_cast<void*>(&rawBytes)) data_type(rval);
+            new (reinterpret_cast<void*>(&rawBytes)) data_type(lval);
         }
     }
 

@@ -27,20 +27,30 @@ void initialize_arr() {
     {
         static constexpr i32 testCount = 5;
         static i32 destructorsCalled = 0;
+        static i32 constructorsCalled = 0;
         struct TestStruct {
             i32 a;
-            TestStruct() : a(7) {}
+            TestStruct() : a(7) { constructorsCalled++; }
+            TestStruct(const TestStruct& other) : a(other.a) { constructorsCalled++; }
+            TestStruct(TestStruct&& other) = delete;
             ~TestStruct() { destructorsCalled++; }
         };
 
         {
             core::arr<TestStruct, TAllocator> arr(testCount);
+            for (i32 i = 0; i < arr.len(); ++i) {
+                Assert(arr[i].a == 7, "Initializer did not call constructors!");
+            }
+            Assert(constructorsCalled == testCount, "Initializer did not call the exact number of constructors!");
+            constructorsCalled = 0;
             {
                 auto arrCpy = arr;
                 Assert(arrCpy.data() != arr.data());
                 for (i32 i = 0; i < arrCpy.len(); ++i) {
                     Assert(arrCpy[i].a == 7, "Copy constructor did not call constructors!");
                 }
+                Assert(constructorsCalled == testCount, "Copy constructor did not call the exact number of constructors!");
+                constructorsCalled = 0;
             }
             Assert(destructorsCalled == testCount, "Copy constructor did not call destructors!");
             destructorsCalled = 0;

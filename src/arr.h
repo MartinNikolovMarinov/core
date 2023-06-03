@@ -22,6 +22,7 @@ struct CORE_API_EXPORT arr {
         if (m_cap > 0) {
             m_data = reinterpret_cast<data_type *>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
             Assert(m_data != nullptr);
+            callDefaultCtorsIfTypeIsNonTrivial();
         }
     }
     constexpr arr(size_type len, size_type cap) : m_data(nullptr), m_cap(cap), m_len(len) {
@@ -29,14 +30,14 @@ struct CORE_API_EXPORT arr {
         if (m_cap > 0) {
             m_data = reinterpret_cast<data_type *>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
             Assert(m_data != nullptr);
+            callDefaultCtorsIfTypeIsNonTrivial();
         }
     }
     constexpr arr(const arr& other) : m_data(nullptr), m_cap(other.m_cap), m_len(other.m_len) {
         if (m_cap > 0) {
             m_data = reinterpret_cast<data_type *>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
             Assert(m_data != nullptr);
-            // FIXME: This is a bug when data is not trivially copyable!
-            core::memcopy(m_data, other.m_data, m_len * sizeof(data_type));
+            copyDataAt(other.m_data, 0, m_len);
         }
     }
     constexpr arr(arr&& other) : m_data(other.m_data), m_cap(other.m_cap), m_len(other.m_len) {
@@ -103,7 +104,8 @@ struct CORE_API_EXPORT arr {
         if (m_len == m_cap) {
             resize(m_cap == 0 ? 1 : m_cap * 2);
         }
-        copy_data_at(val, m_len++);
+        copyDataAt(val, m_len);
+        m_len++;
         return *this;
     }
 
@@ -111,33 +113,23 @@ struct CORE_API_EXPORT arr {
         if (m_len == m_cap) {
             resize(m_cap == 0 ? 1 : m_cap * 2);
         }
-        steal_data_at(core::move(val), m_len++);
+        stealDataAt(core::move(val), m_len);
+        m_len++;
         return *this;
     }
 
-    constexpr arr& append(data_type* val, size_type len, bool doNotCallCtors = false) {
+    constexpr arr& append(data_type* val, size_type len) {
         if (m_len + len > m_cap) {
             resize(m_cap == 0 ? len : m_cap * 2);
         }
-        if (doNotCallCtors) {
-            // You can go faster, but the drawback to this is that you cannot use this in constexpr functions.
-            // Can't assume destructors will be called!
-            // For example, this can NOT be used to append array of arrays, or memory leaks will happen.
-            // TODO: I could probably write some trait checking magic to detect if the type is NOT
-            //       trivially constructable and disallow this code path in those cases!
-            core::memcopy(m_data + m_len, val, len * sizeof(data_type));
-        }
-        else {
-            for (size_type i = 0; i < len; ++i) {
-                copy_data_at(val[i], m_len++);
-            }
-        }
+        copyDataAt(val, m_len, len);
+        m_len += len;
         return *this;
     }
 
     constexpr arr& fill(const data_type& val) {
         for (size_type i = 0; i < m_len; ++i) {
-            copy_data_at(val, i);
+            copyDataAt(val, i);
         }
         return *this;
     }
@@ -170,18 +162,39 @@ private:
     size_type m_cap;
     size_type m_len;
 
-    // This calls the data_type MOVE constructor onto the rawBytes.
-    // This makes sure that raw memory that is actually used will call a constructor.
-    inline void steal_data_at(data_type&& val, size_type pos) {
+    inline void stealDataAt(data_type&& val, size_type pos) {
         auto& rawBytes = m_data[pos];
         new (reinterpret_cast<void*>(&rawBytes)) data_type(core::move(val));
     }
 
-    // This calls the data_type COPY constructor onto the rawBytes.
-    // This makes sure that raw memory that is actually used will call a constructor.
-    inline void copy_data_at(const data_type& val, size_type pos) {
-        auto& rawBytes = m_data[pos];
-        new (reinterpret_cast<void*>(&rawBytes)) data_type(val);
+    inline void copyDataAt(const data_type& rval, size_type pos) {
+        if constexpr (core::IsTrivial_v<data_type>) {
+            core::memcopy(m_data + pos, &rval, sizeof(data_type));
+        }
+        else {
+            auto& rawBytes = m_data[pos];
+            new (reinterpret_cast<void*>(&rawBytes)) data_type(rval);
+        }
+    }
+
+    inline void copyDataAt(const data_type* pval, size_type pos, size_type len) {
+        if constexpr (core::IsTrivial_v<data_type>) {
+            core::memcopy(m_data + pos, pval, len * sizeof(data_type));
+        }
+        else {
+            for (size_type i = 0; i < len; i++) {
+                auto& rawBytes = m_data[i + pos];
+                new (reinterpret_cast<void*>(&rawBytes)) data_type(pval[i]);
+            }
+        }
+    }
+
+    inline void callDefaultCtorsIfTypeIsNonTrivial() {
+        if constexpr (!core::IsTrivial_v<data_type>) {
+            for (size_type i = 0; i < m_len; ++i) {
+                new (&m_data[i]) data_type();
+            }
+        }
     }
 };
 

@@ -1,22 +1,53 @@
 template<typename TAllocator>
 void initialize_arr() {
-    core::arr<i32, TAllocator> arr;
-    Assert(arr.len() == 0);
-    Assert(arr.cap() == 0);
-    Assert(arr.data() == nullptr);
-    Assert(arr.empty());
+    {
+        core::arr<i32, TAllocator> arr;
+        Assert(arr.len() == 0);
+        Assert(arr.cap() == 0);
+        Assert(arr.data() == nullptr);
+        Assert(arr.empty());
+    }
 
-    core::arr<i32, TAllocator> arr2(10);
-    Assert(arr2.len() == 10);
-    Assert(arr2.cap() == 10);
-    Assert(arr2.data() != nullptr);
-    Assert(!arr2.empty());
+    {
+        core::arr<i32, TAllocator> arr(10);
+        Assert(arr.len() == 10);
+        Assert(arr.cap() == 10);
+        Assert(arr.data() != nullptr);
+        Assert(!arr.empty());
+    }
 
-    core::arr<i32, TAllocator> arr3(10, 20);
-    Assert(arr3.len() == 10);
-    Assert(arr3.cap() == 20);
-    Assert(arr3.data() != nullptr);
-    Assert(!arr3.empty());
+    {
+        core::arr<i32, TAllocator> arr(10, 20);
+        Assert(arr.len() == 10);
+        Assert(arr.cap() == 20);
+        Assert(arr.data() != nullptr);
+        Assert(!arr.empty());
+    }
+
+    {
+        static constexpr i32 testCount = 5;
+        static i32 destructorsCalled = 0;
+        struct TestStruct {
+            i32 a;
+            TestStruct() : a(7) {}
+            ~TestStruct() { destructorsCalled++; }
+        };
+
+        {
+            core::arr<TestStruct, TAllocator> arr(testCount);
+            {
+                auto arrCpy = arr;
+                Assert(arrCpy.data() != arr.data());
+                for (i32 i = 0; i < arrCpy.len(); ++i) {
+                    Assert(arrCpy[i].a == 7, "Copy constructor did not call constructors!");
+                }
+            }
+            Assert(destructorsCalled == testCount, "Copy constructor did not call destructors!");
+            destructorsCalled = 0;
+        }
+        Assert(destructorsCalled == testCount, "Copy constructor did not call destructors!");
+        destructorsCalled = 0;
+    }
 }
 
 template<typename TAllocator>

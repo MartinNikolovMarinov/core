@@ -35,17 +35,20 @@ struct CORE_API_EXPORT arr {
         if (m_cap > 0) {
             m_data = reinterpret_cast<data_type *>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
             Assert(m_data != nullptr);
+            // FIXME: This is a bug when data is not trivially copyable!
             core::memcopy(m_data, other.m_data, m_len * sizeof(data_type));
         }
     }
     constexpr arr(arr&& other) : m_data(other.m_data), m_cap(other.m_cap), m_len(other.m_len) {
+        if (this == &other) return;
         other.m_data = nullptr;
         other.m_cap = 0;
         other.m_len = 0;
     }
     ~arr() { free(); }
 
-    // Ensist on move for equals operator. Prevent coping unintentionally using = !
+    // Prevent copy assignment, because it is unwanted behaviour most of the time.
+    //This does not prevent auto arr2 = arr1; but prevents arr2 = arr1; !
     constexpr arr& operator=(const arr& other) = delete;
     constexpr arr& operator=(arr&& other) {
         if (this == &other) return *this;
@@ -74,7 +77,7 @@ struct CORE_API_EXPORT arr {
 
     constexpr void free() {
         if (m_data == nullptr) return;
-        if constexpr (!core::IsTriviallyDestructible_v<T>) {
+        if constexpr (!core::IsTriviallyDestructible_v<data_type>) {
             // For elements that are not trivially destructible call destructors manually:
             for (size_type i = 0; i < m_len; ++i) {
                 m_data[i].~T();

@@ -37,6 +37,8 @@ inline constexpr void executeTestTable(const char (&errMsgPrefix)[PLen], const T
 
 i32 main(i32, const char **) {
     core::set_global_assert_handler([](const char* failedExpr, const char* file, i32 line, const char* errMsg) {
+        constexpr u32 stackFramesToSkip = 3;
+        std::string trace = core::stacktrace(200, stackFramesToSkip);
         std::cout << ANSI_RED_START() << ANSI_BOLD_START()
                   << "[ASSERTION] [EXPR]: " << failedExpr
                   << " [FILE]: " << file
@@ -44,6 +46,7 @@ i32 main(i32, const char **) {
                   << " [MSG]: " << errMsg
                   << ANSI_RESET()
                   << std::endl; // flush stream!
+        std::cout << ANSI_BOLD_START() << "[TRACE]:\n" << trace << ANSI_RESET() << std::endl; // flush stream!
         throw std::runtime_error("Assertion failed!");
         return false;
     });

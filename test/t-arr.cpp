@@ -91,23 +91,25 @@ void move_and_copy_arr() {
 
 template<typename TAllocator>
 void resize_arr() {
-    core::arr<i32, TAllocator> arr;
-    Assert(arr.len() == 0);
-    Assert(arr.cap() == 0);
-    Assert(arr.data() == nullptr);
-    Assert(arr.empty());
+    {
+        core::arr<i32, TAllocator> arr;
+        Assert(arr.len() == 0);
+        Assert(arr.cap() == 0);
+        Assert(arr.data() == nullptr);
+        Assert(arr.empty());
 
-    arr.resize(10);
-    Assert(arr.len() == 0);
-    Assert(arr.cap() == 10);
-    Assert(arr.data() != nullptr);
-    Assert(arr.empty());
+        arr.resize(10);
+        Assert(arr.len() == 0);
+        Assert(arr.cap() == 10);
+        Assert(arr.data() != nullptr);
+        Assert(arr.empty());
 
-    arr.resize(0);
-    Assert(arr.len() == 0);
-    Assert(arr.cap() == 0);
-    Assert(arr.data() != nullptr);
-    Assert(arr.empty());
+        arr.resize(0);
+        Assert(arr.len() == 0);
+        Assert(arr.cap() == 0);
+        Assert(arr.data() != nullptr);
+        Assert(arr.empty());
+    }
 }
 
 template<typename TAllocator>
@@ -173,7 +175,7 @@ void fill_arr() {
             }
         }
         Assert(destructorsCalled == testCount, "Destructors where not called after the array went out of scope.");
-        Assert(v.a == 7, "The value passed to fill was modified.");
+        Assert(v.a == 7, "The value passed to the fill function was modified.");
 
         destructorsCalled = 0;
 
@@ -191,66 +193,124 @@ void fill_arr() {
 
 template<typename TAllocator>
 void append_arr() {
-    core::arr<i32, TAllocator> arr;
+    {
+        core::arr<i32, TAllocator> arr;
 
-    arr.append(1);
-    for (i32 i = 0; i < 1; ++i) {
-        Assert(arr[i] == i + 1);
-        Assert(arr.at(i) == i + 1);
+        arr.append(1);
+        for (i32 i = 0; i < 1; ++i) {
+            Assert(arr[i] == i + 1);
+            Assert(arr.at(i) == i + 1);
+        }
+
+        arr.append(2);
+        for (i32 i = 0; i < 2; ++i) {
+            Assert(arr[i] == i + 1);
+            Assert(arr.at(i) == i + 1);
+        }
+
+        arr.clear();
+
+        arr.append(1);
+        for (i32 i = 0; i < 1; ++i) {
+            Assert(arr[i] == i + 1);
+            Assert(arr.at(i) == i + 1);
+        }
+
+        arr.append(2);
+        for (i32 i = 0; i < 2; ++i) {
+            Assert(arr[i] == i + 1);
+            Assert(arr.at(i) == i + 1);
+        }
+
+        arr.append(3);
+        Assert(arr.len() == 3);
+        Assert(arr.cap() >= arr.len());
+        for (i32 i = 0; i < 3; ++i) {
+            Assert(arr[i] == i + 1);
+            Assert(arr.at(i) == i + 1);
+        }
+
+        arr.resize(2);
+
+        arr.append(3);
+        Assert(arr.len() == 3);
+        Assert(arr.cap() >= arr.len());
+        for (i32 i = 0; i < 3; ++i) {
+            Assert(arr[i] == i + 1);
+            Assert(arr.at(i) == i + 1);
+        }
+
+        arr.append(4);
+        Assert(arr.len() == 4);
+        Assert(arr.cap() >= arr.len());
+        for (i32 i = 0; i < 4; ++i) {
+            Assert(arr[i] == i + 1);
+            Assert(arr.at(i) == i + 1);
+        }
+
+        arr.append(5);
+        Assert(arr.len() == 5);
+        Assert(arr.cap() >= arr.len());
+        for (i32 i = 0; i < 5; ++i) {
+            Assert(arr[i] == i + 1);
+            Assert(arr.at(i) == i + 1);
+        }
     }
 
-    arr.append(2);
-    for (i32 i = 0; i < 2; ++i) {
-        Assert(arr[i] == i + 1);
-        Assert(arr.at(i) == i + 1);
-    }
+    {
+        static i32 destructorsCalled = 0;
+        static i32 copyCtorCalled = 0;
+        static i32 moveCtorCalled = 0;
+        struct TestStruct {
+            i32 a;
+            TestStruct() : a(7) { }
+            TestStruct(const TestStruct& other) : a(other.a) { copyCtorCalled++; }
+            TestStruct(TestStruct&& other) : a(core::move(other.a)) { moveCtorCalled++; }
+            ~TestStruct() { destructorsCalled++; }
+        };
+        TestStruct lv;
 
-    arr.clear();
+        {
+            core::arr<TestStruct, TAllocator> arr;
+            arr.append(TestStruct{});
+            arr.append(lv);
+            Assert(copyCtorCalled == 1);
+            Assert(moveCtorCalled == 1);
+            for (i32 i = 0; i < arr.len(); ++i) {
+                Assert(arr[i].a == 7);
+            }
+        }
+        Assert(destructorsCalled == 3);
+        destructorsCalled = 0;
+        copyCtorCalled = 0;
+        moveCtorCalled = 0;
 
-    arr.append(1);
-    for (i32 i = 0; i < 1; ++i) {
-        Assert(arr[i] == i + 1);
-        Assert(arr.at(i) == i + 1);
-    }
+        // Testing a combination of append and resize.
+        {
+            core::arr<TestStruct, TAllocator> arr;
+            arr.resize(1);
+            Assert(arr.len() == 0);
+            Assert(arr.cap() == 1);
+            Assert(copyCtorCalled == 0);
+            Assert(moveCtorCalled == 0);
 
-    arr.append(2);
-    for (i32 i = 0; i < 2; ++i) {
-        Assert(arr[i] == i + 1);
-        Assert(arr.at(i) == i + 1);
-    }
-
-    arr.append(3);
-    Assert(arr.len() == 3);
-    Assert(arr.cap() >= arr.len());
-    for (i32 i = 0; i < 3; ++i) {
-        Assert(arr[i] == i + 1);
-        Assert(arr.at(i) == i + 1);
-    }
-
-    arr.resize(2);
-
-    arr.append(3);
-    Assert(arr.len() == 3);
-    Assert(arr.cap() >= arr.len());
-    for (i32 i = 0; i < 3; ++i) {
-        Assert(arr[i] == i + 1);
-        Assert(arr.at(i) == i + 1);
-    }
-
-    arr.append(4);
-    Assert(arr.len() == 4);
-    Assert(arr.cap() >= arr.len());
-    for (i32 i = 0; i < 4; ++i) {
-        Assert(arr[i] == i + 1);
-        Assert(arr.at(i) == i + 1);
-    }
-
-    arr.append(5);
-    Assert(arr.len() == 5);
-    Assert(arr.cap() >= arr.len());
-    for (i32 i = 0; i < 5; ++i) {
-        Assert(arr[i] == i + 1);
-        Assert(arr.at(i) == i + 1);
+            arr.append(TestStruct{}); // calls ctor and dtor
+            arr.append(lv);
+            for (i32 i = 0; i < arr.len(); ++i) {
+                Assert(arr[i].a == 7);
+            }
+            Assert(arr.len() == 2);
+            Assert(arr.cap() == 2);
+            arr.resize(0); // This resize should call the destructors.
+            Assert(arr.len() == 0);
+            Assert(arr.cap() == 0);
+            Assert(destructorsCalled == 3);
+        }
+        Assert(destructorsCalled == 3);
+        destructorsCalled = 0;
+        destructorsCalled = 0;
+        copyCtorCalled = 0;
+        moveCtorCalled = 0;
     }
 }
 

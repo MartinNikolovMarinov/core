@@ -27,8 +27,6 @@ void scale_test() {
     Assert(v == core::v(0.0f, 0.0f));
 }
 
-#include <iostream>
-
 void rotate2d_test() {
     constexpr core::vec2f origin = core::v(0.0f, 0.0f);
 
@@ -76,7 +74,6 @@ void rotate2d_test() {
 
     v = {1.0f, 2.0f};
     v = core::rotate(v, origin2, core::deg_to_rad(0.0f));
-    std::cout << v.x() << ", " << v.y() << std::endl;
     Assert(v.equals(core::v(1.0f, 2.0f), 0.0001f));
 }
 

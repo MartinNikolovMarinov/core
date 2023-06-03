@@ -17,6 +17,9 @@ struct CORE_API_EXPORT arr {
     using size_type      = ptr_size;
     using allocator_type = TAllocator;
 
+    static constexpr bool dataIsTrivial = core::IsTrivial_v<data_type>;
+    static constexpr bool dataHasTrivialDestructor = core::IsTriviallyDestructible_v<data_type>;
+
     constexpr arr() : m_data(nullptr), m_cap(0), m_len(0) {}
     constexpr arr(size_type len) : m_data(nullptr), m_cap(len), m_len(len) {
         if (m_cap > 0) {
@@ -78,7 +81,7 @@ struct CORE_API_EXPORT arr {
 
     constexpr void free() {
         if (m_data == nullptr) return;
-        if constexpr (!core::IsTriviallyDestructible_v<data_type>) {
+        if constexpr (!dataHasTrivialDestructor) {
             // For elements that are not trivially destructible call destructors manually:
             for (size_type i = 0; i < m_len; ++i) {
                 m_data[i].~T();
@@ -118,7 +121,7 @@ struct CORE_API_EXPORT arr {
         return *this;
     }
 
-    constexpr arr& append(data_type* val, size_type len) {
+    constexpr arr& append(const data_type* val, size_type len) {
         if (m_len + len > m_cap) {
             resize(m_cap == 0 ? len : m_cap * 2);
         }
@@ -136,12 +139,18 @@ struct CORE_API_EXPORT arr {
 
     constexpr void resize(size_type newCap) {
         if (newCap <= m_cap) {
-            // FIXME: There is a subtle bug here. Just by manipulating len and cap I can shrink the array pretty fast,
-            //        but the destructors of the shrunk elements will not be called.
-            //        I need to either remove the shrinking functionality, or call destructors manually!
-            //        When this gets fixed write some tests for it!
-            m_len = m_len > newCap ? newCap : m_len;
-            m_cap = newCap;
+            if constexpr (dataIsTrivial) {
+                m_len = m_len > newCap ? newCap : m_len;
+                m_cap = newCap;
+            }
+            else {
+                // For elements that are not trivially destructible call destructors manually:
+                for (size_type i = newCap; i < m_len; ++i) {
+                    m_data[i].~T();
+                }
+                m_len = m_len > newCap ? newCap : m_len;
+                m_cap = newCap;
+            }
             return;
         }
 
@@ -168,7 +177,7 @@ private:
     }
 
     inline void copyDataAt(const data_type& rval, size_type pos) {
-        if constexpr (core::IsTrivial_v<data_type>) {
+        if constexpr (dataIsTrivial) {
             core::memcopy(m_data + pos, &rval, sizeof(data_type));
         }
         else {
@@ -178,7 +187,7 @@ private:
     }
 
     inline void copyDataAt(const data_type* pval, size_type pos, size_type len) {
-        if constexpr (core::IsTrivial_v<data_type>) {
+        if constexpr (dataIsTrivial) {
             core::memcopy(m_data + pos, pval, len * sizeof(data_type));
         }
         else {
@@ -190,7 +199,7 @@ private:
     }
 
     inline void callDefaultCtorsIfTypeIsNonTrivial() {
-        if constexpr (!core::IsTrivial_v<data_type>) {
+        if constexpr (!dataIsTrivial) {
             for (size_type i = 0; i < m_len; ++i) {
                 new (&m_data[i]) data_type();
             }

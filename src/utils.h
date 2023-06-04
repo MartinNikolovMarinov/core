@@ -4,8 +4,6 @@
 #include <types.h>
 #include <core_traits.h>
 
-#pragma once
-
 namespace core {
 
 using namespace coretypes;

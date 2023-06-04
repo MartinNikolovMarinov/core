@@ -1,3 +1,5 @@
+#pragma once
+
 #include <types.h>
 #include <mem.h>
 #include <char_ptr.h>

@@ -112,18 +112,18 @@ constexpr void pow_u64_test() {
 }
 
 void abs_test() {
-    Assert(core::abs(i8(0)) == 0);
-    Assert(core::abs(i8(1)) == 1);
-    Assert(core::abs(i8(-1)) == 1);
-    Assert(core::abs(i16(0)) == 0);
-    Assert(core::abs(i16(1)) == 1);
-    Assert(core::abs(i16(-1)) == 1);
-    Assert(core::abs(i32(0)) == 0);
-    Assert(core::abs(i32(1)) == 1);
-    Assert(core::abs(i32(-1)) == 1);
-    Assert(core::abs(i64(0)) == 0);
-    Assert(core::abs(i64(1)) == 1);
-    Assert(core::abs(i64(-1)) == 1);
+    Assert(core::abs_slow(i8(0)) == 0);
+    Assert(core::abs_slow(i8(1)) == 1);
+    Assert(core::abs_slow(i8(-1)) == 1);
+    Assert(core::abs_slow(i16(0)) == 0);
+    Assert(core::abs_slow(i16(1)) == 1);
+    Assert(core::abs_slow(i16(-1)) == 1);
+    Assert(core::abs_slow(i32(0)) == 0);
+    Assert(core::abs_slow(i32(1)) == 1);
+    Assert(core::abs_slow(i32(-1)) == 1);
+    Assert(core::abs_slow(i64(0)) == 0);
+    Assert(core::abs_slow(i64(1)) == 1);
+    Assert(core::abs_slow(i64(-1)) == 1);
     Assert(core::abs(f32(0)) == 0.0f);
     Assert(core::abs(f32(1)) == 1.0f);
     Assert(core::abs(f32(-1)) == 1.0f);
@@ -132,14 +132,14 @@ void abs_test() {
     Assert(core::abs(f64(-1)) == 1.0);
 
     // check with max and min values
-    Assert(core::abs(i8(core::MAX_I8))       == core::MAX_I8);
-    Assert(core::abs(i8(core::MIN_I8 + 1))   == core::MAX_I8);
-    Assert(core::abs(i16(core::MAX_I16))     == core::MAX_I16);
-    Assert(core::abs(i16(core::MIN_I16 + 1)) == core::MAX_I16);
-    Assert(core::abs(i32(core::MAX_I32))     == core::MAX_I32);
-    Assert(core::abs(i32(core::MIN_I32 + 1)) == core::MAX_I32);
-    Assert(core::abs(i64(core::MAX_I64))     == core::MAX_I64);
-    Assert(core::abs(i64(core::MIN_I64 + 1)) == core::MAX_I64);
+    Assert(core::abs_slow(i8(core::MAX_I8))       == core::MAX_I8);
+    Assert(core::abs_slow(i8(core::MIN_I8 + 1))   == core::MAX_I8);
+    Assert(core::abs_slow(i16(core::MAX_I16))     == core::MAX_I16);
+    Assert(core::abs_slow(i16(core::MIN_I16 + 1)) == core::MAX_I16);
+    Assert(core::abs_slow(i32(core::MAX_I32))     == core::MAX_I32);
+    Assert(core::abs_slow(i32(core::MIN_I32 + 1)) == core::MAX_I32);
+    Assert(core::abs_slow(i64(core::MAX_I64))     == core::MAX_I64);
+    Assert(core::abs_slow(i64(core::MIN_I64 + 1)) == core::MAX_I64);
 }
 
 void is_positive_test() {
@@ -164,7 +164,7 @@ void is_positive_test() {
 }
 
 void float_safe_eq_test() {
-    struct test_case {
+    struct TestCase {
         f32 startA;
         f32 startB;
         f32 step;
@@ -173,7 +173,7 @@ void float_safe_eq_test() {
         bool expected;
     };
 
-    test_case cases[] = {
+    TestCase cases[] = {
         { 0.1, 0.1, 0.1,  0.01,  10, true },
         { 0.1, 0.1, 0.2,  0.01,  10, true },
         { 0.1, 0.1, 0.01, 0.01, 100, true },
@@ -202,7 +202,7 @@ void float_safe_eq_test() {
 }
 
 void float_nearly_eq_test() {
-    struct test_case {
+    struct TestCase {
         f32 a;
         f32 b;
         f32 epsilon;
@@ -211,7 +211,7 @@ void float_nearly_eq_test() {
 
     constexpr f32 defaultEpsilon = 0.00001f;
 
-    test_case cases[] = {
+    TestCase cases[] = {
         { 1000000.f, 1000001.f, defaultEpsilon, true },
         { 1000001.f, 1000000.f, defaultEpsilon, true },
         { 10000.f, 10001.f, defaultEpsilon, false },
@@ -289,12 +289,12 @@ void float_nearly_eq_test() {
 
 void sign_test() {
     {
-        struct test_case {
+        struct TestCase {
             f32 a;
             i32 expected;
         };
 
-        constexpr test_case cases[] = {
+        constexpr TestCase cases[] = {
             { 0.f, 0 },
             { -0.f, 1 }, // damn that is a weird one.
             { 1.f, 0 },
@@ -317,12 +317,12 @@ void sign_test() {
     }
 
     {
-        struct test_case {
+        struct TestCase {
             f64 a;
             i32 expected;
         };
 
-        constexpr test_case cases[] = {
+        constexpr TestCase cases[] = {
             { 0.0, 0 },
             { -0.0, 1 }, // damn that is a weird one.
             { 1.0, 0 },

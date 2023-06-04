@@ -55,8 +55,9 @@ static constexpr f64 MIN_NORMAL_F64 = ((f64)2.2250738585072014e-308);
 static constexpr f32 MIN_F32 =        ((f32)-MAX_F32);
 static constexpr f32 MIN_NORMAL_F32 = ((f32)1.175494351e-38f);
 
-static constexpr f32 EPSILON_F32 = 1.19209e-07;
-static constexpr f32 EPSILON_F64 = 2.22045e-16;
+// Epsilon floating point constants (NOTE: I think this is instruction set dependent)
+static constexpr f32 EPSILON_F32 = 1.19209289550781250000000000000000000e-7F;
+static constexpr f32 EPSILON_F64 = 2.22044604925031308084726333618164062e-16L;
 
 // Special constants
 static constexpr char term_char = '\0';

@@ -5,11 +5,11 @@ constexpr void degrees_test() {
     Assert(core::deg_to_rad(270.0f) == core::PI * 1.5f);
     Assert(core::deg_to_rad(360.0f) == core::PI * 2.0f);
 
-    Assert(core::rad_to_deg(0.0f) == 0.0f);
-    Assert(core::rad_to_deg(core::PI / 2.0f) == 90.0f);
-    Assert(core::rad_to_deg(core::PI) == 180.0f);
-    Assert(core::rad_to_deg(core::PI * 1.5f) == 270.0f);
-    Assert(core::rad_to_deg(core::PI * 2.0f) == 360.0f);
+    Assert(core::rad_to_deg(core::radians(0.0f)) == 0.0f);
+    Assert(core::rad_to_deg(core::radians(core::PI / 2.0f)) == 90.0f);
+    Assert(core::rad_to_deg(core::radians(core::PI)) == 180.0f);
+    Assert(core::rad_to_deg(core::radians(core::PI * 1.5f)) == 270.0f);
+    Assert(core::rad_to_deg(core::radians(core::PI * 2.0f)) == 360.0f);
 }
 
 constexpr void pow_u64_test() {

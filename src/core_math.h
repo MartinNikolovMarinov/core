@@ -38,13 +38,31 @@ constexpr u64 pow_u64(i64 n, u32 p) {
     return result;
 }
 
-constexpr f32 deg_to_rad(f32 n) {
-    return n * (PI / 180.0f);
+#pragma region Radians/Degrees ----------------------------------------------------------------------------------------
+
+struct radians {
+    f32 value;
+    radians() = default;
+    radians(const radians&) = default;
+    radians(radians&&) = default;
+    constexpr explicit radians(f32 v) : value(v) {}
+    constexpr operator f32() const { return value; }
+};
+
+// Should be obvious to the compiler that this struct is a very simple wrapper over a single f32.
+static_assert(core::IsTrivial_v<radians>);
+static_assert(sizeof(radians) == sizeof(f32));
+
+
+constexpr radians deg_to_rad(f32 n) {
+    return radians(n * (PI / 180.0f));
 }
 
-constexpr f32 rad_to_deg(f32 n) {
-    return n * (180.0f / PI);
+constexpr f32 rad_to_deg(const radians& n) {
+    return n.value * (180.0f / PI);
 }
+
+#pragma endregion
 
 #pragma region Take Exponent/Mantisssa --------------------------------------------------------------------------------
 

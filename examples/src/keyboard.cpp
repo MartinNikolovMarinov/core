@@ -10,7 +10,7 @@ KeyboardAction KeyboardAction::createFromGLFW(i32 action) {
         case GLFW_PRESS:   ret.type = Type::KEY_PRESS;   break;
         case GLFW_RELEASE: ret.type = Type::KEY_RELEASE; break;
         case GLFW_REPEAT:  ret.type = Type::KEY_REPEAT;  break;
-        default:           ret.type = Type::NONE;       break;
+        default:           ret.type = Type::NONE;        break;
     }
     return ret;
 }
@@ -20,7 +20,7 @@ i32 KeyboardAction::toGLFWAction() {
         case Type::KEY_PRESS:   return GLFW_PRESS;
         case Type::KEY_RELEASE: return GLFW_RELEASE;
         case Type::KEY_REPEAT:  return GLFW_REPEAT;
-        default:               return -1;
+        default:                return -1;
     }
 }
 
@@ -29,7 +29,7 @@ const char* KeyboardAction::toCptr() {
         case Type::KEY_PRESS:   return "key press";
         case Type::KEY_RELEASE: return "key release";
         case Type::KEY_REPEAT:  return "key repeat";
-        default:               return "not set";
+        default:                return "not set";
     }
 }
 
@@ -50,8 +50,8 @@ i32 KeyboardModifiers::toGLFWMods() {
     if (type & Type::CONTROL)   ret |= GLFW_MOD_CONTROL;
     if (type & Type::ALT)       ret |= GLFW_MOD_ALT;
     if (type & Type::SUPER)     ret |= GLFW_MOD_SUPER;
-    if (type & Type::CAPS_LOCK)  ret |= GLFW_MOD_CAPS_LOCK;
-    if (type & Type::NUM_LOCK)   ret |= GLFW_MOD_NUM_LOCK;
+    if (type & Type::CAPS_LOCK) ret |= GLFW_MOD_CAPS_LOCK;
+    if (type & Type::NUM_LOCK)  ret |= GLFW_MOD_NUM_LOCK;
     return ret;
 }
 
@@ -180,6 +180,7 @@ const char* KeyboardModifiers::toCptr() {
         return "control + alt + super + caps lock + num lock";
     if (type == (Type::SHIFT | Type::CONTROL | Type::ALT | Type::SUPER | Type::CAPS_LOCK | Type::NUM_LOCK))
         return "shift + control + alt + super + caps lock + num lock";
+
     return "unknown";
 }
 
@@ -194,7 +195,6 @@ KeyInfo KeyInfo::createFromGLFW(i32 key, i32 scancode, i32 action) {
     info.action = KeyboardAction::createFromGLFW(action);
     return info;
 }
-
 
 bool KeyInfo::isPressed() {
     return action.type == KeyboardAction::Type::KEY_PRESS;

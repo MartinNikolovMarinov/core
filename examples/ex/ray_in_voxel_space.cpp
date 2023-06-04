@@ -338,7 +338,7 @@ core::mat4f renderModel_line(f32 x1, f32 y1, f32 x2, f32 y2, f32 lineWidth) {
     f32 lineAngle = core::slope(x1, -y1, x2, -y2);
     auto model = core::mat4f::identity();
     model = core::scale(model, core::v(halfLen, lineWidth, 1.0f)); // scale the quad to be a line
-    model = core::rotateZ_right(model, lineAngle);
+    model = core::rotateZ_right(model, core::radians(lineAngle));
     model = core::translate(model, core::v(mid.x(), mid.y(), 0.0f));
     return model;
 }

@@ -53,7 +53,6 @@ struct radians {
 static_assert(core::IsTrivial_v<radians>);
 static_assert(sizeof(radians) == sizeof(f32));
 
-
 constexpr radians deg_to_rad(f32 n) {
     return radians(n * (PI / 180.0f));
 }
@@ -104,7 +103,7 @@ enum struct FP_Classification {
     NORMAL = 4
 };
 
-FP_Classification fpclassify(f32 x) {
+constexpr FP_Classification fpclassify(f32 x) {
     union { f32 f; u32 i; } u = { x };
     i32 e = (u.i >> 23) & 0xff;
     if (!e) return u.i << 1 ? FP_Classification::SUBNORMAL : FP_Classification::ZERO;
@@ -112,7 +111,7 @@ FP_Classification fpclassify(f32 x) {
     return FP_Classification::NORMAL;
 }
 
-FP_Classification fpclassify(f64 x) {
+constexpr FP_Classification fpclassify(f64 x) {
     union { f64 f; u64 i; } u = { x };
     i32 e = (u.i >> 52) & 0x7ff;
     if (!e) return u.i << 1 ? FP_Classification::SUBNORMAL : FP_Classification::ZERO;
@@ -121,17 +120,17 @@ FP_Classification fpclassify(f64 x) {
 }
 
 template <typename TFloat>
-bool isinf(TFloat x) {
+constexpr bool isinf(TFloat x) {
     return fpclassify(x) == FP_Classification::INFINITE;
 }
 
 template <typename TFloat>
-bool isnan(TFloat x) {
+constexpr bool isnan(TFloat x) {
     return fpclassify(x) == FP_Classification::NAN;
 }
 
 template <typename TFloat>
-bool isnormal(TFloat x) {
+constexpr bool isnormal(TFloat x) {
     return fpclassify(x) == FP_Classification::NORMAL;
 }
 

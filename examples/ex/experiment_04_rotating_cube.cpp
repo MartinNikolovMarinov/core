@@ -204,14 +204,14 @@ void mainLoop(CommonState& commonState) {
         // model = core::rotateY_right(model, core::deg_to_rad(50.0f) * (f32)timeSiceStart_seconds);
     }
     // I can combine rotations on multiple axes:
-    model = core::rotate_right(model, core::v(1.0f, 1.0f, 0.0f), core::deg_to_rad(50.0f) * (f32)timeSiceStart_seconds);
+    model = core::rotate_right(model, core::v(1.0f, 1.0f, 0.0f), core::radians(core::deg_to_rad(50.0f).value * f32(timeSiceStart_seconds)));
     model = core::translate(model, core::v(0.0f, -0.5f, 0.0f));
 
     auto view = core::mat4x4f::identity();
     view = core::translate(view, core::v(0.0f, 0.0f, -3.0f));
 
     auto projection = core::mat4x4f::identity();
-    projection = core::perspective(core::deg_to_rad(45.0f), (f32)g_s.viewportWidth / (f32)g_s.viewportHeight, 0.1f, 100.0f);
+    projection = core::perspective(core::deg_to_rad(45.0f), f32(g_s.viewportWidth) / f32(g_s.viewportHeight), 0.1f, 100.0f);
 
     g_s.shaderProg.use();
     g_s.shaderProg.setUniform_v("u_color", g_s.cubeColor);

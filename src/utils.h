@@ -24,6 +24,9 @@ using global_assert_handler_ptr = bool (*)(const char* failedExpr, const char* f
 CORE_API_EXPORT void set_global_assert_handler(global_assert_handler_ptr handler);
 CORE_API_EXPORT global_assert_handler_ptr get_global_assert_handler();
 
+// FIXME: It is time to handle multiple levels of asserts. Debug asserts should be removed from the release build,
+//        otherwise the code will be miserably slow.
+
 #ifndef Assert
     // This macro will dereference null to force a crash,
     // unless the global assert handler is set and returns false.

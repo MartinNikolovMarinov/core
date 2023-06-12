@@ -86,6 +86,7 @@ set(src_files
     std/projections.h
     std/stringer.h
     std/lines.h
+    std/bbox.h
 
     std/allocators/alloc_std_stats.cpp
     std/allocators/alloc_std_stats.h

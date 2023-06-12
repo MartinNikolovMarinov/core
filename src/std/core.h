@@ -12,3 +12,4 @@
 #include "stacktrace.h"
 #include "projections.h"
 #include "lines.h"
+#include "bbox.h"

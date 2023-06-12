@@ -5,7 +5,6 @@
 #include <keyboard.h>
 #include <shader_prog.h>
 #include <grid.h>
-#include <bbox.h>
 
 #include <std/stringer.h>
 
@@ -46,7 +45,7 @@ struct State {
     static constexpr u32 cellsPerRow = 40;
     static constexpr u32 cellsPerCol = cellCount / cellsPerRow;
     Cell cells[cellCount] = {};
-    Bbox2D cellsBbox;
+    core::Bbox2D cellsBbox;
 
     u32 lineVAO = 0;
     u32 lineVBO = 0;
@@ -126,8 +125,8 @@ core::expected<GraphicsLibError> init(CommonState& s) {
 
     glfwSetCursorPosCallback(glfwWindow, [](GLFWwindow*, f64 xpos, f64 ypos) {
         State& g_s = state();
-        xpos = core::map2DRange(0.0f, f32(g_s.viewportWidth), g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), f32(xpos));
-        ypos = core::map2DRange(0.0f, f32(g_s.viewportHeight), g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y(), f32(ypos));
+        xpos = core::mapAffine(f32(xpos), 0.0f, f32(g_s.viewportWidth), g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x());
+        ypos = core::mapAffine(f32(ypos), 0.0f, f32(g_s.viewportHeight), g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y());
         xpos = core::round_to(xpos, 3);
         ypos = core::round_to(ypos, 3);
         g_s.mouse.setPos(xpos, ypos);
@@ -269,7 +268,7 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         g_s.cells[3 + 11 * g_s.cellsPerRow].isOn = true;
         g_s.cells[4 + 11 * g_s.cellsPerRow].isOn = true;
 
-        g_s.cellsBbox = Bbox2D(g_s.cells[0].pos, g_s.cells[g_s.cellCount - 1].pos + core::v(f32(g_s.cellWidth), f32(g_s.cellHeight)));
+        g_s.cellsBbox = core::Bbox2D(g_s.cells[0].pos, g_s.cells[g_s.cellCount - 1].pos + core::v(f32(g_s.cellWidth), f32(g_s.cellHeight)));
     }
 
     // Create line vertices:
@@ -348,8 +347,8 @@ void renderQuad(f32 x, f32 y, f32 width, f32 height, const core::vec4f& color, b
 
     auto topLeft = core::v(x + width / 2, y + height / 2);
     auto pos = g_s.worldSpaceGrid.convertTo_v(topLeft, g_s.viewSpaceGrid);
-    width = core::map2DRange(g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f, width);
-    height = core::map2DRange(g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y(), 0.0f, 1.0f, height);
+    width = core::mapAffine(width, g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f);
+    height = core::mapAffine(height, g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y(), 0.0f, 1.0f);
     auto model = renderModel_quad2D(pos.x(), pos.y(), 0.0f, width, height);
 
     auto mvp = g_s.projectionMat * g_s.viewMat * model;
@@ -380,7 +379,7 @@ void renderLine(f32 x1, f32 y1, f32 x2, f32 y2, f32 lineWidth, const core::vec4f
 
     auto start = g_s.worldSpaceGrid.convertTo_v(core::v(x1, y1), g_s.viewSpaceGrid);
     auto end = g_s.worldSpaceGrid.convertTo_v(core::v(x2, y2), g_s.viewSpaceGrid);
-    lineWidth = core::map2DRange(g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f, lineWidth);
+    lineWidth = core::mapAffine(lineWidth, g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f);
     auto model = renderModel_line(start.x(), start.y(), end.x(), end.y(), lineWidth);
 
     auto mvp = g_s.projectionMat * g_s.viewMat * model;

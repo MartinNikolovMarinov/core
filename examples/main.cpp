@@ -94,8 +94,8 @@ i32 example_raytracing() {
     ex.waitForEvents = false;
     // ex.windowWidth = 1920;
     // ex.windowHeight = 1080;
-    ex.windowWidth = 800;
-    ex.windowHeight = 600;
+    ex.windowWidth = 400;
+    ex.windowHeight = 300;
     ex.title = "Raytracing";
     return runExample(core::move(ex));
 }

@@ -512,7 +512,7 @@ core::expected<GraphicsLibError> preMainLoop(CommonState& commonState) {
 
         // Image
         constexpr f32 aspectRatio = 16.0f / 9.0f;
-        constexpr i32 samplesPerPixel = 500;
+        constexpr i32 samplesPerPixel = 5; // NOTE: Increase the samples per pixel for better quality image!
         constexpr i32 maxDepth = 50;
         u32 imageWidth = commonState.mainWindow.width;
         u32 imageHeight = u32(f32(imageWidth) / aspectRatio);

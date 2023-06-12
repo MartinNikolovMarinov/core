@@ -65,25 +65,25 @@ constexpr f32 rad_to_deg(const radians& n) {
 
 #pragma region Take Exponent/Mantisssa --------------------------------------------------------------------------------
 
-inline constexpr i32 exponent(f32 n) {
+constexpr i32 exponent(f32 n) {
     union { f32 f; i32 i; } u = { n };
     i32 ret = (i32)(u.i >> 23 & 0xff);
     return ret;
 }
 
-inline constexpr i32 exponent(f64 n) {
+constexpr i32 exponent(f64 n) {
     union { f64 f; i64 i; } u = { n };
     i32 ret = (i32)(u.i >> 52 & 0x7ff);
     return ret;
 }
 
-inline constexpr i32 mantissa(f32 n) {
+constexpr i32 mantissa(f32 n) {
     union { f32 f; i32 i; } u = { n };
     i32 ret = (i32)(u.i & 0x7fffff);
     return ret;
 }
 
-inline constexpr i64 mantissa(f64 n) {
+constexpr i64 mantissa(f64 n) {
     union { f64 f; i64 i; } u = { n };
     i64 ret = (i64)(u.i & 0xfffffffffffff);
     return ret;
@@ -349,7 +349,7 @@ constexpr tuple<TFloat, TFloat> minmax(TFloat a, TFloat b) {
 }
 
 template <typename TFloat>
-inline TFloat clamp(TFloat value, TFloat min, TFloat max) {
+constexpr TFloat clamp(TFloat value, TFloat min, TFloat max) {
     return core::max(min, core::min(max, value));
 }
 
@@ -466,20 +466,23 @@ inline bool nearly_eq(f64 a, f64 b, f64 epsilon) {
 #pragma region Interpolation ------------------------------------------------------------------------------------------
 
 /**
- * @brief Performs an affine transformation on a value from one 2d range to another.
+ * @brief Performs an affine transformation on a value from one range to another.
  *
- * @param x1 The start of the first range.
- * @param y1 The end of the first range.
- * @param x2 The start of the second range.
- * @param y2 The end of the second range.
- * @param t The value to transform.
+ * @param v The value to map. This should be in the range [fromMin, fromMax].
+ * @param fromMax The maximum value of the input range.
+ * @param fromMin The minimum value of the input range.
+ * @param toMax The maximum value of the output range.
+ * @param toMin The minimum value of the output range.
  *
- * @return The transformed value.
+ * @return The mapped value.
 */
-template <typename TFloat>
-inline TFloat map2DRange(TFloat x1, TFloat y1, TFloat x2, TFloat y2, TFloat t) {
-    Assert((y1 - x1) != 0, "division by zero");
-    return ((t - x1) * (y2 - x2)) / (y1 - x1) + x2;
+template <typename T>
+constexpr T mapAffine(T v, T fromMin, T fromMax, T toMin, T toMax) {
+    T fromRange = fromMax - fromMin;
+    T toRange = toMax - toMin;
+    T relativeLoc = (v - fromMin) / fromRange;
+    T mappedPos = relativeLoc * toRange + toMin;
+    return mappedPos;
 }
 
 /**
@@ -492,8 +495,8 @@ inline TFloat map2DRange(TFloat x1, TFloat y1, TFloat x2, TFloat y2, TFloat t) {
  *
  * @return The interpolated value.
 */
-template <typename TFloat>
-inline TFloat lerp(TFloat a, TFloat b, TFloat t) {
+template <typename T>
+constexpr T lerp(T a, T b, T t) {
     return (1 - t) * a + t * b;
 }
 
@@ -507,8 +510,8 @@ inline TFloat lerp(TFloat a, TFloat b, TFloat t) {
  *
  * @return The interpolated value.
 */
-template <typename TFloat>
-inline TFloat lerp_fast(TFloat a, TFloat b, TFloat t) {
+template <typename T>
+constexpr T lerp_fast(T a, T b, T t) {
     return a + t * (b - a);
 }
 

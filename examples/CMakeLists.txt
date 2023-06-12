@@ -23,7 +23,6 @@ add_executable(${PROJECT_NAME}
     src/shader_prog.cpp
     src/shape.h
     src/shape.cpp
-    src/bbox.h
 
     # Examples:
     ex/experiment_app.h

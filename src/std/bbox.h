@@ -1,6 +1,12 @@
 #pragma once
 
-#include "init_core.h"
+#include <types.h>
+#include <core_math.h>
+#include <mem.h>
+#include <std/vec.h>
+#include <std/lines.h>
+
+namespace core {
 
 using namespace coretypes;
 
@@ -8,14 +14,12 @@ struct Bbox2D {
 
     constexpr Bbox2D() : min({}), max({}) {}
     constexpr Bbox2D(const core::vec2f& min, const core::vec2f& max) : min(min), max(max) {
-        // It's good to assume
+        // It's good to assume this:
         Assert(this->min.x() < this->max.x(), "Invalid bbox!");
         Assert(this->min.y() < this->max.y(), "Invalid bbox!");
     }
 
-    constexpr core::vec2f center() const {
-        return (min + max) / 2;
-    }
+    constexpr core::vec2f center() const { return (min + max) / 2; }
 
     constexpr void center(f32& x, f32 &y) {
         core::vec2f c = center();
@@ -180,13 +184,16 @@ struct Bbox2D {
         return res;
     }
 
-    core::vec2f interpolate(const Bbox2D& other, const core::vec2f& t) {
+    constexpr core::vec2f lerp(const Bbox2D& other, const core::vec2f& t) {
         core::vec2f from = max - min;
         core::vec2f to = other.max - other.min;
-        core::vec2f res = from + t * (to - from);
+        core::vec2f res = core::lerp_fast(from, to, t);
         return res;
     }
 
     core::vec2f min;
     core::vec2f max;
 };
+
+}
+

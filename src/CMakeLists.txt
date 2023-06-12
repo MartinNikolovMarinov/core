@@ -17,6 +17,15 @@ if (NOT DEFINED CORE_DEBUG)
     endif()
 endif()
 
+if (NOT DEFINED CORE_ASSERT_ENABLED)
+    if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")
+        # Build Type not set, defaulting to Relese...
+        set(CORE_ASSERT_ENABLED OFF)
+    else()
+        set(CORE_ASSERT_ENABLED ON)
+    endif()
+endif()
+
 # OS check:
 if(MAKE_SYSTEM_NAME STREQUAL "Windows"
    OR CMAKE_SYSTEM_NAME STREQUAL "CYGWIN"
@@ -44,6 +53,7 @@ message(STATUS "[CORE] Platform: ${OS}")
 message(STATUS "[CORE] Arch:     ${ARCH}")
 message(STATUS "[CORE] Compiler: ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "[CORE] Debug:    ${CORE_DEBUG}")
+message(STATUS "[CORE] Assert:   ${CORE_ASSERT_ENABLED}")
 message(STATUS "[CORE] Shared:   ${CORE_LIBRARY_SHARED}")
 
 # Source files list:
@@ -165,7 +175,10 @@ endif()
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     "CORE_LIBRARY_SHARED=$<BOOL:${CORE_LIBRARY_SHARED}>" # turn CMake Boolean to 1 or 0
     -DCORE_LIBRARY_BUILD=1
+)
+target_compile_definitions(${PROJECT_NAME} PUBLIC
     "CORE_DEBUG=$<BOOL:${CORE_DEBUG}>"
+    "CORE_ASSERT_ENABLED=$<BOOL:${CORE_ASSERT_ENABLED}>"
 )
 
 message(STATUS "[CORE] ---------------------------------------------")

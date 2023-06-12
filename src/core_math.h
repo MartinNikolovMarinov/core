@@ -491,12 +491,12 @@ constexpr T affine_map(T v, T fromMin, T fromMax, T toMin, T toMax) {
  *
  * @param a The start value.
  * @param b The end value.
- * @param t The interpolation factor.
+ * @param t The interpolation factor. Can be a math object or a floating point value.
  *
  * @return The interpolated value.
 */
-template <typename T>
-constexpr T lerp(T a, T b, T t) {
+template <typename T, typename T2>
+constexpr T lerp(T a, T b, T2 t) {
     return (1 - t) * a + t * b;
 }
 
@@ -506,12 +506,12 @@ constexpr T lerp(T a, T b, T t) {
  *
  * @param a The start value.
  * @param b The end value.
- * @param t The interpolation factor.
+ * @param t The interpolation factor. Can be a math object or a floating point value.
  *
  * @return The interpolated value.
 */
-template <typename T>
-constexpr T lerp_fast(T a, T b, T t) {
+template <typename T, typename T2>
+constexpr T lerp_fast(T a, T b, T2 t) {
     return a + t * (b - a);
 }
 

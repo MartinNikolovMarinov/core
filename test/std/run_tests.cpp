@@ -8,6 +8,7 @@
 #include "t-stacktrace.cpp"
 #include "t-mat.cpp"
 #include "t-core_math_std.cpp"
+#include "t-bbox.cpp"
 
 void run_all_std_tests() {
     RunTestSuite(run_std_allocator_tests_suite);
@@ -20,4 +21,5 @@ void run_all_std_tests() {
     RunTestSuite(run_stacktrace_tests_suite);
     RunTestSuite(run_mat_tests_suite);
     RunTestSuite(run_core_math_tests_suite_std);
+    RunTestSuite(run_bbox_tests_suite);
 }

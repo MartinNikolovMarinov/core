@@ -12,7 +12,6 @@ add_executable(${PROJECT_NAME}
     main.cpp
 
     # Common source files:
-    src/grid.h
     src/init_core.cpp
     src/init_core.h
     src/keyboard.h
@@ -107,6 +106,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 
 # Core library:
 option(CORE_LIBRARY_SHARED "" ON)
+option(CORE_ASSERT_ENABLED "" ON)
 target_link_libraries(${PROJECT_NAME} PRIVATE core)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../src ${CMAKE_CURRENT_BINARY_DIR}/core)
 

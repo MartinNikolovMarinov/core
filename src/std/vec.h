@@ -198,13 +198,6 @@ constexpr vec<Dim, T> vnorm(const vec<Dim, T>& v) {
     return ret;
 }
 
-// Linear Interpolation
-
-template<i32 Dim, typename T>
-constexpr vec<Dim, T> vlerp(const vec<Dim, T>& a, const vec<Dim, T>& b, f32 t) {
-    return (1 - t) * a + t * b;
-}
-
 // Absolute Value
 
 template<i32 Dim, typename T>
@@ -212,6 +205,16 @@ constexpr vec<Dim, T> vabs(const vec<Dim, T>& v) {
     vec<Dim, T> ret;
     for (i32 i = 0; i < v.dimensions(); ++i) {
         ret[i] = core::abs(v[i]);
+    }
+    return ret;
+}
+
+// Round Value
+template<i32 Dim, typename T>
+constexpr vec<Dim, T> vround(const vec<Dim, T>& v) {
+    vec<Dim, T> ret;
+    for (i32 i = 0; i < v.dimensions(); ++i) {
+        ret[i] = core::round(v[i]);
     }
     return ret;
 }

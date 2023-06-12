@@ -24,23 +24,28 @@ using global_assert_handler_ptr = bool (*)(const char* failedExpr, const char* f
 CORE_API_EXPORT void set_global_assert_handler(global_assert_handler_ptr handler);
 CORE_API_EXPORT global_assert_handler_ptr get_global_assert_handler();
 
-// FIXME: It is time to handle multiple levels of asserts. Debug asserts should be removed from the release build,
-//        otherwise the code will be miserably slow.
+#if defined(CORE_ASSERT_ENABLED) && CORE_ASSERT_ENABLED
+    #ifndef Assert
+        // This macro will dereference null to force a crash,
+        // unless the global assert handler is set and returns false.
+        #define Assert(...) C_VFUNC(Assert, __VA_ARGS__)
+        #define Assert1(expr) Assert2(expr, "")
+        #define Assert2(expr, msg)                                                                        \
+            if (!(expr)) {                                                                                \
+                if (core::get_global_assert_handler()) {                                                  \
+                    bool shouldCrash = core::get_global_assert_handler()(#expr, __FILE__, __LINE__, msg); \
+                    if (shouldCrash) *(volatile coretypes::i32 *)0 = 0;                                   \
+                } else {                                                                                  \
+                    *(volatile coretypes::i32 *)0 = 0;                                                    \
+                }                                                                                         \
+            }
+    #endif
+#else
+    #define Assert(...)
+#endif
 
-#ifndef Assert
-    // This macro will dereference null to force a crash,
-    // unless the global assert handler is set and returns false.
-    #define Assert(...) C_VFUNC(Assert, __VA_ARGS__)
-    #define Assert1(expr) Assert2(expr, "")
-    #define Assert2(expr, msg)                                                                        \
-        if (!(expr)) {                                                                                \
-            if (core::get_global_assert_handler()) {                                                  \
-                bool shouldCrash = core::get_global_assert_handler()(#expr, __FILE__, __LINE__, msg); \
-                if (shouldCrash) *(volatile coretypes::i32 *)0 = 0;                                   \
-            } else {                                                                                  \
-                *(volatile coretypes::i32 *)0 = 0;                                                    \
-            }                                                                                         \
-        }
+#ifndef Panic
+    #define Panic(...) Assert(__VA_ARGS__)
 #endif
 
 // Zero cost defer:

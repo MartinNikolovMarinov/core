@@ -18,7 +18,7 @@ struct Bbox2D {
 
     constexpr core::vec2f center() const { return (min + max) / 2; }
 
-    constexpr void center(f32& x, f32 &y) {
+    constexpr void center(f32& x, f32 &y) const {
         core::vec2f c = center();
         x = c.x();
         y = c.y();
@@ -36,25 +36,13 @@ struct Bbox2D {
         return x >= min.x() && x <= max.x() && y >= min.y() && y <= max.y();
     }
 
-    constexpr core::vec2f lerp(const Bbox2D& other, const core::vec2f& t) const {
-        core::vec2f from = max - min;
-        core::vec2f to = other.max - other.min;
-        core::vec2f res = core::lerp(from, to, t);
-        return res;
+    constexpr bool isInside(const core::vec2f& x) const {
+        return isInside(x.x(), x.y());
     }
 
     constexpr core::vec2f convTo(const core::vec2f& v, const Bbox2D& to) const {
         core::vec2f ret = core::affine_map(v, min, max, to.min, to.max);
         return ret;
-    }
-
-    constexpr core::mat4x4f getConvMatrix(const Bbox2D& to) const {
-        core::mat4x4f m = core::mat4x4f::identity();
-        m[0][0] = (to.max.x() - to.min.x()) / (this->max.x() - this->min.x());
-        m[1][1] = (to.max.y() - to.min.y()) / (this->max.y() - this->min.y());
-        m[0][3] = to.min.x() - m[0][0] * this->min.x();
-        m[1][3] = to.min.y() - m[1][1] * this->min.y();
-        return m;
     }
 
     struct IntersectionResult {

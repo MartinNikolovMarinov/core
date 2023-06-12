@@ -477,7 +477,7 @@ inline bool nearly_eq(f64 a, f64 b, f64 epsilon) {
  * @return The mapped value.
 */
 template <typename T>
-constexpr T mapAffine(T v, T fromMin, T fromMax, T toMin, T toMax) {
+constexpr T affine_map(T v, T fromMin, T fromMax, T toMin, T toMax) {
     T fromRange = fromMax - fromMin;
     T toRange = toMax - toMin;
     T relativeLoc = (v - fromMin) / fromRange;

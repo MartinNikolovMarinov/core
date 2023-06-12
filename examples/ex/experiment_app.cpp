@@ -1,18 +1,18 @@
 #include "experiment_app.h"
 
-#include <grid.h>
 #include <keyboard.h>
 #include <mouse.h>
 #include <shader_prog.h>
 #include <shape.h>
+
 namespace app {
 
 namespace {
 
 struct AppState {
     // Constants:
-    static constexpr Grid2D clipSpaceGrid    = { core::v(-1.0f, -1.0f), core::v(1.0f, 1.0f) };
-    static constexpr Grid2D worldSpaceGrid   = { core::v(0.0f, 0.0f), core::v(1000.0f, 1000.0f) };
+    static constexpr core::Bbox2D clipSpaceGrid    = { core::v(-1.0f, -1.0f), core::v(1.0f, 1.0f) };
+    static constexpr core::Bbox2D worldSpaceGrid   = { core::v(0.0f, 0.0f), core::v(1000.0f, 1000.0f) };
     // static constexpr core::vec2f worldCenter = core::v(worldSpaceGrid.max.x() / 2, worldSpaceGrid.max.y() / 2);
 
     Keyboard keyboardState;
@@ -317,7 +317,7 @@ void renderShape(Shape2D& shape) {
     auto& g_s = app::state();
     for(ptr_size i = 0; i < vertices.len(); ++i) {
         const auto& p = vertices[i];
-        auto vv = g_s.worldSpaceGrid.convertTo_v(p, g_s.clipSpaceGrid);
+        auto vv = g_s.worldSpaceGrid.convTo(p, g_s.clipSpaceGrid);
         fmt::print("v_{}: (x:{}, y:{})\n", i, vv.x(), vv.y());
     }
 }

@@ -4,7 +4,6 @@
 #include <mouse.h>
 #include <keyboard.h>
 #include <shader_prog.h>
-#include <grid.h>
 
 #include <std/stringer.h>
 
@@ -18,8 +17,8 @@ struct Cell {
 };
 
 struct State {
-    static constexpr Grid2D viewSpaceGrid  = { core::v(-1.0f, 1.0f), core::v(1.0f, -1.0f) };
-    static constexpr Grid2D worldSpaceGrid = { core::v(0.0f, 0.0f), core::v(1000.0f, 1000.0f) };
+    static constexpr core::Bbox2D viewSpaceGrid = core::Bbox2D { core::v(-1.0f, 1.0f), core::v(1.0f, -1.0f) };
+    static constexpr core::Bbox2D worldSpaceGrid = core::Bbox2D { core::v(0.0f, 0.0f), core::v(1000.0f, 1000.0f) };
     // static constexpr core::mat4f worldSpaceToViewSpaceMatrix = worldSpaceGrid.getToConvMatrix(viewSpaceGrid);
     static constexpr bool renderGrid = false;
 
@@ -125,8 +124,8 @@ core::expected<GraphicsLibError> init(CommonState& s) {
 
     glfwSetCursorPosCallback(glfwWindow, [](GLFWwindow*, f64 xpos, f64 ypos) {
         State& g_s = state();
-        xpos = core::mapAffine(f32(xpos), 0.0f, f32(g_s.viewportWidth), g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x());
-        ypos = core::mapAffine(f32(ypos), 0.0f, f32(g_s.viewportHeight), g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y());
+        xpos = core::affine_map(f32(xpos), 0.0f, f32(g_s.viewportWidth), g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x());
+        ypos = core::affine_map(f32(ypos), 0.0f, f32(g_s.viewportHeight), g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y());
         xpos = core::round_to(xpos, 3);
         ypos = core::round_to(ypos, 3);
         g_s.mouse.setPos(xpos, ypos);
@@ -346,9 +345,9 @@ void renderQuad(f32 x, f32 y, f32 width, f32 height, const core::vec4f& color, b
     State& g_s = state();
 
     auto topLeft = core::v(x + width / 2, y + height / 2);
-    auto pos = g_s.worldSpaceGrid.convertTo_v(topLeft, g_s.viewSpaceGrid);
-    width = core::mapAffine(width, g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f);
-    height = core::mapAffine(height, g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y(), 0.0f, 1.0f);
+    auto pos = g_s.worldSpaceGrid.convTo(topLeft, g_s.viewSpaceGrid);
+    width = core::affine_map(width, g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f);
+    height = core::affine_map(height, g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y(), 0.0f, 1.0f);
     auto model = renderModel_quad2D(pos.x(), pos.y(), 0.0f, width, height);
 
     auto mvp = g_s.projectionMat * g_s.viewMat * model;
@@ -377,9 +376,9 @@ void renderLine(f32 x1, f32 y1, f32 x2, f32 y2, f32 lineWidth, const core::vec4f
     bindArrayBuffer_memorized(g_s.quadVBO);
     bindElementArrayBuffer_memorized(g_s.quadEBO);
 
-    auto start = g_s.worldSpaceGrid.convertTo_v(core::v(x1, y1), g_s.viewSpaceGrid);
-    auto end = g_s.worldSpaceGrid.convertTo_v(core::v(x2, y2), g_s.viewSpaceGrid);
-    lineWidth = core::mapAffine(lineWidth, g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f);
+    auto start = g_s.worldSpaceGrid.convTo(core::v(x1, y1), g_s.viewSpaceGrid);
+    auto end = g_s.worldSpaceGrid.convTo(core::v(x2, y2), g_s.viewSpaceGrid);
+    lineWidth = core::affine_map(lineWidth, g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f);
     auto model = renderModel_line(start.x(), start.y(), end.x(), end.y(), lineWidth);
 
     auto mvp = g_s.projectionMat * g_s.viewMat * model;
@@ -389,7 +388,7 @@ void renderLine(f32 x1, f32 y1, f32 x2, f32 y2, f32 lineWidth, const core::vec4f
     glDrawElements(GL_TRIANGLES, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
 }
 
-void renderGrid(const Grid2D& grid, u32 rows, u32 cols, f32 lineWidth, const core::vec4f& color) {
+void renderGrid(const core::Bbox2D& grid, u32 rows, u32 cols, f32 lineWidth, const core::vec4f& color) {
     State& g_s = state();
     f32 rowDist = grid.max.x() / f32(rows);
     for (u32 i = 0; i <= rows; i++) {

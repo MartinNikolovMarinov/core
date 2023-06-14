@@ -45,6 +45,8 @@ struct KeyboardModifiers {
 
     Type type = Type::NONE;
 
+    void combine(const KeyboardModifiers& other);
+    void remove(const KeyboardModifiers& other);
     i32 toGLFWMods();
     const char* toCptr();
 };
@@ -59,8 +61,9 @@ struct KeyInfo {
     bool operator==(const KeyInfo& other) const;
 
     bool isPressed();
-    bool isRelease();
-    bool isRepeat();
+    bool isReleased();
+    bool isRepeatd();
+    bool isModifier();
     std::string toString();
 };
 

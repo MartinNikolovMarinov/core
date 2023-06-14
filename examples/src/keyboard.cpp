@@ -44,6 +44,14 @@ KeyboardModifiers KeyboardModifiers::createFromGLFW(i32 mods) {
     return ret;
 }
 
+void KeyboardModifiers::combine(const KeyboardModifiers& other) {
+    type = (Type)(type | other.type);
+}
+
+void KeyboardModifiers::remove(const KeyboardModifiers& other) {
+    type = (Type)(type & ~other.type);
+}
+
 i32 KeyboardModifiers::toGLFWMods() {
     i32 ret = 0;
     if (type & Type::SHIFT)     ret |= GLFW_MOD_SHIFT;
@@ -200,12 +208,21 @@ bool KeyInfo::isPressed() {
     return action.type == KeyboardAction::Type::KEY_PRESS;
 }
 
-bool KeyInfo::isRelease() {
+bool KeyInfo::isReleased() {
     return action.type == KeyboardAction::Type::KEY_RELEASE;
 }
 
-bool KeyInfo::isRepeat() {
+bool KeyInfo::isRepeatd() {
     return action.type == KeyboardAction::Type::KEY_REPEAT;
+}
+
+bool KeyInfo::isModifier() {
+    bool isModifier = value == GLFW_KEY_LEFT_SHIFT || value == GLFW_KEY_RIGHT_SHIFT ||
+                      value == GLFW_KEY_LEFT_CONTROL || value == GLFW_KEY_RIGHT_CONTROL ||
+                      value == GLFW_KEY_LEFT_ALT || value == GLFW_KEY_RIGHT_ALT ||
+                      value == GLFW_KEY_LEFT_SUPER || value == GLFW_KEY_RIGHT_SUPER ||
+                      value == GLFW_KEY_CAPS_LOCK || value == GLFW_KEY_NUM_LOCK;
+    return isModifier;
 }
 
 std::string KeyInfo::toString() {
@@ -247,7 +264,7 @@ core::rune& Keyboard::getTextInput() {
 void Keyboard::clear() {
     // Keys that were released last frame are unset this frame.
     for (i32 i = 0; i < GLFW_KEY_LAST; i++) {
-        if (keys[i].isRelease()) {
+        if (keys[i].isReleased()) {
             keys[i].action.type = KeyboardAction::Type::NONE;
         }
     }

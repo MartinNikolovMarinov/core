@@ -43,9 +43,9 @@ void Mouse::clear() {
     scrollX = 0;
     scrollY = 0;
     // Mouse buttons act the same as keyboard keys, so do the same thing here.
-    if (leftButton.isRelease()) leftButton.action.type = KeyboardAction::Type::NONE;
-    if (middleButton.isRelease()) middleButton.action.type = KeyboardAction::Type::NONE;
-    if (rightButton.isRelease()) rightButton.action.type = KeyboardAction::Type::NONE;
+    if (leftButton.isReleased()) leftButton.action.type = KeyboardAction::Type::NONE;
+    if (middleButton.isReleased()) middleButton.action.type = KeyboardAction::Type::NONE;
+    if (rightButton.isReleased()) rightButton.action.type = KeyboardAction::Type::NONE;
 }
 
 std::string Mouse::toString() {

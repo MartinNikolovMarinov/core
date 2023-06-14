@@ -104,10 +104,18 @@ core::expected<GraphicsLibError> init(CommonState& s) {
     g_s.viewportHeight = s.mainWindow.height;
 
     glfwSetKeyCallback(glfwWindow, [](GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods) {
+        // TODO: This function has become silly slow for somthing that will be called on every key press/hold/release.
+
         State& g_s = state();
         KeyboardModifiers keyModifiers = KeyboardModifiers::createFromGLFW(mods);
         KeyInfo keyInfo = KeyInfo::createFromGLFW(key, scancode, action);
-        g_s.keyboard.setModifiers(core::move(keyModifiers)).setKey(core::move(keyInfo));
+        if (keyInfo.isReleased() && keyInfo.isModifier()) {
+            g_s.keyboard.modifiers.remove(keyModifiers);
+        }
+        else {
+            g_s.keyboard.modifiers.combine(keyModifiers);
+        }
+        g_s.keyboard.setKey(core::move(keyInfo));
 
         if (keyInfo.value == GLFW_KEY_ESCAPE && keyInfo.isPressed()) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -415,7 +423,6 @@ void mainLoop(CommonState& commonState) {
     State& g_s = state();
 
     g_s.mouse.clear();
-    // FIXME: Modifiers work totally wrong. Need to fix them! Just fix the keyboard handler nightmare!
     g_s.keyboard.clear();
     handleUserInput();
 

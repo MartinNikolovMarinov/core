@@ -2,27 +2,6 @@
 
 namespace app {
 
-Mouse& Mouse::setButton(KeyInfo& button) {
-    switch (button.value) {
-        case GLFW_MOUSE_BUTTON_LEFT: {
-            leftButton = button;
-            break;
-        }
-        case GLFW_MOUSE_BUTTON_MIDDLE: {
-            middleButton = button;
-            break;
-        }
-        case GLFW_MOUSE_BUTTON_RIGHT: {
-            rightButton = button;
-            break;
-        }
-        default: {
-            break;
-        }
-    }
-    return *this;
-}
-
 Mouse& Mouse::setScroll(i32 x, i32 y) {
     scrollX = x;
     scrollY = y;

@@ -4,8 +4,6 @@
 
 #include "keyboard.h"
 
-#include <GLFW/glfw3.h> // FIXME: temporary include
-
 using namespace coretypes;
 
 namespace app {
@@ -20,7 +18,6 @@ struct Mouse {
     KeyInfo middleButton;
     KeyInfo rightButton;
 
-    Mouse& setButton(KeyInfo& button);
     Mouse& setScroll(i32 x, i32 y);
     Mouse& setPos(i32 x, i32 y);
     Mouse& setInWindow(bool isInWindow);

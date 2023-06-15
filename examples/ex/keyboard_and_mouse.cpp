@@ -67,17 +67,17 @@ core::expected<GraphicsLibError> init(CommonState& s) {
 }
 
 void destroy() {
-    State& g_s = state();
+    // State& g_s = state();
     state(true);
 }
 
 core::expected<GraphicsLibError> preMainLoop(CommonState&) {
-    State& g_s = state();
+    // State& g_s = state();
     return {};
 }
 
 void mainLoop(CommonState& commonState) {
-    State& g_s = state();
+    // State& g_s = state();
 }
 
 } // namespace keyboard_and_mouse

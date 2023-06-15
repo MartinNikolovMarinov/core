@@ -24,6 +24,7 @@ add_executable(${PROJECT_NAME}
     # Common glfw source files:
     src/glfw/glfw_impl.h
     src/glfw/glfw_keyboard.cpp
+    src/glfw/glfw_mouse.cpp
 
     # Examples:
     ex/raytracing.h

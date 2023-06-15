@@ -152,7 +152,7 @@ core::expected<GraphicsLibError> init(CommonState& s) {
     glfwSetMouseButtonCallback(glfwWindow, [](GLFWwindow*, i32 button, i32 action, i32) {
         State& g_s = state();
         app::KeyInfo mouseButton = app::createKeyInfoGLFW(button, 0, action);
-        g_s.mouse.setButton(mouseButton);
+        app::setGLFWMouseButton(g_s.mouse, mouseButton);
     });
     if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {
         GraphicsLibError err;

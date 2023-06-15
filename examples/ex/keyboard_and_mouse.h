@@ -2,7 +2,7 @@
 
 #include "common.h"
 
-namespace app {
+namespace keyboard_and_mouse {
 
 using AppExitCodes = common::AppExitCodes;
 using CommonState = common::CommonState;
@@ -13,4 +13,5 @@ void destroy();
 core::expected<GraphicsLibError> preMainLoop(CommonState& s);
 void mainLoop(CommonState& s);
 
-} // namespace app
+} // namespace keyboard_and_mouse
+

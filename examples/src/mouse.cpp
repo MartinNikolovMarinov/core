@@ -1,5 +1,7 @@
 #include "mouse.h"
 
+namespace app {
+
 Mouse& Mouse::setButton(KeyInfo& button) {
     switch (button.value) {
         case GLFW_MOUSE_BUTTON_LEFT: {
@@ -68,3 +70,5 @@ std::string Mouse::toString() {
     result += '\n';
     return result;
 }
+
+} // namespace app

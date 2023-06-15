@@ -7,6 +7,8 @@
 #include <shader_prog.h>
 #include <mouse.h>
 
+#include <glfw/glfw_impl.h>
+
 // TODO: I should create a texture abstraction, but right now I do not have enough context to understand what is a good design.
 //       Do this later, for now it is more important to advace my OpenGL knowledge!
 
@@ -38,8 +40,8 @@ core::expected<GraphicsLibError> init(CommonState& s) {
     const char* errDesc = nullptr;
 
     glfwSetKeyCallback(glfwWindow, [](GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods) {
-        [[maybe_unused]] KeyboardModifiers keyModifiers = KeyboardModifiers::createFromGLFW(mods);
-        KeyInfo keyInfo = KeyInfo::createFromGLFW(key, scancode, action);
+        [[maybe_unused]] app::KeyboardModifiers keyModifiers = app::createKeyboardModifiersGLFW(mods);
+        app::KeyInfo keyInfo = app::createKeyInfoGLFW(key, scancode, action);
         if (keyInfo.value == GLFW_KEY_ESCAPE && keyInfo.isPressed()) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }

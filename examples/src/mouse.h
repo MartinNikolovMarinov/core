@@ -4,7 +4,11 @@
 
 #include "keyboard.h"
 
+#include <GLFW/glfw3.h> // FIXME: temporary include
+
 using namespace coretypes;
+
+namespace app {
 
 struct Mouse {
     i32 x = 0;
@@ -23,3 +27,5 @@ struct Mouse {
     void clear();
     std::string toString();
 };
+
+} // namespace app

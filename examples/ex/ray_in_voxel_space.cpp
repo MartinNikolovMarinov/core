@@ -4,12 +4,16 @@
 #include <mouse.h>
 #include <keyboard.h>
 #include <shader_prog.h>
+#include <glfw/glfw_impl.h>
 
 #include <std/stringer.h>
 
 namespace ray_in_voxel_space {
 
 namespace {
+
+using Mouse = app::Mouse;
+using Keyboard = app::GLFWKeyboard;
 
 struct Cell {
     core::vec2f pos = {};
@@ -107,8 +111,8 @@ core::expected<GraphicsLibError> init(CommonState& s) {
         // TODO: This function has become silly slow for somthing that will be called on every key press/hold/release.
 
         State& g_s = state();
-        KeyboardModifiers keyModifiers = KeyboardModifiers::createFromGLFW(mods);
-        KeyInfo keyInfo = KeyInfo::createFromGLFW(key, scancode, action);
+        app::KeyboardModifiers keyModifiers = app::createKeyboardModifiersGLFW(mods);
+        app::KeyInfo keyInfo = app::createKeyInfoGLFW(key, scancode, action);
         if (keyInfo.isReleased() && keyInfo.isModifier()) {
             g_s.keyboard.modifiers.remove(keyModifiers);
         }
@@ -147,7 +151,7 @@ core::expected<GraphicsLibError> init(CommonState& s) {
 
     glfwSetMouseButtonCallback(glfwWindow, [](GLFWwindow*, i32 button, i32 action, i32) {
         State& g_s = state();
-        KeyInfo mouseButton = KeyInfo::createFromGLFW(button, 0, action);
+        app::KeyInfo mouseButton = app::createKeyInfoGLFW(button, 0, action);
         g_s.mouse.setButton(mouseButton);
     });
     if (i32 errCode = glfwGetError(&errDesc); errCode != GLFW_NO_ERROR) {

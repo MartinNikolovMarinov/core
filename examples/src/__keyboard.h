@@ -2,9 +2,9 @@
 
 #include "init_core.h"
 
-#include <string>
+#include <GLFW/glfw3.h>
 
-namespace app {
+#include <string>
 
 using namespace coretypes;
 
@@ -18,11 +18,14 @@ struct KeyboardAction {
         SENTINEL
     };
 
+    static KeyboardAction createFromGLFW(i32 action);
+
     Type type = Type::NONE;
 
-    bool operator==(const KeyboardAction& other) { return type == other.type; }
+    bool operator==(const KeyboardAction& other) const;
 
-    const char* toCptr() const;
+    i32 toGLFWAction();
+    const char* toCptr();
 };
 
 struct KeyboardModifiers {
@@ -38,47 +41,45 @@ struct KeyboardModifiers {
         SENTINEL
     };
 
+    static KeyboardModifiers createFromGLFW(i32 mods);
+
     Type type = Type::NONE;
 
     void combine(const KeyboardModifiers& other);
     void remove(const KeyboardModifiers& other);
-
-    const char* toCptr() const;
+    i32 toGLFWMods();
+    const char* toCptr();
 };
 
 struct KeyInfo {
+    static KeyInfo createFromGLFW(i32 key, i32 scancode, i32 action);
+
     i32 value = 0;
     i32 scancode = 0;
-    bool isMod = false;
     KeyboardAction action = { KeyboardAction::Type::NONE };
 
     bool operator==(const KeyInfo& other) const;
 
-    bool isPressed() const;
-    bool isReleased() const;
-    bool isRepeatd() const;
-    bool isModifier() const;
-
-    std::string toString() const;
+    bool isPressed();
+    bool isReleased();
+    bool isRepeatd();
+    bool isModifier();
+    std::string toString();
 };
 
-// NOTE: Keyboard needs to be implemtend for the specific rendering API. No generic implementation is provided.
-template<i32 TKeyCount>
-struct IKeyboard {
-    KeyInfo keys[TKeyCount] = {};
+struct Keyboard {
+    KeyInfo keys[GLFW_KEY_LAST] = {};
     KeyboardModifiers modifiers = { KeyboardModifiers::Type::NONE };
     core::rune textInput;
 
-    KeyInfo&           getKey(i32 scancode);
-    void               setKey(KeyInfo&& key);
-    KeyboardModifiers& getModifiers();
-    void               setModifiers(KeyboardModifiers&& mods);
-    core::rune&        getTextInput();
-    void               setTextInput(core::rune&& text);
+    Keyboard&           setKey(KeyInfo&& key);
+    KeyInfo&            getKey(i32 scancode);
+    Keyboard&           setModifiers(KeyboardModifiers&& mods);
+    KeyboardModifiers&  getModifiers();
+    Keyboard&           setTextInput(core::rune&& text);
+    core::rune&         getTextInput();
 
     void clear();
 
-    std::string toString() const;
+    std::string toString();
 };
-
-} // namespace app

@@ -8,9 +8,9 @@
 #include "ex/experiment_02_textures.h"
 #include "ex/experiment_03_transformations.h"
 #include "ex/experiment_04_rotating_cube.h"
-#include "ex/experiment_app.h"
 #include "ex/raytracing.h"
 #include "ex/ray_in_voxel_space.h"
+#include "ex/keyboard_and_mouse.h"
 
 // TODO: Drawing line segments is quite the problem to solve in one pass. I first need to:
 //        - Go through all tutorials on https://learnopengl.com/ and make sure I understand everything.
@@ -27,7 +27,7 @@ struct Example {
     common::MainLoopCb mainLoop = nullptr;
     void (*destroy)() = nullptr;
     bool waitForEvents = false;
-    core::vec4f clearColor = {0.2f, 0.3f, 0.3f, 1.0f};
+    core::vec4f clearColor = core::v(0.2f, 0.3f, 0.3f, 1.0f);
     i32 windowWidth;
     i32 windowHeight;
     const char* title;
@@ -72,19 +72,6 @@ inline i32 runExample(Example&& ex) {
     return common::AppExitCodes::APP_EXIT_SUCCESS;
 }
 
-i32 example_app() {
-    Example ex;
-    ex.init = app::init;
-    ex.destroy = app::destroy;
-    ex.preMainLoop = app::preMainLoop;
-    ex.mainLoop = app::mainLoop;
-    ex.waitForEvents = true;
-    ex.windowWidth = 800;
-    ex.windowHeight = 600;
-    ex.title = "Example App";
-    return runExample(core::move(ex));
-}
-
 i32 example_raytracing() {
     Example ex;
     ex.init = raytracing::init;
@@ -111,6 +98,19 @@ i32 example_ray_in_voxel_space() {
     ex.windowHeight = 600;
     ex.clearColor = core::WHITE;
     ex.title = "Ray in Voxel Space";
+    return runExample(core::move(ex));
+}
+
+i32 example_keyboard_and_mouse() {
+    Example ex;
+    ex.init = keyboard_and_mouse::init;
+    ex.destroy = keyboard_and_mouse::destroy;
+    ex.preMainLoop = keyboard_and_mouse::preMainLoop;
+    ex.mainLoop = keyboard_and_mouse::mainLoop;
+    ex.waitForEvents = false;
+    ex.windowWidth = 800;
+    ex.windowHeight = 600;
+    ex.title = "Keyboard and Mouse";
     return runExample(core::move(ex));
 }
 
@@ -169,5 +169,5 @@ i32 example_04() {
 
 i32 main(i32, char const**) {
     initCore();
-    return example_ray_in_voxel_space();
+    return example_keyboard_and_mouse();
 }

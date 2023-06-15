@@ -2,6 +2,7 @@
 
 #include <keyboard.h>
 #include <shader_prog.h>
+#include <glfw/glfw_impl.h>
 
 #include <memory>
 #include <thread>
@@ -382,8 +383,8 @@ core::expected<GraphicsLibError> init(CommonState& s) {
     const char* errDesc = nullptr;
 
     glfwSetKeyCallback(glfwWindow, [](GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods) {
-        [[maybe_unused]] KeyboardModifiers keyModifiers = KeyboardModifiers::createFromGLFW(mods);
-        KeyInfo keyInfo = KeyInfo::createFromGLFW(key, scancode, action);
+        [[maybe_unused]] app::KeyboardModifiers keyModifiers = app::createKeyboardModifiersGLFW(mods);
+        app::KeyInfo keyInfo = app::createKeyInfoGLFW(key, scancode, action);
         if (keyInfo.value == GLFW_KEY_ESCAPE && keyInfo.isPressed()) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
@@ -567,7 +568,7 @@ core::expected<GraphicsLibError> preMainLoop(CommonState& commonState) {
             threads.append(std::thread(raytrace, start, imageHeight));
         }
 
-        for (i32 i = 0; i < nthreads; ++i) {
+        for (i32 i = 0; i < nthreads + 1; ++i) {
             auto& t = threads[i];
             t.join();
         }

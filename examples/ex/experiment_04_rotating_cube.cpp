@@ -2,6 +2,7 @@
 
 #include <keyboard.h>
 #include <shader_prog.h>
+#include <glfw/glfw_impl.h>
 
 namespace rotating_cube_ex_04 {
 
@@ -38,8 +39,8 @@ core::expected<GraphicsLibError> init(CommonState& s) {
     glEnable(GL_DEPTH_TEST);
 
     glfwSetKeyCallback(glfwWindow, [](GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods) {
-        [[maybe_unused]] KeyboardModifiers keyModifiers = KeyboardModifiers::createFromGLFW(mods);
-        KeyInfo keyInfo = KeyInfo::createFromGLFW(key, scancode, action);
+        [[maybe_unused]] app::KeyboardModifiers keyModifiers = app::createKeyboardModifiersGLFW(mods);
+        app::KeyInfo keyInfo = app::createKeyInfoGLFW(key, scancode, action);
         if (keyInfo.value == GLFW_KEY_ESCAPE && keyInfo.isPressed()) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }

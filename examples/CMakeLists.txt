@@ -20,16 +20,18 @@ add_executable(${PROJECT_NAME}
     src/mouse.cpp
     src/shader_prog.h
     src/shader_prog.cpp
-    src/shape.h
-    src/shape.cpp
+
+    # Common glfw source files:
+    src/glfw/glfw_impl.h
+    src/glfw/glfw_keyboard.cpp
 
     # Examples:
-    ex/experiment_app.h
-    ex/experiment_app.cpp
     ex/raytracing.h
     ex/raytracing.cpp
     ex/ray_in_voxel_space.h
     ex/ray_in_voxel_space.cpp
+    ex/keyboard_and_mouse.h
+    ex/keyboard_and_mouse.cpp
     ex/experiment_01_triangle_and_quad.h
     ex/experiment_01_triangle_and_quad.cpp
     ex/experiment_02_textures.h

@@ -19,7 +19,7 @@ Mouse& Mouse::setInWindow(bool isInWindow) {
     return *this;
 }
 
-void Mouse::clear() {
+void Mouse::update() {
     // Mouse scrollwheels can't be held down, so clear the scroll on every frame.
     scrollX = 0;
     scrollY = 0;

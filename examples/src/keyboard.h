@@ -76,7 +76,7 @@ struct IKeyboard {
     core::rune&        getTextInput();
     void               setTextInput(core::rune&& text);
 
-    void clear();
+    void update();
 
     std::string toString() const;
 };

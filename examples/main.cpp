@@ -107,7 +107,7 @@ i32 example_keyboard_and_mouse() {
     ex.destroy = keyboard_and_mouse::destroy;
     ex.preMainLoop = keyboard_and_mouse::preMainLoop;
     ex.mainLoop = keyboard_and_mouse::mainLoop;
-    ex.waitForEvents = false;
+    ex.waitForEvents = true;
     ex.windowWidth = 800;
     ex.windowHeight = 600;
     ex.title = "Keyboard and Mouse";

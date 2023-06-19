@@ -109,14 +109,13 @@ core::rune& GLFWKeyboard::getTextInput() {
 }
 
 template<>
-void GLFWKeyboard::clear() {
+void GLFWKeyboard::update() {
     // Keys that were released last frame are unset this frame.
     for (i32 i = 0; i < GLFW_KEY_LAST; i++) {
         if (keys[i].isReleased()) {
             keys[i].action.type = KeyboardAction::Type::NONE;
         }
     }
-    // There is exactly one utf-8 rune as text input per frame, so clear it ant wait for the next one.
     textInput = core::rune{0};
 }
 

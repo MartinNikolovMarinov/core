@@ -21,7 +21,7 @@ struct Mouse {
     Mouse& setScroll(i32 x, i32 y);
     Mouse& setPos(i32 x, i32 y);
     Mouse& setInWindow(bool isInWindow);
-    void clear();
+    void update();
     std::string toString();
 };
 

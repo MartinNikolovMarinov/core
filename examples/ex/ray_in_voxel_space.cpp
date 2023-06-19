@@ -426,8 +426,8 @@ core::tuple<i32, i32> toCellCoordinates(const core::vec2d& x) {
 void mainLoop(CommonState& commonState) {
     State& g_s = state();
 
-    g_s.mouse.clear();
-    g_s.keyboard.clear();
+    g_s.mouse.update();
+    g_s.keyboard.update();
     handleUserInput();
 
     if (g_s.canRenderLine) {

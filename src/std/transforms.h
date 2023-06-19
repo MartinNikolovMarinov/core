@@ -83,6 +83,10 @@ constexpr vec2<TFloat> rotate_right(const vec2<TFloat>& v, const vec2<TFloat>& o
 
 // Rotate 3D
 
+constexpr static vec3f X_AXIS = core::v(1.f, 0.f, 0.f);
+constexpr static vec3f Y_AXIS = core::v(0.f, 1.f, 0.f);
+constexpr static vec3f Z_AXIS = core::v(0.f, 0.f, 1.f);
+
 template<typename TFloat>
 constexpr mat4<TFloat> rotate(const mat4<TFloat>& m, const vec3<TFloat>& a, core::radians angle) {
     static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");

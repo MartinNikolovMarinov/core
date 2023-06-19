@@ -20,6 +20,8 @@ add_executable(${PROJECT_NAME}
     src/mouse.cpp
     src/shader_prog.h
     src/shader_prog.cpp
+    src/box.h
+    src/box.cpp
 
     # Common glfw source files:
     src/glfw/glfw_impl.h
@@ -41,6 +43,8 @@ add_executable(${PROJECT_NAME}
     ex/experiment_03_transformations.cpp
     ex/experiment_04_rotating_cube.h
     ex/experiment_04_rotating_cube.cpp
+    ex/experiment_05_camera.h
+    ex/experiment_05_camera.cpp
     ex/common.h
     ex/common.cpp
 )

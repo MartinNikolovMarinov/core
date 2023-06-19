@@ -2,7 +2,7 @@
 
 #include "common.h"
 
-namespace rotating_cube_ex_04 {
+namespace camera_ex_05 {
 
 using AppExitCodes = common::AppExitCodes;
 using CommonState = common::CommonState;
@@ -13,4 +13,4 @@ void destroy();
 core::expected<GraphicsLibError> preMainLoop(CommonState& s);
 void mainLoop(CommonState& s);
 
-} // namespace rotating_cube_ex_04
+} // namespace transformation_ex_03

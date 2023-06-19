@@ -23,6 +23,23 @@ core::expected<u32, ShaderProg::error_type> compileShader(u32 type, std::string_
 
 } // namespace
 
+core::expected<ShaderProg::error_type> ShaderProg::setUniform_color(std::string_view name, const core::vec4f& color) {
+    return setUniform_v(name, color);
+}
+
+core::expected<ShaderProg::error_type> ShaderProg::setUniform_model(std::string_view name, const core::mat4f& model) {
+    return setUniform_m(name, model);
+}
+
+core::expected<ShaderProg::error_type> ShaderProg::setUniform_view(std::string_view name, const core::mat4f& view) {
+    return setUniform_m(name, view);
+}
+
+core::expected<ShaderProg::error_type> ShaderProg::setUniform_proj(std::string_view name, const core::mat4f& proj) {
+    return setUniform_m(name, proj);
+}
+
+
 core::expected<ShaderProg, ShaderProg::error_type> ShaderProg::create(std::string_view vertexShaderSrc,
                                                                       std::string_view fragShaderSrc) {
     if (vertexShaderSrc.empty()) return core::unexpected("Vertex shader source is empty.");

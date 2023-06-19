@@ -228,4 +228,4 @@ void mainLoop(CommonState& commonState) {
     fmt::print("Frame: {}, FPS: {:f}\n", commonState.frameCount, commonState.fps);
 }
 
-} // namespace transformation_ex_03
+} // namespace rotating_cube_ex_04

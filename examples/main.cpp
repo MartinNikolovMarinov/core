@@ -8,6 +8,7 @@
 #include "ex/experiment_02_textures.h"
 #include "ex/experiment_03_transformations.h"
 #include "ex/experiment_04_rotating_cube.h"
+#include "ex/experiment_05_camera.h"
 #include "ex/raytracing.h"
 #include "ex/ray_in_voxel_space.h"
 #include "ex/keyboard_and_mouse.h"
@@ -167,7 +168,20 @@ i32 example_04() {
     return runExample(core::move(ex));
 }
 
+i32 example_05() {
+    Example ex;
+    ex.init = camera_ex_05::init;
+    ex.destroy = camera_ex_05::destroy;
+    ex.preMainLoop = camera_ex_05::preMainLoop;
+    ex.mainLoop = camera_ex_05::mainLoop;
+    ex.waitForEvents = false;
+    ex.windowWidth = 800;
+    ex.windowHeight = 600;
+    ex.title = "Camera Example 05";
+    return runExample(core::move(ex));
+}
+
 i32 main(i32, char const**) {
     initCore();
-    return example_keyboard_and_mouse();
+    return example_05();
 }

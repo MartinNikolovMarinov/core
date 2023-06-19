@@ -26,6 +26,11 @@ struct ShaderProg {
     void destroy() { glDeleteProgram(m_id); }
     void use() { glUseProgram(m_id); }
 
+    core::expected<error_type> setUniform_color(std::string_view name, const core::vec4f& color);
+    core::expected<error_type> setUniform_model(std::string_view name, const core::mat4f& model);
+    core::expected<error_type> setUniform_view(std::string_view name, const core::mat4f& view);
+    core::expected<error_type> setUniform_proj(std::string_view name, const core::mat4f& proj);
+
     template <i32 Dim, typename T>
     core::expected<error_type> setUniform_v(std::string_view name, const core::vec<Dim, T>& v) {
         i32 loc = glGetUniformLocation(m_id, name.data());

@@ -3,7 +3,6 @@
 #include <API.h>
 #include <types.h>
 #include <alloc.h>
-#include <expected.h>
 #include <mem.h>
 #include <core_traits.h>
 
@@ -72,7 +71,7 @@ struct CORE_API_EXPORT arr {
     size_type   byte_len()       const { return m_len * sizeof(data_type); }
     data_type*  data()           const { return m_data; }
     bool        empty()          const { return m_len == 0; }
-    void        clear()                { m_len = 0; }
+    void        clear()                { m_len = 0; } // FIXME: If the type is not trivially destructible, this will leak memory!
 
     arr<T, TAllocator> copy() {
         arr<T, TAllocator> result(*this);
@@ -94,14 +93,14 @@ struct CORE_API_EXPORT arr {
     }
 
     data_type& at(size_type idx)                     { Assert(idx <= m_len); return m_data[idx]; }
-    const data_type& at(size_type idx) const         { Assert(idx <= m_len); return m_data[idx]; }
+    const data_type& at(size_type idx)         const { Assert(idx <= m_len); return m_data[idx]; }
     data_type& operator[](size_type idx)             { return at(idx); }
     const data_type& operator[](size_type idx) const { return at(idx); }
 
-    data_type& first()             { Assert(m_len > 0); return m_data[0]; }
-    const data_type& first() const { Assert(m_len > 0); return m_data[0]; }
-    data_type& last()              { Assert(m_len > 0); return m_data[m_len - 1]; }
-    const data_type& last() const  { Assert(m_len > 0); return m_data[m_len - 1]; }
+    data_type& first()             { return at(0); }
+    const data_type& first() const { return at(0); }
+    data_type& last()              { return at(m_len - 1); }
+    const data_type& last()  const { return at(m_len - 1); }
 
     arr& append(const data_type& val) {
         if (m_len == m_cap) {

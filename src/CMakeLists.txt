@@ -67,6 +67,7 @@ set(src_files
     alloc.h
     ansi_escape_codes.h
     arr.h
+    static_arr.h
     bits.h
     char_ptr.h
     core_math.h

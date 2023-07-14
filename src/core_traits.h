@@ -67,6 +67,10 @@ typename AddRValue<T>::type declval() noexcept {
 
 #pragma region Compiler Intrinsic Traits ------------------------------------------------------------------------------
 
+constexpr inline bool is_const_evaluated() noexcept {
+    return __builtin_is_constant_evaluated();
+}
+
 template <typename T>
 struct IsTriviallyDestructible {
 #if (COMPILER_GCC == 1) || (COMPILER_CLANG == 1)

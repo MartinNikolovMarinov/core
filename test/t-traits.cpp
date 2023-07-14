@@ -1,4 +1,4 @@
-constexpr void run_traits_tests() {
+constexpr i32 run_traits_tests() {
     static_assert(core::AlwaysFalse<i32> == false);
     static_assert(core::AlwaysFalse<void> == false);
     static_assert(core::AlwaysFalse<f32> == false);
@@ -84,8 +84,11 @@ constexpr void run_traits_tests() {
         // This one is important, my array implemntation is not trivially destructable:
         static_assert(core::IsTriviallyDestructible_v<core::arr<i32>> == false);
     }
+
+    return 0;
 }
 
-void run_traits_tests_suite() {
+i32 run_traits_tests_suite() {
     RunTest(run_traits_tests);
+    return 0;
 }

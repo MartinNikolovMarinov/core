@@ -1,7 +1,7 @@
 // Running tests for more complex math functions requires a check with the standard library implementation. It is also
 // required to keep one's sanity.
 
-void fp_classifications_test() {
+i32 fp_classifications_test() {
     {
         struct TestCase {
             f32 a;
@@ -59,9 +59,11 @@ void fp_classifications_test() {
             Assert(i32(stdGot) == i32(got), cErr);
         });
     }
+
+    return 0;
 }
 
-void round_test() {
+i32 round_test() {
     {
         struct TestCase {
             f32 a;
@@ -133,9 +135,11 @@ void round_test() {
         Assert(core::isnan(core::round(nan)));
         Assert(std::isnan(std::round(nan)));
     }
+
+    return 0;
 }
 
-void floor_test() {
+i32 floor_test() {
     {
         struct TestCase {
             f32 a;
@@ -207,9 +211,11 @@ void floor_test() {
         Assert(std::isnan(core::floor(nan)));
         Assert(core::isnan(core::floor(nan)));
     }
+
+    return 0;
 }
 
-void ceil_test() {
+i32 ceil_test() {
     {
         struct TestCase {
             f32 a;
@@ -281,9 +287,11 @@ void ceil_test() {
         Assert(std::isnan(core::ceil(nan)));
         Assert(core::isnan(core::ceil(nan)));
     }
+
+    return 0;
 }
 
-void min_max_test() {
+i32 min_max_test() {
     auto specialCompare = [](auto a, auto b) -> bool {
         if (core::isnan(a)) return core::isnan(b);
         if (core::isnan(b)) return false;
@@ -363,12 +371,16 @@ void min_max_test() {
             }
         });
     }
+
+    return 0;
 }
 
-void run_core_math_tests_suite_std() {
+i32 run_core_math_tests_suite_std() {
     RunTest(fp_classifications_test);
     RunTest(round_test);
     RunTest(floor_test);
     RunTest(ceil_test);
     RunTest(min_max_test);
+
+    return 0;
 }

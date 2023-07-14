@@ -1,4 +1,4 @@
-constexpr void degrees_test() {
+constexpr i32 degrees_test() {
     Assert(core::deg_to_rad(0.0f) == 0.0f);
     Assert(core::deg_to_rad(90.0f) == core::PI / 2.0f);
     Assert(core::deg_to_rad(180.0f) == core::PI);
@@ -10,9 +10,11 @@ constexpr void degrees_test() {
     Assert(core::rad_to_deg(core::radians(core::PI)) == 180.0f);
     Assert(core::rad_to_deg(core::radians(core::PI * 1.5f)) == 270.0f);
     Assert(core::rad_to_deg(core::radians(core::PI * 2.0f)) == 360.0f);
+
+    return 0;
 }
 
-constexpr void pow_u64_test() {
+constexpr i32 pow_u64_test() {
     Assert(core::pow_u64(0, 0) == 0);
     Assert(core::pow_u64(0, 5) == 0);
     Assert(core::pow_u64(5, 0) == 1);
@@ -109,9 +111,11 @@ constexpr void pow_u64_test() {
     Assert(core::pow_u64(2, 61) == 2305843009213693952);
     Assert(core::pow_u64(2, 62) == 4611686018427387904);
     // next one is too big for 64-bit integer
+
+    return 0;
 }
 
-void abs_test() {
+i32 abs_test() {
     Assert(core::abs_slow(i8(0)) == 0);
     Assert(core::abs_slow(i8(1)) == 1);
     Assert(core::abs_slow(i8(-1)) == 1);
@@ -140,9 +144,11 @@ void abs_test() {
     Assert(core::abs_slow(i32(core::MIN_I32 + 1)) == core::MAX_I32);
     Assert(core::abs_slow(i64(core::MAX_I64))     == core::MAX_I64);
     Assert(core::abs_slow(i64(core::MIN_I64 + 1)) == core::MAX_I64);
+
+    return 0;
 }
 
-void is_positive_test() {
+i32 is_positive_test() {
     Assert(core::is_positive(i8(0)) == true);
     Assert(core::is_positive(i8(1)) == true);
     Assert(core::is_positive(i8(-1)) == false);
@@ -161,9 +167,11 @@ void is_positive_test() {
     Assert(core::is_positive(f64(0)) == true);
     Assert(core::is_positive(f64(1)) == true);
     Assert(core::is_positive(f64(-1)) == false);
+
+    return 0;
 }
 
-void float_safe_eq_test() {
+i32 float_safe_eq_test() {
     struct TestCase {
         f32 startA;
         f32 startB;
@@ -199,9 +207,11 @@ void float_safe_eq_test() {
             c.startB += c.step;
         }
     }
+
+    return 0;
 }
 
-void float_nearly_eq_test() {
+i32 float_nearly_eq_test() {
     struct TestCase {
         f32 a;
         f32 b;
@@ -285,9 +295,11 @@ void float_nearly_eq_test() {
     executeTestTable("float_nearly_eq test case failed at index: ", cases, [](auto& c, const char* cErr) {
         Assert(core::nearly_eq(c.a, c.b, c.epsilon) == c.expected, cErr);
     });
+
+    return 0;
 }
 
-void sign_test() {
+i32 sign_test() {
     {
         struct TestCase {
             f32 a;
@@ -343,9 +355,11 @@ void sign_test() {
             Assert(core::sign(c.a) == c.expected, cErr);
         });
     }
+
+    return 0;
 }
 
-void run_core_math_tests_suite() {
+i32 run_core_math_tests_suite() {
     RunTest(degrees_test);
     RunTest(pow_u64_test);
     RunTest(abs_test);
@@ -353,4 +367,6 @@ void run_core_math_tests_suite() {
     RunTest(float_safe_eq_test);
     RunTest(float_nearly_eq_test);
     RunTest(sign_test);
+
+    return 0;
 }

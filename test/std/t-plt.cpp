@@ -1,15 +1,19 @@
-void get_time_test() {
+i32 get_time_test() {
     auto res = core::os_unix_time_stamp_in_ms();
     Assert(res.has_value());
     Assert(!res.has_err());
     Assert(res.value() > 0);
+
+    return 0;
 }
 
-void thread_sleep_test() {
+i32 thread_sleep_test() {
     core::os_thread_sleep(100); // don't explode I guess...
+
+    return 0;
 }
 
-void os_alloc_de_alloc_pages_test() {
+i32 os_alloc_de_alloc_pages_test() {
     auto res = core::os_alloc_pages(1024);
     Assert(res.has_value());
     Assert(!res.has_err());
@@ -32,10 +36,14 @@ void os_alloc_de_alloc_pages_test() {
         Assert(deallocErr.has_err());
         Assert(deallocErr.err() == core::OS_DEALLOC_NULL_ADDR_ERR, "error code equality check should work bi-directionally");
     }
+
+    return 0;
 }
 
-void run_plt_tests_suite() {
+i32 run_plt_tests_suite() {
     RunTest(get_time_test);
     RunTest(thread_sleep_test);
     RunTest(os_alloc_de_alloc_pages_test);
+
+    return 0;
 }

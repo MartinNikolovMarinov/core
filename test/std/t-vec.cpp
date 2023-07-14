@@ -1,4 +1,4 @@
-void vector_equals_test() {
+i32 vector_equals_test() {
     {
         core::vec2<i32> a { 1, 2 };
         core::vec2<i32> b { 1, 2 };
@@ -28,9 +28,11 @@ void vector_equals_test() {
         Assert(!a.equals(b, 0.09999f));
         Assert(a.equals(b, 0.10001f));
     }
+
+    return 0;
 }
 
-void vector_add_sub_mul_div_test() {
+i32 vector_add_sub_mul_div_test() {
     {
         core::vec2<i32> a { 1, 2 };
         core::vec2<i32> b { 3, 4 };
@@ -120,17 +122,21 @@ void vector_add_sub_mul_div_test() {
         Assert(8 / a == core::v(8, 4));
         Assert(8 / a / a == core::v(8, 2));
     }
+
+    return 0;
 }
 
-void vector_length_test() {
+i32 vector_length_test() {
     constexpr f32 epsillon = 0.000001f;
     Assert(std::abs(core::v(1, 2).length() - 2.23606797749979f) < epsillon);
     Assert(std::abs(core::v(1, 2, 3).length() - 3.7416573867739413f) < epsillon);
     Assert(std::abs(core::v(1, 2, 3, 4).length() - 5.477225575051661f) < epsillon);
     Assert(std::abs(core::v(1.0f, 2.0f).length() - 2.23606797749979f) < epsillon);
+
+    return 0;
 }
 
-void vector_dot_product_test() {
+i32 vector_dot_product_test() {
     Assert(core::v(1, 2).dot(core::v(3, 4)) == 11.0f);
     Assert(core::v(1, 2, 3).dot(core::v(3, 4, 5)) == 26.0f);
     Assert(core::v(1, 2, 3, 4).dot(core::v(3, 4, 5, 6)) == 50.0f);
@@ -184,9 +190,11 @@ void vector_dot_product_test() {
         a.div(b);
         Assert(a.equals(core::v(1, 2, 3, 4)));
     }
+
+    return 0;
 }
 
-void vector_cross_product_test() {
+i32 vector_cross_product_test() {
     Assert(core::v(1, 2, 3).cross(core::v(3, 4, 5)).equals(core::v(-2, 4, -2)));
     Assert(core::v(1.0f, 2.0f, 3.0f).cross(core::v(3.0f, 4.0f, 5.0f)).equals(core::v(-2.0f, 4.0f, -2.0f)));
 
@@ -224,12 +232,16 @@ void vector_cross_product_test() {
         Assert(b.cross(a).dot(c) == c.cross(b).dot(a));
         Assert(c.cross(b).dot(a) == a.cross(c).dot(b));
     }
+
+    return 0;
 }
 
-void run_vec_tests_suite() {
+i32 run_vec_tests_suite() {
     RunTest(vector_equals_test);
     RunTest(vector_add_sub_mul_div_test);
     RunTest(vector_length_test);
     RunTest(vector_dot_product_test);
     RunTest(vector_cross_product_test);
+
+    return 0;
 }

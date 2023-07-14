@@ -1,5 +1,5 @@
 template<typename TAllocator>
-void initialize_arr() {
+i32 initialize_arr() {
     {
         core::arr<i32, TAllocator> arr;
         Assert(arr.len() == 0);
@@ -51,10 +51,12 @@ void initialize_arr() {
         Assert(CT::dtorsCalled() == testCount, "Copy constructor did not call destructors!");
         CT::resetDtors();
     }
+
+    return 0;
 }
 
 template<typename TAllocator>
-void move_and_copy_arr() {
+i32 move_and_copy_arr() {
     core::arr<i32, TAllocator> arr(10);
     arr.fill(1);
     core::arr<i32, TAllocator> arrCpy;
@@ -80,10 +82,12 @@ void move_and_copy_arr() {
     for (i32 i = 0; i < arrMoved.len(); ++i) {
         Assert(arrMoved[i] == arrCpy[i]);
     }
+
+    return 0;
 }
 
 template<typename TAllocator>
-void resize_arr() {
+i32 resize_arr() {
     {
         core::arr<i32, TAllocator> arr;
         Assert(arr.len() == 0);
@@ -103,10 +107,12 @@ void resize_arr() {
         Assert(arr.data() != nullptr);
         Assert(arr.empty());
     }
+
+    return 0;
 }
 
 template<typename TAllocator>
-void fill_arr() {
+i32 fill_arr() {
     {
         core::arr<i32, TAllocator> arr;
         arr.fill(0); // should not crash
@@ -174,10 +180,12 @@ void fill_arr() {
         }
         CT::resetDtors();
     }
+
+    return 0;
 }
 
 template<typename TAllocator>
-void append_arr() {
+i32 append_arr() {
     {
         core::arr<i32, TAllocator> arr;
 
@@ -244,7 +252,7 @@ void append_arr() {
         arr.clear();
 
         // Append many trivial values.
-        int many[5] = { 1, 2, 3, 4, 5 };
+        i32 many[5] = { 1, 2, 3, 4, 5 };
         arr.append(many, 5);
         Assert(arr.len() == 5);
         Assert(arr.cap() >= arr.len());
@@ -313,10 +321,12 @@ void append_arr() {
         Assert(CT::dtorsCalled() == 5);
         CT::resetAll();
     }
+
+    return 0;
 }
 
 template<typename TAllocator>
-void array_of_arrays_arr() {
+i32 array_of_arrays_arr() {
     {
         core::arr<i32, TAllocator> arr;
         core::arr<i32, TAllocator> arr2;
@@ -365,4 +375,6 @@ void array_of_arrays_arr() {
         Assert(multi[2][1] == 8);
         Assert(multi[2][2] == 9);
     }
+
+    return 0;
 }

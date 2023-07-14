@@ -1,6 +1,6 @@
 #include <fcntl.h>
 
-void basic_test() {
+i32 basic_test() {
     using File = core::File<core::FS_DEFAULT_BLOCK_SIZE>;
     constexpr const char* pathToTestFile = PATH_TO_TEST_DATA "/basic_test.txt";
 
@@ -44,9 +44,11 @@ void basic_test() {
         Assert(readBytes == phrase.size());
         Assert(core::cptr_cmp(data, phrase.data()) == 0);
     }
+
+    return 0;
 }
 
-void readfull_test() {
+i32 readfull_test() {
     {
         constexpr const char* pathToTestFile = PATH_TO_TEST_DATA "/readfull_test.txt";
 
@@ -78,9 +80,11 @@ void readfull_test() {
     }
 
     Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+
+    return 0;
 }
 
-void run_fs_tests_suite() {
+i32 run_fs_tests_suite() {
 #if (defined(OS_WIN) && OS_WIN == 0) // FIXME: reintroduce test and write real tests when the windows api is ready
     bool exists = ValueOrDie(core::os_exists(PATH_TO_TEST_DATA));
     if (!exists) {
@@ -90,4 +94,6 @@ void run_fs_tests_suite() {
     RunTest(basic_test);
     RunTest(readfull_test);
 #endif
+
+    return 0;
 }

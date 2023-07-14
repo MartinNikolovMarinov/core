@@ -1,7 +1,6 @@
 #pragma once
 
 #include <types.h>
-#include <mem.h>
 #include <char_ptr.h>
 
 using namespace coretypes;
@@ -14,7 +13,9 @@ template <i32 PLen, typename TCase, i32 NCases, typename Afunc>
 inline constexpr void executeTestTable(const char (&errMsgPrefix)[PLen], const TCase (&cases)[NCases], Afunc assertionFn) {
     i32 i = 0;
     char errMsg[PLen + 20] = {}; // The 20 is for the test case index number.
-    core::memcopy(errMsg, errMsgPrefix, PLen);
+    for (i32 j = 0; j < PLen; j++) { // NOTE: intentionally not using memcopy, because this needs to work in constexpr.
+        errMsg[j] = errMsgPrefix[j];
+    }
     char* appendIdx = &errMsg[PLen - 1];
     for (auto& c : cases) {
         core::int_to_cptr(i, appendIdx, 2);

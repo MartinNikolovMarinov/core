@@ -1,4 +1,4 @@
-void basic_bump_allocator_case() {
+i32 basic_bump_allocator_case() {
     core::bump_allocator<254> bumpAllocator;
 
     void* data = bumpAllocator.alloc(4);
@@ -19,18 +19,22 @@ void basic_bump_allocator_case() {
     Assert(ts != nullptr);
     Assert(ts->a == 42);
     Assert(ts->b == 0.1f);
+
+    return 0;
 }
 
-void on_oom_bump_allocator() {
+i32 on_oom_bump_allocator() {
     static i32 testOOMCount = 0;
     core::bump_allocator<254> bumpAllocator([](void*) { testOOMCount++; });
     testOOMCount = 0; // just in case
 
     [[maybe_unused]] void* data = bumpAllocator.alloc(255);
     Assert(testOOMCount > 0);
+
+    return 0;
 }
 
-void run_bump_allocator_tests_suite() {
+i32 run_bump_allocator_tests_suite() {
     RunTest(basic_bump_allocator_case);
     RunTest(on_oom_bump_allocator);
 
@@ -47,4 +51,6 @@ void run_bump_allocator_tests_suite() {
     bump_allocator_static<256>::clear();
     RunTest(array_of_arrays_arr<bump_allocator_static<512>>);
     bump_allocator_static<512>::clear();
+
+    return 0;
 }

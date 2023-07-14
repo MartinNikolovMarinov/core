@@ -2,13 +2,13 @@ struct A {
     i32 a;
     f64 b;
 
-    A(i32 a, f64 b) : a(a), b(b) {}
+    constexpr A(i32 a, f64 b) : a(a), b(b) {}
 
-    bool operator==(const A& other) const { return a == other.a && b == other.b; }
-    bool operator!=(const A& other) const { return !(*this == other); }
+    constexpr bool operator==(const A& other) const { return a == other.a && b == other.b; }
+    constexpr bool operator!=(const A& other) const { return !(*this == other); }
 };
 
-void run_tuple_argument_increment() {
+constexpr i32 run_tuple_argument_increment() {
     auto t1 = core::create_tuple(1, A{2, 3.0f}, (u64)(6));
     auto t2 = t1;
 
@@ -27,9 +27,11 @@ void run_tuple_argument_increment() {
     Assert(t1.get<0>() == t2.get<0>());
     Assert(t1.get<1>() == t2.get<1>());
     Assert(t1.get<2>() != t2.get<2>());
+
+    return 0;
 }
 
-void run_create_tuples_of_different_sizes() {
+constexpr i32 run_create_tuples_of_different_sizes() {
     {
         auto t = core::create_tuple(1, 2);
         Assert(t.len == 2);
@@ -63,9 +65,18 @@ void run_create_tuples_of_different_sizes() {
         Assert(third == 3);
         Assert(fourth == 4);
     }
+
+    return 0;
 }
 
-void run_tuple_tests_suite() {
+i32 run_tuple_tests_suite() {
     RunTest(run_tuple_argument_increment);
     RunTest(run_create_tuples_of_different_sizes);
+    return 0;
+}
+
+constexpr i32 run_constexpr_tuple_tests_suite() {
+    RunTestCompileTime(run_tuple_argument_increment);
+    RunTestCompileTime(run_create_tuples_of_different_sizes);
+    return 0;
 }

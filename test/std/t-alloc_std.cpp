@@ -1,4 +1,4 @@
-void basic_std_allocator_case() {
+i32 basic_std_allocator_case() {
     core::std_allocator stdAlloc;
 
     void* data = stdAlloc.alloc(4);
@@ -20,18 +20,22 @@ void basic_std_allocator_case() {
     Assert(ts->a == 42);
     Assert(ts->b == 0.1f);
     stdAlloc.free(ts);
+
+    return 0;
 }
 
-void on_oom_std_allocator() {
+i32 on_oom_std_allocator() {
     static i32 testOOMCount = 0;
     core::std_allocator stdAlloc([](void*) { testOOMCount++; });
     testOOMCount = 0; // just in case
 
     [[maybe_unused]] void* data = stdAlloc.alloc(0x7fffffffffffffff);
     Assert(testOOMCount == 1);
+
+    return 0;
 }
 
-void stats_allocator_tests() {
+i32 stats_allocator_tests() {
     core::std_stats_allocator statsStdAllocator;
 
     struct test_struct {
@@ -82,9 +86,11 @@ void stats_allocator_tests() {
     Assert(statsStdAllocator.used_mem() == sizeof(test_struct));
     statsStdAllocator.free(c);
     Assert(statsStdAllocator.used_mem() == 0);
+
+    return 0;
 }
 
-void run_std_allocator_tests_suite() {
+i32 run_std_allocator_tests_suite() {
     RunTest(basic_std_allocator_case);
     RunTest(on_oom_std_allocator);
     RunTest(stats_allocator_tests);
@@ -102,4 +108,6 @@ void run_std_allocator_tests_suite() {
     Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
     RunTest(array_of_arrays_arr<std_allocator_static>);
     Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+
+    return 0;
 }

@@ -1,4 +1,4 @@
-void expected_basic_case() {
+i32 expected_basic_case() {
     core::expected<i32, const char*> e1(10);
     Assert(e1.has_value());
     Assert(!e1.has_err());
@@ -9,9 +9,11 @@ void expected_basic_case() {
     Assert(!e2.has_value());
     Assert(e2.has_err());
     Assert(core::cptr_cmp(e2.err(), "bad") == 0);
+
+    return 0;
 }
 
-void expected_sizeof() {
+i32 expected_sizeof() {
     struct test_struct {
         u64 a;
         u32 b;
@@ -28,9 +30,11 @@ void expected_sizeof() {
     Assert(sizeof(e1) == sizeof(e2));
     Assert(sizeof(e1) == sizeof(e3));
     Assert(sizeof(e1) == sizeof(e4));
+
+    return 0;
 }
 
-void expected_with_same_type() {
+i32 expected_with_same_type() {
     core::expected<i32, i32> e1(10);
     Assert(e1.has_value());
     Assert(!e1.has_err());
@@ -52,9 +56,11 @@ void expected_with_same_type() {
     core::expected<test_struct, test_struct> e3(core::unexpected(test_struct{1,2,3,4,"123"}));
     Assert(!e3.has_value());
     Assert(e3.has_err());
+
+    return 0;
 }
 
-void expected_used_in_a_function() {
+i32 expected_used_in_a_function() {
     static constexpr const char* errMsg1 = "unexpected value less than 0";
     static constexpr const char* errMsg2 = "unexpected value equals 0";
 
@@ -69,9 +75,11 @@ void expected_used_in_a_function() {
     Assert(core::cptr_cmp(f(0).err(), errMsg2) == 0);
     Assert(f(-1).has_err());
     Assert(core::cptr_cmp(f(-1).err(), errMsg1) == 0);
+
+    return 0;
 }
 
-void expected_with_destructors() {
+i32 expected_with_destructors() {
     struct test_struct {
         i32* counter;
         test_struct(i32* counter) : counter(counter) {
@@ -95,12 +103,16 @@ void expected_with_destructors() {
         Assert(counter == 1);
     }
     Assert(counter == 0);
+
+    return 0;
 }
 
-void run_expected_tests_suite() {
+i32 run_expected_tests_suite() {
     RunTest(expected_basic_case);
     RunTest(expected_sizeof);
     RunTest(expected_with_same_type);
     RunTest(expected_used_in_a_function);
     RunTest(expected_with_destructors);
+
+    return 0;
 }

@@ -1,10 +1,11 @@
 // TODO: Test invalid input cases!
 
-void converting_utf8_sequence_to_utf32_rune_one_bit() {
+constexpr i32 converting_utf8_sequence_to_utf32_rune_one_bit() {
     uchar d[10] = {};
-    core::memset(d, 0, 10);
+    for (u32 i = 0; i < 10; ++i) d[i] = 0;
     uchar d2[10] = {};
-    core::memset(d2, 0, 10);
+    for (u32 i = 0; i < 10; ++i) d2[i] = 0;
+
     rune r = 0;
     u32 len = 0;
 
@@ -23,15 +24,17 @@ void converting_utf8_sequence_to_utf32_rune_one_bit() {
     len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 1);
     Assert(core::cptr_cmp(d, d2) == 0);
+
+    return 0;
 }
 
-void converting_utf8_sequence_to_utf32_rune_two_bit() {
+constexpr i32 converting_utf8_sequence_to_utf32_rune_two_bit() {
     // NOTE: from 128 to 2047 use 2 bytes.
 
     uchar d[10] = {};
-    core::memset(d, 0, 10);
+    for (u32 i = 0; i < 10; ++i) d[i] = 0;
     uchar d2[10] = {};
-    core::memset(d2, 0, 10);
+    for (u32 i = 0; i < 10; ++i) d2[i] = 0;
     rune r = 0;
     u32 len = 0;
 
@@ -61,15 +64,17 @@ void converting_utf8_sequence_to_utf32_rune_two_bit() {
     len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 2);
     Assert(core::cptr_cmp(d, d2) == 0);
+
+    return 0;
 }
 
-void converting_utf8_sequence_to_utf32_rune_three_bit() {
+constexpr i32 converting_utf8_sequence_to_utf32_rune_three_bit() {
     // NOTE: from 2048 to 65535 use 3 bytes
 
     uchar d[10] = {};
-    core::memset(d, 0, 10);
+    for (u32 i = 0; i < 10; ++i) d[i] = 0;
     uchar d2[10] = {};
-    core::memset(d2, 0, 10);
+    for (u32 i = 0; i < 10; ++i) d2[i] = 0;
     rune r = 0;
     u32 len = 0;
 
@@ -92,15 +97,17 @@ void converting_utf8_sequence_to_utf32_rune_three_bit() {
     len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 3);
     Assert(core::cptr_cmp(d, d2) == 0);
+
+    return 0;
 }
 
-void converting_utf8_sequence_to_utf32_rune_four_bit() {
+constexpr i32 converting_utf8_sequence_to_utf32_rune_four_bit() {
     // NOTE: from 65535 to MAX use 4 bytes
 
     uchar d[10] = {};
-    core::memset(d, 0, 10);
+    for (u32 i = 0; i < 10; ++i) d[i] = 0;
     uchar d2[10] = {};
-    core::memset(d2, 0, 10);
+    for (u32 i = 0; i < 10; ++i) d2[i] = 0;
     rune r = 0;
     u32 len = 0;
 
@@ -136,11 +143,15 @@ void converting_utf8_sequence_to_utf32_rune_four_bit() {
     len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 4);
     Assert(core::cptr_cmp(d, d2) == 0);
+
+    return 0;
 }
 
-void run_rune_tests_suite() {
+i32 run_rune_tests_suite() {
     RunTest(converting_utf8_sequence_to_utf32_rune_one_bit);
     RunTest(converting_utf8_sequence_to_utf32_rune_two_bit);
     RunTest(converting_utf8_sequence_to_utf32_rune_three_bit);
     RunTest(converting_utf8_sequence_to_utf32_rune_four_bit);
+
+    return 0;
 }

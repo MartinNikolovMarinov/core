@@ -7,8 +7,11 @@ using namespace coretypes;
 
 #define RunTest(test, ...)                                                                               \
     std::cout << "\t[TEST RUNNING] " << ANSI_BOLD(#test) << '\n';                                        \
-    test(__VA_ARGS__);                                                                                   \
+    { [[maybe_unused]] auto __notused__ = test(__VA_ARGS__); }                                           \
     std::cout << "\t[TEST " << ANSI_BOLD(ANSI_GREEN("PASSED")) << "] " << ANSI_BOLD(#test) << std::endl;
+
+#define RunTestCompileTime(test, ...)                                                           \
+    { [[maybe_unused]] constexpr auto __notused__ = core::force_consteval<test(__VA_ARGS__)>; } \
 
 #define RunTestSuite(suite, ...)                                                                         \
     std::cout << "[SUITE RUNNING] " << ANSI_BOLD(#suite) << std::endl;                                   \
@@ -47,12 +50,14 @@ i32 main(i32, const char **) {
     if (OS_MAC == 1)     { std::cout << "[OS] OS_MAC" << std::endl; }
     if (OS_UNKNOWN == 1) { std::cout << "[OS] OS_UNKNOWN" << std::endl; }
 
-    std::cout << "\n" << "RUNNING COMMONG TESTS" << "\n\n";
-    run_all_tests();
+    int exitCode = 0;
+
+    std::cout << "\n" << "RUNNING COMMON TESTS" << "\n\n";
+    exitCode += run_all_tests();
     std::cout << "\n" << "RUNNING STD TESTS" << "\n\n";
-    run_all_std_tests();
+    exitCode += run_all_std_tests();
 
     std::cout << '\n';
     std::cout << ANSI_BOLD(ANSI_GREEN("Tests OK")) << std::endl;
-    return 0;
+    return exitCode;
 }

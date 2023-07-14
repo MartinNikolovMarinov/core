@@ -1,4 +1,4 @@
-void int_hex_test() {
+i32 int_hex_test() {
     char buf[20];
 
     {
@@ -139,9 +139,11 @@ void int_hex_test() {
             Assert(core::cptr_cmp(buf, c.expected) == 0, cErr);
         });
     }
+
+    return 0;
 }
 
-void digit_count_test() {
+i32 digit_count_test() {
     {
         struct test_case {
             i32 value;
@@ -287,9 +289,13 @@ void digit_count_test() {
             Assert(core::digit_count(c.value) == c.expected, cErr);
         });
     }
+
+    return 0;
 }
 
-void run_ints_tests_suite() {
+i32 run_ints_tests_suite() {
     RunTest(int_hex_test);
     RunTest(digit_count_test);
+
+    return 0;
 }

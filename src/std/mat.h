@@ -445,8 +445,8 @@ constexpr mat<NDim, NDim, T> minverse(const mat<NDim, NDim, T>& m) {
                     - m[1][0] * m[0][2] * m[3][1] - m[3][0] * m[0][1] * m[1][2] + m[3][0] * m[0][2] * m[1][1];
         ret[3][3] = m[0][0] * m[1][1] * m[2][2] - m[0][0] * m[1][2] * m[2][1] - m[1][0] * m[0][1] * m[2][2]
                     + m[1][0] * m[0][2] * m[2][1] + m[2][0] * m[0][1] * m[1][2] - m[2][0] * m[0][2] * m[1][1];
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
+        for (i32 i = 0; i < 4; i++) {
+            for (i32 j = 0; j < 4; j++) {
                 ret[i][j] *= idet;
             }
         }
@@ -623,7 +623,7 @@ constexpr mat<NCol, NRow, T>& operator++(mat<NCol, NRow, T>& m) {
     return m;
 }
 template<i32 NCol, i32 NRow, typename T>
-constexpr mat<NCol, NRow, T> operator++(mat<NCol, NRow, T>& m, int) {
+constexpr mat<NCol, NRow, T> operator++(mat<NCol, NRow, T>& m, i32) {
     mat<NCol, NRow, T> res = m;
     m = madd(m, 1);
     return res;
@@ -634,7 +634,7 @@ constexpr mat<NCol, NRow, T>& operator--(mat<NCol, NRow, T>& m) {
     return m;
 }
 template<i32 NCol, i32 NRow, typename T>
-constexpr mat<NCol, NRow, T> operator--(mat<NCol, NRow, T>& m, int) {
+constexpr mat<NCol, NRow, T> operator--(mat<NCol, NRow, T>& m, i32) {
     mat<NCol, NRow, T> res = m;
     m = msub(m, 1);
     return res;

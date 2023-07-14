@@ -1,4 +1,4 @@
-constexpr void least_significatn_N_bits() {
+constexpr i32 least_significatn_N_bits() {
     struct test_case { u8 value; u8 bitSeq; u8 n; bool expected; };
 
     test_case cases[] = {
@@ -31,9 +31,11 @@ constexpr void least_significatn_N_bits() {
         bool got = core::lsn_bits(c.value, c.bitSeq, c.n);
         Assert(got == c.expected, cErr);
     });
+
+    return 0;
 }
 
-constexpr void most_sifnificant_n_bists() {
+constexpr i32 most_sifnificant_n_bists() {
     struct test_case { u8 value; u8 bitSeq; u8 n; bool expected; };
 
     test_case cases[] = {
@@ -106,9 +108,17 @@ constexpr void most_sifnificant_n_bists() {
         bool got = core::msn_bits(c.value, c.bitSeq, c.n);
         Assert(got == c.expected, cErr);
     });
+
+    return 0;
 }
 
 void run_bits_tests_suite() {
     RunTest(least_significatn_N_bits);
     RunTest(most_sifnificant_n_bists);
+}
+
+constexpr i32 run_constexpr_bits_tests_suite() {
+    RunTestCompileTime(least_significatn_N_bits);
+    RunTestCompileTime(most_sifnificant_n_bists);
+    return 0;
 }

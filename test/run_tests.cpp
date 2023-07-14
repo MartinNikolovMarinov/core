@@ -14,7 +14,7 @@
 #include "t-traits.cpp"
 #include "t-cptr_ptr.cpp"
 
-void run_all_tests() {
+int run_all_tests() {
     RunTestSuite(run_tuple_tests_suite);
     RunTestSuite(run_rnd_tests_suite);
     RunTestSuite(run_bits_tests_suite);
@@ -25,4 +25,14 @@ void run_all_tests() {
     RunTestSuite(run_core_math_tests_suite);
     RunTestSuite(run_traits_tests_suite);
     RunTestSuite(run_cptr_ptr_tests_suite);
+
+    return 0;
+}
+
+// NOTE: There is no need to actually run these tests, just compiling them.
+constexpr int run_constexpr_tests() {
+    RunTestCompileTime(run_constexpr_tuple_tests_suite);
+    RunTestCompileTime(run_constexpr_bits_tests_suite);
+
+    return 0;
 }

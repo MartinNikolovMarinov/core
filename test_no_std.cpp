@@ -34,6 +34,9 @@ void write_line(const char* data) {
     write_line(ANSI_BOLD(#test));                                \
     write_line("\n");
 
+#define RunTestCompileTime(test, ...)                                                           \
+    { [[maybe_unused]] constexpr auto __notused__ = core::force_consteval<test(__VA_ARGS__)>; } \
+
 #define RunTestSuite(suite, ...)                                \
     write_line("[SUITE RUNNING] ");                             \
     write_line(ANSI_BOLD(#suite));                              \
@@ -76,11 +79,11 @@ i32 main(i32, const char**, const char**) {
     if (OS_MAC == 1)     { write_line("[OS] OS_MAC\n"); }
     if (OS_UNKNOWN == 1) { write_line("[OS] OS_UNKNOWN\n"); }
 
-    write_line("\nRUNNING COMMONG TESTS\n\n");
-    run_all_tests();
+    write_line("\nRUNNING COMMON TESTS\n\n");
+    int exitCode = run_all_tests();
 
     write_line("\n");
     write_line(ANSI_BOLD(ANSI_GREEN("Tests OK")));
     write_line("\n");
-    return 0;
+    return exitCode;
 }

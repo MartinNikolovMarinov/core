@@ -1,4 +1,4 @@
-void translate_test() {
+i32 translate_test() {
     core::vec2f v = {1.0f, 2.0f};
     core::vec2f t = {3.0f, 4.0f};
     v = core::translate(v, t);
@@ -8,9 +8,11 @@ void translate_test() {
     t = {-3.0f, -4.0f};
     v = core::translate(v, t);
     Assert(v == core::v(-2.0f, -2.0f));
+
+    return 0;
 }
 
-void scale_test() {
+i32 scale_test() {
     core::vec2f v = {1.0f, 2.0f};
     core::vec2f s = {3.0f, 4.0f};
     v = core::scale(v, s);
@@ -25,9 +27,11 @@ void scale_test() {
     s = {0.0f, 0.0f};
     v = core::scale(v, s);
     Assert(v == core::v(0.0f, 0.0f));
+
+    return 0;
 }
 
-void rotate2d_test() {
+i32 rotate2d_test() {
     constexpr core::vec2f origin = core::v(0.0f, 0.0f);
 
     core::vec2f v = {1.0f, 2.0f};
@@ -75,10 +79,14 @@ void rotate2d_test() {
     v = {1.0f, 2.0f};
     v = core::rotate(v, origin2, core::deg_to_rad(0.0f));
     Assert(v.equals(core::v(1.0f, 2.0f), 0.0001f));
+
+    return 0;
 }
 
-void run_transforms_tests_suite() {
+i32 run_transforms_tests_suite() {
     RunTest(translate_test);
     RunTest(scale_test);
     RunTest(rotate2d_test);
+
+    return 0;
 }

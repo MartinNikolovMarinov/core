@@ -1,4 +1,4 @@
-void mat_equals() {
+i32 mat_equals() {
     auto m1 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
     auto m2 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
     auto m3 = core::mat2x2f({ 9.0f, 9.0f }, { 9.0f, 9.0f });
@@ -27,9 +27,11 @@ void mat_equals() {
     auto m9 = core::mat3x2i({ 1, 2 }, { 3, 4 }, { 5, 6 });
     Assert(core::mequals(m8, m9));
     Assert(core::mequals(m9, m8));
+
+    return 0;
 }
 
-void mat2xN_constructors() {
+i32 mat2xN_constructors() {
     {
         // 2x2
         auto m1 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
@@ -91,9 +93,11 @@ void mat2xN_constructors() {
 
         Assert(m1 == m2);
     }
+
+    return 0;
 }
 
-void mat3xN_constructors() {
+i32 mat3xN_constructors() {
     {
         // 3x2
         auto m1 = core::mat3x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f }, { 5.0f, 6.0f });
@@ -176,9 +180,11 @@ void mat3xN_constructors() {
 
         Assert(m1 == m2);
     }
+
+    return 0;
 }
 
-void mat4xN_constructors() {
+i32 mat4xN_constructors() {
     {
         // 4x2
         auto m1 = core::mat4x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f }, { 5.0f, 6.0f }, { 7.0f, 8.0f });
@@ -278,18 +284,22 @@ void mat4xN_constructors() {
 
         Assert(m1 == m2);
     }
+
+    return 0;
 }
 
 template<i32 NCol, i32 NRow>
-void __test_fill_mat_with_rnd_ints(core::mat<NCol, NRow, i32>& m) {
+i32 __test_fill_mat_with_rnd_ints(core::mat<NCol, NRow, i32>& m) {
     for (i32 i = 0; i < NCol; ++i) {
         for (i32 j = 0; j < NRow; ++j) {
             m[i][j] = core::rnd_i32(-1000, 1000);
         }
     }
+
+    return 0;
 }
 
-void mat_add() {
+i32 mat_add() {
     auto test_case = [](auto&& m1, auto&& m2, i32 i) {
         while(i-- > 0) {
             __test_fill_mat_with_rnd_ints(m1);
@@ -313,9 +323,11 @@ void mat_add() {
     test_case(core::mat4x2i(), core::mat4x2i(), itters);
     test_case(core::mat4x3i(), core::mat4x3i(), itters);
     test_case(core::mat4x4i(), core::mat4x4i(), itters);
+
+    return 0;
 }
 
-void mat_sub() {
+i32 mat_sub() {
       auto test_case = [](auto&& m1, auto&& m2, i32 i) {
         while(i-- > 0) {
             __test_fill_mat_with_rnd_ints(m1);
@@ -339,9 +351,11 @@ void mat_sub() {
     test_case(core::mat4x2i(), core::mat4x2i(), itters);
     test_case(core::mat4x3i(), core::mat4x3i(), itters);
     test_case(core::mat4x4i(), core::mat4x4i(), itters);
+
+    return 0;
 }
 
-void mat_mul() {
+i32 mat_mul() {
     {
         // 2x2 * 2x2 = 2x2
         core::mat2x2i m1(1, 2, 3, 4);
@@ -747,9 +761,11 @@ void mat_mul() {
         Assert(res[3][2] == 542);
         Assert(res[3][3] == 600);
     }
+
+    return 0;
 }
 
-void mat_mul_vector() {
+i32 mat_mul_vector() {
     {
         // 2x2 * 2x1 = 2x1
         core::mat2x2i m1(1, 2, 3, 4);
@@ -831,9 +847,11 @@ void mat_mul_vector() {
         Assert(ret[2] == 686);
         Assert(ret[3] == 760);
     }
+
+    return 0;
 }
 
-void mat_determinant() {
+i32 mat_determinant() {
     auto m1 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
     Assert(core::mdet(m1) == -2.0f);
 
@@ -856,9 +874,11 @@ void mat_determinant() {
                             { 9.0f, 10.0f, 6.0f, 12.0f },
                             { 13.0f, 14.0f, 15.0f, 16.0f });
     Assert(core::mdet(m6) == 9000.0f);
+
+    return 0;
 }
 
-void mat_identity() {
+i32 mat_identity() {
     auto m1 = core::mat2x2f::identity();
     Assert(m1[0][0] == 1.0f);
     Assert(m1[0][1] == 0.0f);
@@ -916,9 +936,11 @@ void mat_identity() {
     Assert(m1 * core::mat2f(0.0f) == core::mat2f(0.0f));
     Assert(m2 * core::mat3f(0.0f) == core::mat3f(0.0f));
     Assert(m3 * core::mat4f(0.0f) == core::mat4f(0.0f));
+
+    return 0;
 }
 
-void mat_transpose() {
+i32 mat_transpose() {
     auto m1 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
     auto m1t = core::mat2x2f({ 1.0f, 3.0f }, { 2.0f, 4.0f });
     Assert(core::mtranspose(m1) == m1t);
@@ -940,9 +962,11 @@ void mat_transpose() {
                              { 3.0f, 7.0f, 11.0f, 15.0f },
                              { 4.0f, 8.0f, 12.0f, 16.0f });
     Assert(core::mtranspose(m3) == m3t);
+
+    return 0;
 }
 
-void mat_inverse() {
+i32 mat_inverse() {
     {
         // 2x2
         auto m = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
@@ -974,9 +998,11 @@ void mat_inverse() {
         auto res = core::minverse(m);
         Assert(res == mi);
     }
+
+    return 0;
 }
 
-void run_mat_tests_suite() {
+i32 run_mat_tests_suite() {
     RunTest(mat_equals);
     RunTest(mat2xN_constructors);
     RunTest(mat3xN_constructors);
@@ -989,4 +1015,6 @@ void run_mat_tests_suite() {
     RunTest(mat_identity);
     RunTest(mat_transpose);
     RunTest(mat_inverse);
+
+    return 0;
 }

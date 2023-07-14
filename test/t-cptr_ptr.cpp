@@ -1,4 +1,4 @@
-void int_to_cptr_test() {
+i32 int_to_cptr_test() {
     struct test_case {
         i64 in;
         const char* expected;
@@ -24,9 +24,11 @@ void int_to_cptr_test() {
         core::int_to_cptr(c.in, buf, digitCount);
         Assert(core::cptr_eq(buf, core::cptr_len(buf), c.expected, core::cptr_len(c.expected)), cErr);
     });
+
+    return 0;
 }
 
-constexpr void cptr_len_test() {
+constexpr i32 cptr_len_test() {
     struct test_case {
         const char* in;
         ptr_size expected;
@@ -52,9 +54,11 @@ constexpr void cptr_len_test() {
         ptr_size len = core::cptr_len(c.in);
         Assert(len == c.expected, cErr);
     });
+
+    return 0;
 }
 
-constexpr void cptr_cmp_tests() {
+constexpr i32 cptr_cmp_tests() {
     struct test_case {
         const char* a;
         const char* b;
@@ -83,9 +87,11 @@ constexpr void cptr_cmp_tests() {
             case 0:  Assert(core::cptr_cmp(c.a, core::cptr_len(c.a), c.b, core::cptr_len(c.b)) == 0, cErr); break;
         }
     });
+
+    return 0;
 }
 
-void cptr_cpy_test() {
+i32 cptr_cpy_test() {
     const char* src = "1234567890";
     char dst[20] = {};
     core::cptr_cpy(src, core::cptr_len(src), dst);
@@ -113,9 +119,11 @@ void cptr_cpy_test() {
     Assert(dst[3] == '4');
     Assert(dst[4] == '5');
     Assert(dst[5] == '\0');
+
+    return 0;
 }
 
-constexpr void cptr_idx_of_char_test() {
+constexpr i32 cptr_idx_of_char_test() {
     struct test_case {
         const char* src;
         char val;
@@ -140,9 +148,11 @@ constexpr void cptr_idx_of_char_test() {
         ptr_size idx = core::cptr_idx_of_char(c.src, core::cptr_len(c.src), c.val);
         Assert(idx == c.idx, cErr);
     });
+
+    return 0;
 }
 
-constexpr void cptr_idx_of_test() {
+constexpr i32 cptr_idx_of_test() {
     struct test_case {
         const char* src;
         const char* val;
@@ -172,13 +182,17 @@ constexpr void cptr_idx_of_test() {
         ptr_size idx = core::cptr_idx_of(c.src, core::cptr_len(c.src), c.val, core::cptr_len(c.val));
         Assert(idx == c.idx, cErr);
     });
+
+    return 0;
 }
 
-void run_cptr_ptr_tests_suite() {
+i32 run_cptr_ptr_tests_suite() {
     RunTest(int_to_cptr_test);
     RunTest(cptr_len_test);
     RunTest(cptr_cmp_tests);
     RunTest(cptr_cpy_test);
     RunTest(cptr_idx_of_char_test);
     RunTest(cptr_idx_of_test);
+
+    return 0;
 }

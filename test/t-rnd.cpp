@@ -1,4 +1,4 @@
-void rnd_signed_integers() {
+i32 rnd_signed_integers() {
     struct test_case { i32 min; i32 max; i32 itterCount; };
 
     constexpr i32 testCount = 12;
@@ -24,9 +24,11 @@ void rnd_signed_integers() {
             Assert(v <= testTable[i].max);
         }
     }
+
+    return 0;
 }
 
-void rnd_raw_str() {
+i32 rnd_raw_str() {
     struct test_case { ptr_size size; i32 itterCount; };
 
     constexpr i32 testCount = 1;
@@ -39,11 +41,15 @@ void rnd_raw_str() {
             core::rnd_cptr(buf, testTable[i].size);
         }
     }
+
+    return 0;
 }
 
-void run_rnd_tests_suite() {
+i32 run_rnd_tests_suite() {
     core::rnd_init();
 
     RunTest(rnd_signed_integers);
     RunTest(rnd_raw_str);
+
+    return 0;
 }

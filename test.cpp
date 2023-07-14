@@ -10,8 +10,13 @@ using namespace coretypes;
     { [[maybe_unused]] auto __notused__ = test(__VA_ARGS__); }                                           \
     std::cout << "\t[TEST " << ANSI_BOLD(ANSI_GREEN("PASSED")) << "] " << ANSI_BOLD(#test) << std::endl;
 
-#define RunTestCompileTime(test, ...)                                                           \
-    { [[maybe_unused]] constexpr auto __notused__ = core::force_consteval<test(__VA_ARGS__)>; } \
+#if defined(RUN_COMPILETIME_TESTS) && RUN_COMPILETIME_TESTS == 1
+    #define RunTestCompileTime(test, ...)                                                           \
+        { [[maybe_unused]] constexpr auto __notused__ = core::force_consteval<test(__VA_ARGS__)>; }
+#else
+    #define RunTestCompileTime(...)
+#endif
+
 
 #define RunTestSuite(suite, ...)                                                                         \
     std::cout << "[SUITE RUNNING] " << ANSI_BOLD(#suite) << std::endl;                                   \
@@ -59,5 +64,10 @@ i32 main(i32, const char **) {
 
     std::cout << '\n';
     std::cout << ANSI_BOLD(ANSI_GREEN("Tests OK")) << std::endl;
+
+    if constexpr (RUN_COMPILETIME_TESTS != 1) {
+        std::cout << ANSI_YELLOW_START() << ANSI_BOLD_START() << "[WARN] DID NOT RUN COMPILETIME TESTS!" << std::endl;
+    }
+
     return exitCode;
 }

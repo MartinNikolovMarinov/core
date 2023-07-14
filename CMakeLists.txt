@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Generates compile_commands.json
 
+option(RUN_COMPILETIME_TESTS "" OFF)
+
 # Create executable:
 add_executable(${PROJECT_NAME} test.cpp)
 
@@ -50,6 +52,7 @@ endif()
 # Definitions:
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     -DPATH_TO_TEST_DATA="${CMAKE_CURRENT_SOURCE_DIR}/test/data"
+    "RUN_COMPILETIME_TESTS=$<BOOL:${RUN_COMPILETIME_TESTS}>"
 )
 
 # Core library related:

@@ -3,6 +3,7 @@
 #include <API.h>
 #include <types.h>
 #include <tuple.h>
+#include <core_traits.h>
 
 // IMPORTANT: Implementation of standard functions uses musl libc as a reference.
 //
@@ -26,7 +27,7 @@ namespace core {
 
 using namespace coretypes;
 
-constexpr u64 pow_u64(i64 n, u32 p) {
+constexpr u64 pow_u64(u64 n, u32 p) {
     if (n == 0) return 0;
     if (p == 0) return 1;
     u64 result = 1;
@@ -65,6 +66,8 @@ constexpr f32 rad_to_deg(const radians& n) {
 
 #pragma region Take Exponent/Mantisssa --------------------------------------------------------------------------------
 
+// TODO: test everything in this section.
+
 constexpr i32 exponent(f32 n) {
     union { f32 f; i32 i; } u = { n };
     i32 ret = (i32)(u.i >> 23 & 0xff);
@@ -92,6 +95,8 @@ constexpr i64 mantissa(f64 n) {
 #pragma endregion
 
 #pragma region Classification -----------------------------------------------------------------------------------------
+
+// TODO: test everything in this section.
 
 // The FP classification algorithm is from the musl libc implementaton.
 
@@ -138,12 +143,14 @@ constexpr bool isnormal(TFloat x) {
 
 #pragma region Sign --------------------------------------------------------------------------------------------------
 
-constexpr i32 sign(f32 n) {
+inline i32 sign(f32 n) {
+    // NOTE: I failed to implement a fallback implementation for this function, so NO constexpr.
     union { f32 f; u32 i; } u = { n };
     return u.i >> 31;
 }
 
-constexpr i32 sign(f64 n) {
+inline i32 sign(f64 n) {
+    // NOTE: I failed to implement a fallback implementation for this function, so NO constexpr.
     union { f64 f; u64 i; } u = { n };
     return u.i >> 63;
 }
@@ -151,6 +158,8 @@ constexpr i32 sign(f64 n) {
 #pragma endregion
 
 #pragma region Round -------------------------------------------------------------------------------------------------
+
+// TODO: Write tests for round.
 
 static constexpr f32 __f32toInt = 1 / core::EPSILON_F32;
 static constexpr f64 __f64toInt = 1 / core::EPSILON_F64;
@@ -229,6 +238,8 @@ constexpr TFloat round_to(TFloat n, u32 to) {
 
 #pragma region Floor -------------------------------------------------------------------------------------------------
 
+// TODO: Write tests for floor.
+
 constexpr f32 floor(f32 x) {
     union { f32 f; u32 i; } u = {x};
     // Subtracting 0x7f compensates for the exponent bias in the IEEE 754 double-precision floating-point format.
@@ -280,6 +291,8 @@ constexpr f64 floor(f64 x) {
 #pragma endregion
 
 #pragma region Ceil --------------------------------------------------------------------------------------------------
+
+// TODO: Write tests for ceil
 
 constexpr f32 ceil(f32 x) {
     union { f32 f; u32 i; } u = { x };
@@ -357,40 +370,60 @@ constexpr TFloat clamp(TFloat value, TFloat min, TFloat max) {
 
 #pragma region Abs/Sign -----------------------------------------------------------------------------------------------
 
-inline f32 abs(f32 a) {
-    // NOTE: This is pretty fast branchless check. Its collapsed to a single instruction on x86 and ARM by most compilers.
-    i32* ip = reinterpret_cast<i32*>(&a);
-    *ip &= 0x7fffffff;
-    return a;
-}
-
-inline f64 abs(f64 a) {
-    i64* ip = reinterpret_cast<i64*>(&a);
-    *ip &= 0x7fffffffffffffff;
-    return a;
-}
-
 template <typename T>
-constexpr T abs_slow(T a) {
+constexpr inline T abs_slow(T a) {
     // can be done branchless, but it's not faster.
     return a < 0 ? -a : a;
+}
+
+constexpr inline f32 abs(f32 a) {
+    if constexpr (core::is_const_evaluated()) {
+        return abs_slow(a);
+    }
+    else {
+        // NOTE: This is pretty fast branchless check. Its collapsed to a single instruction on x86 and ARM by most compilers.
+        i32* ip = reinterpret_cast<i32*>(&a);
+        *ip &= 0x7fffffff;
+        return a;
+    }
+}
+
+constexpr inline f64 abs(f64 a) {
+    if constexpr (core::is_const_evaluated()) {
+        return abs_slow(a);
+    }
+    else {
+        i64* ip = reinterpret_cast<i64*>(&a);
+        *ip &= 0x7fffffffffffffff;
+        return a;
+    }
 }
 
 #pragma endregion
 
 #pragma region IsPositive ---------------------------------------------------------------------------------------------
 
-inline bool is_positive(f32 a) {
-    // NOTE: This is pretty fast branchless check. Its collapsed to a single instruction on x86 and ARM by most compilers.
-    i32* ip = reinterpret_cast<i32*>(&a);
-    *ip = (*ip >> 31) << 1;
-    return *ip == 0;
+constexpr bool is_positive(f32 a) {
+    if constexpr (core::is_const_evaluated()) {
+        return a >= 0;
+    }
+    else {
+        // NOTE: This is pretty fast branchless check. Its collapsed to a single instruction on x86 and ARM by most compilers.
+        i32* ip = reinterpret_cast<i32*>(&a);
+        *ip = (*ip >> 31) << 1;
+        return *ip == 0;
+    }
 }
 
-inline bool is_positive(f64 a) {
-    i64* ip = reinterpret_cast<i64*>(&a);
-    *ip = (*ip >> 63) << 1;
-    return *ip == 0;
+constexpr bool is_positive(f64 a) {
+    if constexpr (core::is_const_evaluated()) {
+        return a >= 0;
+    }
+    else {
+        i64* ip = reinterpret_cast<i64*>(&a);
+        *ip = (*ip >> 63) << 1;
+        return *ip == 0;
+    }
 }
 
 constexpr bool is_positive(i8 a) {
@@ -420,14 +453,14 @@ constexpr bool is_positive(i64 a) {
 /**
  * @brief Safely very basic epsilon comparison.
 */
-inline bool safe_eq(f32 a, f32 b, f32 epsilon) {
+constexpr bool safe_eq(f32 a, f32 b, f32 epsilon) {
     return core::abs(a - b) < epsilon;
 }
 
 /**
  * @brief Safely very basic epsilon comparison.
 */
-inline bool safe_eq(f64 a, f64 b, f64 epsilon) {
+constexpr bool safe_eq(f64 a, f64 b, f64 epsilon) {
     return core::abs(a - b) < epsilon;
 }
 
@@ -435,7 +468,7 @@ inline bool safe_eq(f64 a, f64 b, f64 epsilon) {
  * @brief Compares two floating point numbers for being nearly equal, depending on the given epsilon.
  *        This is much more precise than the safe_eq function, but also significantly slower.
 */
-inline bool nearly_eq(f32 a, f32 b, f32 epsilon) {
+constexpr bool nearly_eq(f32 a, f32 b, f32 epsilon) {
     if (a == b) return true;
     f32 absA = core::abs(a);
     f32 absB = core::abs(b);
@@ -450,7 +483,7 @@ inline bool nearly_eq(f32 a, f32 b, f32 epsilon) {
  * @brief Compares two floating point numbers for being nearly equal, depending on the given epsilon.
  *        This is much more precise than the safe_eq function, but also significantly slower.
 */
-inline bool nearly_eq(f64 a, f64 b, f64 epsilon) {
+constexpr bool nearly_eq(f64 a, f64 b, f64 epsilon) {
     if (a == b) return true;
     f64 absA = core::abs(a);
     f64 absB = core::abs(b);

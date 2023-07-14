@@ -28,11 +28,3 @@ int run_all_tests() {
 
     return 0;
 }
-
-// NOTE: There is no need to actually run these tests, just compiling them.
-constexpr int run_constexpr_tests() {
-    RunTestCompileTime(run_constexpr_tuple_tests_suite);
-    RunTestCompileTime(run_constexpr_bits_tests_suite);
-
-    return 0;
-}

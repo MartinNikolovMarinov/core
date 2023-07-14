@@ -1,5 +1,7 @@
 pushd build
 
+# TODO: This script needs to run compiletime tests as well!
+
 echo "Running tests with gcc DEBUG:"
 cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_C_COMPILER=/usr/bin/gcc
 make -j

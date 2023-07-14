@@ -1,4 +1,4 @@
-i32 vector_equals_test() {
+constexpr i32 vector_equals_test() {
     {
         core::vec2<i32> a { 1, 2 };
         core::vec2<i32> b { 1, 2 };
@@ -32,7 +32,7 @@ i32 vector_equals_test() {
     return 0;
 }
 
-i32 vector_add_sub_mul_div_test() {
+constexpr i32 vector_add_sub_mul_div_test() {
     {
         core::vec2<i32> a { 1, 2 };
         core::vec2<i32> b { 3, 4 };
@@ -126,7 +126,7 @@ i32 vector_add_sub_mul_div_test() {
     return 0;
 }
 
-i32 vector_length_test() {
+constexpr i32 vector_length_test() {
     constexpr f32 epsillon = 0.000001f;
     Assert(std::abs(core::v(1, 2).length() - 2.23606797749979f) < epsillon);
     Assert(std::abs(core::v(1, 2, 3).length() - 3.7416573867739413f) < epsillon);
@@ -136,7 +136,7 @@ i32 vector_length_test() {
     return 0;
 }
 
-i32 vector_dot_product_test() {
+constexpr i32 vector_dot_product_test() {
     Assert(core::v(1, 2).dot(core::v(3, 4)) == 11.0f);
     Assert(core::v(1, 2, 3).dot(core::v(3, 4, 5)) == 26.0f);
     Assert(core::v(1, 2, 3, 4).dot(core::v(3, 4, 5, 6)) == 50.0f);
@@ -194,7 +194,7 @@ i32 vector_dot_product_test() {
     return 0;
 }
 
-i32 vector_cross_product_test() {
+constexpr i32 vector_cross_product_test() {
     Assert(core::v(1, 2, 3).cross(core::v(3, 4, 5)).equals(core::v(-2, 4, -2)));
     Assert(core::v(1.0f, 2.0f, 3.0f).cross(core::v(3.0f, 4.0f, 5.0f)).equals(core::v(-2.0f, 4.0f, -2.0f)));
 
@@ -242,6 +242,16 @@ i32 run_vec_tests_suite() {
     RunTest(vector_length_test);
     RunTest(vector_dot_product_test);
     RunTest(vector_cross_product_test);
+
+    return 0;
+}
+
+constexpr i32 run_compiletime_vec_tests_suite() {
+    RunTestCompileTime(vector_equals_test);
+    RunTestCompileTime(vector_add_sub_mul_div_test);
+    RunTestCompileTime(vector_length_test);
+    RunTestCompileTime(vector_dot_product_test);
+    RunTestCompileTime(vector_cross_product_test);
 
     return 0;
 }

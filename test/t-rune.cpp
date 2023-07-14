@@ -155,3 +155,12 @@ i32 run_rune_tests_suite() {
 
     return 0;
 }
+
+constexpr i32 run_compiletime_rune_tests_suite() {
+    RunTestCompileTime(converting_utf8_sequence_to_utf32_rune_one_bit);
+    RunTestCompileTime(converting_utf8_sequence_to_utf32_rune_two_bit);
+    RunTestCompileTime(converting_utf8_sequence_to_utf32_rune_three_bit);
+    RunTestCompileTime(converting_utf8_sequence_to_utf32_rune_four_bit);
+
+    return 0;
+}

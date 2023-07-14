@@ -1,27 +1,27 @@
-i32 int_to_cptr_test() {
+constexpr i32 int_to_cptr_test() {
     struct test_case {
         i64 in;
+        u32 digitCount;
         const char* expected;
     };
 
     test_case cases[] = {
-        { 0, "0" },
-        { 1, "1" },
-        { -1, "-1" },
-        { 123, "123" },
-        { -123, "-123" },
-        { 123456789, "123456789" },
-        { -123456789, "-123456789" },
-        { 2147483647, "2147483647" },
-        { -2147483647, "-2147483647" },
-        { 2147483648, "2147483648" },
-        { -2147483648, "-2147483648" }
+        { 0, 1, "0" },
+        { 1, 1, "1" },
+        { -1, 1, "-1" },
+        { 123, 3, "123" },
+        { -123, 3, "-123" },
+        { 123456789, 9, "123456789" },
+        { -123456789, 9, "-123456789" },
+        { 2147483647, 10, "2147483647" },
+        { -2147483647, 10, "-2147483647" },
+        { 2147483648, 10, "2147483648" },
+        { -2147483648, 10, "-2147483648" },
     };
 
     executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         char buf[20] = {};
-        u32 digitCount = core::digit_count(c.in);
-        core::int_to_cptr(c.in, buf, digitCount);
+        core::int_to_cptr(c.in, buf, c.digitCount);
         Assert(core::cptr_eq(buf, core::cptr_len(buf), c.expected, core::cptr_len(c.expected)), cErr);
     });
 
@@ -91,7 +91,7 @@ constexpr i32 cptr_cmp_tests() {
     return 0;
 }
 
-i32 cptr_cpy_test() {
+constexpr i32 cptr_cpy_test() {
     const char* src = "1234567890";
     char dst[20] = {};
     core::cptr_cpy(src, core::cptr_len(src), dst);
@@ -109,7 +109,7 @@ i32 cptr_cpy_test() {
     Assert(dst[9] == '0');
     Assert(dst[10] == '\0');
 
-    core::memset(dst, 0, 20);
+    for (u32 i = 0; i < 20; ++i) dst[i] = 0;
     core::cptr_cpy(src, 5, dst);
 
     Assert(core::cptr_eq(dst, core::cptr_len(dst), "12345", core::cptr_len("12345")));
@@ -193,6 +193,17 @@ i32 run_cptr_ptr_tests_suite() {
     RunTest(cptr_cpy_test);
     RunTest(cptr_idx_of_char_test);
     RunTest(cptr_idx_of_test);
+
+    return 0;
+}
+
+constexpr i32 run_compiletime_cptr_ptr_tests_suite() {
+    RunTestCompileTime(int_to_cptr_test);
+    RunTestCompileTime(cptr_len_test);
+    RunTestCompileTime(cptr_cmp_tests);
+    RunTestCompileTime(cptr_cpy_test);
+    RunTestCompileTime(cptr_idx_of_char_test);
+    RunTestCompileTime(cptr_idx_of_test);
 
     return 0;
 }

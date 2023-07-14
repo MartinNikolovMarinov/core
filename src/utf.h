@@ -92,7 +92,7 @@ constexpr rune rune_from_bytes_skip_check(const uchar* utf, u32 len) {
 constexpr core::static_expected<rune, bool> rune_from_bytes(const uchar* utf, u32 len) {
     Assert(utf != nullptr);
     if (is_valid_utf8_encoding(utf, len) == false) {
-        return core::static_unexpected(false);
+        return core::unexpected(false);
     }
     return rune_from_bytes_skip_check(utf, len);
 }

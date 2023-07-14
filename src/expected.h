@@ -3,6 +3,7 @@
 #include <API.h>
 #include <types.h>
 #include <utils.h>
+#include <core_traits.h>
 
 // TODO: Including new might break the nostdlib build on some systems?
 #include <new>
@@ -15,17 +16,17 @@ using namespace coretypes;
 template <typename E>
 struct CORE_API_EXPORT unexpected_t {
     E err;
-    explicit unexpected_t(E&& e) : err(core::forward<E>(e)) {}
+    constexpr explicit unexpected_t(E&& e) : err(core::forward<E>(e)) {}
 };
 
 template <typename E>
-unexpected_t<E> CORE_API_EXPORT unexpected(E&& e) { return unexpected_t<E>(core::forward<E>(e)); }
+constexpr unexpected_t<E> CORE_API_EXPORT unexpected(E&& e) { return unexpected_t<E>(core::forward<E>(e)); }
 
 template <typename...> struct expected;
 
 template <typename T, typename TErr>
 struct CORE_API_EXPORT expected<T, TErr> {
-    constexpr expected(T&& value)  : m_value(core::forward<T>(value)), m_hasValue(true) {}
+    expected(T&& value)  : m_value(core::forward<T>(value)), m_hasValue(true) {}
     template <typename TErr2>
     expected(unexpected_t<TErr2>&& wrapper) : m_err(core::move(wrapper.err)), m_hasValue(false) {}
 
@@ -34,7 +35,7 @@ struct CORE_API_EXPORT expected<T, TErr> {
     expected& operator=(const expected&) = delete;
 
     // move
-    constexpr expected(expected&& other) : m_hasValue(other.m_hasValue) {
+    expected(expected&& other) : m_hasValue(other.m_hasValue) {
         if (m_hasValue) new (&m_value) T(core::move(other.m_value));
         else new (&m_err) TErr(core::move(other.m_err));
     }
@@ -44,15 +45,15 @@ struct CORE_API_EXPORT expected<T, TErr> {
         else m_err.~TErr();
     }
 
-    constexpr bool has_value() const { return m_hasValue; }
-    constexpr bool has_err()   const { return !m_hasValue; }
+    bool has_value() const { return m_hasValue; }
+    bool has_err()   const { return !m_hasValue; }
 
-    constexpr const T& value()  const { return m_value; }
-    constexpr T& value()              { return m_value; }
-    constexpr const TErr& err() const { return m_err; }
-    constexpr TErr& err()             { return m_err; }
+    const T& value()  const { return m_value; }
+    T& value()              { return m_value; }
+    const TErr& err() const { return m_err; }
+    TErr& err()             { return m_err; }
 
-    constexpr expected<T, TErr>& check() {
+    expected<T, TErr>& check() {
         Assert(!has_err(), "expected has an error");
         return *this;
     }
@@ -65,7 +66,7 @@ private:
 
 template <typename TErr>
 struct CORE_API_EXPORT expected<TErr> {
-    constexpr expected() : m_hasErr(false) {}
+    expected() : m_hasErr(false) {}
     template <typename TErr2>
     expected(unexpected_t<TErr2>&& wrapper) : m_hasErr(true), m_err(core::move(wrapper.err)) {}
     ~expected() = default;
@@ -75,13 +76,13 @@ struct CORE_API_EXPORT expected<TErr> {
     expected& operator=(const expected&) = delete;
 
     // move
-    constexpr expected(expected&& other) : m_hasErr(other.m_hasErr), m_err(core::move(other.m_err)) {}
+    expected(expected&& other) : m_hasErr(other.m_hasErr), m_err(core::move(other.m_err)) {}
 
-    constexpr const TErr& err() const { return m_err; }
-    constexpr TErr& err()             { return m_err; }
-    constexpr bool has_err()   const  { return m_hasErr; }
+    const TErr& err() const { return m_err; }
+    TErr& err()             { return m_err; }
+    bool has_err()   const  { return m_hasErr; }
 
-    constexpr expected<TErr>& check() {
+    expected<TErr>& check() {
         Assert(!has_err(), "expected has an error");
         return *this;
     }
@@ -91,35 +92,26 @@ private:
     TErr m_err;
 };
 
-template <typename E>
-struct CORE_API_EXPORT static_unexpected_t {
-    E err;
-    explicit static_unexpected_t(E&& e) : err(core::forward<E>(e)) {}
-};
-
-template <typename E>
-static_unexpected_t<E> CORE_API_EXPORT static_unexpected(E&& e) { return static_unexpected_t<E>(core::forward<E>(e)); }
-
 template <typename...> struct static_expected;
 
 // IMPORTANT: Do not put anything which is not trivially destructible in this struct!
 template <typename T, typename TErr>
 struct CORE_API_EXPORT static_expected<T, TErr> {
+    static_assert(core::IsTrivial_v<T>, "trivial type is required");
+
     constexpr static_expected(T&& value)  : m_value(core::forward<T>(value)), m_hasValue(true) {}
     template <typename TErr2>
-    static_expected(static_unexpected_t<TErr2>&& wrapper) : m_err(core::move(wrapper.err)), m_hasValue(false) {}
+    constexpr static_expected(unexpected_t<TErr2>&& wrapper) : m_err(core::move(wrapper.err)), m_hasValue(false) {}
 
     // no copy
-    static_expected(const static_expected&) = delete;
-    static_expected& operator=(const static_expected&) = delete;
+    constexpr static_expected(const static_expected&) = delete;
+    constexpr static_expected& operator=(const static_expected&) = delete;
 
     // move
     constexpr static_expected(static_expected&& other) : m_hasValue(other.m_hasValue) {
         if (m_hasValue) new (&m_value) T(core::move(other.m_value));
         else new (&m_err) TErr(core::move(other.m_err));
     }
-
-    ~static_expected() = default;
 
     constexpr bool has_value() const { return m_hasValue; }
     constexpr bool has_err()   const { return !m_hasValue; }

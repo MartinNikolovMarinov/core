@@ -115,7 +115,7 @@ constexpr i32 pow_u64_test() {
     return 0;
 }
 
-i32 abs_test() {
+constexpr i32 abs_test() {
     Assert(core::abs_slow(i8(0)) == 0);
     Assert(core::abs_slow(i8(1)) == 1);
     Assert(core::abs_slow(i8(-1)) == 1);
@@ -148,7 +148,7 @@ i32 abs_test() {
     return 0;
 }
 
-i32 is_positive_test() {
+constexpr i32 is_positive_test() {
     Assert(core::is_positive(i8(0)) == true);
     Assert(core::is_positive(i8(1)) == true);
     Assert(core::is_positive(i8(-1)) == false);
@@ -171,7 +171,7 @@ i32 is_positive_test() {
     return 0;
 }
 
-i32 float_safe_eq_test() {
+constexpr i32 float_safe_eq_test() {
     struct TestCase {
         f32 startA;
         f32 startB;
@@ -197,7 +197,7 @@ i32 float_safe_eq_test() {
     constexpr const char* iterAsCptrFmt = "float_safe_eq test case failed at index: ";
     constexpr const ptr_size iterAsCptrFmtLen = core::cptr_len(iterAsCptrFmt);
     char iterAsCptr[iterAsCptrFmtLen + 20] = {};
-    core::memcopy(iterAsCptr, iterAsCptrFmt, iterAsCptrFmtLen);
+    for (i32 i = 0; i < iterAsCptrFmtLen; ++i) iterAsCptr[i] = iterAsCptrFmt[i];
     char* appendIdx = &iterAsCptr[iterAsCptrFmtLen];
     for (auto& c : cases) {
         core::int_to_cptr(i++, appendIdx, 2);
@@ -211,7 +211,7 @@ i32 float_safe_eq_test() {
     return 0;
 }
 
-i32 float_nearly_eq_test() {
+constexpr i32 float_nearly_eq_test() {
     struct TestCase {
         f32 a;
         f32 b;
@@ -367,6 +367,17 @@ i32 run_core_math_tests_suite() {
     RunTest(float_safe_eq_test);
     RunTest(float_nearly_eq_test);
     RunTest(sign_test);
+
+    return 0;
+}
+
+constexpr i32 run_compiletime_core_math_tests_suite() {
+    RunTestCompileTime(degrees_test);
+    RunTestCompileTime(pow_u64_test);
+    RunTestCompileTime(abs_test);
+    RunTestCompileTime(is_positive_test);
+    RunTestCompileTime(float_safe_eq_test);
+    // RunTestCompileTime(float_nearly_eq_test); // TODO: nearly_eq is possible in comstexpr, but the test is not. Write a simpler test for compiletime execution.
 
     return 0;
 }

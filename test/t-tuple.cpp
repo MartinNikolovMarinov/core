@@ -75,7 +75,7 @@ i32 run_tuple_tests_suite() {
     return 0;
 }
 
-constexpr i32 run_constexpr_tuple_tests_suite() {
+constexpr i32 run_compiletime_tuple_tests_suite() {
     RunTestCompileTime(run_tuple_argument_increment);
     RunTestCompileTime(run_create_tuples_of_different_sizes);
     return 0;

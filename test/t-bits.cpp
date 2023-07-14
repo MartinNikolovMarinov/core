@@ -117,7 +117,7 @@ void run_bits_tests_suite() {
     RunTest(most_sifnificant_n_bists);
 }
 
-constexpr i32 run_constexpr_bits_tests_suite() {
+constexpr i32 run_compiletime_bits_tests_suite() {
     RunTestCompileTime(least_significatn_N_bits);
     RunTestCompileTime(most_sifnificant_n_bists);
     return 0;

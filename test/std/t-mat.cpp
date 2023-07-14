@@ -1,4 +1,4 @@
-i32 mat_equals() {
+constexpr i32 mat_equals() {
     auto m1 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
     auto m2 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
     auto m3 = core::mat2x2f({ 9.0f, 9.0f }, { 9.0f, 9.0f });
@@ -31,7 +31,7 @@ i32 mat_equals() {
     return 0;
 }
 
-i32 mat2xN_constructors() {
+constexpr i32 mat2xN_constructors() {
     {
         // 2x2
         auto m1 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
@@ -97,7 +97,7 @@ i32 mat2xN_constructors() {
     return 0;
 }
 
-i32 mat3xN_constructors() {
+constexpr i32 mat3xN_constructors() {
     {
         // 3x2
         auto m1 = core::mat3x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f }, { 5.0f, 6.0f });
@@ -184,7 +184,7 @@ i32 mat3xN_constructors() {
     return 0;
 }
 
-i32 mat4xN_constructors() {
+constexpr i32 mat4xN_constructors() {
     {
         // 4x2
         auto m1 = core::mat4x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f }, { 5.0f, 6.0f }, { 7.0f, 8.0f });
@@ -355,7 +355,7 @@ i32 mat_sub() {
     return 0;
 }
 
-i32 mat_mul() {
+constexpr i32 mat_mul() {
     {
         // 2x2 * 2x2 = 2x2
         core::mat2x2i m1(1, 2, 3, 4);
@@ -765,7 +765,7 @@ i32 mat_mul() {
     return 0;
 }
 
-i32 mat_mul_vector() {
+constexpr i32 mat_mul_vector() {
     {
         // 2x2 * 2x1 = 2x1
         core::mat2x2i m1(1, 2, 3, 4);
@@ -851,7 +851,7 @@ i32 mat_mul_vector() {
     return 0;
 }
 
-i32 mat_determinant() {
+constexpr i32 mat_determinant() {
     auto m1 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
     Assert(core::mdet(m1) == -2.0f);
 
@@ -878,7 +878,7 @@ i32 mat_determinant() {
     return 0;
 }
 
-i32 mat_identity() {
+constexpr i32 mat_identity() {
     auto m1 = core::mat2x2f::identity();
     Assert(m1[0][0] == 1.0f);
     Assert(m1[0][1] == 0.0f);
@@ -940,7 +940,7 @@ i32 mat_identity() {
     return 0;
 }
 
-i32 mat_transpose() {
+constexpr i32 mat_transpose() {
     auto m1 = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
     auto m1t = core::mat2x2f({ 1.0f, 3.0f }, { 2.0f, 4.0f });
     Assert(core::mtranspose(m1) == m1t);
@@ -966,7 +966,7 @@ i32 mat_transpose() {
     return 0;
 }
 
-i32 mat_inverse() {
+constexpr i32 mat_inverse() {
     {
         // 2x2
         auto m = core::mat2x2f({ 1.0f, 2.0f }, { 3.0f, 4.0f });
@@ -1015,6 +1015,23 @@ i32 run_mat_tests_suite() {
     RunTest(mat_identity);
     RunTest(mat_transpose);
     RunTest(mat_inverse);
+
+    return 0;
+}
+
+constexpr i32 run_compiletime_mat_tests_suite() {
+    RunTestCompileTime(mat_equals);
+    RunTestCompileTime(mat2xN_constructors);
+    RunTestCompileTime(mat3xN_constructors);
+    RunTestCompileTime(mat4xN_constructors);
+    // RunTestCompileTime(mat_add); // TODO: these are possible in compiletime, but the tests are not. Write new simpler tests for compiletime.
+    // RunTestCompileTime(mat_sub);
+    RunTestCompileTime(mat_mul);
+    RunTestCompileTime(mat_mul_vector);
+    RunTestCompileTime(mat_determinant);
+    RunTestCompileTime(mat_identity);
+    RunTestCompileTime(mat_transpose);
+    RunTestCompileTime(mat_inverse);
 
     return 0;
 }

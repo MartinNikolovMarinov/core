@@ -4,30 +4,13 @@
 #include <types.h>
 #include <utils.h>
 #include <core_math.h>
-#include <ints.h>
 
 namespace core {
 
 using namespace coretypes;
 
-template<typename UInt>
-constexpr char digit_to_char(UInt digit) {  return (digit % 10) + '0'; }
-
-template<typename TInt>
-constexpr void int_to_cptr(TInt n, char* out, u32 digitCount = 0) {
-    static_assert(sizeof(TInt) <= 8, "Invalid TIint paramater.");
-    Assert(out != nullptr);
-    if (n < 0) {
-        *out++ = '-';
-        n = -n;
-    }
-    i32 dc = (digitCount == 0) ? digit_count(n) : digitCount;
-    for (i32 i = dc - 1; i >= 0; i--) {
-        i32 curr = (n / TInt(pow_u64(10, i))) % 10;
-        *out++ = digit_to_char(curr);
-        dc--;
-    }
-}
+constexpr inline bool is_digit(char c) { return c >= '0' && c <= '9'; }
+constexpr inline bool is_white_space(char c) { return c == ' ' || c == '\t' || c == '\n' || c == '\r'; }
 
 template<typename TChar>
 constexpr ptr_size cptr_len(const TChar* p) {
@@ -69,7 +52,7 @@ constexpr i32 cptr_eq(const TChar* a, ptr_size lena, const TChar* b, ptr_size le
     return cptr_cmp(a, lena, b, lenb) == 0;
 }
 
-constexpr void cptr_cpy(const char *src, ptr_size n, char *dst) {
+constexpr void cptr_copy(const char *src, ptr_size n, char *dst) {
     /**
      * TODO:
      * This is slow as shit.
@@ -100,6 +83,11 @@ constexpr ptr_size cptr_idx_of_char(const char *src, ptr_size slen, char val) {
         if (src[i] == val) return i;
     }
     return -1;
+}
+
+constexpr const char* cptr_skip_space(const char* s) {
+    while (is_white_space(*s)) s++;
+    return s;
 }
 
 } // namespace core

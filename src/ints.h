@@ -3,13 +3,12 @@
 #include <API.h>
 #include <types.h>
 #include <intrinsic.h>
-#include <mem.h>
 
 namespace core {
 
 using namespace coretypes;
 
-namespace {
+namespace detail {
 
 // Lookup tables for DigitCount:
 static u64 powers[] = {
@@ -42,7 +41,7 @@ static u32 maxdigits[] = {
     20, 20, 20, 20,
 };
 
-} // namespace
+} // namespace detail
 
 template <typename TUint>
 u32 digit_count(TUint n) {
@@ -51,24 +50,9 @@ u32 digit_count(TUint n) {
     if (n < 0) n = -n;
     u32 leadingZeroes = leading_zerobits(n);
     u32 usedBits = (sizeof(n) * 8) - u32(leadingZeroes);
-    u32 digits = maxdigits[usedBits];
-    if (n < static_cast<TUint>(powers[digits - 1])) digits--;
+    u32 digits = detail::maxdigits[usedBits];
+    if (n < static_cast<TUint>(detail::powers[digits - 1])) digits--;
     return digits;
-}
-
-namespace
-{
-static const char* hexDigits = "0123456789ABCDEF";
-} // namespace
-
-// The out argument must have enough space to hold the result!
-// You can use somthing like - "char out[sizeof(TInt)];"~
-template <typename TInt>
-void int_to_hex(TInt v, char* out, u64 hexLen = (sizeof(TInt) << 1)) {
-    static_assert(1 <= sizeof(v) && sizeof(v) <= 8, "Invalid TInt paramater.");
-    for (size_t i = 0, j = (hexLen - 1) * 4; i < hexLen; i++, j-=4) {
-        out[i] = hexDigits[(v >> j) & 0x0f];
-    }
 }
 
 } // namespace core

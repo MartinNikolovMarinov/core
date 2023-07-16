@@ -63,6 +63,7 @@ set(src_files
     types.h
     core.h
 
+    algorithms.h
     alloc_bump.h
     alloc.h
     ansi_escape_codes.h
@@ -70,6 +71,7 @@ set(src_files
     static_arr.h
     bits.h
     char_ptr.h
+    char_ptr_conv.h
     core_math.h
     core_traits.h
     expected.h

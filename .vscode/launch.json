@@ -34,7 +34,25 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/examples/build/main",
-            "args": [],
+            "args": [
+                "-bool-1 ", " t",
+                "-bool-2   ", "T",
+                "-bool-3  ", " true",
+                "  -bool-4", "  TRUE",
+                "-bool-5 ", "True  ",
+                "    -bool-6", "1",
+                "-bool-7", "false",
+                "-bool-8", "zxcasdasd",
+
+                " -int32", "0004",
+                "-int64  ", "  -13",
+                "\t-uint32", "19 ",
+                "   -uint64", "\t99asad",
+
+                "-string", "  banicata   fsa  ",
+
+                "-int32", "",
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

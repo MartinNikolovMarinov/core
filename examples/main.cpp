@@ -181,7 +181,199 @@ i32 example_05() {
     return runExample(core::move(ex));
 }
 
-i32 main(i32, char const**) {
+struct FlagParser {
+    static constexpr i32 MAX_ARG_LEN = 5000;
+
+    FlagParser(i32 maxArgLen = MAX_ARG_LEN) : m_maxArgLen(maxArgLen) {}
+
+    // TODO: optional type !
+    enum FlagType {
+        Bool,
+        Int32,
+        Int64,
+        Uint32,
+        Uint64,
+        Float,
+        CPtr,
+    };
+
+    struct Flag {
+        void* arg;
+        const char* name;
+        i32 nameLen;
+        FlagType type;
+        bool flagSet;
+    };
+
+    enum ParseErr {
+        Success = 0,
+        ArgLenTooLong = 1,
+        UnknownFlag = 2,
+    };
+
+    core::expected<ParseErr> parse(i32 argc, const char** argv) {
+        i32 state = 0;
+        Flag* curFlag = nullptr;
+
+        for (i32 i = 0; i < argc; ++i) {
+            const char* curVal = argv[i];
+            if (curVal == nullptr) continue;
+            curVal = core::cptr_skip_space(curVal);
+            if (curVal[0] == '-' && state == 0) {
+                curVal++;
+                state = 1;
+                if (curVal[0] == '-') curVal++; // allow long -- flags
+            }
+            i32 valLen = 0;
+            while (curVal[valLen]) {
+                valLen++;
+                if (valLen > m_maxArgLen) {
+                    return core::unexpected(ParseErr::ArgLenTooLong);
+                }
+            }
+
+           i32 reducedValLen = valLen;
+            while (core::is_white_space(curVal[reducedValLen - 1])) reducedValLen--;
+
+            if (state == 1) {
+                i32 fidx = core::find(m_flags, [&](const Flag& f, i32) -> bool {
+                    i32 reducedNameLen = f.nameLen;
+                    while (core::is_white_space(f.name[reducedNameLen - 1])) reducedNameLen--;
+                    bool areEqual = core::cptr_cmp(f.name, reducedNameLen, curVal, reducedValLen) == 0;
+                    return areEqual;
+                });
+                if (fidx == -1) {
+                    return core::unexpected(ParseErr::UnknownFlag);
+                }
+
+                curFlag = &m_flags[fidx];
+                state = 2;
+            }
+            else if (state == 2) {
+                Assert(curFlag != nullptr, "Implementation bug.");
+                switch (curFlag->type) {
+                    case FlagType::Bool:
+                    {
+                        bool v = curVal[0] == '1';
+                        if (!v) {
+                            if (reducedValLen == 1) {
+                                v = curVal[0] == 't' || curVal[0] == 'T';
+                            }
+                            else if (reducedValLen == 4) {
+                                v = core::cptr_cmp(curVal, 4, "true", 4) == 0 ||
+                                    core::cptr_cmp(curVal, 4, "True", 4) == 0 ||
+                                    core::cptr_cmp(curVal, 4, "TRUE", 4) == 0;
+                            }
+                        }
+                        *(bool*)curFlag->arg = v;
+                        break;
+                    }
+                    case FlagType::Int32:
+                        *(i32*)curFlag->arg = core::cptr_to_int<i32>(curVal);
+                        break;
+                    case FlagType::Int64:
+                        *(i64*)curFlag->arg = core::cptr_to_int<i64>(curVal);
+                        break;
+                    case FlagType::Uint32:
+                        *(u32*)curFlag->arg = core::cptr_to_int<u32>(curVal);
+                        break;
+                    case FlagType::Uint64:
+                        *(u64*)curFlag->arg = core::cptr_to_int<u64>(curVal);
+                        break;
+                    case FlagType::Float:
+                        // TODO: implement this
+                        break;
+                    case FlagType::CPtr:
+                        *(const char**)curFlag->arg = curVal;
+                        curFlag->flagSet = true;
+                        break;
+                    default:
+                        return core::unexpected(ParseErr::UnknownFlag);
+                }
+
+                state = 0;
+            }
+        }
+
+        return {};
+    }
+
+    void flag(char** out, const char* flagName)     { setFlag(out, flagName, FlagType::CPtr); }
+    void flagInt32(i32* out, const char* flagName)  { setFlag(out, flagName, FlagType::Int32); }
+    void flagInt64(i64* out, const char* flagName)  { setFlag(out, flagName, FlagType::Int64); }
+    void flagUint32(u32* out, const char* flagName) { setFlag(out, flagName, FlagType::Uint32); }
+    void flagUint64(u64* out, const char* flagName) { setFlag(out, flagName, FlagType::Uint64); }
+    void flagBool(bool* out, const char* flagName)  { setFlag(out, flagName, FlagType::Bool); }
+
+private:
+    core::arr<Flag> m_flags;
+    i32 m_maxArgLen;
+
+    template <typename T>
+    void setFlag(T* out, const char* flagName, FlagType type) {
+        Flag f;
+        f.arg = (void*)out;
+        f.name = core::cptr_skip_space(flagName);
+        f.nameLen = core::cptr_len(f.name);
+        f.type = type;
+        f.flagSet = false;
+        m_flags.append(f);
+    }
+};
+
+// TODO: use valgrind to check for memory access violations.
+
+i32 main(i32 argc, const char** argv) {
     initCore();
-    return example_05();
+
+    FlagParser parser;
+
+    i32 a = 0;
+    i64 b = 0;
+    u32 c = 0;
+    u64 d = 0;
+    parser.flagInt32(&a, " int32");
+    parser.flagInt64(&b, "int64 ");
+    parser.flagUint32(&c, "uint32\t");
+    parser.flagUint64(&d, "\nuint64");
+
+    char* strArg = nullptr;
+    parser.flag(&strArg, "string");
+
+    bool bool_1 = false;
+    bool bool_2 = false;
+    bool bool_3 = false;
+    bool bool_4 = false;
+    bool bool_5 = false;
+    bool bool_6 = false;
+    bool bool_7 = false;
+    bool bool_8 = false;
+
+    parser.flagBool(&bool_1, "   bool-1");
+    parser.flagBool(&bool_2, "bool-2");
+    parser.flagBool(&bool_3, "bool-3 ");
+    parser.flagBool(&bool_4, "bool-4");
+    parser.flagBool(&bool_5, "bool-5   ");
+    parser.flagBool(&bool_6, "  bool-6");
+    parser.flagBool(&bool_7, "bool-7");
+    parser.flagBool(&bool_8, "bool-8");
+
+    auto ret = parser.parse(argc - 1, argv + 1); // TODO: This argc - 1 is stupid. Fix it.
+    Check(ret);
+
+    fmt::print("a = {}\n", a);
+    fmt::print("b = {}\n", b);
+    fmt::print("c = {}\n", c);
+    fmt::print("d = {}\n", d);
+    fmt::print("strArg = {}\n", strArg ? strArg : "null");
+    fmt::print("bool_1 = {}\n", bool_1);
+    fmt::print("bool_2 = {}\n", bool_2);
+    fmt::print("bool_3 = {}\n", bool_3);
+    fmt::print("bool_4 = {}\n", bool_4);
+    fmt::print("bool_5 = {}\n", bool_5);
+    fmt::print("bool_6 = {}\n", bool_6);
+    fmt::print("bool_7 = {}\n", bool_7);
+    fmt::print("bool_8 = {}\n", bool_8);
+
+    return 0;
 }

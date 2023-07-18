@@ -27,6 +27,8 @@ namespace core {
 
 using namespace coretypes;
 
+#pragma region Powers of 10 and 2 -------------------------------------------------------------------------------------
+
 namespace detail {
 
 static constexpr u64 powersOf10LookupTable[] = {
@@ -58,6 +60,13 @@ constexpr u64 pow10(u32 i) {
     Assert(i < sizeof(detail::powersOf10LookupTable) / sizeof(u64));
     return detail::powersOf10LookupTable[i];
 }
+
+constexpr u64 pow2(u32 i) {
+    Assert(i < 64);
+    return 1ULL << i;
+}
+
+#pragma endregion
 
 #pragma region Radians/Degrees ----------------------------------------------------------------------------------------
 

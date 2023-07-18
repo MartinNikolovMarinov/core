@@ -4,6 +4,7 @@
 #include <types.h>
 #include <utils.h>
 #include <core_math.h>
+#include <core_traits.h>
 
 namespace core {
 
@@ -15,6 +16,7 @@ constexpr inline bool is_white_space(char c) { return c == ' ' || c == '\t' || c
 template<typename TChar>
 constexpr ptr_size cptr_len(const TChar* p) {
     // TODO: Should use x86 specific assembler instructions for fast strlen!
+    static_assert(core::is_char_v<TChar>, "TChar must be a char type.");
     if (p == nullptr) return 0;
     const TChar* start = p;
     while(*p) p++;
@@ -24,7 +26,7 @@ constexpr ptr_size cptr_len(const TChar* p) {
 template <typename TChar>
 constexpr i32 cptr_cmp(const TChar* a, ptr_size lena, const TChar* b, ptr_size lenb) {
     // TODO: This can be done much faster with SIMD or some other specifc x86 instruction.
-    static_assert(sizeof(TChar) == 1, "Invalid TChar parameter.");
+    static_assert(core::is_char_v<TChar>, "TChar must be a char type.");
 
     if (a == nullptr && b == nullptr) return 0;
     else if (a == nullptr) return -1;
@@ -44,12 +46,13 @@ constexpr i32 cptr_cmp(const TChar* a, ptr_size lena, const TChar* b, ptr_size l
 // Avoid this if you already know the length of the string.
 template <typename TChar>
 constexpr i32 cptr_cmp(const TChar* a, const TChar* b) {
+    static_assert(core::is_char_v<TChar>, "TChar must be a char type.");
     return cptr_cmp(a, core::cptr_len(a), b, core::cptr_len(b));
 }
 
-template <typename TChar>
-constexpr i32 cptr_eq(const TChar* a, ptr_size lena, const TChar* b, ptr_size lenb) {
-    return cptr_cmp(a, lena, b, lenb) == 0;
+constexpr bool cptr_eq(const char* a, const char* b, ptr_size len) {
+    // static_assert(core::is_char_v<TChar>, "TChar must be a char type.");
+    return cptr_cmp(a, len, b, len) == 0;
 }
 
 constexpr void cptr_copy(const char *src, ptr_size n, char *dst) {
@@ -86,6 +89,7 @@ constexpr ptr_size cptr_idx_of_char(const char *src, ptr_size slen, char val) {
 }
 
 constexpr const char* cptr_skip_space(const char* s) {
+    if (s == nullptr) return s;
     while (is_white_space(*s)) s++;
     return s;
 }

@@ -98,7 +98,7 @@ static constexpr const char* hexDigits = "0123456789ABCDEF";
 // The out argument must have enough space to hold the result!
 // You can use somthing like - "char out[sizeof(TInt)];"
 template <typename TInt>
-void int_to_hex(TInt v, char* out, u64 hexLen = (sizeof(TInt) << 1)) {
+constexpr void int_to_hex(TInt v, char* out, u64 hexLen = (sizeof(TInt) << 1)) {
     static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
     for (size_t i = 0, j = (hexLen - 1) * 4; i < hexLen; i++, j-=4) {
         out[i] = detail::hexDigits[(v >> j) & 0x0f];

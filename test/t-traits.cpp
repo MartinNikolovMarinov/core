@@ -138,6 +138,13 @@ constexpr i32 run_type_comparison_traits() {
     static_assert(core::is_unsigned_v<volatile i64> == false);
     static_assert(core::is_signed_v<volatile i64> == true);
 
+    static_assert(core::is_integral_v<f32> == false);
+    static_assert(core::is_integral_v<const f32> == false);
+    static_assert(core::is_integral_v<volatile f32> == false);
+    static_assert(core::is_integral_v<f64> == false);
+    static_assert(core::is_integral_v<const f64> == false);
+    static_assert(core::is_integral_v<volatile f64> == false);
+
     return 0;
 }
 

@@ -91,6 +91,14 @@ template <typename T> struct is_same<T, T>       { static constexpr bool value =
 
 template <typename T, typename U> constexpr bool is_same_v = is_same<T, U>::value;
 
+template <typename> struct __is_char { static constexpr bool value = false_type_v; };
+template <> struct __is_char<char>   { static constexpr bool value = true_type_v; };
+template <> struct __is_char<uchar>  { static constexpr bool value = true_type_v; };
+template <> struct __is_char<schar>  { static constexpr bool value = true_type_v; };
+template <typename T> struct is_char { static constexpr bool value = __is_char<remove_cv_t<T>>::value; };
+
+template <typename T> constexpr bool is_char_v = is_char<T>::value;
+
 template <typename> struct __is_float { static constexpr bool value = false_type_v; };
 template <> struct __is_float<f32>    { static constexpr bool value = true_type_v; };
 template <> struct __is_float<f64>    { static constexpr bool value = true_type_v; };

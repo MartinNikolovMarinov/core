@@ -233,7 +233,7 @@ struct FlagParser {
                 }
             }
 
-           i32 reducedValLen = valLen;
+            i32 reducedValLen = valLen;
             while (core::is_white_space(curVal[reducedValLen - 1])) reducedValLen--;
 
             if (state == 1) {
@@ -282,12 +282,10 @@ struct FlagParser {
                         *(u64*)curFlag->arg = core::cptr_to_int<u64>(curVal);
                         break;
                     case FlagType::Float32:
-                        // TODO: implement this
-                        Panic("Not implemented.");
+                        *(f32*)curFlag->arg = core::cptr_to_float<f32>(curVal);
                         break;
                     case FlagType::Float64:
-                        // TODO: implement this
-                        Panic("Not implemented.");
+                        *(f64*)curFlag->arg = core::cptr_to_float<f64>(curVal);
                         break;
                     case FlagType::CPtr:
                         *(const char**)curFlag->arg = curVal;
@@ -387,8 +385,16 @@ i32 main(i32 argc, const char** argv) {
     parser.flag(&bool_7, "bool-7");
     parser.flag(&bool_8, "bool-8");
 
-    f32 fa = 0;
+    f32 fa = 0, fb = 0, fc = 0, fd = 0;
+    f64 fe = 0, ff = 0, fg = 0, fh = 0;
     parser.flag(&fa, "float32-1");
+    parser.flag(&fb, "float32-2");
+    parser.flag(&fc, "float32-3");
+    parser.flag(&fd, "float32-4");
+    parser.flag(&fe, "float64-5");
+    parser.flag(&ff, "float64-6");
+    parser.flag(&fg, "float64-7");
+    parser.flag(&fh, "float64-8");
 
     auto ret = parser.parse(argc - 1, argv + 1); // TODO: This argc - 1 is stupid. Fix it.
     Check(ret);
@@ -406,6 +412,14 @@ i32 main(i32 argc, const char** argv) {
     fmt::print("bool_6 = {}\n", bool_6);
     fmt::print("bool_7 = {}\n", bool_7);
     fmt::print("bool_8 = {}\n", bool_8);
+    fmt::print("fa = {}\n", fa);
+    fmt::print("fb = {}\n", fb);
+    fmt::print("fc = {}\n", fc);
+    fmt::print("fd = {}\n", fd);
+    fmt::print("fe = {}\n", fe);
+    fmt::print("ff = {}\n", ff);
+    fmt::print("fg = {}\n", fg);
+    fmt::print("fh = {}\n", fh);
 
     return 0;
 }

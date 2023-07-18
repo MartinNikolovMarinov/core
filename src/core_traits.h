@@ -120,6 +120,10 @@ template <typename T> struct is_integral { static constexpr bool value = is_unsi
 
 template <typename T> constexpr bool is_integral_v = is_integral<T>::value;
 
+template <typename T> struct is_arithmetic { static constexpr bool value = is_integral_v<T> || is_float_v<T>; };
+
+template <typename T> constexpr bool is_arithmetic_v = is_arithmetic<T>::value;
+
 #pragma endregion
 
 #pragma region Conditionals -------------------------------------------------------------------------------------------

@@ -14,107 +14,6 @@ constexpr i32 degrees_test() {
     return 0;
 }
 
-constexpr i32 pow_u64_test() {
-    Assert(core::pow_u64(0, 0) == 0);
-    Assert(core::pow_u64(0, 5) == 0);
-    Assert(core::pow_u64(5, 0) == 1);
-    Assert(core::pow_u64(5, 1) == 5);
-    Assert(core::pow_u64(5, 2) == 25);
-    Assert(core::pow_u64(5, 3) == 125);
-    Assert(core::pow_u64(5, 4) == 625);
-    Assert(core::pow_u64(5, 5) == 3125);
-    Assert(core::pow_u64(5, 6) == 15625);
-    Assert(core::pow_u64(5, 7) == 78125);
-    Assert(core::pow_u64(5, 8) == 390625);
-    Assert(core::pow_u64(5, 9) == 1953125);
-    Assert(core::pow_u64(5, 10) == 9765625);
-    Assert(core::pow_u64(5, 11) == 48828125);
-    Assert(core::pow_u64(5, 12) == 244140625);
-    Assert(core::pow_u64(5, 13) == 1220703125);
-    Assert(core::pow_u64(5, 14) == 6103515625);
-    Assert(core::pow_u64(5, 15) == 30517578125);
-    Assert(core::pow_u64(5, 16) == 152587890625);
-    Assert(core::pow_u64(5, 17) == 762939453125);
-    Assert(core::pow_u64(5, 18) == 3814697265625);
-    Assert(core::pow_u64(5, 19) == 19073486328125);
-    Assert(core::pow_u64(5, 20) == 95367431640625);
-    Assert(core::pow_u64(5, 21) == 476837158203125);
-    Assert(core::pow_u64(5, 22) == 2384185791015625);
-    Assert(core::pow_u64(5, 23) == 11920928955078125);
-    Assert(core::pow_u64(5, 24) == 59604644775390625);
-    Assert(core::pow_u64(5, 25) == 298023223876953125);
-    Assert(core::pow_u64(5, 26) == 1490116119384765625);
-    Assert(core::pow_u64(5, 27) == 7450580596923828125);
-    // next one is too big for 64-bit integer
-
-    Assert(core::pow_u64(2, 0) == 1);
-    Assert(core::pow_u64(2, 1) == 2);
-    Assert(core::pow_u64(2, 2) == 4);
-    Assert(core::pow_u64(2, 3) == 8);
-    Assert(core::pow_u64(2, 4) == 16);
-    Assert(core::pow_u64(2, 5) == 32);
-    Assert(core::pow_u64(2, 6) == 64);
-    Assert(core::pow_u64(2, 7) == 128);
-    Assert(core::pow_u64(2, 8) == 256);
-    Assert(core::pow_u64(2, 9) == 512);
-    Assert(core::pow_u64(2, 10) == 1024);
-    Assert(core::pow_u64(2, 11) == 2048);
-    Assert(core::pow_u64(2, 12) == 4096);
-    Assert(core::pow_u64(2, 13) == 8192);
-    Assert(core::pow_u64(2, 14) == 16384);
-    Assert(core::pow_u64(2, 15) == 32768);
-    Assert(core::pow_u64(2, 16) == 65536);
-    Assert(core::pow_u64(2, 17) == 131072);
-    Assert(core::pow_u64(2, 18) == 262144);
-    Assert(core::pow_u64(2, 19) == 524288);
-    Assert(core::pow_u64(2, 20) == 1048576);
-    Assert(core::pow_u64(2, 21) == 2097152);
-    Assert(core::pow_u64(2, 22) == 4194304);
-    Assert(core::pow_u64(2, 23) == 8388608);
-    Assert(core::pow_u64(2, 24) == 16777216);
-    Assert(core::pow_u64(2, 25) == 33554432);
-    Assert(core::pow_u64(2, 26) == 67108864);
-    Assert(core::pow_u64(2, 27) == 134217728);
-    Assert(core::pow_u64(2, 28) == 268435456);
-    Assert(core::pow_u64(2, 29) == 536870912);
-    Assert(core::pow_u64(2, 30) == 1073741824);
-    Assert(core::pow_u64(2, 31) == 2147483648);
-    Assert(core::pow_u64(2, 32) == 4294967296);
-    Assert(core::pow_u64(2, 33) == 8589934592);
-    Assert(core::pow_u64(2, 34) == 17179869184);
-    Assert(core::pow_u64(2, 35) == 34359738368);
-    Assert(core::pow_u64(2, 36) == 68719476736);
-    Assert(core::pow_u64(2, 37) == 137438953472);
-    Assert(core::pow_u64(2, 38) == 274877906944);
-    Assert(core::pow_u64(2, 39) == 549755813888);
-    Assert(core::pow_u64(2, 40) == 1099511627776);
-    Assert(core::pow_u64(2, 41) == 2199023255552);
-    Assert(core::pow_u64(2, 42) == 4398046511104);
-    Assert(core::pow_u64(2, 43) == 8796093022208);
-    Assert(core::pow_u64(2, 44) == 17592186044416);
-    Assert(core::pow_u64(2, 45) == 35184372088832);
-    Assert(core::pow_u64(2, 46) == 70368744177664);
-    Assert(core::pow_u64(2, 47) == 140737488355328);
-    Assert(core::pow_u64(2, 48) == 281474976710656);
-    Assert(core::pow_u64(2, 49) == 562949953421312);
-    Assert(core::pow_u64(2, 50) == 1125899906842624);
-    Assert(core::pow_u64(2, 51) == 2251799813685248);
-    Assert(core::pow_u64(2, 52) == 4503599627370496);
-    Assert(core::pow_u64(2, 53) == 9007199254740992);
-    Assert(core::pow_u64(2, 54) == 18014398509481984);
-    Assert(core::pow_u64(2, 55) == 36028797018963968);
-    Assert(core::pow_u64(2, 56) == 72057594037927936);
-    Assert(core::pow_u64(2, 57) == 144115188075855872);
-    Assert(core::pow_u64(2, 58) == 288230376151711744);
-    Assert(core::pow_u64(2, 59) == 576460752303423488);
-    Assert(core::pow_u64(2, 60) == 1152921504606846976);
-    Assert(core::pow_u64(2, 61) == 2305843009213693952);
-    Assert(core::pow_u64(2, 62) == 4611686018427387904);
-    // next one is too big for 64-bit integer
-
-    return 0;
-}
-
 constexpr i32 abs_test() {
     Assert(core::abs_slow(i8(0)) == 0);
     Assert(core::abs_slow(i8(1)) == 1);
@@ -361,7 +260,6 @@ i32 sign_test() {
 
 i32 run_core_math_tests_suite() {
     RunTest(degrees_test);
-    RunTest(pow_u64_test);
     RunTest(abs_test);
     RunTest(is_positive_test);
     RunTest(float_safe_eq_test);
@@ -373,7 +271,6 @@ i32 run_core_math_tests_suite() {
 
 constexpr i32 run_compiletime_core_math_tests_suite() {
     RunTestCompileTime(degrees_test);
-    RunTestCompileTime(pow_u64_test);
     RunTestCompileTime(abs_test);
     RunTestCompileTime(is_positive_test);
     RunTestCompileTime(float_safe_eq_test);

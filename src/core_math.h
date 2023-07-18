@@ -27,16 +27,36 @@ namespace core {
 
 using namespace coretypes;
 
-constexpr u64 pow_u64(u64 n, u32 p) {
-    if (n == 0) return 0;
-    if (p == 0) return 1;
-    u64 result = 1;
-    while(p > 0) {
-        if((p & 1) != 0) result = (result * n);
-        n = (n * n);
-        p = p >> 1; // p^2
-    }
-    return result;
+namespace detail {
+
+static constexpr u64 powersOf10LookupTable[] = {
+    1ULL,
+    10ULL,
+    100ULL,
+    1000ULL,
+    10000ULL,
+    100000ULL,
+    1000000ULL,
+    10000000ULL,
+    100000000ULL,
+    1000000000ULL,
+    10000000000ULL,
+    100000000000ULL,
+    1000000000000ULL,
+    10000000000000ULL,
+    100000000000000ULL,
+    1000000000000000ULL,
+    10000000000000000ULL,
+    100000000000000000ULL,
+    1000000000000000000ULL,
+    10000000000000000000ULL,
+};
+
+} // namespace detail
+
+constexpr u64 pow10(u32 i) {
+    Assert(i < sizeof(detail::powersOf10LookupTable) / sizeof(u64));
+    return detail::powersOf10LookupTable[i];
 }
 
 #pragma region Radians/Degrees ----------------------------------------------------------------------------------------

@@ -96,8 +96,8 @@ template <typename T> using pair   = tuple<T, T>;
 template <typename T> using triple = tuple<T, T, T>;
 template <typename T> using quad   = tuple<T, T, T, T>;
 
-static_assert(core::IsTrivial_v<tuple<i32, i32>>);
-static_assert(core::IsTrivial_v<tuple<i32, i32, i32>>);
-static_assert(core::IsTrivial_v<tuple<i32, i32, i32, i32>>);
+static_assert(core::is_trivial_v<tuple<i32, i32>>);
+static_assert(core::is_trivial_v<tuple<i32, i32, i32>>);
+static_assert(core::is_trivial_v<tuple<i32, i32, i32, i32>>);
 
 } // namespace core

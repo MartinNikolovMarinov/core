@@ -51,7 +51,7 @@ struct radians {
 };
 
 // Should be obvious to the compiler that this struct is a very simple wrapper over a single f32.
-static_assert(core::IsTrivial_v<radians>);
+static_assert(core::is_trivial_v<radians>);
 static_assert(sizeof(radians) == sizeof(f32));
 
 constexpr radians deg_to_rad(f32 n) {

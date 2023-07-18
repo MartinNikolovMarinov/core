@@ -193,7 +193,8 @@ struct FlagParser {
         Int64,
         Uint32,
         Uint64,
-        Float,
+        Float32,
+        Float64,
         CPtr,
     };
 
@@ -280,8 +281,13 @@ struct FlagParser {
                     case FlagType::Uint64:
                         *(u64*)curFlag->arg = core::cptr_to_int<u64>(curVal);
                         break;
-                    case FlagType::Float:
+                    case FlagType::Float32:
                         // TODO: implement this
+                        Panic("Not implemented.");
+                        break;
+                    case FlagType::Float64:
+                        // TODO: implement this
+                        Panic("Not implemented.");
                         break;
                     case FlagType::CPtr:
                         *(const char**)curFlag->arg = curVal;
@@ -298,12 +304,36 @@ struct FlagParser {
         return {};
     }
 
-    void flag(char** out, const char* flagName)     { setFlag(out, flagName, FlagType::CPtr); }
-    void flagInt32(i32* out, const char* flagName)  { setFlag(out, flagName, FlagType::Int32); }
-    void flagInt64(i64* out, const char* flagName)  { setFlag(out, flagName, FlagType::Int64); }
-    void flagUint32(u32* out, const char* flagName) { setFlag(out, flagName, FlagType::Uint32); }
-    void flagUint64(u64* out, const char* flagName) { setFlag(out, flagName, FlagType::Uint64); }
-    void flagBool(bool* out, const char* flagName)  { setFlag(out, flagName, FlagType::Bool); }
+    template <typename T>
+    void flag(T* out, const char* flagName) {
+        if constexpr (core::is_same_v<T, char*>) {
+            setFlag(out, flagName, FlagType::CPtr);
+        }
+        else if constexpr (core::is_same_v<T, i32>) {
+            setFlag(out, flagName, FlagType::Int32);
+        }
+        else if constexpr (core::is_same_v<T, i64>) {
+            setFlag(out, flagName, FlagType::Int64);
+        }
+        else if constexpr (core::is_same_v<T, u32>) {
+            setFlag(out, flagName, FlagType::Uint32);
+        }
+        else if constexpr (core::is_same_v<T, u64>) {
+            setFlag(out, flagName, FlagType::Uint64);
+        }
+        else if constexpr (core::is_same_v<T, bool>) {
+            setFlag(out, flagName, FlagType::Bool);
+        }
+        else if constexpr (core::is_same_v<T, f32>) {
+            setFlag(out, flagName, FlagType::Float32);
+        }
+        else if constexpr (core::is_same_v<T, f64>) {
+            setFlag(out, flagName, FlagType::Float64);
+        }
+        else {
+            static_assert(core::always_false<T>, "Unsupported type");
+        }
+    }
 
 private:
     core::arr<Flag> m_flags;
@@ -332,10 +362,10 @@ i32 main(i32 argc, const char** argv) {
     i64 b = 0;
     u32 c = 0;
     u64 d = 0;
-    parser.flagInt32(&a, " int32");
-    parser.flagInt64(&b, "int64 ");
-    parser.flagUint32(&c, "uint32\t");
-    parser.flagUint64(&d, "\nuint64");
+    parser.flag(&a, " int32");
+    parser.flag(&b, "int64 ");
+    parser.flag(&c, "uint32\t");
+    parser.flag(&d, "\nuint64");
 
     char* strArg = nullptr;
     parser.flag(&strArg, "string");
@@ -348,15 +378,17 @@ i32 main(i32 argc, const char** argv) {
     bool bool_6 = false;
     bool bool_7 = false;
     bool bool_8 = false;
+    parser.flag(&bool_1, "   bool-1");
+    parser.flag(&bool_2, "bool-2");
+    parser.flag(&bool_3, "bool-3 ");
+    parser.flag(&bool_4, "bool-4");
+    parser.flag(&bool_5, "bool-5   ");
+    parser.flag(&bool_6, "  bool-6");
+    parser.flag(&bool_7, "bool-7");
+    parser.flag(&bool_8, "bool-8");
 
-    parser.flagBool(&bool_1, "   bool-1");
-    parser.flagBool(&bool_2, "bool-2");
-    parser.flagBool(&bool_3, "bool-3 ");
-    parser.flagBool(&bool_4, "bool-4");
-    parser.flagBool(&bool_5, "bool-5   ");
-    parser.flagBool(&bool_6, "  bool-6");
-    parser.flagBool(&bool_7, "bool-7");
-    parser.flagBool(&bool_8, "bool-8");
+    f32 fa = 0;
+    parser.flag(&fa, "float32-1");
 
     auto ret = parser.parse(argc - 1, argv + 1); // TODO: This argc - 1 is stupid. Fix it.
     Check(ret);

@@ -39,22 +39,22 @@ struct ShaderProg {
             if      constexpr (Dim == 2) glUniform2fv(loc, 1, reinterpret_cast<const f32*>(&v.data[0]));
             else if constexpr (Dim == 3) glUniform3fv(loc, 1, reinterpret_cast<const f32*>(&v.data[0]));
             else if constexpr (Dim == 4) glUniform4fv(loc, 1, reinterpret_cast<const f32*>(&v.data[0]));
-            else    static_assert(core::AlwaysFalse<T>, "Unsupported type");
+            else    static_assert(core::always_false<T>, "Unsupported type");
         }
         else if constexpr (std::is_same_v<T, i32>) {
             if      constexpr (Dim == 2) glUniform2iv(loc, 1, reinterpret_cast<const i32*>(&v.data[0]));
             else if constexpr (Dim == 3) glUniform3iv(loc, 1, reinterpret_cast<const i32*>(&v.data[0]));
             else if constexpr (Dim == 4) glUniform4iv(loc, 1, reinterpret_cast<const i32*>(&v.data[0]));
-            else    static_assert(core::AlwaysFalse<T>, "Unsupported type");
+            else    static_assert(core::always_false<T>, "Unsupported type");
         }
         else if constexpr (std::is_same_v<T, u32>) {
             if      constexpr (Dim == 2) glUniform2uiv(loc, 1, reinterpret_cast<const u32*>(&v.data[0]));
             else if constexpr (Dim == 3) glUniform3uiv(loc, 1, reinterpret_cast<const u32*>(&v.data[0]));
             else if constexpr (Dim == 4) glUniform4uiv(loc, 1, reinterpret_cast<const u32*>(&v.data[0]));
-            else    static_assert(core::AlwaysFalse<T>, "Unsupported type");
+            else    static_assert(core::always_false<T>, "Unsupported type");
         }
         else {
-            static_assert(core::AlwaysFalse<T>, "Unsupported type");
+            static_assert(core::always_false<T>, "Unsupported type");
         }
         return {};
     }
@@ -73,10 +73,10 @@ struct ShaderProg {
             else if constexpr (TRow == 4 && TCol == 2) glUniformMatrix4x2fv(loc, 1, GL_FALSE, reinterpret_cast<const f32*>(&m.data[0]));
             else if constexpr (TRow == 3 && TCol == 4) glUniformMatrix3x4fv(loc, 1, GL_FALSE, reinterpret_cast<const f32*>(&m.data[0]));
             else if constexpr (TRow == 4 && TCol == 3) glUniformMatrix4x3fv(loc, 1, GL_FALSE, reinterpret_cast<const f32*>(&m.data[0]));
-            else    static_assert(core::AlwaysFalse<T>, "Unsupported type");
+            else    static_assert(core::always_false<T>, "Unsupported type");
         }
         else {
-            static_assert(core::AlwaysFalse<T>, "Unsupported type");
+            static_assert(core::always_false<T>, "Unsupported type");
         }
         return {};
     }
@@ -93,7 +93,7 @@ struct ShaderProg {
         if constexpr      (std::is_same_v<T, f32>) glUniform1f(loc, val);
         else if constexpr (std::is_same_v<T, i32>) glUniform1i(loc, val);
         else if constexpr (std::is_same_v<T, u32>) glUniform1ui(loc, val);
-        else    static_assert(core::AlwaysFalse<T>, "Unsupported type");
+        else    static_assert(core::always_false<T>, "Unsupported type");
         return {};
     }
 

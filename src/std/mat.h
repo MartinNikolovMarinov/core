@@ -370,7 +370,7 @@ constexpr T mdet(const mat<NDim, NDim, T>& m) {
                - m[3][0] * (m[0][1] * (m[1][2] * m[2][3] - m[2][2] * m[1][3]) - m[1][1] * (m[0][2] * m[2][3] - m[2][2] * m[0][3]) + m[2][1] * (m[0][2] * m[1][3] - m[1][2] * m[0][3]));
     }
     else {
-        static_assert(core::AlwaysFalse<T>, "Matrix must be 2x2, 3x3 or 4x4");
+        static_assert(core::always_false<T>, "Matrix must be 2x2, 3x3 or 4x4");
     }
 }
 
@@ -452,7 +452,7 @@ constexpr mat<NDim, NDim, T> minverse(const mat<NDim, NDim, T>& m) {
         }
     }
     else {
-        static_assert(core::AlwaysFalse<T>, "Matrix must be 2x2, 3x3 or 4x4");
+        static_assert(core::always_false<T>, "Matrix must be 2x2, 3x3 or 4x4");
     }
     return ret;
 }

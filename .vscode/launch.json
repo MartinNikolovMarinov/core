@@ -50,8 +50,6 @@
                 "   -uint64", "\t99asad",
 
                 "-string", "  banicata   fsa  ",
-
-                "-int32", "",
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

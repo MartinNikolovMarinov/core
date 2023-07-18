@@ -7,67 +7,138 @@ namespace core {
 
 using namespace coretypes;
 
-template<typename T>
-constexpr bool AlwaysFalse = false;
-
 #pragma region True/False Type ----------------------------------------------------------------------------------------
 
-struct TrueType  { static constexpr bool value = true; };
-struct FalseType { static constexpr bool value = false; };
-constexpr bool TrueType_v  = TrueType::value;
-constexpr bool FalseType_v = FalseType::value;
+struct true_type  { static constexpr bool value = true; };
+struct false_type { static constexpr bool value = false; };
+constexpr bool true_type_v  = true_type::value;
+constexpr bool false_type_v = false_type::value;
+
+template<typename> constexpr bool always_false = false;
 
 #pragma endregion
 
-#pragma region Remove Reference ---------------------------------------------------------------------------------------
+#pragma region Type Modificators --------------------------------------------------------------------------------------
 
-template<typename T> struct RemoveRef      { typedef T type; };
-template<typename T> struct RemoveRef<T&>  { typedef T type; };
-template<typename T> struct RemoveRef<T&&> { typedef T type; };
+template <typename T> struct type_identity { typedef T type; };
 
-#pragma endregion
+template <typename T> using type_identity_t = typename type_identity<T>::type;
 
-#pragma region Is RValue/LValue ---------------------------------------------------------------------------------------
+template <typename T> struct remove_cv                    { typedef T type; };
+template <typename T> struct remove_cv <const T>          { typedef T type; };
+template <typename T> struct remove_cv <volatile T>       { typedef T type; };
+template <typename T> struct remove_cv <const volatile T> { typedef T type; };
 
-template<typename T> struct IsLValue     : FalseType {};
-template<typename T> struct IsLValue<T&> : TrueType {};
-template<typename T> constexpr bool IsLValue_v     = IsLValue<T>::value;
-template<typename T> constexpr bool IsLValue_v<T&> = IsLValue<T&>::value;
+template <typename T> using remove_cv_t = typename remove_cv<T>::type;
 
-template<typename T> struct IsRValue      : FalseType {};
-template<typename T> struct IsRValue<T&&> : TrueType {};
-template<typename T> constexpr bool IsRValue_v = IsRValue<T>::value;
-template<typename T> constexpr bool IsRValue_v<T&&> = IsRValue<T&&>::value;
+template<typename T> struct remove_ref      { typedef T type; };
+template<typename T> struct remove_ref<T&>  { typedef T type; };
+template<typename T> struct remove_ref<T&&> { typedef T type; };
 
-#pragma endregion
+template <typename T> using remove_ref_t = typename remove_ref<T>::type;
 
-#pragma region Add/Remove LValue/RValue reference ---------------------------------------------------------------------
+template <typename T> struct remove_ptr     { typedef T type; };
+template <typename T> struct remove_ptr<T*> { typedef T type; };
+
+template <typename T> using remove_ptr_t = typename remove_ptr<T>::type;
+
+template <typename T> struct remove_extent                   { typedef T type; };
+template <typename T> struct remove_extent<T[]>              { typedef T type; };
+template <typename T, ptr_size N> struct remove_extent<T[N]> { typedef T type; };
+
+template <typename T> using remove_extent_t = typename remove_extent<T>::type;
+
+template <typename T> struct remove_all_extents { typedef T type; };
+template <typename T> struct remove_all_extents<T[]> { typedef typename remove_all_extents<T>::type type; };
+template <typename T, ptr_size N> struct remove_all_extents<T[N]> { typedef typename remove_all_extents<T>::type type; };
+
+template <typename T> using remove_all_extents_t = typename remove_all_extents<T>::type;
+
+template<typename T> struct is_lvalue     { static constexpr bool value = false_type_v; };
+template<typename T> struct is_lvalue<T&> { static constexpr bool value = true_type_v; };
+template<typename T> constexpr bool is_lvalue_v     = is_lvalue<T>::value;
+template<typename T> constexpr bool is_lvalue_v<T&> = is_lvalue<T&>::value;
+
+template<typename T> struct is_rvalue      { static constexpr bool value = false_type_v; };
+template<typename T> struct is_rvalue<T&&> { static constexpr bool value = true_type_v; };
+template<typename T> constexpr bool is_rvalue_v      = is_rvalue<T>::value;
+template<typename T> constexpr bool is_rvalue_v<T&&> = is_rvalue<T&&>::value;
 
 namespace detail {
 
-template <typename T> struct TypeIdentity { using type = T; };
+template <typename T> auto try_add_lvalue(i32) -> type_identity<T&>;
+template <typename T> auto try_add_lvalue(...) -> type_identity<T>;
 
-template <typename T> auto TryAddLValue(i32) -> TypeIdentity<T&>;
-template <typename T> auto TryAddLValue(...) -> TypeIdentity<T>;
-
-template <typename T> auto TryAddRValue(i32) -> TypeIdentity<T&&>;
-template <typename T> auto TryAddRValue(...) -> TypeIdentity<T>;
+template <typename T> auto try_add_rvalue(i32) -> type_identity<T&&>;
+template <typename T> auto try_add_rvalue(...) -> type_identity<T>;
 
 } // namespace detail
 
-template <typename T> struct AddLValue : decltype(detail::TryAddLValue<T>(0)) {};
-template <typename T> struct AddRValue : decltype(detail::TryAddRValue<T>(0)) {};
+template <typename T> struct add_lvalue : decltype(detail::try_add_lvalue<T>(0)) {};
+template <typename T> struct add_rvalue : decltype(detail::try_add_rvalue<T>(0)) {};
 
 template<typename T>
-typename AddRValue<T>::type declval() noexcept {
-    static_assert(AlwaysFalse<T>, "declval not allowed in an evaluated context");
+typename add_rvalue<T>::type declval() noexcept {
+    static_assert(always_false<T>, "declval not allowed in an evaluated context");
 }
 
 #pragma endregion
 
-#pragma region Compiletime Execution -----------------------------------------------------------------------------------
+#pragma region Type Comparison ----------------------------------------------------------------------------------------
 
-constexpr inline bool is_const_evaluated() noexcept {
+template <typename T, typename U> struct is_same { static constexpr bool value = false_type_v; };
+template <typename T> struct is_same<T, T>       { static constexpr bool value = true_type_v; };
+
+template <typename T, typename U> constexpr bool is_same_v = is_same<T, U>::value;
+
+template <typename> struct __is_float { static constexpr bool value = false_type_v; };
+template <> struct __is_float<f32>    { static constexpr bool value = true_type_v; };
+template <> struct __is_float<f64>    { static constexpr bool value = true_type_v; };
+template <typename T> struct is_float { static constexpr bool value = __is_float<remove_cv_t<T>>::value; };
+
+template <typename T> constexpr bool is_float_v = is_float<T>::value;
+
+template <typename> struct __is_signed { static constexpr bool value = false_type_v; };
+template <> struct __is_signed<i8>     { static constexpr bool value = true_type_v; };
+template <> struct __is_signed<i16>    { static constexpr bool value = true_type_v; };
+template <> struct __is_signed<i32>    { static constexpr bool value = true_type_v; };
+template <> struct __is_signed<i64>    { static constexpr bool value = true_type_v; };
+template <typename T> struct is_signed { static constexpr bool value = __is_signed<remove_cv_t<T>>::value; };
+
+template <typename T> constexpr bool is_signed_v = is_signed<T>::value;
+
+template <typename> struct __is_unsigned { static constexpr bool value = false_type_v; };
+template <> struct __is_unsigned<u8>     { static constexpr bool value = true_type_v; };
+template <> struct __is_unsigned<u16>    { static constexpr bool value = true_type_v; };
+template <> struct __is_unsigned<u32>    { static constexpr bool value = true_type_v; };
+template <> struct __is_unsigned<u64>    { static constexpr bool value = true_type_v; };
+template <typename T> struct is_unsigned { static constexpr bool value = __is_unsigned<remove_cv_t<T>>::value; };
+
+template <typename T> constexpr bool is_unsigned_v = is_unsigned<T>::value;
+
+template <typename T> struct is_integral { static constexpr bool value = is_unsigned_v<T> || is_signed_v<T>; };
+
+template <typename T> constexpr bool is_integral_v = is_integral<T>::value;
+
+#pragma endregion
+
+#pragma region Conditionals -------------------------------------------------------------------------------------------
+
+template <bool B, typename T = void> struct enable_if {};
+template <typename T> struct enable_if<true, T> { typedef T type; };
+
+template <bool B, typename T = void> using enable_if_t = typename enable_if<B, T>::type;
+
+template <bool B, typename T, typename F> struct conditional { typedef T type; };
+template <typename T, typename F> struct conditional<false, T, F> { typedef F type; };
+
+template <bool B, typename T, typename F> using conditional_t = typename conditional<B, T, F>::type;
+
+#pragma endregion
+
+#pragma region Compiletime Execution ----------------------------------------------------------------------------------
+
+constexpr bool is_const_evaluated() noexcept {
     return __builtin_is_constant_evaluated();
 }
 
@@ -79,7 +150,7 @@ constexpr auto force_consteval = V;
 #pragma region Compiler Intrinsic Traits ------------------------------------------------------------------------------
 
 template <typename T>
-struct IsTriviallyDestructible {
+struct is_trivially_destructable {
 #if (COMPILER_GCC == 1) || (COMPILER_CLANG == 1)
     static constexpr bool value = __has_trivial_destructor(T);
 #elif (COMPILER_MSVC == 1)
@@ -88,7 +159,7 @@ struct IsTriviallyDestructible {
 };
 
 template <typename T>
-struct IsTriviallyCopyable {
+struct is_trivially_copyable {
 #if (COMPILER_GCC == 1) || (COMPILER_CLANG == 1)
     static constexpr bool value = __has_trivial_copy(T);
 #elif (COMPILER_MSVC == 1)
@@ -97,7 +168,7 @@ struct IsTriviallyCopyable {
 };
 
 template <typename T>
-struct IsTriviallyAssignable {
+struct is_trivially_assignable {
 #if (COMPILER_GCC == 1) || (COMPILER_CLANG == 1)
     static constexpr bool value = __has_trivial_assign(T);
 #elif (COMPILER_MSVC == 1)
@@ -122,7 +193,7 @@ struct IsTriviallyAssignable {
  *  - Has no base classes with non-static data members.
  */
 template <typename T>
-struct IsStandardLayout {
+struct is_standard_layout {
     static constexpr bool value = __is_standard_layout(T);
 };
 
@@ -144,29 +215,29 @@ struct IsStandardLayout {
  * - no data members of class type with a corresponding non-trivial constructor/operator/destructor
  */
 template <typename T>
-struct IsTrivial {
+struct is_trivial {
     static constexpr bool value = __is_trivial(T);
 };
 
 // NOTE: Pods are both trivial and standard layout types.
 template <typename T>
-struct IsPOD {
+struct is_pod {
     // __is_pod(T) is deprecated in c++20
     static constexpr bool value = __is_standard_layout(T) && __is_trivial(T);
 };
 
 template <typename T>
-inline constexpr bool IsTriviallyDestructible_v = IsTriviallyDestructible<T>::value;
+inline constexpr bool is_trivially_destructable_v = is_trivially_destructable<T>::value;
 template <typename T>
-inline constexpr bool IsTriviallyCopyable_v = IsTriviallyCopyable<T>::value;
+inline constexpr bool is_trivially_copyable_v = is_trivially_copyable<T>::value;
 template <typename T>
-inline constexpr bool IsTriviallyAssignable_v = IsTriviallyAssignable<T>::value;
+inline constexpr bool is_trivially_assignable_v = is_trivially_assignable<T>::value;
 template <typename T>
-inline constexpr bool IsStandardLayout_v = IsStandardLayout<T>::value;
+inline constexpr bool is_standard_layout_v = is_standard_layout<T>::value;
 template <typename T>
-inline constexpr bool IsTrivial_v = IsTrivial<T>::value;
+inline constexpr bool is_trivial_v = is_trivial<T>::value;
 template <typename T>
-inline constexpr bool IsPOD_v = IsPOD<T>::value;
+inline constexpr bool is_pod_v = is_pod<T>::value;
 
 #pragma endregion
 

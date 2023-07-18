@@ -16,8 +16,8 @@ struct CORE_API_EXPORT arr {
     using size_type      = ptr_size;
     using allocator_type = TAllocator;
 
-    static constexpr bool dataIsTrivial = core::IsTrivial_v<data_type>;
-    static constexpr bool dataHasTrivialDestructor = core::IsTriviallyDestructible_v<data_type>;
+    static constexpr bool dataIsTrivial = core::is_trivial_v<data_type>;
+    static constexpr bool dataHasTrivialDestructor = core::is_trivially_destructable_v<data_type>;
 
     arr() : m_data(nullptr), m_cap(0), m_len(0) {}
     arr(size_type len) : m_data(nullptr), m_cap(len), m_len(len) {

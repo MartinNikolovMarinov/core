@@ -97,7 +97,7 @@ template <typename...> struct static_expected;
 // IMPORTANT: Do not put anything which is not trivially destructible in this struct!
 template <typename T, typename TErr>
 struct CORE_API_EXPORT static_expected<T, TErr> {
-    static_assert(core::IsTrivial_v<T>, "trivial type is required");
+    static_assert(core::is_trivial_v<T>, "trivial type is required");
 
     constexpr static_expected(T&& value)  : m_value(core::forward<T>(value)), m_hasValue(true) {}
     template <typename TErr2>

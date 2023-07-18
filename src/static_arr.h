@@ -14,7 +14,7 @@ struct CORE_API_EXPORT sarr {
     using data_type = T;
     using size_type = ptr_size;
 
-    static constexpr bool dataIsTrivial = core::IsTrivial_v<data_type>;
+    static constexpr bool dataIsTrivial = core::is_trivial_v<data_type>;
     static_assert(dataIsTrivial, "sarr only supports trivial types");
 
     constexpr sarr() : m_data(), m_len(0) {}

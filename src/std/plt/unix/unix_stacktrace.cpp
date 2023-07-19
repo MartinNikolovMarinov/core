@@ -35,7 +35,7 @@ std::string stacktrace(u32 nStackFrames, u32 skipFrames) {
     }
     defer { std::free(symbolList); };
 
-    constexpr u32 MAX_FUNCNAME_SIZE = 256;
+    constexpr u32 MAX_FUNCNAME_SIZE = 1024;
     char funcName[MAX_FUNCNAME_SIZE];
 
     for (i32 i = skipFrames; i < addrLen; i++) {

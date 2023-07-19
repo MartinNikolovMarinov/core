@@ -1,4 +1,4 @@
-i32 digit_count_test() {
+constexpr i32 digit_count_test() {
     {
         struct test_case {
             i32 value;
@@ -150,6 +150,12 @@ i32 digit_count_test() {
 
 i32 run_ints_tests_suite() {
     RunTest(digit_count_test);
+
+    return 0;
+}
+
+constexpr i32 run_compiletime_ints_tests_suite() {
+    RunTestCompileTime(digit_count_test);
 
     return 0;
 }

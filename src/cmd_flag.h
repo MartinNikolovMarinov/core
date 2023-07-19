@@ -1,5 +1,6 @@
 #pragma once
 
+#include <API.h>
 #include <types.h>
 #include <arr.h>
 #include <expected.h>
@@ -12,7 +13,7 @@ namespace core {
 using namespace coretypes;
 
 template<typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
-struct flag_parser {
+struct CORE_API_EXPORT flag_parser {
     static constexpr i32 MAX_ARG_LEN = 5000;
 
     enum flag_type {

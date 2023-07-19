@@ -11,14 +11,14 @@ using namespace coretypes;
 namespace detail {
 
 // Lookup tables for DigitCount:
-static u64 powers[] = {
+static constexpr u64 powers[] = {
     0,
     u64(1e1),  u64(1e2),  u64(1e3),  u64(1e4),  u64(1e5),
     u64(1e6),  u64(1e7),  u64(1e8),  u64(1e9),  u64(1e10),
     u64(1e11), u64(1e12), u64(1e13), u64(1e14), u64(1e15),
-    u64(1e16), u64(1e17), u64(1e18), u64(1e19), u64(1e20),
+    u64(1e16), u64(1e17), u64(1e18), u64(1e19)
 };
-static u32 maxdigits[] = {
+static constexpr u32 maxdigits[] = {
     1, 1, 1, 1,
     2, 2, 2,
     3, 3, 3,
@@ -44,11 +44,11 @@ static u32 maxdigits[] = {
 } // namespace detail
 
 template <typename TUint>
-u32 digit_count(TUint n) {
+constexpr CORE_API_EXPORT u32 digit_count(TUint n) {
     static_assert(sizeof(n) == 4 || sizeof(n) == 8, "Invalid TUint paramater.");
     if (n == 0) return 1;
     if (n < 0) n = -n;
-    u32 leadingZeroes = leading_zerobits(n);
+    u32 leadingZeroes = leading_zero_count(n);
     u32 usedBits = (sizeof(n) * 8) - u32(leadingZeroes);
     u32 digits = detail::maxdigits[usedBits];
     if (n < static_cast<TUint>(detail::powers[digits - 1])) digits--;

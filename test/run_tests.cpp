@@ -16,6 +16,7 @@
 #include "t-traits.cpp"
 #include "t-cptr_ptr.cpp"
 #include "t-char_ptr_conv.cpp"
+#include "t-intrinsic.cpp"
 
 int run_all_tests() {
     RunTestSuite(run_tuple_tests_suite);
@@ -29,6 +30,7 @@ int run_all_tests() {
     RunTestSuite(run_traits_tests_suite);
     RunTestSuite(run_cptr_ptr_tests_suite);
     RunTestSuite(run_char_ptr_conv_tests_suite);
+    RunTestSuite(run_intrinsics_tests_suite);
 
     return 0;
 }

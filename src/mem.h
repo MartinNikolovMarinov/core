@@ -18,11 +18,11 @@ CORE_API_EXPORT i32 memcmp(const void* s1, const void* s2, ptr_size n);
  * @param value The value to align.
  * @return The aligned value.
 */
-constexpr ptr_size align(ptr_size n) {
+constexpr CORE_API_EXPORT ptr_size align(ptr_size n) {
     return (n + sizeof(ptr_size) - 1) & ~(sizeof(ptr_size) - 1);
 }
 
-constexpr void swap_bytes(void* a, void* b, ptr_size size) {
+constexpr CORE_API_EXPORT void swap_bytes(void* a, void* b, ptr_size size) {
     // TODO: Use SIMD probably.
     u8* a_ = (u8*)a;
     u8* b_ = (u8*)b;
@@ -34,7 +34,7 @@ constexpr void swap_bytes(void* a, void* b, ptr_size size) {
 }
 
 template <typename T>
-constexpr void swap(T& a, T& b) {
+constexpr CORE_API_EXPORT void swap(T& a, T& b) {
     T tmp = a;
     a = b;
     b = tmp;

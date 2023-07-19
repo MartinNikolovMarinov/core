@@ -178,3 +178,55 @@ i32 adverse_input_flag_parser_test() {
 
     return 0;
 }
+
+template<typename TAllocator>
+i32 custom_rule_flag_parser_test() {
+    using flag_parser = core::flag_parser<TAllocator>;
+
+    flag_parser parser;
+    i32 a, b;
+
+    parser.flag(&a, "a");
+    parser.flag(&b, "b");
+    const char* input[4] = {"-a", "1", "-b", "5" };
+    auto res = parser.parse(4, input);
+    Assert(!res.has_err());
+
+    // Add some rules
+
+    parser.flag(&a, "a", false, [](void* a) -> bool {
+        i32 v = *(i32*)a;
+        return (v > 0);
+    });
+    parser.flag(&b, "b", false, [](void* b) -> bool {
+        i32 v = *(i32*)b;
+        return (v <= 10);
+    });
+
+    // Check if the rules catch errors, when they should.
+
+    {
+        const char* input[4] = {"-a", "1", "-b", "5" };
+        auto res = parser.parse(4, input);
+        Assert(!res.has_err());
+    }
+    {
+        const char* input[4] = {"-a", "0", "-b", "5" };
+        auto res = parser.parse(4, input);
+        Assert(res.has_err());
+        Assert(res.err() == flag_parser::parse_err::CustomRuleViolation);
+    }
+    {
+        const char* input[4] = {"-a", "1", "-b", "10" };
+        auto res = parser.parse(4, input);
+        Assert(!res.has_err());
+    }
+    {
+        const char* input[4] = {"-a", "0", "-b", "11" };
+        auto res = parser.parse(4, input);
+        Assert(res.has_err());
+        Assert(res.err() == flag_parser::parse_err::CustomRuleViolation);
+    }
+
+    return 0;
+}

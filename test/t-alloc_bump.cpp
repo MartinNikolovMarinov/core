@@ -53,10 +53,12 @@ i32 run_bump_allocator_tests_suite() {
     bump_allocator_static<512>::clear();
 
     // Flag parser tests:
-    RunTest(friendly_input_flag_parser_test<bump_allocator_static<2048>>);
-    bump_allocator_static<2048>::clear();
-    RunTest(adverse_input_flag_parser_test<bump_allocator_static<2048>>);
-    bump_allocator_static<2048>::clear();
+    RunTest(friendly_input_flag_parser_test<bump_allocator_static<4096>>);
+    bump_allocator_static<4096>::clear();
+    RunTest(adverse_input_flag_parser_test<bump_allocator_static<4096>>);
+    bump_allocator_static<4096>::clear();
+    RunTest(custom_rule_flag_parser_test<bump_allocator_static<4096>>);
+    bump_allocator_static<4096>::clear();
 
     return 0;
 }

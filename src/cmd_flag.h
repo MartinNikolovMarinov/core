@@ -26,13 +26,16 @@ struct flag_parser {
         CPtr,
     };
 
+    using ValidationFn = bool (*)(void* val);
+
     struct flag_data {
-        void* arg;
-        const char* name;
-        i32 nameLen;
+        void* arg = nullptr;
+        const char* name = nullptr;
+        i32 nameLen = 0;
         flag_type type;
-        bool isSet;
-        bool isRequired;
+        bool isSet = false;
+        bool isRequired = false;
+        ValidationFn validate;
     };
 
     enum struct parse_err {
@@ -41,6 +44,7 @@ struct flag_parser {
         UnknownFlag = 2,
         MissingRequiredFlag = 3,
         NothingToParse = 4,
+        CustomRuleViolation = 5
     };
 
     core::arr<flag_data, TAllocator> flags;
@@ -184,23 +188,54 @@ struct flag_parser {
             if (f.isRequired && !f.isSet) {
                 return core::unexpected(parse_err::MissingRequiredFlag);
             }
+            if (f.validate && !f.validate(f.arg)) {
+                return core::unexpected(parse_err::CustomRuleViolation);
+            }
         }
 
         return {};
     }
 
-    void flag(char** out, const char* flagName, bool required = false) { return _flag(*this, out, flagName, required, flag_type::CPtr); }
-    void flag(i32* out, const char* flagName, bool required = false)   { return _flag(*this, out, flagName, required, flag_type::Int32); }
-    void flag(i64* out, const char* flagName, bool required = false)   { return _flag(*this, out, flagName, required, flag_type::Int64); }
-    void flag(u32* out, const char* flagName, bool required = false)   { return _flag(*this, out, flagName, required, flag_type::Uint32); }
-    void flag(u64* out, const char* flagName, bool required = false)   { return _flag(*this, out, flagName, required, flag_type::Uint64); }
-    void flag(bool* out, const char* flagName, bool required = false)  { return _flag(*this, out, flagName, required, flag_type::Bool); }
-    void flag(f32* out, const char* flagName, bool required = false)   { return _flag(*this, out, flagName, required, flag_type::Float32); }
-    void flag(f64* out, const char* flagName, bool required = false)   { return _flag(*this, out, flagName, required, flag_type::Float64); }
+    void flag(char** out, const char* flagName, bool required = false, ValidationFn validate = nullptr) {
+        return _flag(*this, out, flagName, required, validate, flag_type::CPtr);
+    }
+
+    void flag(i32* out, const char* flagName, bool required = false, ValidationFn validate = nullptr) {
+        return _flag(*this, out, flagName, required, validate, flag_type::Int32);
+    }
+
+    void flag(i64* out, const char* flagName, bool required = false, ValidationFn validate = nullptr) {
+        return _flag(*this, out, flagName, required, validate, flag_type::Int64);
+    }
+
+    void flag(u32* out, const char* flagName, bool required = false, ValidationFn validate = nullptr) {
+        return _flag(*this, out, flagName, required, validate, flag_type::Uint32);
+    }
+
+    void flag(u64* out, const char* flagName, bool required = false, ValidationFn validate = nullptr) {
+        return _flag(*this, out, flagName, required, validate, flag_type::Uint64);
+    }
+
+    void flag(bool* out, const char* flagName, bool required = false, ValidationFn validate = nullptr) {
+        return _flag(*this, out, flagName, required, validate, flag_type::Bool);
+    }
+
+    void flag(f32* out, const char* flagName, bool required = false, ValidationFn validate = nullptr) {
+        return _flag(*this, out, flagName, required, validate, flag_type::Float32);
+    }
+
+    void flag(f64* out, const char* flagName, bool required = false, ValidationFn validate = nullptr) {
+        return _flag(*this, out, flagName, required, validate, flag_type::Float64);
+    }
 
 private:
     template <typename T>
-    static void _flag(flag_parser& parser, T* out, const char* flagName, bool required, flag_parser::flag_type type) {
+    static void _flag(flag_parser& parser,
+                      T* out,
+                      const char* flagName,
+                      bool required,
+                      ValidationFn validate,
+                      flag_parser::flag_type type) {
         flag_parser::flag_data f;
         f.arg = (void*)out;
         f.name = core::cptr_skip_space(flagName);
@@ -208,6 +243,7 @@ private:
         f.type = type;
         f.isSet = false;
         f.isRequired = required;
+        f.validate = validate;
 
         // Replace existing flag if it exists.
         i32 nameIdx = core::find(parser.flags, [&](const auto& el, i32) -> bool {

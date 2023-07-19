@@ -67,6 +67,7 @@ struct CORE_API_EXPORT arr {
 
     const char* allocator_name() const { return core::allocator_name<allocator_type>(); }
     size_type   cap()            const { return m_cap; }
+    size_type   byte_cap()       const { return m_cap * sizeof(data_type); }
     size_type   len()            const { return m_len; }
     size_type   byte_len()       const { return m_len * sizeof(data_type); }
     data_type*  data()           const { return m_data; }

@@ -66,7 +66,9 @@ i32 main(i32, const char **) {
     std::cout << ANSI_BOLD(ANSI_GREEN("Tests OK")) << std::endl;
 
     if constexpr (RUN_COMPILETIME_TESTS != 1) {
-        std::cout << ANSI_YELLOW_START() << ANSI_BOLD_START() << "[WARN] DID NOT RUN COMPILETIME TESTS!" << std::endl;
+        std::cout << ANSI_YELLOW_START() << ANSI_BOLD_START()
+                  << "[WARN] DID NOT RUN COMPILETIME TESTS!"
+                  << ANSI_RESET() << std::endl;
     }
 
     return exitCode;

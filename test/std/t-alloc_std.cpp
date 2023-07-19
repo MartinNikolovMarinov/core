@@ -95,7 +95,7 @@ i32 run_std_allocator_tests_suite() {
     RunTest(on_oom_std_allocator);
     RunTest(stats_allocator_tests);
 
-     // Array with std allocator tests:
+    // Array with std allocator tests:
     RunTest(initialize_arr<std_allocator_static>);
     Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
     RunTest(resize_arr<std_allocator_static>);
@@ -107,6 +107,12 @@ i32 run_std_allocator_tests_suite() {
     RunTest(move_and_copy_arr<std_allocator_static>);
     Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
     RunTest(array_of_arrays_arr<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+
+    // Flag parser tests:
+    RunTest(friendly_input_flag_parser_test<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+    RunTest(adverse_input_flag_parser_test<std_allocator_static>);
     Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
 
     return 0;

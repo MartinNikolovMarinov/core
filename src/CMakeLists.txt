@@ -68,20 +68,21 @@ set(src_files
     alloc.h
     ansi_escape_codes.h
     arr.h
-    static_arr.h
     bits.h
-    char_ptr.h
     char_ptr_conv.h
+    char_ptr.h
+    cmd_flag.h
     core_math.h
     core_traits.h
     expected.h
     intrinsic.cpp
     intrinsic.h
     ints.h
-    mem.h
     mem.cpp
+    mem.h
     rnd.cpp
     rnd.h
+    static_arr.h
     tuple.h
     utf.h
     utils.cpp

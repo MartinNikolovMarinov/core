@@ -20,6 +20,7 @@ struct CORE_API_EXPORT sarr {
     constexpr sarr() : m_data(), m_len(0) {}
 
     constexpr size_type cap()      const { return N; }
+    constexpr size_type byte_cap() const { return N * sizeof(data_type); }
     constexpr size_type len()      const { return m_len; }
     constexpr size_type byte_len() const { return m_len * sizeof(data_type); }
     constexpr data_type* data()    const { return m_data; }

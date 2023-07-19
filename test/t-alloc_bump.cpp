@@ -38,7 +38,7 @@ i32 run_bump_allocator_tests_suite() {
     RunTest(basic_bump_allocator_case);
     RunTest(on_oom_bump_allocator);
 
-    // Array with bump allocator tests
+    // Array with bump allocator tests:
     RunTest(initialize_arr<bump_allocator_static<256>>);
     bump_allocator_static<256>::clear();
     RunTest(resize_arr<bump_allocator_static<256>>);
@@ -51,6 +51,12 @@ i32 run_bump_allocator_tests_suite() {
     bump_allocator_static<256>::clear();
     RunTest(array_of_arrays_arr<bump_allocator_static<512>>);
     bump_allocator_static<512>::clear();
+
+    // Flag parser tests:
+    RunTest(friendly_input_flag_parser_test<bump_allocator_static<2048>>);
+    bump_allocator_static<2048>::clear();
+    RunTest(adverse_input_flag_parser_test<bump_allocator_static<2048>>);
+    bump_allocator_static<2048>::clear();
 
     return 0;
 }

@@ -162,7 +162,7 @@ constexpr auto force_consteval = V;
 #pragma region Compiler Intrinsic Traits ------------------------------------------------------------------------------
 
 template <typename T>
-struct is_trivially_destructable {
+struct is_trivially_destructible {
 #if (COMPILER_GCC == 1) || (COMPILER_CLANG == 1)
     static constexpr bool value = __has_trivial_destructor(T);
 #elif (COMPILER_MSVC == 1)
@@ -239,7 +239,7 @@ struct is_pod {
 };
 
 template <typename T>
-inline constexpr bool is_trivially_destructable_v = is_trivially_destructable<T>::value;
+inline constexpr bool is_trivially_destructible_v = is_trivially_destructible<T>::value;
 template <typename T>
 inline constexpr bool is_trivially_copyable_v = is_trivially_copyable<T>::value;
 template <typename T>

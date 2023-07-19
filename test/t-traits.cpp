@@ -218,10 +218,10 @@ i32 run_type_modificator_traits() {
     return 0;
 }
 
-constexpr i32 run_is_trivially_destructable_test() {
+constexpr i32 run_is_trivially_destructible_test() {
     // These assumptions are important for the implementation of some data structures.
 
-    // Is trivially destructable
+    // Is trivially destructible
     {
         struct A {};
         struct B { ~B() {} };
@@ -235,29 +235,29 @@ constexpr i32 run_is_trivially_destructable_test() {
         struct J : I { ~J() override {} };
         struct K : I {};
 
-        static_assert(core::is_trivially_destructable_v<A> == true);
-        static_assert(core::is_trivially_destructable_v<B> == false);
-        static_assert(core::is_trivially_destructable_v<C> == true);
-        static_assert(core::is_trivially_destructable_v<D> == true);
-        static_assert(core::is_trivially_destructable_v<E> == true);
-        static_assert(core::is_trivially_destructable_v<F> == true);
-        static_assert(core::is_trivially_destructable_v<G> == true);
-        static_assert(core::is_trivially_destructable_v<H> == true);
-        static_assert(core::is_trivially_destructable_v<I> == false);
-        static_assert(core::is_trivially_destructable_v<J> == false);
-        static_assert(core::is_trivially_destructable_v<K> == false);
+        static_assert(core::is_trivially_destructible_v<A> == true);
+        static_assert(core::is_trivially_destructible_v<B> == false);
+        static_assert(core::is_trivially_destructible_v<C> == true);
+        static_assert(core::is_trivially_destructible_v<D> == true);
+        static_assert(core::is_trivially_destructible_v<E> == true);
+        static_assert(core::is_trivially_destructible_v<F> == true);
+        static_assert(core::is_trivially_destructible_v<G> == true);
+        static_assert(core::is_trivially_destructible_v<H> == true);
+        static_assert(core::is_trivially_destructible_v<I> == false);
+        static_assert(core::is_trivially_destructible_v<J> == false);
+        static_assert(core::is_trivially_destructible_v<K> == false);
 
-        static_assert(core::is_trivially_destructable_v<void> == false);
-        static_assert(core::is_trivially_destructable_v<void*> == true);
-        static_assert(core::is_trivially_destructable_v<bool (*)(const char*)> == true);
-        static_assert(core::is_trivially_destructable_v<i32> == true);
-        static_assert(core::is_trivially_destructable_v<i32&> == true);
-        static_assert(core::is_trivially_destructable_v<i32&&> == true);
-        static_assert(core::is_trivially_destructable_v<i32*> == true);
-        static_assert(core::is_trivially_destructable_v<i32[10]> == true);
-        static_assert(core::is_trivially_destructable_v<bool> == true);
+        static_assert(core::is_trivially_destructible_v<void> == false);
+        static_assert(core::is_trivially_destructible_v<void*> == true);
+        static_assert(core::is_trivially_destructible_v<bool (*)(const char*)> == true);
+        static_assert(core::is_trivially_destructible_v<i32> == true);
+        static_assert(core::is_trivially_destructible_v<i32&> == true);
+        static_assert(core::is_trivially_destructible_v<i32&&> == true);
+        static_assert(core::is_trivially_destructible_v<i32*> == true);
+        static_assert(core::is_trivially_destructible_v<i32[10]> == true);
+        static_assert(core::is_trivially_destructible_v<bool> == true);
 
-        static_assert(core::is_trivially_destructable_v<core::arr<i32>> == false);
+        static_assert(core::is_trivially_destructible_v<core::arr<i32>> == false);
     }
 
     return 0;
@@ -267,7 +267,7 @@ i32 run_traits_tests_suite() {
     RunTest(run_true_false_type_traits);
     RunTest(run_type_comparison_traits);
     RunTest(run_type_modificator_traits);
-    RunTest(run_is_trivially_destructable_test);
+    RunTest(run_is_trivially_destructible_test);
 
     return 0;
 }

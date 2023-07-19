@@ -378,3 +378,24 @@ i32 array_of_arrays_arr() {
 
     return 0;
 }
+
+template<typename TAllocator>
+i32 clear_array_should_call_dtors_test() {
+    defer { CT::resetAll(); };
+    constexpr i32 testCount = 10;
+    auto arr = core::arr<CT, TAllocator>(testCount);
+    arr.clear();
+    Assert(CT::dtorsCalled() == testCount, "Clear should call dtors on all elements.");
+    Assert(arr.cap() == testCount, "Clear should not change the capacity of the array.");
+
+    CT::resetDtors();
+
+    arr.clear();
+    arr = core::arr<CT, TAllocator>(testCount);
+    arr.clear();
+    Assert(CT::dtorsCalled() == testCount, "Clear should call dtors on all elements.");
+    Assert(arr.cap() == testCount, "Clear should not change the capacity of the array.");
+
+    return 0;
+}
+

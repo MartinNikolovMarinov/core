@@ -17,7 +17,7 @@ struct CORE_API_EXPORT arr {
     using allocator_type = TAllocator;
 
     static constexpr bool dataIsTrivial = core::is_trivial_v<data_type>;
-    static constexpr bool dataHasTrivialDestructor = core::is_trivially_destructable_v<data_type>;
+    static constexpr bool dataHasTrivialDestructor = core::is_trivially_destructible_v<data_type>;
 
     arr() : m_data(nullptr), m_cap(0), m_len(0) {}
     arr(size_type len) : m_data(nullptr), m_cap(len), m_len(len) {
@@ -72,7 +72,16 @@ struct CORE_API_EXPORT arr {
     size_type   byte_len()       const { return m_len * sizeof(data_type); }
     data_type*  data()           const { return m_data; }
     bool        empty()          const { return m_len == 0; }
-    void        clear()                { m_len = 0; } // FIXME: If the type is not trivially destructible, this will leak memory!
+
+    void clear() {
+        if constexpr (!dataHasTrivialDestructor) {
+            // For elements that are not trivially destructible call destructors manually:
+            for (size_type i = 0; i < m_len; ++i) {
+                m_data[i].~T();
+            }
+        }
+        m_len = 0;
+    }
 
     arr<T, TAllocator> copy() {
         arr<T, TAllocator> result(*this);
@@ -81,12 +90,6 @@ struct CORE_API_EXPORT arr {
 
     void free() {
         if (m_data == nullptr) return;
-        if constexpr (!dataHasTrivialDestructor) {
-            // For elements that are not trivially destructible call destructors manually:
-            for (size_type i = 0; i < m_len; ++i) {
-                m_data[i].~T();
-            }
-        }
         clear();
         m_cap = 0;
         core::free<allocator_type>(m_data);
@@ -141,7 +144,6 @@ struct CORE_API_EXPORT arr {
         if (newCap <= m_cap) {
             if constexpr (dataIsTrivial) {
                 m_len = m_len > newCap ? newCap : m_len;
-                m_cap = newCap;
             }
             else {
                 // For elements that are not trivially destructible call destructors manually:
@@ -149,14 +151,14 @@ struct CORE_API_EXPORT arr {
                     m_data[i].~T();
                 }
                 m_len = m_len > newCap ? newCap : m_len;
-                m_cap = newCap;
             }
+            m_cap = newCap;
             return;
         }
 
         // reallocate
         data_type* newData = reinterpret_cast<data_type *>(core::alloc<allocator_type>(newCap * sizeof(data_type)));
-        // NOTE: Choosing not to clear the new memory here might bite my ass later.
+        // NOTE: Choosing not to clear the new memory here might bite me on the ass later.
         Assert(newData != nullptr);
         if (m_data != nullptr) {
             core::memcopy(newData, m_data, m_len * sizeof(data_type));

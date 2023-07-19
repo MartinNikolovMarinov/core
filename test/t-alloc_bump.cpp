@@ -51,6 +51,8 @@ i32 run_bump_allocator_tests_suite() {
     bump_allocator_static<256>::clear();
     RunTest(array_of_arrays_arr<bump_allocator_static<512>>);
     bump_allocator_static<512>::clear();
+    RunTest(clear_array_should_call_dtors_test<bump_allocator_static<512>>);
+    bump_allocator_static<512>::clear();
 
     // Flag parser tests:
     RunTest(friendly_input_flag_parser_test<bump_allocator_static<4096>>);

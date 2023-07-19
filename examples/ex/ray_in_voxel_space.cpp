@@ -20,8 +20,8 @@ struct Cell {
 };
 
 struct State {
-    static constexpr core::Bbox2D viewSpaceGrid = core::Bbox2D { core::v(-1.0f, 1.0f), core::v(1.0f, -1.0f) };
-    static constexpr core::Bbox2D worldSpaceGrid = core::Bbox2D { core::v(0.0f, 0.0f), core::v(1000.0f, 1000.0f) };
+    static constexpr core::bbox_2d viewSpaceGrid = core::bbox_2d { core::v(-1.0f, 1.0f), core::v(1.0f, -1.0f) };
+    static constexpr core::bbox_2d worldSpaceGrid = core::bbox_2d { core::v(0.0f, 0.0f), core::v(1000.0f, 1000.0f) };
     // static constexpr core::mat4f worldSpaceToViewSpaceMatrix = worldSpaceGrid.getToConvMatrix(viewSpaceGrid);
     static constexpr bool renderGrid = false;
 
@@ -47,7 +47,7 @@ struct State {
     static constexpr u32 cellsPerRow = 40;
     static constexpr u32 cellsPerCol = cellCount / cellsPerRow;
     Cell cells[cellCount] = {};
-    core::Bbox2D cellsBbox;
+    core::bbox_2d cellsBbox;
 
     u32 lineVAO = 0;
     u32 lineVBO = 0;
@@ -278,7 +278,7 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         g_s.cells[3 + 11 * g_s.cellsPerRow].isOn = true;
         g_s.cells[4 + 11 * g_s.cellsPerRow].isOn = true;
 
-        g_s.cellsBbox = core::Bbox2D(g_s.cells[0].pos, g_s.cells[g_s.cellCount - 1].pos + core::v(f32(g_s.cellWidth), f32(g_s.cellHeight)));
+        g_s.cellsBbox = core::bbox_2d(g_s.cells[0].pos, g_s.cells[g_s.cellCount - 1].pos + core::v(f32(g_s.cellWidth), f32(g_s.cellHeight)));
     }
 
     // Create line vertices:
@@ -356,7 +356,7 @@ void renderQuad(f32 x, f32 y, f32 width, f32 height, const core::vec4f& color, b
     State& g_s = state();
 
     auto topLeft = core::v(x + width / 2, y + height / 2);
-    auto pos = g_s.worldSpaceGrid.convTo(topLeft, g_s.viewSpaceGrid);
+    auto pos = g_s.worldSpaceGrid.conv_to(topLeft, g_s.viewSpaceGrid);
     width = core::affine_map(width, g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f);
     height = core::affine_map(height, g_s.worldSpaceGrid.min.y(), g_s.worldSpaceGrid.max.y(), 0.0f, 1.0f);
     auto model = renderModel_quad2D(pos.x(), pos.y(), 0.0f, width, height);
@@ -387,8 +387,8 @@ void renderLine(f32 x1, f32 y1, f32 x2, f32 y2, f32 lineWidth, const core::vec4f
     bindArrayBuffer_memorized(g_s.quadVBO);
     bindElementArrayBuffer_memorized(g_s.quadEBO);
 
-    auto start = g_s.worldSpaceGrid.convTo(core::v(x1, y1), g_s.viewSpaceGrid);
-    auto end = g_s.worldSpaceGrid.convTo(core::v(x2, y2), g_s.viewSpaceGrid);
+    auto start = g_s.worldSpaceGrid.conv_to(core::v(x1, y1), g_s.viewSpaceGrid);
+    auto end = g_s.worldSpaceGrid.conv_to(core::v(x2, y2), g_s.viewSpaceGrid);
     lineWidth = core::affine_map(lineWidth, g_s.worldSpaceGrid.min.x(), g_s.worldSpaceGrid.max.x(), 0.0f, 1.0f);
     auto model = renderModel_line(start.x(), start.y(), end.x(), end.y(), lineWidth);
 
@@ -399,7 +399,7 @@ void renderLine(f32 x1, f32 y1, f32 x2, f32 y2, f32 lineWidth, const core::vec4f
     glDrawElements(GL_TRIANGLES, g_s.quadIndicesCount, GL_UNSIGNED_INT, 0);
 }
 
-void renderGrid(const core::Bbox2D& grid, u32 rows, u32 cols, f32 lineWidth, const core::vec4f& color) {
+void renderGrid(const core::bbox_2d& grid, u32 rows, u32 cols, f32 lineWidth, const core::vec4f& color) {
     State& g_s = state();
     f32 rowDist = grid.max.x() / f32(rows);
     for (u32 i = 0; i <= rows; i++) {
@@ -431,7 +431,7 @@ void mainLoop(CommonState& commonState) {
 
     if (g_s.canRenderLine) {
         constexpr f32 lineWidth = 3;
-        auto res = g_s.cellsBbox.intersectionWithLineSegment(g_s.a, g_s.b);
+        auto res = g_s.cellsBbox.intersection_with_line_segment(g_s.a, g_s.b);
         if (res.hasEntry && res.hasExit) {
             auto start = g_s.a;
             auto end = res.entry;

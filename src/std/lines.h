@@ -36,9 +36,9 @@ inline TFloat slope(const vec2<TFloat>& a, const vec2<TFloat>& b) {
  * @return True if the lines intersect, false otherwise.
  **/
 template <typename TFloat>
-inline bool lineToLineIntersection(const core::vec2<TFloat>& a, const core::vec2<TFloat>& b,
-                                   const core::vec2<TFloat>& c, const core::vec2<TFloat>& d,
-                                   core::vec2<TFloat>& out) {
+inline bool line_to_line_intersection(const core::vec2<TFloat>& a, const core::vec2<TFloat>& b,
+                                      const core::vec2<TFloat>& c, const core::vec2<TFloat>& d,
+                                      core::vec2<TFloat>& out) {
     // Formula of line to line intersection.
     TFloat x1 = a.x(); TFloat y1 = a.y();
     TFloat x2 = b.x(); TFloat y2 = b.y();
@@ -51,21 +51,21 @@ inline bool lineToLineIntersection(const core::vec2<TFloat>& a, const core::vec2
     return true;
 }
 template <typename TFloat>
-inline bool lineToLineIntersection(const core::vec2<TFloat>& a, const core::vec2<TFloat>& b,
-                                   const core::vec2<TFloat>& c, const core::vec2<TFloat>& d,
-                                   TFloat& x, TFloat& y) {
+inline bool line_to_line_intersection(const core::vec2<TFloat>& a, const core::vec2<TFloat>& b,
+                                      const core::vec2<TFloat>& c, const core::vec2<TFloat>& d,
+                                      TFloat& x, TFloat& y) {
     auto t = core::v(x, y);
-    bool ret = lineToLineIntersection(a, b, c, d, t);
+    bool ret = line_to_line_intersection(a, b, c, d, t);
     x = t.x();
     y = t.y();
     return ret;
 }
 template <typename TFloat>
-inline bool lineToLineIntersection(TFloat x1, TFloat y1, TFloat x2, TFloat y2,
-                                   TFloat x3, TFloat y3, TFloat x4, TFloat y4,
-                                   TFloat& x, TFloat& y) {
+inline bool line_to_line_intersection(TFloat x1, TFloat y1, TFloat x2, TFloat y2,
+                                      TFloat x3, TFloat y3, TFloat x4, TFloat y4,
+                                      TFloat& x, TFloat& y) {
     auto t = core::v(x, y);
-    bool ret = lineToLineIntersection(core::v(x1, y1), core::v(x2, y2), core::v(x3, y3), core::v(x4, y4), t);
+    bool ret = line_to_line_intersection(core::v(x1, y1), core::v(x2, y2), core::v(x3, y3), core::v(x4, y4), t);
     x = t.x();
     y = t.y();
     return ret;

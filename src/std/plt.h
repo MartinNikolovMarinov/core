@@ -42,6 +42,6 @@ CORE_API_EXPORT expected<plt_err_code> os_mkdir(const char* path, u64 mode);
 CORE_API_EXPORT expected<plt_err_code> os_rmdir(const char* path);
 CORE_API_EXPORT expected<bool, plt_err_code> os_exists(const char* path);
 
-CORE_API_EXPORT const char* os_getErrCptr(plt_err_code err);
+CORE_API_EXPORT const char* os_get_err_cptr(plt_err_code err);
 
 } // namespace core

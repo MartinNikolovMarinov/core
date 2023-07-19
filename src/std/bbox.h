@@ -11,10 +11,10 @@ namespace core {
 
 using namespace coretypes;
 
-struct Bbox2D {
+struct bbox_2d {
 
-    constexpr Bbox2D() : min({}), max({}) {}
-    constexpr Bbox2D(const core::vec2f& min, const core::vec2f& max) : min(min), max(max) {}
+    constexpr bbox_2d() : min({}), max({}) {}
+    constexpr bbox_2d(const core::vec2f& min, const core::vec2f& max) : min(min), max(max) {}
 
     constexpr core::vec2f center() const { return (min + max) / 2; }
 
@@ -32,20 +32,20 @@ struct Bbox2D {
         return max.y() - min.y();
     }
 
-    constexpr bool isInside(f32 x, f32 y) const {
+    constexpr bool is_inside(f32 x, f32 y) const {
         return x >= min.x() && x <= max.x() && y >= min.y() && y <= max.y();
     }
 
-    constexpr bool isInside(const core::vec2f& x) const {
-        return isInside(x.x(), x.y());
+    constexpr bool is_inside(const core::vec2f& x) const {
+        return is_inside(x.x(), x.y());
     }
 
-    constexpr core::vec2f convTo(const core::vec2f& v, const Bbox2D& to) const {
+    constexpr core::vec2f conv_to(const core::vec2f& v, const bbox_2d& to) const {
         core::vec2f ret = core::affine_map(v, min, max, to.min, to.max);
         return ret;
     }
 
-    struct IntersectionResult {
+    struct intersection_result {
         core::vec2f entry;
         core::vec2f exit;
         bool hasEntry = false;
@@ -58,10 +58,10 @@ struct Bbox2D {
      *
      * @param start The start of the line.
      * @param end The end of the line.
-     * @return IntersectionResult The intersection result.
+     * @return intersection_result The intersection result.
     */
-    constexpr IntersectionResult intersectionWithLine(const core::vec2f& start, const core::vec2f& end) const {
-        IntersectionResult res;
+    constexpr intersection_result intersection_with_line(const core::vec2f& start, const core::vec2f& end) const {
+        intersection_result res;
 
         const auto dir = end - start;
 
@@ -110,14 +110,14 @@ struct Bbox2D {
 
     /**
      * @brief Returns the intersection of the line segment [lp0, lp1] with the bounding box.
-     *        This is slightly slower than intersectionWithLine, but provides exact entry and exit points.
+     *        This is slightly slower than intersection_with_line, but provides exact entry and exit points.
      *
      * @param start The start of the line segment.
      * @param end The end of the line segment.
-     * @return IntersectionResult The intersection result.
+     * @return intersection_result The intersection result.
     */
-    constexpr IntersectionResult intersectionWithLineSegment(const core::vec2f& start, const core::vec2f& end) const {
-        IntersectionResult res = {};
+    constexpr intersection_result intersection_with_line_segment(const core::vec2f& start, const core::vec2f& end) const {
+        intersection_result res = {};
         core::vec2f ipoint; // intersection point
         const f32 dx = end.x() - start.x();
         const f32 dy = end.y() - start.y();
@@ -129,7 +129,7 @@ struct Bbox2D {
 
         auto intersectionWithBoxLineSegment = [&, this](const core::vec2f& a, const core::vec2f& b, core::vec2f& p) -> bool {
             constexpr f32 epsilon = 0.0001f;
-            core::lineToLineIntersection(start, end, a, b, p);
+            core::line_to_line_intersection(start, end, a, b, p);
             bool ret = min.x() - p.x() <= epsilon &&
                        p.x() - max.x() <= epsilon &&
                        min.y() - p.y() <= epsilon &&

@@ -139,7 +139,7 @@ void at_exit(AtExitCb atExit) {
     g_atExit = atExit;
 }
 
-CORE_API_EXPORT const char* os_getErrCptr(plt_err_code err) {
+CORE_API_EXPORT const char* os_get_err_cptr(plt_err_code err) {
     return std::strerror(i32(err));
 }
 

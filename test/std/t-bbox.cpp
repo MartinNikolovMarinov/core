@@ -2,27 +2,27 @@ constexpr i32 bbox2D_center_test() {
     constexpr f32 epsilon = 0.0001f;
 
     struct TestCase {
-        core::Bbox2D input;
+        core::bbox_2d input;
         core::vec2f expected;
     };
 
     constexpr TestCase cases[] = {
-        { core::Bbox2D(core::v(0.0f, 0.0f),   core::v(10.0f, 10.0f)), core::v(5.0f, 5.0f) },
-        { core::Bbox2D(core::v(-5.0f, -5.0f), core::v(5.0f, 5.0f)),   core::v(0.0f, 0.0f) },
-        { core::Bbox2D(core::v(-5.0f, 0.0f),  core::v(5.0f, 10.0f)),  core::v(0.0f, 5.0f) },
-        { core::Bbox2D(core::v(0.0f, -5.0f),  core::v(10.0f, 5.0f)),  core::v(5.0f, 0.0f) },
+        { core::bbox_2d(core::v(0.0f, 0.0f),   core::v(10.0f, 10.0f)), core::v(5.0f, 5.0f) },
+        { core::bbox_2d(core::v(-5.0f, -5.0f), core::v(5.0f, 5.0f)),   core::v(0.0f, 0.0f) },
+        { core::bbox_2d(core::v(-5.0f, 0.0f),  core::v(5.0f, 10.0f)),  core::v(0.0f, 5.0f) },
+        { core::bbox_2d(core::v(0.0f, -5.0f),  core::v(10.0f, 5.0f)),  core::v(5.0f, 0.0f) },
 
         // Flip min and max
-        { core::Bbox2D(core::v(10.0f, 10.0f), core::v(0.0f, 0.0f)),   core::v(5.0f, 5.0f) },
-        { core::Bbox2D(core::v(5.0f, 5.0f),   core::v(-5.0f, -5.0f)), core::v(0.0f, 0.0f) },
-        { core::Bbox2D(core::v(5.0f, 10.0f),  core::v(-5.0f, 0.0f)),  core::v(0.0f, 5.0f) },
-        { core::Bbox2D(core::v(10.0f, 5.0f),  core::v(0.0f, -5.0f)),  core::v(5.0f, 0.0f) },
+        { core::bbox_2d(core::v(10.0f, 10.0f), core::v(0.0f, 0.0f)),   core::v(5.0f, 5.0f) },
+        { core::bbox_2d(core::v(5.0f, 5.0f),   core::v(-5.0f, -5.0f)), core::v(0.0f, 0.0f) },
+        { core::bbox_2d(core::v(5.0f, 10.0f),  core::v(-5.0f, 0.0f)),  core::v(0.0f, 5.0f) },
+        { core::bbox_2d(core::v(10.0f, 5.0f),  core::v(0.0f, -5.0f)),  core::v(5.0f, 0.0f) },
 
         // Same min and max
-        { core::Bbox2D(core::v(5.0f, 5.0f),   core::v(5.0f, 5.0f)),   core::v(5.0f, 5.0f) },
-        { core::Bbox2D(core::v(-2.0f, 2.0f),  core::v(-2.0f, 2.0f)),  core::v(-2.0f, 2.0f) },
-        { core::Bbox2D(core::v(-2.0f, -2.0f), core::v(-2.0f, -2.0f)), core::v(-2.0f, -2.0f) },
-        { core::Bbox2D(core::v(2.0f, -2.0f),  core::v(2.0f, -2.0f)),  core::v(2.0f, -2.0f) },
+        { core::bbox_2d(core::v(5.0f, 5.0f),   core::v(5.0f, 5.0f)),   core::v(5.0f, 5.0f) },
+        { core::bbox_2d(core::v(-2.0f, 2.0f),  core::v(-2.0f, 2.0f)),  core::v(-2.0f, 2.0f) },
+        { core::bbox_2d(core::v(-2.0f, -2.0f), core::v(-2.0f, -2.0f)), core::v(-2.0f, -2.0f) },
+        { core::bbox_2d(core::v(2.0f, -2.0f),  core::v(2.0f, -2.0f)),  core::v(2.0f, -2.0f) },
     };
 
     executeTestTable("bbox2D center test case failed at index: ", cases, [&](auto& c, const char* cErr) {
@@ -69,7 +69,7 @@ constexpr i32 bbox2D_width_and_height_test() {
     };
 
     executeTestTable("bbox2D width and height test case failed at index: ", cases, [&](auto& c, const char* cErr) {
-        auto got = core::Bbox2D(c.min, c.max);
+        auto got = core::bbox_2d(c.min, c.max);
         Assert(core::safe_eq(got.width(), c.expctedWidth, epsilon), cErr);
         Assert(core::safe_eq(got.height(), c.expctedHeight, epsilon), cErr);
     });
@@ -107,8 +107,8 @@ constexpr i32 bbox2D_is_inside_test() {
     };
 
     executeTestTable("bbox2D is inside test case failed at index: ", cases, [&](auto& c, const char* cErr) {
-        auto got = core::Bbox2D(c.min, c.max);
-        Assert(got.isInside(c.point) == c.expected, cErr);
+        auto got = core::bbox_2d(c.min, c.max);
+        Assert(got.is_inside(c.point) == c.expected, cErr);
     });
 
     return 0;
@@ -118,91 +118,91 @@ constexpr i32 bbox2D_conv_test() {
     constexpr f32 epsilon = 0.0001f;
 
     struct TestCase {
-        core::Bbox2D from;
-        core::Bbox2D to;
+        core::bbox_2d from;
+        core::bbox_2d to;
         core::vec2f point;
         core::vec2f expected;
     };
 
     constexpr TestCase cases[] = {
         {
-            core::Bbox2D(core::v(0.f, 0.f), core::v(15.f, 15.f)),
-            core::Bbox2D(core::v(0.f, 0.f), core::v(5.f, 5.f)),
+            core::bbox_2d(core::v(0.f, 0.f), core::v(15.f, 15.f)),
+            core::bbox_2d(core::v(0.f, 0.f), core::v(5.f, 5.f)),
             core::v(7.5f, 7.5f),
             core::v(2.5f, 2.5f),
         },
         {
-            core::Bbox2D(core::v(5.f, 5.f), core::v(10.f, 10.f)),
-            core::Bbox2D(core::v(0.f, 0.f), core::v(15.f, 15.f)),
+            core::bbox_2d(core::v(5.f, 5.f), core::v(10.f, 10.f)),
+            core::bbox_2d(core::v(0.f, 0.f), core::v(15.f, 15.f)),
             core::v(7.5f, 7.5f),
             core::v(7.5f, 7.5f),
         },
         {
-            core::Bbox2D(core::v(0.f, 0.f), core::v(10.f, 10.f)),
-            core::Bbox2D(core::v(-1.f, -1.f), core::v(1.f, 3.f)),
+            core::bbox_2d(core::v(0.f, 0.f), core::v(10.f, 10.f)),
+            core::bbox_2d(core::v(-1.f, -1.f), core::v(1.f, 3.f)),
             core::v(5.f, 5.f),
             core::v(0.f, 1.f),
         },
         {
-            core::Bbox2D(core::v(0.f, 0.f), core::v(100.f, 100.f)),
-            core::Bbox2D(core::v(0.f, 0.f), core::v(10.f, 10.f)),
+            core::bbox_2d(core::v(0.f, 0.f), core::v(100.f, 100.f)),
+            core::bbox_2d(core::v(0.f, 0.f), core::v(10.f, 10.f)),
             core::v(99.f, 99.f),
             core::v(9.9f, 9.9f),
         },
         {
-            core::Bbox2D(core::v(0.f, 0.f), core::v(100.f, 100.f)),
-            core::Bbox2D(core::v(0.f, 0.f), core::v(10.f, 10.f)),
+            core::bbox_2d(core::v(0.f, 0.f), core::v(100.f, 100.f)),
+            core::bbox_2d(core::v(0.f, 0.f), core::v(10.f, 10.f)),
             core::v(100.f, 100.f),
             core::v(10.f, 10.f),
         },
         {
-            core::Bbox2D(core::v(0.f, 0.f), core::v(100.f, 100.f)),
-            core::Bbox2D(core::v(0.f, 0.f), core::v(10.f, 10.f)),
+            core::bbox_2d(core::v(0.f, 0.f), core::v(100.f, 100.f)),
+            core::bbox_2d(core::v(0.f, 0.f), core::v(10.f, 10.f)),
             core::v(0.f, 0.f),
             core::v(0.f, 0.f),
         },
 
         // Flip min and max.
         {
-            core::Bbox2D(core::v(15.f, 15.f), core::v(0.f, 0.f)),
-            core::Bbox2D(core::v(5.f, 5.f), core::v(0.f, 0.f)),
+            core::bbox_2d(core::v(15.f, 15.f), core::v(0.f, 0.f)),
+            core::bbox_2d(core::v(5.f, 5.f), core::v(0.f, 0.f)),
             core::v(7.5f, 7.5f),
             core::v(2.5f, 2.5f),
         },
         {
-            core::Bbox2D(core::v(10.f, 10.f), core::v(5.f, 5.f)),
-            core::Bbox2D(core::v(15.f, 15.f), core::v(0.f, 0.f)),
+            core::bbox_2d(core::v(10.f, 10.f), core::v(5.f, 5.f)),
+            core::bbox_2d(core::v(15.f, 15.f), core::v(0.f, 0.f)),
             core::v(7.5f, 7.5f),
             core::v(7.5f, 7.5f),
         },
         {
-            core::Bbox2D(core::v(10.f, 10.f), core::v(0.f, 0.f)),
-            core::Bbox2D(core::v(1.f, 3.f), core::v(-1.f, -1.f)),
+            core::bbox_2d(core::v(10.f, 10.f), core::v(0.f, 0.f)),
+            core::bbox_2d(core::v(1.f, 3.f), core::v(-1.f, -1.f)),
             core::v(5.f, 5.f),
             core::v(0.f, 1.f),
         },
         {
-            core::Bbox2D(core::v(100.f, 100.f), core::v(0.f, 0.f)),
-            core::Bbox2D(core::v(10.f, 10.f), core::v(0.f, 0.f)),
+            core::bbox_2d(core::v(100.f, 100.f), core::v(0.f, 0.f)),
+            core::bbox_2d(core::v(10.f, 10.f), core::v(0.f, 0.f)),
             core::v(99.f, 99.f),
             core::v(9.9f, 9.9f),
         },
         {
-            core::Bbox2D(core::v(100.f, 100.f), core::v(0.f, 0.f)),
-            core::Bbox2D(core::v(10.f, 10.f), core::v(0.f, 0.f)),
+            core::bbox_2d(core::v(100.f, 100.f), core::v(0.f, 0.f)),
+            core::bbox_2d(core::v(10.f, 10.f), core::v(0.f, 0.f)),
             core::v(100.f, 100.f),
             core::v(10.f, 10.f),
         },
         {
-            core::Bbox2D(core::v(0.f, 0.f), core::v(10.f, 10.f)),
-            core::Bbox2D(core::v(0.f, 0.f), core::v(100.f, 100.f)),
+            core::bbox_2d(core::v(0.f, 0.f), core::v(10.f, 10.f)),
+            core::bbox_2d(core::v(0.f, 0.f), core::v(100.f, 100.f)),
             core::v(0.f, 0.f),
             core::v(0.f, 0.f),
         },
     };
 
     executeTestTable("bbox2D conversion test case failed at index: ", cases, [&](auto& c, const char* cErr) {
-        auto got = c.from.convTo(c.point, c.to);
+        auto got = c.from.conv_to(c.point, c.to);
         Assert(got.equals(c.expected, epsilon), cErr);
     });
 

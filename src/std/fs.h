@@ -15,10 +15,10 @@ using namespace coretypes;
 constexpr static ptr_size FS_DEFAULT_BLOCK_SIZE = 4096;
 
 template<ptr_size TBlockSize = FS_DEFAULT_BLOCK_SIZE>
-struct File {
-    struct Error {
+struct file {
+    struct file_err {
         // NOTE: This error is quite costly but I will take that downsite to have helpful instantly obvious error messages.
-        enum struct Type : u32 {
+        enum struct type : u32 {
             ERR_OS = 0,
             ERR_EOF = 1,
             ERR_SHORT_WRITE = 2,
@@ -26,15 +26,15 @@ struct File {
 
             SENTINEL
         };
-        Type err = Type::SENTINEL;
+        type err = type::SENTINEL;
         std::string errMsg;
-        inline bool isEOF() const { return err == Type::ERR_EOF; }
-        inline const char* toCptr() const {
+        inline bool is_eof() const { return err == type::ERR_EOF; }
+        inline const char* to_cptr() const {
             switch (err) {
-                case Type::ERR_EOF:             return "end of file";
-                case Type::ERR_OS:              return "os error";
-                case Type::ERR_SHORT_WRITE:     return "short write";
-                case Type::ERR_FILE_NOT_OPENED: return "file not opened";
+                case type::ERR_EOF:             return "end of file";
+                case type::ERR_OS:              return "os error";
+                case type::ERR_SHORT_WRITE:     return "short write";
+                case type::ERR_FILE_NOT_OPENED: return "file not opened";
                 default:                        return "unknown error";
             }
         }
@@ -42,18 +42,18 @@ struct File {
 
     using BufferType = u8;
 
-    File() = default;
-    File(file_desc&& fd, std::string&& name)
+    file() = default;
+    file(file_desc&& fd, std::string&& name)
         : m_fd(core::move(fd))
         , m_name(core::move(name))
         , m_isOpen(true) {}
 
     // no copy
-    File(const File&) = delete;
-    File& operator=(const File&) = delete;
+    file(const file&) = delete;
+    file& operator=(const file&) = delete;
 
     // move
-    File(File&& other) noexcept
+    file(file&& other) noexcept
         : m_fd(other.m_fd)
         , m_name(core::move(other.m_name))
         , m_isOpen(other.m_isOpen) {
@@ -62,7 +62,7 @@ struct File {
             core::memcopy(m_buffer, other.m_buffer, TBlockSize);
         }
 
-    File& operator=(File&& other) noexcept {
+    file& operator=(file&& other) noexcept {
         m_fd = other.m_fd;
         m_name = core::move(other.m_name);
         m_isOpen = other.m_isOpen;
@@ -77,34 +77,34 @@ struct File {
     const std::string& name() const { return m_name; }
     const file_desc& fd() const { return m_fd; }
 
-    expected<Error> close() {
+    expected<file_err> close() {
         defer {
             m_fd = {};
             m_name = {};
             m_isOpen = false;
         };
         if (auto err = core::os_close(m_fd); err.has_err()) {
-            Error res = {
-                Error::Type::ERR_OS,
-                std::string("failed to close file reason: ") + core::os_getErrCptr(err.err())
+            file_err res = {
+                file_err::type::ERR_OS,
+                std::string("failed to close file reason: ") + core::os_get_err_cptr(err.err())
             };
             return core::unexpected(res);
         }
         return {};
     }
 
-    expected<Error> write(const void* in, ptr_size size, ptr_size& writtenBytes) {
+    expected<file_err> write(const void* in, ptr_size size, ptr_size& writtenBytes) {
         if (size == 0) return {};
         if (in == nullptr) return {};
-        if (m_isOpen == false) return core::unexpected(Error {Error::Type::ERR_FILE_NOT_OPENED, "file is not open"});
+        if (m_isOpen == false) return core::unexpected(file_err {file_err::type::ERR_FILE_NOT_OPENED, "file is not open"});
 
         ptr_size chunkSize = (size > TBlockSize) ? TBlockSize : size;
         while(true) {
             ptr_size currWrite = 0;
             if (auto wres = core::os_write(m_fd, in, chunkSize, currWrite); wres.has_err()) {
-                Error err = {
-                    Error::Type::ERR_OS,
-                    std::string("failed to write file reason: ") + core::os_getErrCptr(wres.err())
+                file_err err = {
+                    file_err::type::ERR_OS,
+                    std::string("failed to write file reason: ") + core::os_get_err_cptr(wres.err())
                 };
                 return core::unexpected(err);
             }
@@ -112,7 +112,7 @@ struct File {
             if (currWrite != chunkSize) {
                 // might mean that the OS is out of space, but that should be returned as an error in the above call.
                 // TODO: verify assumption
-                Error err = { Error::Type::ERR_SHORT_WRITE, {} };
+                file_err err = { file_err::type::ERR_SHORT_WRITE, {} };
                 return core::unexpected(err);
             }
             Assert(writtenBytes >= size, "[BUG] read past the specified size");
@@ -126,24 +126,24 @@ struct File {
         return {};
     }
 
-    expected<Error> read(void* out, ptr_size size, ptr_size& readBytes) {
+    expected<file_err> read(void* out, ptr_size size, ptr_size& readBytes) {
         if (size == 0) return {};
         if (out == nullptr) return {};
-        if (m_isOpen == false) return core::unexpected(Error {Error::Type::ERR_FILE_NOT_OPENED, "file is not open"});
+        if (m_isOpen == false) return core::unexpected(file_err {file_err::type::ERR_FILE_NOT_OPENED, "file is not open"});
 
         const ptr_size chunkSize = (size > TBlockSize) ? TBlockSize : size;
         while(true) {
             ptr_size currRead = 0;
             if (auto rres = core::os_read(m_fd, out, chunkSize, currRead); rres.has_err()) {
-                Error err = {
-                    Error::Type::ERR_OS,
-                    std::string("failed to read file reason: ") + core::os_getErrCptr(rres.err())
+                file_err err = {
+                    file_err::type::ERR_OS,
+                    std::string("failed to read file reason: ") + core::os_get_err_cptr(rres.err())
                 };
                 return core::unexpected(err);
             }
 
             if (currRead == 0) {
-                Error err = { Error::Type::ERR_EOF, {} };
+                file_err err = { file_err::type::ERR_EOF, {} };
                 return core::unexpected(err);
             }
 
@@ -163,13 +163,13 @@ private:
 };
 
 template<ptr_size TBlockSize = FS_DEFAULT_BLOCK_SIZE>
-expected<typename File<TBlockSize>::Error> rmdir(File<TBlockSize>& f) {
-    using Error = typename File<TBlockSize>::Error;
+expected<typename file<TBlockSize>::file_err> rmdir(file<TBlockSize>& f) {
+    using Error = typename file<TBlockSize>::file_err;
 
     if (auto err = core::os_rmdir(f.m_name.data()); err.has_err()) {
         Error res = {
-            Error::Type::ERR_OS,
-            std::string("failed to delete directory file reason: ") + core::os_getErrCptr(err.err())
+            Error::type::ERR_OS,
+            std::string("failed to delete directory file reason: ") + core::os_get_err_cptr(err.err())
         };
         return core::unexpected(res);
     }
@@ -177,13 +177,13 @@ expected<typename File<TBlockSize>::Error> rmdir(File<TBlockSize>& f) {
 }
 
 template<ptr_size TBlockSize = FS_DEFAULT_BLOCK_SIZE>
-expected<typename File<TBlockSize>::Error> rmfile(File<TBlockSize>& f) {
-    using Error = typename File<TBlockSize>::Error;
+expected<typename file<TBlockSize>::file_err> rmfile(file<TBlockSize>& f) {
+    using Error = typename file<TBlockSize>::file_err;
 
     if (auto err = core::os_rmfile(f.name().data()); err.has_err()) {
         Error res = {
-            Error::Type::ERR_OS,
-            std::string("failed to delete file reason: ") + core::os_getErrCptr(err.err())
+            Error::type::ERR_OS,
+            std::string("failed to delete file reason: ") + core::os_get_err_cptr(err.err())
         };
         return core::unexpected(res);
     }
@@ -191,33 +191,33 @@ expected<typename File<TBlockSize>::Error> rmfile(File<TBlockSize>& f) {
 }
 
 template<ptr_size TBlockSize = FS_DEFAULT_BLOCK_SIZE>
-expected<File<TBlockSize>, typename File<TBlockSize>::Error> openFile(const char* path, u64 flag, u64 mode) {
-    using Error = typename File<TBlockSize>::Error;
+expected<file<TBlockSize>, typename file<TBlockSize>::file_err> open_file(const char* path, u64 flag, u64 mode) {
+    using Error = typename file<TBlockSize>::file_err;
 
     auto res = core::os_open(path, flag, mode);
     if (res.has_err()) {
         Error err = {
-            Error::Type::ERR_OS,
-            std::string("failed to open file reason: ") + core::os_getErrCptr(res.err())
+            Error::type::ERR_OS,
+            std::string("failed to open file reason: ") + core::os_get_err_cptr(res.err())
         };
         return core::unexpected(err);
     }
     auto fd = res.value();
-    File<TBlockSize> f (core::move(fd), std::string(path));
+    file<TBlockSize> f (core::move(fd), std::string(path));
     return f;
 }
 
 template<ptr_size TBlockSize = FS_DEFAULT_BLOCK_SIZE, typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
-expected<core::arr<u8, TAllocator>, typename File<TBlockSize>::Error> readFull(const char* path, u64 flag, u64 mode, u64 initBufferSize = FS_DEFAULT_BLOCK_SIZE) {
+expected<core::arr<u8, TAllocator>, typename file<TBlockSize>::file_err> read_full(const char* path, u64 flag, u64 mode, u64 initBufferSize = FS_DEFAULT_BLOCK_SIZE) {
     // TODO: I should create an abstraction for flag and mode which is cross platform.
     //       After that I should remove flag and mode from this function declaration.
     //       It simply does not make sense to have them here.
     //       I do it just because this file should not leak os specific stuff.
 
-    auto res = core::openFile<TBlockSize>(path, flag, mode);
+    auto res = core::open_file<TBlockSize>(path, flag, mode);
     if (res.has_err()) return core::unexpected(res.err());
 
-    File<TBlockSize> f = core::move(res.value());
+    file<TBlockSize> f = core::move(res.value());
     defer { f.close(); };
 
     core::arr<u8, TAllocator> ret(0, initBufferSize);
@@ -225,7 +225,7 @@ expected<core::arr<u8, TAllocator>, typename File<TBlockSize>::Error> readFull(c
         ptr_size currReadBytes = 0;
         u8 buffer[TBlockSize];
         if (auto err = f.read(buffer, TBlockSize, currReadBytes); err.has_err()) {
-            if (err.err().isEOF()) {
+            if (err.err().is_eof()) {
                 ret.append(buffer, currReadBytes);
                 break;
             }

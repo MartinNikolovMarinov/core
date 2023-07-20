@@ -181,7 +181,16 @@ i32 example_05() {
     return runExample(core::move(ex));
 }
 
-i32 main(i32, const char**) {
-    initCore();
+i32 main(i32 argc, const char** argv) {
+    initCore(argc, argv);
+
+    switch (g_cmdLineArgs.exampleId) {
+        case 1: return example_01();
+        case 2: return example_02();
+        case 3: return example_03();
+        case 4: return example_04();
+        case 5: return example_05();
+    }
+
     return example_04();
 }

@@ -227,6 +227,18 @@ i32 custom_rule_flag_parser_test() {
         Assert(res.has_err());
         Assert(res.err() == flag_parser::parse_err::CustomRuleViolation);
     }
+    {
+        const char* input[4] = {"-a", "1", "-b", "10" };
+        auto res = parser.parse(4, input);
+        Assert(!res.has_err());
+    }
+    {
+        parser.allowUnknownFlags = true;
+        const char* input[2] = {"-a", "1" }; // b is not required, the custom validator should not fail this case!
+        auto res = parser.parse(2, input);
+        Assert(!res.has_err());
+        parser.allowUnknownFlags = false;
+    }
 
     return 0;
 }

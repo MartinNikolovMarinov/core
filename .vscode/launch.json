@@ -34,7 +34,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/examples/build/main",
-            "args": [],
+            "args": [ "-ex", "1" ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

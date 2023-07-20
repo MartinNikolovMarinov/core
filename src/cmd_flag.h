@@ -189,7 +189,7 @@ struct CORE_API_EXPORT flag_parser {
             if (f.isRequired && !f.isSet) {
                 return core::unexpected(parse_err::MissingRequiredFlag);
             }
-            if (f.validate && !f.validate(f.arg)) {
+            if (f.isSet && f.validate && !f.validate(f.arg)) {
                 return core::unexpected(parse_err::CustomRuleViolation);
             }
         }

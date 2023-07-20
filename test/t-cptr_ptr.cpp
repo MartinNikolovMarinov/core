@@ -1,4 +1,4 @@
-constexpr i32 cptr_is_digit() {
+constexpr i32 cptr_is_digit_test() {
     struct test_case {
         char in;
         bool expected;
@@ -240,7 +240,7 @@ constexpr i32 cptr_skip_white_space_test() {
 };
 
 i32 run_cptr_ptr_tests_suite() {
-    RunTest(cptr_len_test);
+    RunTest(cptr_is_digit_test);
     RunTest(cptr_len_test);
     RunTest(cptr_cmp_tests);
     RunTest(cptr_eq_test);
@@ -253,7 +253,7 @@ i32 run_cptr_ptr_tests_suite() {
 }
 
 constexpr i32 run_compiletime_cptr_ptr_tests_suite() {
-    RunTestCompileTime(cptr_len_test);
+    RunTestCompileTime(cptr_is_digit_test);
     RunTestCompileTime(cptr_len_test);
     RunTestCompileTime(cptr_cmp_tests);
     RunTestCompileTime(cptr_eq_test);

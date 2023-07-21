@@ -88,7 +88,8 @@ constexpr f64 vlengthsq(const vec<Dim, T>& v) {
 }
 
 template<i32 Dim, typename T>
-constexpr f64 vlength(const vec<Dim, T>& v) {
+f64 vlength(const vec<Dim, T>& v) {
+    // TODO: When I move to musl implementation of core::sqrt this should be constexpr
     f64 ret = vlengthsq(v);
     ret = std::sqrt(ret);
     return ret;
@@ -188,7 +189,7 @@ constexpr vec<Dim, T> vone() {
 // Normalization
 
 template<i32 Dim, typename T>
-constexpr vec<Dim, T> vnorm(const vec<Dim, T>& v) {
+vec<Dim, T> vnorm(const vec<Dim, T>& v) {
     f64 len = vlength(v);
     if (len == 0) return vzero<Dim, T>();
     vec<Dim, T> ret = v;
@@ -325,13 +326,13 @@ struct vec {
     template<typename U> constexpr void div(const vec<Dim, U>& other) { vdiv(*this, other); }
                          constexpr void div(DataType v)               { vdiv(*this, v); }
 
-    constexpr f64 length() const { return vlength(*this); }
+    f64 length() const { return vlength(*this); }
 
     constexpr f64 dot(const vec<Dim, DataType>& other) const { return vdot(*this, other); }
 
     constexpr vec<Dim, DataType> cross(const vec<Dim, DataType>& other) const { return vcross(*this, other); }
 
-    constexpr vec<Dim, DataType> norm() const { return vnorm(*this); }
+    vec<Dim, DataType> norm() const { return vnorm(*this); }
 
     constexpr bool operator==(const vec<Dim, DataType>& other) const { return equals(other); }
     constexpr bool operator!=(const vec<Dim, DataType>& other) const { return !equals(other); }

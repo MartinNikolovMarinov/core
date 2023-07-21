@@ -91,36 +91,36 @@ template <typename T> struct is_same<T, T>       { static constexpr bool value =
 
 template <typename T, typename U> constexpr bool is_same_v = is_same<T, U>::value;
 
-template <typename> struct __is_char { static constexpr bool value = false_type_v; };
-template <> struct __is_char<char>   { static constexpr bool value = true_type_v; };
-template <> struct __is_char<uchar>  { static constexpr bool value = true_type_v; };
-template <> struct __is_char<schar>  { static constexpr bool value = true_type_v; };
-template <typename T> struct is_char { static constexpr bool value = __is_char<remove_cv_t<T>>::value; };
+template <typename> struct _is_char  { static constexpr bool value = false_type_v; };
+template <> struct _is_char<char>    { static constexpr bool value = true_type_v; };
+template <> struct _is_char<uchar>   { static constexpr bool value = true_type_v; };
+template <> struct _is_char<schar>   { static constexpr bool value = true_type_v; };
+template <typename T> struct is_char { static constexpr bool value = _is_char<remove_cv_t<T>>::value; };
 
 template <typename T> constexpr bool is_char_v = is_char<T>::value;
 
-template <typename> struct __is_float { static constexpr bool value = false_type_v; };
-template <> struct __is_float<f32>    { static constexpr bool value = true_type_v; };
-template <> struct __is_float<f64>    { static constexpr bool value = true_type_v; };
-template <typename T> struct is_float { static constexpr bool value = __is_float<remove_cv_t<T>>::value; };
+template <typename> struct _is_float  { static constexpr bool value = false_type_v; };
+template <> struct _is_float<f32>     { static constexpr bool value = true_type_v; };
+template <> struct _is_float<f64>     { static constexpr bool value = true_type_v; };
+template <typename T> struct is_float { static constexpr bool value = _is_float<remove_cv_t<T>>::value; };
 
 template <typename T> constexpr bool is_float_v = is_float<T>::value;
 
-template <typename> struct __is_signed { static constexpr bool value = false_type_v; };
-template <> struct __is_signed<i8>     { static constexpr bool value = true_type_v; };
-template <> struct __is_signed<i16>    { static constexpr bool value = true_type_v; };
-template <> struct __is_signed<i32>    { static constexpr bool value = true_type_v; };
-template <> struct __is_signed<i64>    { static constexpr bool value = true_type_v; };
-template <typename T> struct is_signed { static constexpr bool value = __is_signed<remove_cv_t<T>>::value; };
+template <typename> struct _is_signed  { static constexpr bool value = false_type_v; };
+template <> struct _is_signed<i8>      { static constexpr bool value = true_type_v; };
+template <> struct _is_signed<i16>     { static constexpr bool value = true_type_v; };
+template <> struct _is_signed<i32>     { static constexpr bool value = true_type_v; };
+template <> struct _is_signed<i64>     { static constexpr bool value = true_type_v; };
+template <typename T> struct is_signed { static constexpr bool value = _is_signed<remove_cv_t<T>>::value; };
 
 template <typename T> constexpr bool is_signed_v = is_signed<T>::value;
 
-template <typename> struct __is_unsigned { static constexpr bool value = false_type_v; };
-template <> struct __is_unsigned<u8>     { static constexpr bool value = true_type_v; };
-template <> struct __is_unsigned<u16>    { static constexpr bool value = true_type_v; };
-template <> struct __is_unsigned<u32>    { static constexpr bool value = true_type_v; };
-template <> struct __is_unsigned<u64>    { static constexpr bool value = true_type_v; };
-template <typename T> struct is_unsigned { static constexpr bool value = __is_unsigned<remove_cv_t<T>>::value; };
+template <typename> struct _is_unsigned  { static constexpr bool value = false_type_v; };
+template <> struct _is_unsigned<u8>      { static constexpr bool value = true_type_v; };
+template <> struct _is_unsigned<u16>     { static constexpr bool value = true_type_v; };
+template <> struct _is_unsigned<u32>     { static constexpr bool value = true_type_v; };
+template <> struct _is_unsigned<u64>     { static constexpr bool value = true_type_v; };
+template <typename T> struct is_unsigned { static constexpr bool value = _is_unsigned<remove_cv_t<T>>::value; };
 
 template <typename T> constexpr bool is_unsigned_v = is_unsigned<T>::value;
 

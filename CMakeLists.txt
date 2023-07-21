@@ -225,4 +225,59 @@ endif()
 
 # END Compile Options
 
+# BEGIN Adding Tests
+
+if (CORE_BUILD_TESTS)
+    message(STATUS "[CORE] Configuring tests")
+
+    # Create executable
+    add_executable(core_test test.cpp)
+
+    # Link core
+    target_link_libraries(core_test ${PROJECT_NAME})
+
+    # Definitions
+    target_compile_definitions(core_test PRIVATE
+        -DPATH_TO_TEST_DATA="${CMAKE_CURRENT_SOURCE_DIR}/test/data"
+    )
+
+    # Compile options
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        # Common flags:
+        target_compile_options(core_test PRIVATE
+            -Wall -Wextra -Wno-unknown-pragmas
+            -g -ggdb
+            -Wfatal-errors
+        )
+
+        if (CORE_DEBUG)
+            # Debug flags:
+            target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -O3)
+        else()
+            # Release flags:
+            target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -O0)
+        endif()
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        # Common flags:
+        target_compile_options(core_test PRIVATE
+            /std:c++17 /nologo /FC /EHa /W4
+        )
+
+        if (CORE_DEBUG)
+            # Debug flags:
+            target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE /O2)
+        else()
+            # Release flags:
+            target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE /O0 /Zi /Od /Oi)
+        endif()
+    else()
+        message(FATAL_ERROR "Unsupported compiler!")
+    endif()
+
+    # Add the test
+    add_test(NAME core_test COMMAND core_test)
+endif()
+
+# END Adding Test
+
 message(STATUS "[CORE] ---------------------------------------------")

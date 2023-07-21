@@ -8,7 +8,7 @@
             "name": "Debug Test with GCC",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/test",
+            "program": "${workspaceFolder}/build/core_test",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

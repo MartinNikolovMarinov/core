@@ -1,0 +1,54 @@
+{
+	"version": 3,
+	"configurePresets": [
+		{
+			"name": "debug",
+			"displayName": "Debug configuration",
+			"description": "Debug configuration",
+			"binaryDir": "${sourceDir}/build",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug",
+
+				"CORE_ASSERT_ENABLED": "ON",
+				"CORE_BUILD_TESTS": "ON",
+				"CORE_DEBUG": "ON",
+				"CORE_LIBRARY_SHARED": "ON",
+				"RUN_COMPILETIME_TESTS": "ON"
+			}
+		},
+		{
+			"name": "release",
+			"displayName": "Release configuration",
+			"description": "Release configuration",
+			"binaryDir": "${sourceDir}/build",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release",
+
+				"CORE_ASSERT_ENABLED": "ON",
+				"CORE_BUILD_TESTS": "ON",
+				"CORE_DEBUG": "OFF",
+				"CORE_LIBRARY_SHARED": "ON",
+				"RUN_COMPILETIME_TESTS": "ON"
+			}
+		},
+		{
+			"name": "test",
+			"displayName": "Test configuration",
+			"description": "Test configuration",
+			"binaryDir": "${sourceDir}/build",
+			"cacheVariables": {
+				"CORE_LIBRARY_SHARED": "ON",
+				"CORE_ASSERT_ENABLED": "ON",
+				"RUN_COMPILETIME_TESTS": "ON"
+			}
+		}
+	],
+	"testPresets": [
+		{
+			"name": "default",
+			"configurePreset": "test",
+			"output": { "verbosity": "verbose" },
+			"execution": { "noTestsAction": "error", "stopOnFailure": true }
+		}
+	]
+}

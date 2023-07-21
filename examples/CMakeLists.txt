@@ -115,7 +115,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 option(CORE_LIBRARY_SHARED "" ON)
 option(CORE_ASSERT_ENABLED "" ON)
 target_link_libraries(${PROJECT_NAME} PRIVATE core)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../src ${CMAKE_CURRENT_BINARY_DIR}/core)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/core)
 
 # STB single header libraries:
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lib/stb)

@@ -31,7 +31,7 @@ constexpr i32 scale_test() {
     return 0;
 }
 
-constexpr i32 rotate2d_test() {
+i32 rotate2d_test() {
     constexpr core::vec2f origin = core::v(0.0f, 0.0f);
 
     core::vec2f v = {1.0f, 2.0f};
@@ -94,7 +94,6 @@ i32 run_transforms_tests_suite() {
 constexpr i32 run_compiletime_transforms_tests_suite() {
     RunTestCompileTime(translate_test);
     RunTestCompileTime(scale_test);
-    RunTestCompileTime(rotate2d_test);
 
     return 0;
 }

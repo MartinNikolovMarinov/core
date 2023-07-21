@@ -61,6 +61,8 @@ constexpr mat4<T> scale(const mat4<T>& m, const vec3<T>& s) {
     return ret;
 }
 
+// TODO: Add constexpr to rotate functions when std::cos and std::sin are moved to musl implementation, and are constexpr.
+
 // Rotate 2D
 
 template<typename TFloat>
@@ -88,7 +90,7 @@ constexpr static vec3f Y_AXIS = core::v(0.f, 1.f, 0.f);
 constexpr static vec3f Z_AXIS = core::v(0.f, 0.f, 1.f);
 
 template<typename TFloat>
-constexpr mat4<TFloat> rotate(const mat4<TFloat>& m, const vec3<TFloat>& a, core::radians angle) {
+mat4<TFloat> rotate(const mat4<TFloat>& m, const vec3<TFloat>& a, core::radians angle) {
     static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
 
     TFloat c = std::cos(angle);
@@ -119,13 +121,13 @@ constexpr mat4<TFloat> rotate(const mat4<TFloat>& m, const vec3<TFloat>& a, core
 }
 
 template<typename TFloat>
-constexpr mat4<TFloat> rotate_right(const mat4<TFloat>& v, const vec3<TFloat>& axis, core::radians angle) {
+mat4<TFloat> rotate_right(const mat4<TFloat>& v, const vec3<TFloat>& axis, core::radians angle) {
     angle.value = -angle.value;
     return rotate(v, axis, angle);
 }
 
 template<typename TFloat>
-constexpr mat4<TFloat> rotateX(const mat4<TFloat>& m, core::radians angle) {
+mat4<TFloat> rotateX(const mat4<TFloat>& m, core::radians angle) {
     static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
 
     TFloat c = std::cos(angle);
@@ -143,13 +145,13 @@ constexpr mat4<TFloat> rotateX(const mat4<TFloat>& m, core::radians angle) {
 }
 
 template<typename TFloat>
-constexpr mat4<TFloat> rotateX_right(const mat4<TFloat>& m, core::radians angle) {
+mat4<TFloat> rotateX_right(const mat4<TFloat>& m, core::radians angle) {
     angle.value = -angle.value;
     return rotateX(m, angle);
 }
 
 template<typename TFloat>
-constexpr mat4<TFloat> rotateY(const mat4<TFloat>& m, core::radians angle) {
+mat4<TFloat> rotateY(const mat4<TFloat>& m, core::radians angle) {
     static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
 
     TFloat c = std::cos(angle);
@@ -167,13 +169,13 @@ constexpr mat4<TFloat> rotateY(const mat4<TFloat>& m, core::radians angle) {
 }
 
 template<typename TFloat>
-constexpr mat4<TFloat> rotateY_right(const mat4<TFloat>& m, core::radians angle) {
+mat4<TFloat> rotateY_right(const mat4<TFloat>& m, core::radians angle) {
     angle.value = -angle.value;
     return rotateY(m, angle);
 }
 
 template<typename TFloat>
-constexpr mat4<TFloat> rotateZ(const mat4<TFloat>& m, core::radians angle) {
+mat4<TFloat> rotateZ(const mat4<TFloat>& m, core::radians angle) {
     static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
 
     TFloat c = std::cos(angle);
@@ -191,7 +193,7 @@ constexpr mat4<TFloat> rotateZ(const mat4<TFloat>& m, core::radians angle) {
 }
 
 template<typename TFloat>
-constexpr mat4<TFloat> rotateZ_right(const mat4<TFloat>& m, core::radians angle) {
+mat4<TFloat> rotateZ_right(const mat4<TFloat>& m, core::radians angle) {
     angle.value = -angle.value;
     return rotateZ(m, angle);
 }

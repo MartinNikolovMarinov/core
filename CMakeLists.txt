@@ -4,6 +4,11 @@ project(core)
 
 # BEGIN Options
 
+# Global CMake options:
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED true)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Generates compile_commands.json
+
 if (NOT DEFINED CORE_LIBRARY_SHARED)
     set(CORE_LIBRARY_SHARED OFF CACHE BOOL "Build core as a shared library.")
 endif()
@@ -72,5 +77,152 @@ message(STATUS "[CORE] Build Tests:       ${CORE_BUILD_TESTS}")
 message(STATUS "[CORE] Run Compile Tests: ${RUN_COMPILETIME_TESTS}")
 
 # END Print Selected Options
+
+# BEGIN Declare Source Files
+
+set(src_files
+    src/API.h
+    src/system_checks.h
+    src/types.h
+    src/core.h
+
+    src/algorithms.h
+    src/alloc_bump.h
+    src/alloc.h
+    src/ansi_escape_codes.h
+    src/arr.h
+    src/bits.h
+    src/char_ptr_conv.h
+    src/char_ptr.h
+    src/cmd_flag.h
+    src/core_math.h
+    src/core_traits.h
+    src/expected.h
+    src/intrinsic.cpp
+    src/intrinsic.h
+    src/ints.h
+    src/mem.cpp
+    src/mem.h
+    src/rnd.cpp
+    src/rnd.h
+    src/static_arr.h
+    src/tuple.h
+    src/utf.h
+    src/utils.cpp
+    src/utils.h
+
+    src/std/bbox.h
+    src/std/core.h
+    src/std/fs.h
+    src/std/lines.h
+    src/std/mat.h
+    src/std/once.h
+    src/std/plt.h
+    src/std/projections.h
+    src/std/stacktrace.h
+    src/std/stringer.h
+    src/std/traits.h
+    src/std/transforms.h
+    src/std/vec.h
+
+    src/std/allocators/alloc_std_stats.cpp
+    src/std/allocators/alloc_std_stats.h
+    src/std/allocators/alloc_std.cpp
+    src/std/allocators/alloc_std.h
+)
+
+# OS specific files
+if(OS STREQUAL "linux")
+    set(src_files ${src_files}
+        src/std/plt/unix/unix_plt.cpp
+        src/std/plt/unix/unix_stacktrace.cpp
+    )
+elseif(OS STREQUAL "windows")
+    set(src_files ${src_files}
+        src/std/plt/win64/win64_plt.cpp
+    )
+endif()
+
+# END Declare Source Files
+
+# BEGIN Add Library
+
+if(CORE_LIBRARY_SHARED)
+    message(STATUS "[CORE] Configuring corelib as a shared library")
+    add_library(${PROJECT_NAME} SHARED ${src_files})
+    # Set symbols visibility to be hidden by default:
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        C_VISIBILITY_PRESET hidden
+        C_VISIBILITY_INLINE_PRESET hidden
+        CXX_VISIBILITY_PRESET hidden
+        CXX_VISIBILITY_INLINE_PRESET hidden
+    )
+else()
+    message(STATUS "[CORE] Configuring corelib as a static library")
+    add_library(${PROJECT_NAME} STATIC ${src_files})
+endif()
+
+# END Add Library.
+
+# BEGIN Include Path Directories
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+# END Include Path Directories
+
+# BEGIN Definitions
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    "CORE_LIBRARY_SHARED=$<BOOL:${CORE_LIBRARY_SHARED}>" # turn CMake Boolean to 1 or 0
+    -DCORE_LIBRARY_BUILD=1
+)
+target_compile_definitions(${PROJECT_NAME} PUBLIC
+    "CORE_DEBUG=$<BOOL:${CORE_DEBUG}>"
+    "CORE_ASSERT_ENABLED=$<BOOL:${CORE_ASSERT_ENABLED}>"
+    "RUN_COMPILETIME_TESTS=$<BOOL:${RUN_COMPILETIME_TESTS}>"
+)
+
+# END Definitions
+
+# BEGIN Compile Options
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    # Common flags:
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        -std=c++17
+        -fno-exceptions
+        -Wall -Wextra
+        -Wfatal-errors
+        -Wno-unknown-pragmas -Wno-unused-function
+    )
+    if (CORE_DEBUG)
+        # Debug flags:
+        target_compile_options(${PROJECT_NAME} PRIVATE -O0 -g -ggdb)
+    else()
+        # Release flags:
+        target_compile_options(${PROJECT_NAME} PRIVATE -O3)
+    endif()
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # Common flags:
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        /std:c++17
+        /nologo /FC
+        /W4
+        /EHa-
+    )
+    if (CORE_DEBUG)
+        # Debug flags:
+        target_compile_options(${PROJECT_NAME} PRIVATE /O0 /Zi /Od /Oi)
+    else()
+        # Release flags:
+        target_compile_options(${PROJECT_NAME} PRIVATE /O2)
+    endif()
+else()
+    message(FATAL_ERROR "Unsupported compiler")
+endif()
+
+# END Compile Options
 
 message(STATUS "[CORE] ---------------------------------------------")

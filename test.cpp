@@ -15,6 +15,7 @@ using namespace coretypes;
         { [[maybe_unused]] constexpr auto __notused__ = core::force_consteval<test(__VA_ARGS__)>; }
 #else
     #define RunTestCompileTime(...)
+    #define RUN_COMPILETIME_TESTS 0
 #endif
 
 

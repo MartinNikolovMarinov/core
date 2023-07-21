@@ -25,7 +25,7 @@
 				"CMAKE_BUILD_TYPE": "Release",
 
 				"CORE_ASSERT_ENABLED": "ON",
-				"CORE_BUILD_TESTS": "ON",
+				"CORE_BUILD_TESTS": "OFF",
 				"CORE_DEBUG": "OFF",
 				"CORE_LIBRARY_SHARED": "ON",
 				"RUN_COMPILETIME_TESTS": "ON"
@@ -39,6 +39,7 @@
 			"cacheVariables": {
 				"CORE_LIBRARY_SHARED": "ON",
 				"CORE_ASSERT_ENABLED": "ON",
+				"CORE_BUILD_TESTS": "ON",
 				"RUN_COMPILETIME_TESTS": "ON"
 			}
 		}

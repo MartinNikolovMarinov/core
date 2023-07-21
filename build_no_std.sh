@@ -13,7 +13,7 @@ echo -e "Compiling the following files: $(ls $SRC)\n"
 # NOTE: Add the -g options and set the optiomization level to -O0 to debug the code!
 g++ -DCORE_DEBUG=1 -DCORE_ASSERT_ENABLED=1 -DRUN_COMPILETIME_TESTS=1 \
 -nostdlib -O2 -std=c++17 -ffreestanding -fno-exceptions \
--Wall -Wno-unknown-pragmas -Wno-unused \
+-Wall -Wextra -Wno-unknown-pragmas -Wno-unused-function \
 $INCLUDES \
 bootstrap.S -o build/test_no_std test_no_std.cpp ${SRC}
 

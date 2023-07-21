@@ -9,12 +9,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Generates compile_commands.json
 
-if (NOT DEFINED CORE_LIBRARY_SHARED)
+if(NOT DEFINED CORE_LIBRARY_SHARED)
     set(CORE_LIBRARY_SHARED OFF CACHE BOOL "Build core as a shared library.")
 endif()
 
-if (NOT DEFINED CORE_DEBUG)
-    if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")
+if(NOT DEFINED CORE_DEBUG)
+    if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")
         # By default, in release builds, disable debug.
         set(CORE_DEBUG OFF CACHE BOOL "Enable debug mode.")
     else()
@@ -22,8 +22,8 @@ if (NOT DEFINED CORE_DEBUG)
     endif()
 endif()
 
-if (NOT DEFINED CORE_ASSERT_ENABLED)
-    if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")
+if(NOT DEFINED CORE_ASSERT_ENABLED)
+    if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")
         # By default, in release builds, disable asserts.
         set(CORE_ASSERT_ENABLED OFF CACHE BOOL "Enable asserts.")
     else()
@@ -45,19 +45,18 @@ else()
     message(FATAL_ERROR "Unsupported OS: ${CMAKE_SYSTEM_NAME}!")
 endif()
 
-if (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
+if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
     set(ARCH "x64")
 else()
     set(ARCH "unsupported")
     message(FATAL_ERROR "Unsupported architecture: ${CMAKE_HOST_SYSTEM_PROCESSOR}!")
 endif()
 
-if (NOT DEFINED CORE_BUILD_TESTS)
-    enable_testing()
+if(NOT DEFINED CORE_BUILD_TESTS)
     set(CORE_BUILD_TESTS OFF CACHE BOOL "Build core tests.")
 endif()
 
-if (NOT DEFINED RUN_COMPILETIME_TESTS)
+if(NOT DEFINED RUN_COMPILETIME_TESTS)
     # This option can slow down compilation significantly.
     set(RUN_COMPILETIME_TESTS OFF CACHE BOOL "Run compile-time tests.")
 endif()
@@ -188,46 +187,34 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 
 # BEGIN Compile Options
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    # Common flags:
-    target_compile_options(${PROJECT_NAME} PRIVATE
-        -std=c++17
-        -fno-exceptions
-        -Wall -Wextra
-        -Wfatal-errors
-        -Wno-unknown-pragmas -Wno-unused-function
-    )
-    if (CORE_DEBUG)
-        # Debug flags:
-        target_compile_options(${PROJECT_NAME} PRIVATE -O0 -g -ggdb)
-    else()
-        # Release flags:
-        target_compile_options(${PROJECT_NAME} PRIVATE -O3)
-    endif()
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(mm_core_common_flags -std=c++17 -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-function)
+    set(mm_core_debug_flags -O0 -g -ggdb)
+    set(mm_core_release_flags)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    # Common flags:
-    target_compile_options(${PROJECT_NAME} PRIVATE
+    set(mm_core_common_flags
         /std:c++17
         /nologo /FC
         /W4
-        /EHa-
+        /EHsc
     )
-    if (CORE_DEBUG)
-        # Debug flags:
-        target_compile_options(${PROJECT_NAME} PRIVATE /O0 /Zi /Od /Oi)
-    else()
-        # Release flags:
-        target_compile_options(${PROJECT_NAME} PRIVATE /O2)
-    endif()
+    set(mm_core_debug_flags /O0 /Zi /Od /Oi)
+    set(mm_core_release_flags /O2)
 else()
     message(FATAL_ERROR "Unsupported compiler")
+endif()
+
+if(CORE_DEBUG)
+    target_compile_options(${PROJECT_NAME} PRIVATE ${mm_core_common_flags} ${mm_core_debug_flags})
+else()
+    target_compile_options(${PROJECT_NAME} PRIVATE ${mm_core_common_flags} ${mm_core_release_flags})
 endif()
 
 # END Compile Options
 
 # BEGIN Adding Tests
 
-if (CORE_BUILD_TESTS)
+if(CORE_BUILD_TESTS)
     message(STATUS "[CORE] Configuring tests")
 
     # Create executable
@@ -242,39 +229,28 @@ if (CORE_BUILD_TESTS)
     )
 
     # Compile options
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        # Common flags:
-        target_compile_options(core_test PRIVATE
-            -Wall -Wextra -Wno-unknown-pragmas
-            -g -ggdb
-            -Wfatal-errors
-        )
-
-        if (CORE_DEBUG)
-            # Debug flags:
-            target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -O3)
-        else()
-            # Release flags:
-            target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -O0)
-        endif()
-    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-        # Common flags:
-        target_compile_options(core_test PRIVATE
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        set(mm_test_common_flags -std=c++17 -Wall -Wextra -Wno-unknown-pragmas -g -ggdb -Wfatal-errors)
+        set(mm_test_debug_flags -O0)
+        set(mm_test_release_flags -O3)
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        set(mm_test_common_flags
             /std:c++17 /nologo /FC /EHa /W4
         )
-
-        if (CORE_DEBUG)
-            # Debug flags:
-            target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE /O2)
-        else()
-            # Release flags:
-            target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE /O0 /Zi /Od /Oi)
-        endif()
+        set(mm_test_debug_flags /O0 /Zi /Od /Oi)
+        set(mm_test_release_flags /O2)
     else()
         message(FATAL_ERROR "Unsupported compiler!")
     endif()
 
+    if(CORE_DEBUG)
+        target_compile_options(core_test PRIVATE ${mm_test_common_flags} ${mm_test_debug_flags})
+    else()
+        target_compile_options(core_test PRIVATE ${mm_test_common_flags} ${mm_test_release_flags})
+    endif()
+
     # Add the test
+    enable_testing()
     add_test(NAME core_test COMMAND core_test)
 endif()
 

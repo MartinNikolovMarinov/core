@@ -192,5 +192,6 @@ i32 main(i32 argc, const char** argv) {
         case 5: return example_05();
     }
 
+    // Rotating french fry by default.
     return example_04();
 }

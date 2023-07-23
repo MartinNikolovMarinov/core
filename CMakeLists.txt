@@ -190,7 +190,7 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set(mm_core_common_flags -std=c++17 -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-function)
     set(mm_core_debug_flags -O0 -g -ggdb)
-    set(mm_core_release_flags)
+    set(mm_core_release_flags -O3)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(mm_core_common_flags
         /std:c++17

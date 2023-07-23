@@ -1,0 +1,19 @@
+{
+	"version": 3,
+	"configurePresets": [
+		{
+			"name": "default",
+			"displayName": "Default configuration.",
+			"description": "Default configuration.",
+			"binaryDir": "${sourceDir}/build",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug",
+				"CORE_DEBUG": "ON",
+				"CORE_ASSERT_ENABLED": "ON",
+				"CORE_LIBRARY_SHARED": "ON",
+				"CORE_BUILD_TESTS": "OFF",
+				"RUN_COMPILETIME_TESTS": "OFF"
+			}
+		}
+	]
+}

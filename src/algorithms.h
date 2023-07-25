@@ -17,7 +17,7 @@ i32 find(const core::arr<T, TAllocator>& arr, TPredicate pred) {
 }
 
 template <typename T, core::ptr_size N, typename TPredicate>
-i32 find(const core::sarr<T, N>& arr, TPredicate pred) {
+constexpr i32 find(const core::sarr<T, N>& arr, TPredicate pred) {
     for (i32 i = 0; i < arr.len(); ++i) {
         if (pred(arr[i], i)) return i;
     }

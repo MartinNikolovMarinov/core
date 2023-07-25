@@ -1,6 +1,5 @@
 #pragma once
 
-#include <API.h>
 #include <types.h>
 #include <mem.h>
 
@@ -24,7 +23,7 @@ constexpr bool msn_bits(u8 v, u8 bitSeq, u8 n) {
 }
 
 template <typename TUint>
-CORE_API_EXPORT TUint swap_byte_order(TUint n) {
+TUint swap_byte_order(TUint n) {
     if constexpr (sizeof(TUint) == 2) {
         u16 swapped = (n >> 8) | (n << 8);
         return swapped;
@@ -44,7 +43,7 @@ CORE_API_EXPORT TUint swap_byte_order(TUint n) {
 }
 
 template <typename TFloat>
-CORE_API_EXPORT void float_to_bin(u8 bytes[sizeof(TFloat)], TFloat v) {
+void float_to_bin(u8 bytes[sizeof(TFloat)], TFloat v) {
     static_assert((sizeof(TFloat) == 4 || sizeof(TFloat) == 8), "Invalid TFloat argument.");
     union { TFloat a; u8 bytes[sizeof(TFloat)]; } floatUnion;
     floatUnion.a = v;

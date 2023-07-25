@@ -1,6 +1,5 @@
 #pragma once
 
-#include <API.h>
 #include <types.h>
 #include <utils.h>
 
@@ -15,7 +14,7 @@ using namespace coretypes;
  *        is because the allocator may need to align the memory.
 */
 template<typename A>
-void* CORE_API_EXPORT alloc(ptr_size size) noexcept {
+void* alloc(ptr_size size) noexcept {
     return A::alloc(size);
 }
 
@@ -23,7 +22,7 @@ void* CORE_API_EXPORT alloc(ptr_size size) noexcept {
  * @brief Uses the allocator to allocate memory and calls the constructor of T with the given args.
 */
 template<typename A, typename T, typename ...Args>
-T* CORE_API_EXPORT construct(A& allocator, T&&, Args&&... args) noexcept {
+T* construct(A& allocator, T&&, Args&&... args) noexcept {
     void* p = allocator.alloc(sizeof(T));
     return new (p) T(core::forward<Args>(args)...);
 }
@@ -33,7 +32,7 @@ T* CORE_API_EXPORT construct(A& allocator, T&&, Args&&... args) noexcept {
  *        The overall size may be larger than what the user has asked for, due to memory alignment.
 */
 template<typename A>
-ptr_size CORE_API_EXPORT used_mem() noexcept {
+ptr_size used_mem() noexcept {
     return A::used_mem();
 }
 
@@ -43,7 +42,7 @@ ptr_size CORE_API_EXPORT used_mem() noexcept {
  *        able to free memory.
 */
 template<typename A>
-void CORE_API_EXPORT free(void* ptr) noexcept {
+void free(void* ptr) noexcept {
     A::free(ptr);
 }
 
@@ -51,7 +50,7 @@ void CORE_API_EXPORT free(void* ptr) noexcept {
  * @brief Return the name of the allocator.
 */
 template<typename A>
-const char* CORE_API_EXPORT allocator_name() noexcept {
+const char* allocator_name() noexcept {
     return A::allocator_name();
 }
 

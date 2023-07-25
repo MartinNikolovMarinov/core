@@ -1,6 +1,5 @@
 #pragma once
 
-#include <API.h>
 #include <types.h>
 #include <utils.h>
 #include <mem.h>
@@ -10,7 +9,7 @@ namespace core {
 using namespace coretypes;
 
 template<ptr_size TCap>
-struct CORE_API_EXPORT bump_allocator {
+struct bump_allocator {
     static_assert(TCap > 1, "Capacity must be greater than 1");
 
     using on_oom_fp = void(*)(void* userData);

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <API.h>
 #include <types.h>
 #include <utils.h>
 #include <core_traits.h>
@@ -14,18 +13,18 @@ using namespace coretypes;
 
 // NOTE: Using an unexpected_t wrapper allows the expected struct to be used with the same type for both error and value.
 template <typename E>
-struct CORE_API_EXPORT unexpected_t {
+struct unexpected_t {
     E err;
     constexpr explicit unexpected_t(E&& e) : err(core::forward<E>(e)) {}
 };
 
 template <typename E>
-constexpr unexpected_t<E> CORE_API_EXPORT unexpected(E&& e) { return unexpected_t<E>(core::forward<E>(e)); }
+constexpr unexpected_t<E> unexpected(E&& e) { return unexpected_t<E>(core::forward<E>(e)); }
 
 template <typename...> struct expected;
 
 template <typename T, typename TErr>
-struct CORE_API_EXPORT expected<T, TErr> {
+struct expected<T, TErr> {
     expected(T&& value)  : m_value(core::forward<T>(value)), m_hasValue(true) {}
     template <typename TErr2>
     expected(unexpected_t<TErr2>&& wrapper) : m_err(core::move(wrapper.err)), m_hasValue(false) {}
@@ -65,7 +64,7 @@ private:
 };
 
 template <typename TErr>
-struct CORE_API_EXPORT expected<TErr> {
+struct expected<TErr> {
     expected() : m_hasErr(false) {}
     template <typename TErr2>
     expected(unexpected_t<TErr2>&& wrapper) : m_hasErr(true), m_err(core::move(wrapper.err)) {}
@@ -96,8 +95,8 @@ template <typename...> struct static_expected;
 
 // IMPORTANT: Do not put anything which is not trivially destructible in this struct!
 template <typename T, typename TErr>
-struct CORE_API_EXPORT static_expected<T, TErr> {
-    static_assert(core::is_trivial_v<T>, "trivial type is required");
+struct static_expected<T, TErr> {
+    static_assert(core::is_trivially_destructible_v<T>, "type must be trivially destructible");
 
     constexpr static_expected(T&& value)  : m_value(core::forward<T>(value)), m_hasValue(true) {}
     template <typename TErr2>

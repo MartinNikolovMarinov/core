@@ -33,7 +33,7 @@ constexpr i32 char_to_int_test() {
     return 0;
 }
 
-constexpr i32 digit_to_char() {
+constexpr i32 digit_to_char_test() {
     struct test_case {
         i32 in;
         char expected;
@@ -316,7 +316,7 @@ constexpr i32 int_hex_test() {
 
 i32 run_char_ptr_conv_tests_suite() {
     RunTest(char_to_int_test);
-    RunTest(digit_to_char);
+    RunTest(digit_to_char_test);
     RunTest(int_to_cptr_test);
     RunTest(int_hex_test);
     RunTest(cptr_to_int_test);
@@ -327,7 +327,7 @@ i32 run_char_ptr_conv_tests_suite() {
 
 constexpr i32 run_compiletime_char_ptr_conv_tests_suite() {
     RunTestCompileTime(char_to_int_test);
-    RunTestCompileTime(digit_to_char);
+    RunTestCompileTime(digit_to_char_test);
     RunTestCompileTime(int_to_cptr_test);
     RunTestCompileTime(int_hex_test);
     RunTestCompileTime(cptr_to_int_test);

@@ -128,7 +128,7 @@ i32 memcopy_tests() {
     return 0;
 }
 
-constexpr i32 memset_tests() {
+i32 memset_tests() {
     constexpr i32 N = 20;
     for (i32 i = 0; i < N; i++) {
         u8 buf[N] = {};
@@ -146,7 +146,7 @@ constexpr i32 memset_tests() {
     return 0;
 }
 
-constexpr i32 memcmp_tests() {
+i32 memcmp_tests() {
      struct test_case {
         const char* a;
         const char* b;

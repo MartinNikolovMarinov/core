@@ -76,7 +76,7 @@ struct CORE_API_EXPORT arr {
     }
 
     arr<T, TAllocator> copy() {
-        data_type* dataCopy;
+        data_type* dataCopy = nullptr;
         if (m_cap > 0) {
             dataCopy = reinterpret_cast<data_type *>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
             Assert(dataCopy != nullptr);

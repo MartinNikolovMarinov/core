@@ -19,6 +19,7 @@
 #include "t-intrinsic.cpp"
 #include "t-defer.cpp"
 #include "t-static_arr.cpp"
+#include "t-mem.cpp"
 
 int run_all_tests() {
     RunTestSuite(run_tuple_tests_suite);
@@ -35,6 +36,7 @@ int run_all_tests() {
     RunTestSuite(run_intrinsics_tests_suite);
     RunTestSuite(run_defer_tests_suite);
     RunTestSuite(run_static_arr_tests_suite);
+    RunTestSuite(run_mem_tests_suite);
 
     return 0;
 }

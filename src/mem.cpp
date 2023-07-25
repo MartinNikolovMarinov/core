@@ -52,4 +52,15 @@ i32 memcmp(const void* s1, const void* s2, ptr_size n) {
     return 0;
 }
 
+void swap_bytes(void* a, void* b, ptr_size size) {
+    // TODO: Use SIMD probably.
+    u8* a_ = reinterpret_cast<u8*>(a);
+    u8* b_ = reinterpret_cast<u8*>(b);
+    for (ptr_size i = 0; i < size; ++i) {
+        u8 tmp = a_[i];
+        a_[i] = b_[i];
+        b_[i] = tmp;
+    }
+}
+
 }

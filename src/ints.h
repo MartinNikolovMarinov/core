@@ -44,7 +44,7 @@ static constexpr u32 maxdigits[] = {
 } // namespace detail
 
 template <typename TUint>
-constexpr CORE_API_EXPORT u32 digit_count(TUint n) {
+constexpr u32 digit_count(TUint n) {
     static_assert(sizeof(n) == 4 || sizeof(n) == 8, "Invalid TUint paramater.");
     if (n == 0) return 1;
     if (n < 0) n = -n;

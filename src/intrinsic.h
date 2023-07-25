@@ -29,7 +29,7 @@ constexpr u32 leading_zero_count_fallback(TInt n) {
 } // namespace
 
 template<typename TInt>
-constexpr CORE_API_EXPORT u32 leading_zero_count(TInt n) {
+constexpr u32 leading_zero_count(TInt n) {
     static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
     if (n == 0) return 0; // The gnu gcc __builtin_clz and __builtin_clzll documentation states that n = 0 is undefined behavior!
 
@@ -38,17 +38,9 @@ constexpr CORE_API_EXPORT u32 leading_zero_count(TInt n) {
     }
 
 #if COMPILER_CLANG == 1 || COMPILER_GCC == 1
-    if constexpr (sizeof(TInt) == 4) {
-        return u32(__builtin_clz(n));
-    } else {
-        return u32(__builtin_clzll(n));
-    }
+    return (sizeof(TInt) == 4) ? u32(__builtin_clz(n)) : u32(__builtin_clzll(n));
 #elif COMPILER_MSVC == 1
-    if constexpr (sizeof(TInt) == 4) {
-        return u32(__lzcnt(n));
-    } else {
-        return u32(__lzcnt64(n));
-    }
+    return (sizeof(TInt) == 4) ? u32(__lzcnt(n)) : u32(__lzcnt64(n));
 #else
     return leading_zero_count_fallback(n);
 #endif

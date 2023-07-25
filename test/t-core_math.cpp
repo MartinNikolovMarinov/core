@@ -1,3 +1,119 @@
+constexpr i32 pow10_test() {
+    struct test_case {
+        i32 in;
+        u64 expected;
+    };
+
+    constexpr test_case cases[] = {
+        { 0, 1ULL },
+        { 1, 10ULL },
+        { 2, 100ULL },
+        { 3, 1000ULL },
+        { 4, 10000ULL },
+        { 5, 100000ULL },
+        { 6, 1000000ULL },
+        { 7, 10000000ULL },
+        { 8, 100000000ULL },
+        { 9, 1000000000ULL },
+        { 10, 10000000000ULL },
+        { 11, 100000000000ULL },
+        { 12, 1000000000000ULL },
+        { 13, 10000000000000ULL },
+        { 14, 100000000000000ULL },
+        { 15, 1000000000000000ULL },
+        { 16, 10000000000000000ULL },
+        { 17, 100000000000000000ULL },
+        { 18, 1000000000000000000ULL },
+        { 19, 10000000000000000000ULL },
+    };
+
+    executeTestTable("pow10 test case failed at index: ", cases, [](auto& c, const char* cErr) {
+        Assert(core::pow10(c.in) == c.expected, cErr);
+    });
+
+    return 0;
+}
+
+constexpr i32 pow2_test() {
+    struct test_case {
+        i32 in;
+        u64 expected;
+    };
+
+    constexpr test_case cases[] = {
+        { 0, 1ULL },
+        { 1, 2ULL },
+        { 2, 4ULL },
+        { 3, 8ULL },
+        { 4, 16ULL },
+        { 5, 32ULL },
+        { 6, 64ULL },
+        { 7, 128ULL },
+        { 8, 256ULL },
+        { 9, 512ULL },
+        { 10, 1024ULL },
+        { 11, 2048ULL },
+        { 12, 4096ULL },
+        { 13, 8192ULL },
+        { 14, 16384ULL },
+        { 15, 32768ULL },
+        { 16, 65536ULL },
+        { 17, 131072ULL },
+        { 18, 262144ULL },
+        { 19, 524288ULL },
+        { 20, 1048576ULL },
+        { 21, 2097152ULL },
+        { 22, 4194304ULL },
+        { 23, 8388608ULL },
+        { 24, 16777216ULL },
+        { 25, 33554432ULL },
+        { 26, 67108864ULL },
+        { 27, 134217728ULL },
+        { 28, 268435456ULL },
+        { 29, 536870912ULL },
+        { 30, 1073741824ULL },
+        { 31, 2147483648ULL },
+        { 32, 4294967296ULL },
+        { 33, 8589934592ULL },
+        { 34, 17179869184ULL },
+        { 35, 34359738368ULL },
+        { 36, 68719476736ULL },
+        { 37, 137438953472ULL },
+        { 38, 274877906944ULL },
+        { 39, 549755813888ULL },
+        { 40, 1099511627776ULL },
+        { 41, 2199023255552ULL },
+        { 42, 4398046511104ULL },
+        { 43, 8796093022208ULL },
+        { 44, 17592186044416ULL },
+        { 45, 35184372088832ULL },
+        { 46, 70368744177664ULL },
+        { 47, 140737488355328ULL },
+        { 48, 281474976710656ULL },
+        { 49, 562949953421312ULL },
+        { 50, 1125899906842624ULL },
+        { 51, 2251799813685248ULL },
+        { 52, 4503599627370496ULL },
+        { 53, 9007199254740992ULL },
+        { 54, 18014398509481984ULL },
+        { 55, 36028797018963968ULL },
+        { 56, 72057594037927936ULL },
+        { 57, 144115188075855872ULL },
+        { 58, 288230376151711744ULL },
+        { 59, 576460752303423488ULL },
+        { 60, 1152921504606846976ULL },
+        { 61, 2305843009213693952ULL },
+        { 62, 4611686018427387904ULL },
+        { 63, 9223372036854775808ULL },
+    };
+
+    executeTestTable("pow2 test case failed at index: ", cases, [](auto& c, const char* cErr) {
+        Assert(core::pow2(c.in) == c.expected, cErr);
+    });
+
+    return 0;
+}
+
 constexpr i32 degrees_test() {
     Assert(core::deg_to_rad(0.0f) == 0.0f);
     Assert(core::deg_to_rad(90.0f) == core::PI / 2.0f);
@@ -10,6 +126,52 @@ constexpr i32 degrees_test() {
     Assert(core::rad_to_deg(core::radians(core::PI)) == 180.0f);
     Assert(core::rad_to_deg(core::radians(core::PI * 1.5f)) == 270.0f);
     Assert(core::rad_to_deg(core::radians(core::PI * 2.0f)) == 360.0f);
+
+    return 0;
+}
+
+constexpr i32 mantissa_exponent_test() {
+    {
+        struct test_case {
+            f32 in;
+            i32 expectedMantissa;
+            i32 expectedExponent;
+        };
+
+        constexpr test_case cases[] = {
+            { 0,          0b0,                       0b0 },
+            { 966.68f,    0b11100011010101110000101, 0b10001000 },
+            { 34135.1235, 0b00001010101011100011111, 0b10001110 },
+        };
+
+        executeTestTable("mantissa_exponent 32bit test case failed at index: ", cases, [](auto& c, const char* cErr) {
+            auto gotMantissa = core::mantissa(c.in);
+            auto gotExponent = core::exponent(c.in);
+            Assert(gotMantissa == c.expectedMantissa, cErr);
+            Assert(gotExponent == c.expectedExponent, cErr);
+        });
+    }
+
+    {
+        struct test_case {
+            f64 in;
+            i64 expectedMantissa;
+            i64 expectedExponent;
+        };
+
+        constexpr test_case cases[] = {
+            { 0,          0b0,                                                    0b0 },
+            { 966.68,     0b1110001101010111000010100011110101110000101000111101, 0b10000001000 },
+            { 34135.1235, 0b000111111001110110110010001011010001000000000000000,  0b1000010101010111 },
+        };
+
+        executeTestTable("mantissa_exponent 64bit test case failed at index: ", cases, [](auto& c, const char* cErr) {
+            auto gotMantissa = core::mantissa(c.in);
+            auto gotExponent = core::exponent(c.in);
+            Assert(gotMantissa == c.expectedMantissa, cErr);
+            Assert(gotExponent == c.expectedExponent, cErr);
+        });
+    }
 
     return 0;
 }
@@ -258,142 +420,28 @@ i32 sign_test() {
     return 0;
 }
 
-constexpr i32 pow10_test() {
-    struct test_case {
-        i32 in;
-        u64 expected;
-    };
-
-    constexpr test_case cases[] = {
-        { 0, 1ULL },
-        { 1, 10ULL },
-        { 2, 100ULL },
-        { 3, 1000ULL },
-        { 4, 10000ULL },
-        { 5, 100000ULL },
-        { 6, 1000000ULL },
-        { 7, 10000000ULL },
-        { 8, 100000000ULL },
-        { 9, 1000000000ULL },
-        { 10, 10000000000ULL },
-        { 11, 100000000000ULL },
-        { 12, 1000000000000ULL },
-        { 13, 10000000000000ULL },
-        { 14, 100000000000000ULL },
-        { 15, 1000000000000000ULL },
-        { 16, 10000000000000000ULL },
-        { 17, 100000000000000000ULL },
-        { 18, 1000000000000000000ULL },
-        { 19, 10000000000000000000ULL },
-    };
-
-    executeTestTable("pow10 test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        Assert(core::pow10(c.in) == c.expected, cErr);
-    });
-
-    return 0;
-}
-
-constexpr i32 pow2_test() {
-    struct test_case {
-        i32 in;
-        u64 expected;
-    };
-
-    constexpr test_case cases[] = {
-        { 0, 1ULL },
-        { 1, 2ULL },
-        { 2, 4ULL },
-        { 3, 8ULL },
-        { 4, 16ULL },
-        { 5, 32ULL },
-        { 6, 64ULL },
-        { 7, 128ULL },
-        { 8, 256ULL },
-        { 9, 512ULL },
-        { 10, 1024ULL },
-        { 11, 2048ULL },
-        { 12, 4096ULL },
-        { 13, 8192ULL },
-        { 14, 16384ULL },
-        { 15, 32768ULL },
-        { 16, 65536ULL },
-        { 17, 131072ULL },
-        { 18, 262144ULL },
-        { 19, 524288ULL },
-        { 20, 1048576ULL },
-        { 21, 2097152ULL },
-        { 22, 4194304ULL },
-        { 23, 8388608ULL },
-        { 24, 16777216ULL },
-        { 25, 33554432ULL },
-        { 26, 67108864ULL },
-        { 27, 134217728ULL },
-        { 28, 268435456ULL },
-        { 29, 536870912ULL },
-        { 30, 1073741824ULL },
-        { 31, 2147483648ULL },
-        { 32, 4294967296ULL },
-        { 33, 8589934592ULL },
-        { 34, 17179869184ULL },
-        { 35, 34359738368ULL },
-        { 36, 68719476736ULL },
-        { 37, 137438953472ULL },
-        { 38, 274877906944ULL },
-        { 39, 549755813888ULL },
-        { 40, 1099511627776ULL },
-        { 41, 2199023255552ULL },
-        { 42, 4398046511104ULL },
-        { 43, 8796093022208ULL },
-        { 44, 17592186044416ULL },
-        { 45, 35184372088832ULL },
-        { 46, 70368744177664ULL },
-        { 47, 140737488355328ULL },
-        { 48, 281474976710656ULL },
-        { 49, 562949953421312ULL },
-        { 50, 1125899906842624ULL },
-        { 51, 2251799813685248ULL },
-        { 52, 4503599627370496ULL },
-        { 53, 9007199254740992ULL },
-        { 54, 18014398509481984ULL },
-        { 55, 36028797018963968ULL },
-        { 56, 72057594037927936ULL },
-        { 57, 144115188075855872ULL },
-        { 58, 288230376151711744ULL },
-        { 59, 576460752303423488ULL },
-        { 60, 1152921504606846976ULL },
-        { 61, 2305843009213693952ULL },
-        { 62, 4611686018427387904ULL },
-        { 63, 9223372036854775808ULL },
-    };
-
-    executeTestTable("pow2 test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        Assert(core::pow2(c.in) == c.expected, cErr);
-    });
-
-    return 0;
-}
-
 i32 run_core_math_tests_suite() {
+    RunTest(pow10_test);
+    RunTest(pow2_test);
     RunTest(degrees_test);
+    // RunTest(mantissa_exponent_test);
     RunTest(abs_test);
     RunTest(is_positive_test);
     RunTest(float_safe_eq_test);
     RunTest(float_nearly_eq_test);
     RunTest(sign_test);
-    RunTest(pow10_test);
-    RunTest(pow2_test);
 
     return 0;
 }
 
 constexpr i32 run_compiletime_core_math_tests_suite() {
+    RunTestCompileTime(pow10_test);
+    RunTestCompileTime(pow2_test);
     RunTestCompileTime(degrees_test);
+    // RunTestCompileTime(mantissa_exponent_test);
     RunTestCompileTime(abs_test);
     RunTestCompileTime(is_positive_test);
     RunTestCompileTime(float_safe_eq_test);
-    RunTestCompileTime(pow10_test);
-    RunTestCompileTime(pow2_test);
     // RunTestCompileTime(float_nearly_eq_test); // TODO: nearly_eq is possible in comstexpr, but the test is not. Write a simpler test for compiletime execution.
 
     return 0;

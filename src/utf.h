@@ -1,6 +1,5 @@
 #pragma once
 
-#include <API.h>
 #include <types.h>
 #include <expected.h>
 #include <bits.h>
@@ -26,7 +25,7 @@ static constexpr u32 UTF8_CHUNK_DECODING_MASK = 0b111111;
 
 } // namespace
 
-constexpr CORE_API_EXPORT bool is_valid_utf8_encoding(const uchar* utf, u32 len) {
+constexpr bool is_valid_utf8_encoding(const uchar* utf, u32 len) {
     bool res = false;
     switch(len) {
         case 0:
@@ -54,7 +53,7 @@ constexpr CORE_API_EXPORT bool is_valid_utf8_encoding(const uchar* utf, u32 len)
     return res;
 }
 
-constexpr CORE_API_EXPORT rune rune_from_bytes_skip_check(const uchar* utf, u32 len) {
+constexpr rune rune_from_bytes_skip_check(const uchar* utf, u32 len) {
     rune r = 0;
     const u32 ubpec = detail::UTF8_BYTES_PER_ENCODED_CHUNK;
 
@@ -89,7 +88,7 @@ constexpr CORE_API_EXPORT rune rune_from_bytes_skip_check(const uchar* utf, u32 
     return r;
 }
 
-constexpr CORE_API_EXPORT core::static_expected<rune, bool> rune_from_bytes(const uchar* utf, u32 len) {
+constexpr core::static_expected<rune, bool> rune_from_bytes(const uchar* utf, u32 len) {
     Assert(utf != nullptr);
     if (is_valid_utf8_encoding(utf, len) == false) {
         return core::unexpected(false);
@@ -97,7 +96,7 @@ constexpr CORE_API_EXPORT core::static_expected<rune, bool> rune_from_bytes(cons
     return rune_from_bytes_skip_check(utf, len);
 }
 
-constexpr CORE_API_EXPORT u32 rune_to_bytes(const rune r, uchar* utf) {
+constexpr u32 rune_to_bytes(const rune r, uchar* utf) {
     Assert(utf != nullptr);
 
     u32 len = 0;

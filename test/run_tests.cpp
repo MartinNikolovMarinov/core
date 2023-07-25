@@ -17,6 +17,8 @@
 #include "t-cptr_ptr.cpp"
 #include "t-char_ptr_conv.cpp"
 #include "t-intrinsic.cpp"
+#include "t-defer.cpp"
+#include "t-static_arr.cpp"
 
 int run_all_tests() {
     RunTestSuite(run_tuple_tests_suite);
@@ -31,6 +33,8 @@ int run_all_tests() {
     RunTestSuite(run_cptr_ptr_tests_suite);
     RunTestSuite(run_char_ptr_conv_tests_suite);
     RunTestSuite(run_intrinsics_tests_suite);
+    RunTestSuite(run_defer_tests_suite);
+    RunTestSuite(run_static_arr_tests_suite);
 
     return 0;
 }

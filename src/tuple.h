@@ -1,6 +1,5 @@
 #pragma once
 
-#include <API.h>
 #include <types.h>
 #include <utils.h>
 #include <core_traits.h>
@@ -12,7 +11,7 @@ using namespace coretypes;
 template <typename...> struct tuple;
 
 template <typename T1, typename T2>
-struct CORE_API_EXPORT tuple<T1, T2> {
+struct tuple<T1, T2> {
     static constexpr u32 len = 2;
 
     template <i32 TIdx>
@@ -31,7 +30,7 @@ struct CORE_API_EXPORT tuple<T1, T2> {
 };
 
 template <typename T1, typename T2, typename T3>
-struct CORE_API_EXPORT tuple<T1, T2, T3> {
+struct tuple<T1, T2, T3> {
     static constexpr u32 len = 3;
 
     template <i32 TIdx>
@@ -53,7 +52,7 @@ struct CORE_API_EXPORT tuple<T1, T2, T3> {
 };
 
 template <typename T1, typename T2, typename T3, typename T4>
-struct CORE_API_EXPORT tuple<T1, T2, T3, T4> {
+struct tuple<T1, T2, T3, T4> {
     static constexpr u32 len = 4;
 
     template <i32 TIdx>
@@ -78,7 +77,7 @@ struct CORE_API_EXPORT tuple<T1, T2, T3, T4> {
 };
 
 template <typename...TArgs>
-constexpr CORE_API_EXPORT tuple<TArgs...> create_tuple(TArgs&&... args) {
+constexpr tuple<TArgs...> create_tuple(TArgs&&... args) {
     constexpr i32 NArgs = sizeof...(TArgs);
     static_assert(1 < NArgs && NArgs <= 4, "tuples can only have 2, 3 or 4 elements");
     if constexpr (NArgs == 2) {

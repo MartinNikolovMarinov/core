@@ -36,7 +36,7 @@ i32 initialize_arr() {
             Assert(CT::defaultCtorCalled() == testCount, "Initializer did not call the exact number of copy constructors!");
             CT::resetCtors();
             {
-                auto arrCpy = arr;
+                auto arrCpy = arr.copy();
                 Assert(arrCpy.data() != arr.data());
                 for (i32 i = 0; i < arrCpy.len(); ++i) {
                     Assert(arrCpy[i].a == 7, "Copy constructor did not call constructors!");
@@ -69,6 +69,15 @@ i32 move_and_copy_arr() {
     Assert(!arrCpy.empty());
     for (i32 i = 0; i < arrCpy.len(); ++i) {
         Assert(arrCpy[i] == arr[i]);
+    }
+
+    auto arrCpy2 = arr.copy();
+    Assert(arrCpy2.len() == arr.len());
+    Assert(arrCpy2.cap() == arr.cap());
+    Assert(arrCpy2.data() != arr.data());
+    Assert(!arrCpy2.empty());
+    for (i32 i = 0; i < arrCpy2.len(); ++i) {
+        Assert(arrCpy2[i] == arr[i]);
     }
 
     arrMoved = core::move(arr);
@@ -130,6 +139,22 @@ i32 fill_arr() {
         arr.fill(1);
         for (i32 i = 0; i < arr.len(); ++i) {
             Assert(arr[i] == 1);
+        }
+    }
+
+    {
+        core::arr<i32, TAllocator> arr(1, 5);
+
+        arr.fill(0);
+        for (i32 i = 0; i < arr.len(); ++i) {
+            Assert(arr[i] == 0);
+            Assert(i < 1, "Fill should use the length of the array, not the capacity.");
+        }
+
+        arr.fill(1);
+        for (i32 i = 0; i < arr.len(); ++i) {
+            Assert(arr[i] == 1);
+            Assert(i < 1, "Fill should use the length of the array, not the capacity.");
         }
     }
 
@@ -345,7 +370,7 @@ i32 array_of_arrays_arr() {
         arr3.append(8);
         arr3.append(9);
 
-        multi.append(arr);
+        multi.append(arr.copy());
         multi.append(core::move(arr2));
         multi.append(core::move(arr3));
 

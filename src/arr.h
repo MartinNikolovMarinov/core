@@ -35,13 +35,7 @@ struct CORE_API_EXPORT arr {
             callDefaultCtorsIfTypeIsNonTrivial();
         }
     }
-    arr(const arr& other) : m_data(nullptr), m_cap(other.m_cap), m_len(other.m_len) {
-        if (m_cap > 0) {
-            m_data = reinterpret_cast<data_type *>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
-            Assert(m_data != nullptr);
-            copyDataAt(other.m_data, 0, m_len);
-        }
-    }
+    arr(const arr& other) = delete; // prevent copy ctor
     arr(arr&& other) : m_data(other.m_data), m_cap(other.m_cap), m_len(other.m_len) {
         if (this == &other) return;
         other.m_data = nullptr;
@@ -50,9 +44,7 @@ struct CORE_API_EXPORT arr {
     }
     ~arr() { free(); }
 
-    // Prevent copy assignment, because it is unwanted behaviour most of the time.
-    //This does not prevent auto arr2 = arr1; but prevents arr2 = arr1; !
-    arr& operator=(const arr& other) = delete;
+    arr& operator=(const arr& other) = delete; // prevent copy assignment
     arr& operator=(arr&& other) {
         if (this == &other) return *this;
         free(); // very important to free before assigning new data.
@@ -84,7 +76,24 @@ struct CORE_API_EXPORT arr {
     }
 
     arr<T, TAllocator> copy() {
-        arr<T, TAllocator> result(*this);
+        data_type* dataCopy;
+        if (m_cap > 0) {
+            dataCopy = reinterpret_cast<data_type *>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
+            Assert(dataCopy != nullptr);
+            if constexpr (dataIsTrivial) {
+                core::memcopy(dataCopy, m_data, m_len * sizeof(data_type));
+            }
+            else {
+                for (size_type i = 0; i < m_len; i++) {
+                    auto& rawBytes = dataCopy[i];
+                    new (reinterpret_cast<void*>(&rawBytes)) data_type(m_data[i]);
+                }
+            }
+        }
+        arr<T, TAllocator> result;
+        result.m_data = dataCopy;
+        result.m_cap = m_cap;
+        result.m_len = m_len;
         return result;
     }
 

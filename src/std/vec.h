@@ -2,9 +2,7 @@
 
 #include <types.h>
 #include <core_math.h>
-#include <std/traits.h>
-
-#include <cmath>
+#include <std/ccmath.h>
 
 namespace core {
 
@@ -64,14 +62,14 @@ constexpr void vmul(vec<Dim, T>& dst, typename vec<Dim, T>::DataType val) {
 template<i32 Dim, typename TDst, typename TSrc>
 constexpr void vdiv(vec<Dim, TDst>& dst, const vec<Dim, TSrc>& src) {
     for (i32 i = 0; i < dst.dimensions(); ++i) {
-        Assert(static_cast<TDst>(src[i]) != 0, "Division by zero"); // TODO: this assert is costly. Should have an assert that only runs in debug mode.
+        Assert(static_cast<TDst>(src[i]) != 0, "Division by zero");
         dst[i] /= static_cast<TDst>(src[i]);
     }
 }
 template<i32 Dim, typename T>
 constexpr void vdiv(vec<Dim, T>& dst, typename vec<Dim, T>::DataType val) {
     for (i32 i = 0; i < dst.dimensions(); ++i) {
-        Assert(static_cast<T>(val) != 0, "Division by zero"); // TODO: this assert is costly. Should have an assert that only runs in debug mode.
+        Assert(static_cast<T>(val) != 0, "Division by zero");
         dst[i] /= static_cast<T>(val);
     }
 }
@@ -88,10 +86,10 @@ constexpr f64 vlengthsq(const vec<Dim, T>& v) {
 }
 
 template<i32 Dim, typename T>
-f64 vlength(const vec<Dim, T>& v) {
+constexpr f64 vlength(const vec<Dim, T>& v) {
     // TODO: When I move to musl implementation of core::sqrt this should be constexpr
     f64 ret = vlengthsq(v);
-    ret = std::sqrt(ret);
+    ret = core::sqrt(ret);
     return ret;
 }
 
@@ -189,7 +187,7 @@ constexpr vec<Dim, T> vone() {
 // Normalization
 
 template<i32 Dim, typename T>
-vec<Dim, T> vnorm(const vec<Dim, T>& v) {
+constexpr vec<Dim, T> vnorm(const vec<Dim, T>& v) {
     f64 len = vlength(v);
     if (len == 0) return vzero<Dim, T>();
     vec<Dim, T> ret = v;
@@ -269,8 +267,8 @@ constexpr vec<Dim, T> vfloor(const vec<Dim, T>& v) {
 template<i32 Dim, typename T>
 struct vec {
     using DataType = T;
-    static_assert(std::is_trivial_v<DataType>, "DataType must be trivial");
-    static_assert(std::is_arithmetic_v<DataType>, "DataType must be arithmetic Type");
+    static_assert(core::is_trivial_v<DataType>, "DataType must be trivial");
+    static_assert(core::is_arithmetic_v<DataType>, "DataType must be arithmetic Type");
     static_assert(Dim > 0, "Dim must be greater than 0");
 
     static constexpr i32 dimensions() { return Dim; }
@@ -279,23 +277,23 @@ struct vec {
 
     constexpr vec() = default;
 
-    template<i32 D = Dim, typename std::enable_if<(D > 0), i32>::type = 0> constexpr DataType& x() { return data[0]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 0), i32>::type = 0> constexpr DataType& r() { return data[0]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 1), i32>::type = 0> constexpr DataType& y() { return data[1]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 1), i32>::type = 0> constexpr DataType& g() { return data[1]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 2), i32>::type = 0> constexpr DataType& z() { return data[2]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 2), i32>::type = 0> constexpr DataType& b() { return data[2]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr DataType& w() { return data[3]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr DataType& a() { return data[3]; }
+    template<i32 D = Dim, typename core::enable_if<(D > 0), i32>::type = 0> constexpr DataType& x() { return data[0]; }
+    template<i32 D = Dim, typename core::enable_if<(D > 0), i32>::type = 0> constexpr DataType& r() { return data[0]; }
+    template<i32 D = Dim, typename core::enable_if<(D > 1), i32>::type = 0> constexpr DataType& y() { return data[1]; }
+    template<i32 D = Dim, typename core::enable_if<(D > 1), i32>::type = 0> constexpr DataType& g() { return data[1]; }
+    template<i32 D = Dim, typename core::enable_if<(D > 2), i32>::type = 0> constexpr DataType& z() { return data[2]; }
+    template<i32 D = Dim, typename core::enable_if<(D > 2), i32>::type = 0> constexpr DataType& b() { return data[2]; }
+    template<i32 D = Dim, typename core::enable_if<(D > 3), i32>::type = 0> constexpr DataType& w() { return data[3]; }
+    template<i32 D = Dim, typename core::enable_if<(D > 3), i32>::type = 0> constexpr DataType& a() { return data[3]; }
 
-    template<i32 D = Dim, typename std::enable_if<(D > 0), i32>::type = 0> constexpr const DataType& x() const { return data[0]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 0), i32>::type = 0> constexpr const DataType& r() const { return data[0]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 1), i32>::type = 0> constexpr const DataType& y() const { return data[1]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 1), i32>::type = 0> constexpr const DataType& g() const { return data[1]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 2), i32>::type = 0> constexpr const DataType& z() const { return data[2]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 2), i32>::type = 0> constexpr const DataType& b() const { return data[2]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr const DataType& w() const { return data[3]; }
-    template<i32 D = Dim, typename std::enable_if<(D > 3), i32>::type = 0> constexpr const DataType& a() const { return data[3]; }
+    template<i32 D = Dim, typename core::enable_if<(D > 0), i32>::type = 0> constexpr const DataType& x() const { return data[0]; }
+    template<i32 D = Dim, typename core::enable_if<(D > 0), i32>::type = 0> constexpr const DataType& r() const { return data[0]; }
+    template<i32 D = Dim, typename core::enable_if<(D > 1), i32>::type = 0> constexpr const DataType& y() const { return data[1]; }
+    template<i32 D = Dim, typename core::enable_if<(D > 1), i32>::type = 0> constexpr const DataType& g() const { return data[1]; }
+    template<i32 D = Dim, typename core::enable_if<(D > 2), i32>::type = 0> constexpr const DataType& z() const { return data[2]; }
+    template<i32 D = Dim, typename core::enable_if<(D > 2), i32>::type = 0> constexpr const DataType& b() const { return data[2]; }
+    template<i32 D = Dim, typename core::enable_if<(D > 3), i32>::type = 0> constexpr const DataType& w() const { return data[3]; }
+    template<i32 D = Dim, typename core::enable_if<(D > 3), i32>::type = 0> constexpr const DataType& a() const { return data[3]; }
 
     constexpr DataType& operator[](i32 i) {
         Assert(i >= 0 && i < Dim, "Index out of bounds");
@@ -326,13 +324,13 @@ struct vec {
     template<typename U> constexpr void div(const vec<Dim, U>& other) { vdiv(*this, other); }
                          constexpr void div(DataType v)               { vdiv(*this, v); }
 
-    f64 length() const { return vlength(*this); }
+    constexpr f64 length() const { return vlength(*this); }
 
     constexpr f64 dot(const vec<Dim, DataType>& other) const { return vdot(*this, other); }
 
     constexpr vec<Dim, DataType> cross(const vec<Dim, DataType>& other) const { return vcross(*this, other); }
 
-    vec<Dim, DataType> norm() const { return vnorm(*this); }
+    constexpr vec<Dim, DataType> norm() const { return vnorm(*this); }
 
     constexpr bool operator==(const vec<Dim, DataType>& other) const { return equals(other); }
     constexpr bool operator!=(const vec<Dim, DataType>& other) const { return !equals(other); }

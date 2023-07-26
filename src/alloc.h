@@ -59,8 +59,7 @@ const char* allocator_name() noexcept {
  *        If it is not overriden, the default template type for most data structures will fail to compile.
 */
 #ifndef CORE_DEFAULT_ALLOCATOR
-    // TODO: Raise a compiler warning if this is not overriden. Of course, that is not very trivial so just ignore this
-    //       for now by providing a default void type.
+    // TODO2: [COMPILER_WARNING] Raise a compiler warning if this is not overriden.
     #define CORE_DEFAULT_ALLOCATOR() void
 #endif
 

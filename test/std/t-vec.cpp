@@ -126,7 +126,7 @@ constexpr i32 vector_add_sub_mul_div_test() {
     return 0;
 }
 
-i32 vector_length_test() {
+constexpr i32 vector_length_test() {
     constexpr f32 epsillon = 0.000001f;
     Assert(std::abs(core::v(1, 2).length() - 2.23606797749979f) < epsillon);
     Assert(std::abs(core::v(1, 2, 3).length() - 3.7416573867739413f) < epsillon);
@@ -136,7 +136,7 @@ i32 vector_length_test() {
     return 0;
 }
 
-i32 vector_dot_product_test() {
+constexpr i32 vector_dot_product_test() {
     Assert(core::v(1, 2).dot(core::v(3, 4)) == 11.0f);
     Assert(core::v(1, 2, 3).dot(core::v(3, 4, 5)) == 26.0f);
     Assert(core::v(1, 2, 3, 4).dot(core::v(3, 4, 5, 6)) == 50.0f);
@@ -249,6 +249,8 @@ i32 run_vec_tests_suite() {
 constexpr i32 run_compiletime_vec_tests_suite() {
     RunTestCompileTime(vector_equals_test);
     RunTestCompileTime(vector_add_sub_mul_div_test);
+    RunTestCompileTime(vector_length_test);
+    RunTestCompileTime(vector_dot_product_test);
     RunTestCompileTime(vector_cross_product_test);
 
     return 0;

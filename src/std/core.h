@@ -8,6 +8,7 @@
 #include "traits.h"
 #include "vec.h"
 #include "mat.h"
+#include "ccmath.h"
 #include "transforms.h"
 #include "stacktrace.h"
 #include "projections.h"

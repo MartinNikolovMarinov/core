@@ -130,18 +130,20 @@ constexpr i32 degrees_test() {
     return 0;
 }
 
-constexpr i32 mantissa_exponent_test() {
+i32 mantissa_exponent_test() {
     {
         struct test_case {
             f32 in;
-            i32 expectedMantissa;
-            i32 expectedExponent;
+            u32 expectedMantissa;
+            u32 expectedExponent;
         };
 
         constexpr test_case cases[] = {
-            { 0,          0b0,                       0b0 },
-            { 966.68f,    0b11100011010101110000101, 0b10001000 },
-            { 34135.1235, 0b00001010101011100011111, 0b10001110 },
+            { 0,        0b0,                       0b0 },
+            { 966.68f,  0b11100011010101110000101, 0b10001000 }, // has conversion error
+            { 16.4f,    0b00000110011001100110011, 0b10000011 }, // has conversion error
+            { -12.375f, 0b10001100000000000000000, 0b10000010 },
+            { -0.02f,   0b01000111101011100001010, 0b01111001 }, // has conversion error
         };
 
         executeTestTable("mantissa_exponent 32bit test case failed at index: ", cases, [](auto& c, const char* cErr) {
@@ -155,14 +157,16 @@ constexpr i32 mantissa_exponent_test() {
     {
         struct test_case {
             f64 in;
-            i64 expectedMantissa;
-            i64 expectedExponent;
+            u64 expectedMantissa;
+            u64 expectedExponent;
         };
 
         constexpr test_case cases[] = {
-            { 0,          0b0,                                                    0b0 },
-            { 966.68,     0b1110001101010111000010100011110101110000101000111101, 0b10000001000 },
-            { 34135.1235, 0b000111111001110110110010001011010001000000000000000,  0b1000010101010111 },
+            { 0,        0b0,                                                    0b0 },
+            { 966.68,   0b1110001101010111000010100011110101110000101000111101, 0b10000001000 }, // has conversion error
+            { 16.4,     0b0000011001100110011001100110011001100110011001100110, 0b10000000011 }, // has conversion error
+            { -12.375,  0b1000110000000000000000000000000000000000000000000000, 0b10000000010 },
+            { -0.02,    0b0100011110101110000101000111101011100001010001111011, 0b01111111001 }, // has conversion error
         };
 
         executeTestTable("mantissa_exponent 64bit test case failed at index: ", cases, [](auto& c, const char* cErr) {
@@ -272,6 +276,43 @@ constexpr i32 float_safe_eq_test() {
     return 0;
 }
 
+i32 float_nearly_eq_extream_cases_test() {
+    struct test_case {
+        f32 a;
+        f32 b;
+        f32 epsilon;
+        bool expected;
+    };
+
+    constexpr f32 defaultEpsilon = 0.00001f;
+    test_case cases[] = {
+        { MAX_F32, MAX_F32, defaultEpsilon, true },
+        // { MAX_F32, -MAX_F32, defaultEpsilon, false }, // These 2 look like a bug, but I don't think I care.
+        // { -MAX_F32, MAX_F32, defaultEpsilon, false },
+        { MAX_F32, MAX_F32 / 2, defaultEpsilon, false },
+        { MAX_F32, -MAX_F32 / 2, defaultEpsilon, false },
+        { -MAX_F32, MAX_F32 / 2, defaultEpsilon, false },
+
+        { MIN_F32, MIN_F32, defaultEpsilon, true },
+        { MIN_F32, -MIN_F32, defaultEpsilon, true },
+        { -MIN_F32, MIN_F32, defaultEpsilon, true },
+        { MIN_F32, 0, defaultEpsilon, false },
+        { 0, MIN_F32, defaultEpsilon, false },
+        { -MIN_F32, 0, defaultEpsilon, false },
+        { 0, -MIN_F32, defaultEpsilon, false },
+        { 0.000000001f, -MIN_F32, defaultEpsilon, false },
+        { 0.000000001f, MIN_F32, defaultEpsilon, false },
+        { MIN_F32, 0.000000001f, defaultEpsilon, false },
+        { -MIN_F32, 0.000000001f, defaultEpsilon, false },
+    };
+
+        executeTestTable("float_nearly_eq_extream_cases_test test case failed at index: ", cases, [](auto& c, const char* cErr) {
+        Assert(core::nearly_eq(c.a, c.b, c.epsilon) == c.expected, cErr);
+    });
+
+    return 0;
+}
+
 constexpr i32 float_nearly_eq_test() {
     struct test_case {
         f32 a;
@@ -332,25 +373,6 @@ constexpr i32 float_nearly_eq_test() {
         { -1e-40f, 0.0f,  0.1f, true },
         { -1e-40f, 0.0f, 0.00000001f, false },
         { 0.0f, -1e-40f, 0.00000001f, false },
-
-        { MAX_F32, MAX_F32, defaultEpsilon, true },
-        // { MAX_F32, -MAX_F32, defaultEpsilon, false }, // TODO: These 2 look like a bug. But I might not care.
-        // { -MAX_F32, MAX_F32, defaultEpsilon, false },
-        { MAX_F32, MAX_F32 / 2, defaultEpsilon, false },
-        { MAX_F32, -MAX_F32 / 2, defaultEpsilon, false },
-        { -MAX_F32, MAX_F32 / 2, defaultEpsilon, false },
-
-        { MIN_F32, MIN_F32, defaultEpsilon, true },
-        { MIN_F32, -MIN_F32, defaultEpsilon, true },
-        { -MIN_F32, MIN_F32, defaultEpsilon, true },
-        { MIN_F32, 0, defaultEpsilon, false },
-        { 0, MIN_F32, defaultEpsilon, false },
-        { -MIN_F32, 0, defaultEpsilon, false },
-        { 0, -MIN_F32, defaultEpsilon, false },
-        { 0.000000001f, -MIN_F32, defaultEpsilon, false },
-        { 0.000000001f, MIN_F32, defaultEpsilon, false },
-        { MIN_F32, 0.000000001f, defaultEpsilon, false },
-        { -MIN_F32, 0.000000001f, defaultEpsilon, false },
     };
 
     executeTestTable("float_nearly_eq test case failed at index: ", cases, [](auto& c, const char* cErr) {
@@ -360,76 +382,17 @@ constexpr i32 float_nearly_eq_test() {
     return 0;
 }
 
-i32 sign_test() {
-    {
-        struct test_case {
-            f32 a;
-            i32 expected;
-        };
-
-        constexpr test_case cases[] = {
-            { 0.f, 0 },
-            { -0.f, 1 }, // damn that is a weird one.
-            { 1.f, 0 },
-            { -1.f, 1 },
-            { 100.f, 0 },
-            { -100.f, 1 },
-            { 1000000.f, 0 },
-            { -1000000.f, 1 },
-            { 0.000000001f, 0 },
-            { -0.000000001f, 1 },
-            { 0.000000000001f, 0 },
-            { -0.000000000001f, 1 },
-            { 0.000000000000001f, 0 },
-            { -0.000000000000001f, 1 },
-        };
-
-        executeTestTable("sign test case for f32 failed at index: ", cases, [](auto& c, const char* cErr) {
-            Assert(core::sign(c.a) == c.expected, cErr);
-        });
-    }
-
-    {
-        struct test_case {
-            f64 a;
-            i32 expected;
-        };
-
-        constexpr test_case cases[] = {
-            { 0.0, 0 },
-            { -0.0, 1 }, // damn that is a weird one.
-            { 1.0, 0 },
-            { -1.0, 1 },
-            { 100.0, 0 },
-            { -100.0, 1 },
-            { 1000000.0, 0 },
-            { -1000000.0, 1 },
-            { 0.000000001, 0 },
-            { -0.000000001, 1 },
-            { 0.000000000001, 0 },
-            { -0.000000000001, 1 },
-            { 0.000000000000001, 0 },
-            { -0.000000000000001, 1 },
-        };
-
-        executeTestTable("sign test case for f64 failed at index: ", cases, [](auto& c, const char* cErr) {
-            Assert(core::sign(c.a) == c.expected, cErr);
-        });
-    }
-
-    return 0;
-}
-
 i32 run_core_math_tests_suite() {
     RunTest(pow10_test);
     RunTest(pow2_test);
     RunTest(degrees_test);
-    // RunTest(mantissa_exponent_test);
+    RunTest(mantissa_exponent_test);
     RunTest(abs_test);
+
     RunTest(is_positive_test);
     RunTest(float_safe_eq_test);
+    RunTest(float_nearly_eq_extream_cases_test);
     RunTest(float_nearly_eq_test);
-    RunTest(sign_test);
 
     return 0;
 }
@@ -438,11 +401,11 @@ constexpr i32 run_compiletime_core_math_tests_suite() {
     RunTestCompileTime(pow10_test);
     RunTestCompileTime(pow2_test);
     RunTestCompileTime(degrees_test);
-    // RunTestCompileTime(mantissa_exponent_test);
     RunTestCompileTime(abs_test);
+
     RunTestCompileTime(is_positive_test);
     RunTestCompileTime(float_safe_eq_test);
-    // RunTestCompileTime(float_nearly_eq_test); // TODO: nearly_eq is possible in comstexpr, but the test is not. Write a simpler test for compiletime execution.
+    RunTestCompileTime(float_nearly_eq_test);
 
     return 0;
 }

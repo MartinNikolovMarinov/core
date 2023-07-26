@@ -9,9 +9,6 @@
 
 #include <glfw/glfw_impl.h>
 
-// TODO: I should create a texture abstraction, but right now I do not have enough context to understand what is a good design.
-//       Do this later, for now it is more important to advace my OpenGL knowledge!
-
 namespace textures_ex_02 {
 
 namespace {

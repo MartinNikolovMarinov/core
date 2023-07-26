@@ -5,22 +5,6 @@
 #include <tuple.h>
 #include <core_traits.h>
 
-// IMPORTANT: Implementation of standard functions uses musl libc as a reference.
-//
-// Here is a representation of a floating point number in memory (Little Endian) as a reference for some of the bitwise
-// operations:
-//
-//   31 bit 30 bit     23 bit                    0 bit
-//   |      |          |                         |
-//   | Sign | Exponent |        Mantissa         |
-//   |  1   | 10000010 | 10001100000000000000000 |
-//
-// This number in decimal is -12.375.
-
-// TODO: Some of the functions in this file can be implemented MUCH faster for specific hardware with assembly.
-//       At some point I should invest the time to do this.
-//       Until then write good test so that the transition can be less painful.
-
 // TODO: I should probably define some INFINITY and NAN constants for f32 and f64. It's not as easy as it sounds though.
 
 namespace core {
@@ -93,39 +77,7 @@ constexpr f32 rad_to_deg(const radians& n) {
 
 #pragma endregion
 
-#pragma region Take Exponent/Mantisssa --------------------------------------------------------------------------------
-
-// TODO: test everything in this section.
-
-constexpr i32 exponent(f32 n) {
-    union { f32 f; i32 i; } u = { n };
-    i32 ret = (i32)(u.i >> 23 & 0xff);
-    return ret;
-}
-
-constexpr i32 exponent(f64 n) {
-    union { f64 f; i64 i; } u = { n };
-    i32 ret = (i32)(u.i >> 52 & 0x7ff);
-    return ret;
-}
-
-constexpr i32 mantissa(f32 n) {
-    union { f32 f; i32 i; } u = { n };
-    i32 ret = (i32)(u.i & 0x7fffff);
-    return ret;
-}
-
-constexpr i64 mantissa(f64 n) {
-    union { f64 f; i64 i; } u = { n };
-    i64 ret = (i64)(u.i & 0xfffffffffffff);
-    return ret;
-}
-
-#pragma endregion
-
 #pragma region Classification -----------------------------------------------------------------------------------------
-
-// TODO: test everything in this section.
 
 // The FP classification algorithm is from the musl libc implementaton.
 
@@ -137,237 +89,41 @@ enum struct FP_Classification {
     NORMAL = 4
 };
 
-constexpr FP_Classification fpclassify(f32 x) {
-    union { f32 f; u32 i; } u = { x };
-    i32 e = (u.i >> 23) & 0xff;
-    if (!e) return u.i << 1 ? FP_Classification::SUBNORMAL : FP_Classification::ZERO;
-    if (e == 0xff) return u.i << 9 ? FP_Classification::NAN : FP_Classification::INFINITE;
-    return FP_Classification::NORMAL;
-}
+CORE_API_EXPORT FP_Classification fpclassify(f32 x);
+CORE_API_EXPORT FP_Classification fpclassify(f64 x);
 
-constexpr FP_Classification fpclassify(f64 x) {
-    union { f64 f; u64 i; } u = { x };
-    i32 e = (u.i >> 52) & 0x7ff;
-    if (!e) return u.i << 1 ? FP_Classification::SUBNORMAL : FP_Classification::ZERO;
-    if (e == 0x7ff) return u.i << 12 ? FP_Classification::NAN : FP_Classification::INFINITE;
-    return FP_Classification::NORMAL;
-}
+CORE_API_EXPORT bool isinf(f32 x);
+CORE_API_EXPORT bool isinf(f64 x);
 
-template <typename TFloat>
-constexpr bool isinf(TFloat x) {
-    return fpclassify(x) == FP_Classification::INFINITE;
-}
+CORE_API_EXPORT bool isnan(f32 x);
+CORE_API_EXPORT bool isnan(f64 x);
 
-template <typename TFloat>
-constexpr bool isnan(TFloat x) {
-    return fpclassify(x) == FP_Classification::NAN;
-}
-
-template <typename TFloat>
-constexpr bool isnormal(TFloat x) {
-    return fpclassify(x) == FP_Classification::NORMAL;
-}
+CORE_API_EXPORT bool isnormal(f32 x);
+CORE_API_EXPORT bool isnormal(f64 x);
 
 #pragma endregion
 
-#pragma region Sign --------------------------------------------------------------------------------------------------
+#pragma region Take Exponent/Mantisssa --------------------------------------------------------------------------------
 
-inline i32 sign(f32 n) {
-    // NOTE: I failed to implement a fallback implementation for this function, so NO constexpr.
-    union { f32 f; u32 i; } u = { n };
-    return u.i >> 31;
-}
+// NOTE:
+// The following code takes the exponent and mantissa of a floating point number, which is encoded in the IEEE-754.
+// The code does not support little-endian systems. Support should not be too difficult if I need it.
+//
+// Here is a representation of a floating point number in memory (Little Endian) as a reference for some of the bitwise
+// operations:
+//
+//   31 bit 30 bit     23 bit                    0 bit
+//   |      |          |                         |
+//   | Sign | Exponent |        Mantissa         |
+//   |  1   | 10000010 | 10001100000000000000000 |
+//
+// This number in decimal is -12.375.
+// The value of a IEEE-754 number is computed as: sign * 2^exponent * mantissa.
 
-inline i32 sign(f64 n) {
-    // NOTE: I failed to implement a fallback implementation for this function, so NO constexpr.
-    union { f64 f; u64 i; } u = { n };
-    return u.i >> 63;
-}
-
-#pragma endregion
-
-#pragma region Round -------------------------------------------------------------------------------------------------
-
-// TODO: Write tests for round.
-
-static constexpr f32 __f32toInt = 1 / core::EPSILON_F32;
-static constexpr f64 __f64toInt = 1 / core::EPSILON_F64;
-
-constexpr f32 round(f32 x) {
-    union {f32 f; u32 i;} u = {x};
-    i32 e = exponent(x);
-
-    if (e >= 0x7f+23) {
-        // The 0x7f value represents the exponent bias of the single-precision floating-point format. If the exponent is
-        // greater than or equal to 0x7f+23, it means that the number x is either NaN (Not a Number) or infinite. In
-        // such cases, the original value of x is returned as there is no need for rounding.
-        return x;
-    }
-
-    // This condition checks if the sign bit of the number x is set (the most significant bit). If the sign bit is set,
-    // it means that x is negative. In that case, the code negates the value of x.
-    if (u.i >> 31) x = -x;
-
-    if (e < 0x7f-1) {
-        // If the exponent is less than 0x7f-1, it means that the absolute value of x is less than 1, in which case the
-        // code returns 0.
-        return 0*u.f;
-    }
-
-    // Lastly we actually round the number:
-    f32 y = x + __f32toInt - __f32toInt - x;
-    if (y > 0.5f)        y = y + x - 1;
-    else if (y <= -0.5f) y = y + x + 1;
-    else                 y = y + x;
-
-    // If the original number was negative we need to negate the result:
-    if (u.i >> 31) y = -y;
-    return y;
-}
-
-// Musl implementation of round.
-constexpr f64 round(f64 x) {
-    union {f64 f; u64 i;} u = {x};
-    i32 e = exponent(x);
-
-    if (e >= 0x3ff+52) {
-        // The 0x3ff value represents the exponent bias of the double-precision floating-point format. If the exponent
-        // is greater than or equal to 0x3ff+52, it means that the number x is either NaN (Not a Number) or infinite.
-        // In such cases, the original value of x is returned as there is no need for rounding.
-        return x;
-    }
-
-    // This condition checks if the sign bit of the number x is set (the most significant bit). If the sign bit is set,
-    // it means that x is negative. In that case, the code negates the value of x.
-    if (u.i >> 63) x = -x;
-
-    if (e < 0x3ff-1) {
-        // If the exponent is less than 0x3ff-1, it means that the absolute value of x is less than 1, in which case
-        // the code returns 0.
-        return 0*u.f;
-    }
-
-    // Lastly we actually round the number:
-    f64 y = x + __f64toInt - __f64toInt - x;
-    if (y > 0.5)         y = y + x - 1;
-    else if (y <= -0.5)  y = y + x + 1;
-    else                 y = y + x;
-
-    // If the original number was negative we need to negate the result:
-    if (u.i >> 63) y = -y;
-    return y;
-}
-
-template <typename TFloat>
-constexpr TFloat round_to(TFloat n, u32 to) {
-    return TFloat(round(n * TFloat(10*to))) / TFloat(10*to);
-}
-
-#pragma endregion
-
-#pragma region Floor -------------------------------------------------------------------------------------------------
-
-// TODO: Write tests for floor.
-
-constexpr f32 floor(f32 x) {
-    union { f32 f; u32 i; } u = {x};
-    // Subtracting 0x7f compensates for the exponent bias in the IEEE 754 double-precision floating-point format.
-    i32 e = exponent(x) - 0x7f;
-
-    if (e >= 23) {
-        // This means that the input x is already a whole number or has a magnitude greater than or equal to 1.
-        return x;
-    }
-
-    if (e >= 0) {
-        // The fractional part is within the significand of x.
-        u32 m = 0x007fffff >> e;
-        if ((u.i & m) == 0) return x; // fractional part is zero
-        if (u.i >> 31) u.i += m; // the actual flooring
-        u.i &= ~m;
-    } else {
-        if (u.i >> 31 == 0) u.i = 0;
-        else if (u.i << 1) u.f = -1.0; // the actual flooring
-    }
-
-    return u.f;
-}
-
-constexpr f64 floor(f64 x) {
-    union { f64 f; u64 i; } u = {x};
-    // Subtracting 0x3ff compensates for the exponent bias in the IEEE 754 double-precision floating-point format.
-    i32 e = exponent(x) - 0x3ff;
-
-    if (e >= 52) {
-        // This means that the input x is already a whole number or has a magnitude greater than or equal to 1.
-        return x;
-    }
-
-    if (e >= 0) {
-        // The fractional part is within the significand of x.
-        u64 m = 0x000fffffffffffff >> e;
-        if ((u.i & m) == 0) return x; // fractional part is zero
-        if (u.i >> 63) u.i += m; // the actual flooring
-        u.i &= ~m;
-    } else {
-        if (u.i >> 63 == 0) u.i = 0;
-        else if (u.i << 1) u.f = -1.0; // the actual flooring
-    }
-
-    return u.f;
-}
-
-#pragma endregion
-
-#pragma region Ceil --------------------------------------------------------------------------------------------------
-
-// TODO: Write tests for ceil
-
-constexpr f32 ceil(f32 x) {
-    union { f32 f; u32 i; } u = { x };
-    // Subtracting 0x7f compensates for the exponent bias in the IEEE 754 double-precision floating-point format.
-    i32 e = exponent(x) - 0x7f;
-
-    if (e >= 23) {
-        // This means that the input x is already a whole number or has a magnitude greater than or equal to 1.
-        return x;
-    }
-
-    if (e >= 0) {
-        u32 m = 0x007fffff >> e;
-        if ((u.i & m) == 0) return x; // fractional part is zero
-        if (u.i >> 31 == 0) u.i += m; // the actual rounding
-        u.i &= ~m;
-    } else {
-        if (u.i >> 31) u.f = -0.0;
-        else if (u.i << 1) u.f = 1.0; // the actual rounding
-    }
-
-    return u.f;
-}
-
-constexpr f64 ceil(f64 x) {
-    union { f64 f; u64 i; } u = { x };
-    // Subtracting 0x3ff compensates for the exponent bias in the IEEE 754 double-precision floating-point format.
-    i32 e = exponent(x) - 0x3ff;
-
-    if (e >= 52) {
-        // This means that the input x is already a whole number or has a magnitude greater than or equal to 1.
-        return x;
-    }
-
-    if (e >= 0) {
-        u64 m = 0x000fffffffffffff >> e;
-        if ((u.i & m) == 0) return x; // fractional part is zero
-        if (u.i >> 63 == 0) u.i += m; // the actual rounding
-        u.i &= ~m;
-    } else {
-        if (u.i >> 63) u.f = -0.0;
-        else if (u.i << 1) u.f = 1.0;
-    }
-
-    return u.f;
-}
+CORE_API_EXPORT u32 exponent(f32 n);
+CORE_API_EXPORT u32 exponent(f64 n);
+CORE_API_EXPORT u32 mantissa(f32 n);
+CORE_API_EXPORT u64 mantissa(f64 n);
 
 #pragma endregion
 
@@ -400,12 +156,12 @@ constexpr TFloat clamp(TFloat value, TFloat min, TFloat max) {
 #pragma region Abs/Sign -----------------------------------------------------------------------------------------------
 
 template <typename T>
-constexpr inline T abs_slow(T a) {
+constexpr T abs_slow(T a) {
     // can be done branchless, but it's not faster.
     return a < 0 ? -a : a;
 }
 
-constexpr inline f32 abs(f32 a) {
+constexpr f32 abs(f32 a) {
     if constexpr (core::is_const_evaluated()) {
         return abs_slow(a);
     }
@@ -417,7 +173,7 @@ constexpr inline f32 abs(f32 a) {
     }
 }
 
-constexpr inline f64 abs(f64 a) {
+constexpr f64 abs(f64 a) {
     if constexpr (core::is_const_evaluated()) {
         return abs_slow(a);
     }

@@ -502,8 +502,6 @@ core::expected<GraphicsLibError> preMainLoop(CommonState& commonState) {
 
     // Create the texture for the screen quad
     {
-        // TODO: I kinda want to recalculate this on window resize. It can't be staticly drawn.
-
         glGenTextures(1, &g_s.textureId);
         glBindTexture(GL_TEXTURE_2D, g_s.textureId);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

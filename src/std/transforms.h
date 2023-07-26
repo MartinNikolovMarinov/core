@@ -61,7 +61,7 @@ constexpr mat4<T> scale(const mat4<T>& m, const vec3<T>& s) {
     return ret;
 }
 
-// TODO: Add constexpr to rotate functions when std::cos and std::sin are moved to musl implementation, and are constexpr.
+// FIXME: Add constexpr to rotate functions when std::cos and std::sin are moved to musl implementation, and are constexpr.
 
 // Rotate 2D
 

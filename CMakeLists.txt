@@ -95,6 +95,7 @@ set(src_files
     src/char_ptr.h
     src/cmd_flag.h
     src/core_math.h
+    src/core_math.cpp
     src/core_traits.h
     src/expected.h
     src/intrinsic.cpp

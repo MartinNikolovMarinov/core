@@ -5,7 +5,6 @@
 #include <ints.h>
 #include <core_traits.h>
 
-// TODO: Write tests for this file!
 // TODO: Non of this is even remotely perfromant!
 
 namespace core {
@@ -56,7 +55,7 @@ constexpr TInt cptr_to_int(const char* s) {
     return neg ? -res : res;
 }
 
-// This function does not handle overflows! TODO: On top of that it is slow.
+// This function does not handle overflows!
 template <typename TFloat>
 constexpr TFloat cptr_to_float(const char* s) {
     static_assert(core::is_float_v<TFloat>, "TFloat must be a floating point type.");

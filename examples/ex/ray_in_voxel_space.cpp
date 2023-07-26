@@ -107,8 +107,6 @@ core::expected<GraphicsLibError> init(CommonState& s) {
     g_s.viewportHeight = s.mainWindow.height;
 
     glfwSetKeyCallback(glfwWindow, [](GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods) {
-        // TODO: This function has become silly slow for somthing that will be called on every key press/hold/release.
-
         State& g_s = state();
         app::KeyboardModifiers keyModifiers = app::createKeyboardModifiersGLFW(mods);
         app::KeyInfo keyInfo = app::createKeyInfoGLFW(key, scancode, action);

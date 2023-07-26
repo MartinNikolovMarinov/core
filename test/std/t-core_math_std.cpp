@@ -1,68 +1,3 @@
-// Running tests for more complex math functions requires a check with the standard library implementation. It is also
-// required to keep one's sanity.
-
-i32 fp_classifications_test() {
-    {
-        struct TestCase {
-            f32 a;
-            i32 expected;
-        };
-
-        constexpr f32 infinity = std::numeric_limits<f32>::infinity();
-        constexpr f32 nan = std::numeric_limits<f32>::quiet_NaN();
-
-        constexpr TestCase cases[] = {
-            { 0.0, FP_ZERO },
-            { 1.5, FP_NORMAL },
-            { -2.75, FP_NORMAL },
-            { 1.0e-38f, FP_SUBNORMAL },
-            { infinity, FP_INFINITE },
-            { -infinity, FP_INFINITE },
-            { 1.0, FP_NORMAL },
-            { -3.0, FP_NORMAL },
-            { nan, FP_NAN },
-        };
-
-        executeTestTable("fp_classifications test case for f32 failed at index: ", cases, [](auto& c, const char* cErr) {
-            auto got = core::fpclassify(c.a);
-            auto stdGot = std::fpclassify(c.a);
-            Assert(i32(got) == c.expected, cErr);
-            Assert(i32(stdGot) == i32(got), cErr);
-        });
-    }
-
-    {
-        struct TestCase {
-            f64 a;
-            i32 expected;
-        };
-
-        constexpr f64 infinity = std::numeric_limits<f64>::infinity();
-        constexpr f64 nan = std::numeric_limits<f64>::quiet_NaN();
-
-        constexpr TestCase cases[] = {
-            { 0.0, FP_ZERO },
-            { 1.5, FP_NORMAL },
-            { -2.75, FP_NORMAL },
-            { 1.0e-308, FP_SUBNORMAL },
-            { infinity, FP_INFINITE },
-            { -infinity, FP_INFINITE },
-            { 1.0, FP_NORMAL },
-            { -3.0, FP_NORMAL },
-            { nan, FP_NAN },
-        };
-
-        executeTestTable("fp_classifications test case for f64 failed at index: ", cases, [](auto& c, const char* cErr) {
-            auto got = core::fpclassify(c.a);
-            auto stdGot = std::fpclassify(c.a);
-            Assert(i32(got) == c.expected, cErr);
-            Assert(i32(stdGot) == i32(got), cErr);
-        });
-    }
-
-    return 0;
-}
-
 i32 round_test() {
     {
         struct TestCase {
@@ -376,7 +311,6 @@ i32 min_max_test() {
 }
 
 i32 run_core_math_tests_suite_std() {
-    RunTest(fp_classifications_test);
     RunTest(round_test);
     RunTest(floor_test);
     RunTest(ceil_test);

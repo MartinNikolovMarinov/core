@@ -98,8 +98,8 @@ constexpr i32 int_to_cptr_test() {
 }
 
 constexpr i32 cptr_to_int_test() {
-    // TODO: test overlow cases!
-    // TODO: test all allowed types, like i8, i16, i32, i64, u8, u16, u32 and u64.
+    // FIXME: test overlow cases!
+    // FIXME: test all allowed types, like i8, i16, i32, i64, u8, u16, u32 and u64.
 
     struct test_case {
         const char* input;
@@ -123,7 +123,7 @@ constexpr i32 cptr_to_int_test() {
         { "2147483647", 2147483647 },
         { "-2147483647", -2147483647 },
 
-        // TODO: My implementation makes it impossible to use -2147483648 in constexpr, because I overflow i32. This is
+        // FIXME: My implementation makes it impossible to use -2147483648 in constexpr, because I overflow i32. This is
         //       minor, but it's bugging me. It's not so minor when using i8.
         // { "-2147483648", -2147483648 },
     };
@@ -138,7 +138,7 @@ constexpr i32 cptr_to_int_test() {
 
 constexpr i32 cptr_to_float_test() {
 
-    // TODO: test overlow cases and f64 cases!
+    // FIXME: test overlow cases and f64 cases!
 
     struct test_case {
         const char* input;

@@ -25,6 +25,9 @@ template <typename...> struct expected;
 
 template <typename T, typename TErr>
 struct expected<T, TErr> {
+    // NOTE: The type must be standard layout to store it in a union.
+    static_assert(core::is_standard_layout_v<T>, "type must be standard layout");
+
     expected(T&& value)  : m_value(core::forward<T>(value)), m_hasValue(true) {}
     template <typename TErr2>
     expected(unexpected_t<TErr2>&& wrapper) : m_err(core::move(wrapper.err)), m_hasValue(false) {}
@@ -96,9 +99,11 @@ template <typename...> struct static_expected;
 // IMPORTANT: Do not put anything which is not trivially destructible in this struct!
 template <typename T, typename TErr>
 struct static_expected<T, TErr> {
+    // NOTE: The type must be standard layout to store it in a union.
+    static_assert(core::is_standard_layout_v<T>, "type must be standard layout");
     static_assert(core::is_trivially_destructible_v<T>, "type must be trivially destructible");
 
-    constexpr static_expected(T&& value)  : m_value(core::forward<T>(value)), m_hasValue(true) {}
+    constexpr static_expected(T&& value) : m_value(core::forward<T>(value)), m_hasValue(true) {}
     template <typename TErr2>
     constexpr static_expected(unexpected_t<TErr2>&& wrapper) : m_err(core::move(wrapper.err)), m_hasValue(false) {}
 

@@ -45,7 +45,11 @@ CORE_API_EXPORT global_assert_handler_ptr get_global_assert_handler();
 #endif
 
 #ifndef Panic
-    #define Panic(...) *(volatile coretypes::i32 *)0 = 0;
+    #if defined(CORE_ASSERT_ENABLED) && CORE_ASSERT_ENABLED
+        #define Panic(...) Assert(__VA_ARGS__)
+    #else
+        #define Panic(...) *(volatile coretypes::i32 *)0 = 0;
+    #endif
 #endif
 
 // Zero cost defer:

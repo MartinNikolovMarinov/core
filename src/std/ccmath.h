@@ -94,7 +94,7 @@ constexpr TFloat fpclassify_compiletime_impl(TFloat x) {
 }
 
 template <typename TFloat>
-constexpr TFloat fpclassify(TFloat x) {
+constexpr i32 fpclassify(TFloat x) {
     if constexpr (core::is_const_evaluated()) {
         return fpclassify_compiletime_impl(x);
     }

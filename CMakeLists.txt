@@ -31,7 +31,7 @@ if(NOT DEFINED CORE_ASSERT_ENABLED)
     endif()
 endif()
 
-if(MAKE_SYSTEM_NAME STREQUAL "Windows" OR
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows" OR
    CMAKE_SYSTEM_NAME STREQUAL "CYGWIN" OR
    CMAKE_SYSTEM_NAME STREQUAL "MSYS" OR
    CMAKE_SYSTEM_NAME STREQUAL "WindowsCE")
@@ -43,13 +43,6 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 else()
     set(OS "unsupported")
     message(FATAL_ERROR "Unsupported OS: ${CMAKE_SYSTEM_NAME}!")
-endif()
-
-if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
-    set(ARCH "x64")
-else()
-    set(ARCH "unsupported")
-    message(FATAL_ERROR "Unsupported architecture: ${CMAKE_HOST_SYSTEM_PROCESSOR}!")
 endif()
 
 if(NOT DEFINED CORE_BUILD_TESTS)
@@ -67,7 +60,8 @@ endif()
 
 message(STATUS "[CORE] ---------------------------------------------")
 message(STATUS "[CORE] Platform:          ${OS}")
-message(STATUS "[CORE] Arch:              ${ARCH}")
+# IMPORTANT: Do not relly on CMAKE_HOST_SYSTEM_PROCESSOR for anything serious !
+message(STATUS "[CORE] Arch:              ${CMAKE_HOST_SYSTEM_PROCESSOR}")
 message(STATUS "[CORE] Compiler:          ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "[CORE] Debug:             ${CORE_DEBUG}")
 message(STATUS "[CORE] Assert:            ${CORE_ASSERT_ENABLED}")

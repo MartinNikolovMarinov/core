@@ -4,7 +4,7 @@ constexpr i32 char_to_int_test() {
         i32 expected;
     };
 
-    test_case cases[] = {
+    constexpr test_case cases[] = {
         { '0', 0 },
         { '1', 1 },
         { '2', 2 },
@@ -39,7 +39,7 @@ constexpr i32 digit_to_char_test() {
         char expected;
     };
 
-    test_case cases[] = {
+    constexpr test_case cases[] = {
         { 0, '0' },
         { 1, '1' },
         { 2, '2' },

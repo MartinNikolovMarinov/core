@@ -1,10 +1,10 @@
 #pragma once
 
 #include <types.h>
-#include <std/vec.h>
+#include <core_traits.h>
 #include <core_math.h>
-
-#include <cmath>
+#include <std/ccmath.h>
+#include <std/vec.h>
 
 namespace core {
 
@@ -12,9 +12,10 @@ using namespace coretypes;
 
 template <typename TFloat>
 inline TFloat slope(TFloat x1, TFloat y1, TFloat x2, TFloat y2) {
+    static_assert(core::is_float_v<TFloat>, "Invalid TFloat type.");
     TFloat raise = y2 - y1;
     TFloat run = x2 - x1;
-    auto ret =  std::atan2(raise, run);
+    auto ret =  core::atan2(raise, run);
     return ret;
 }
 
@@ -36,9 +37,10 @@ inline TFloat slope(const vec2<TFloat>& a, const vec2<TFloat>& b) {
  * @return True if the lines intersect, false otherwise.
  **/
 template <typename TFloat>
-inline bool line_to_line_intersection(const core::vec2<TFloat>& a, const core::vec2<TFloat>& b,
-                                      const core::vec2<TFloat>& c, const core::vec2<TFloat>& d,
-                                      core::vec2<TFloat>& out) {
+constexpr inline bool line_to_line_intersection(const core::vec2<TFloat>& a, const core::vec2<TFloat>& b,
+                                                const core::vec2<TFloat>& c, const core::vec2<TFloat>& d,
+                                                core::vec2<TFloat>& out) {
+    static_assert(core::is_float_v<TFloat>, "Invalid TFloat type.");
     // Formula of line to line intersection.
     TFloat x1 = a.x(); TFloat y1 = a.y();
     TFloat x2 = b.x(); TFloat y2 = b.y();
@@ -51,9 +53,9 @@ inline bool line_to_line_intersection(const core::vec2<TFloat>& a, const core::v
     return true;
 }
 template <typename TFloat>
-inline bool line_to_line_intersection(const core::vec2<TFloat>& a, const core::vec2<TFloat>& b,
-                                      const core::vec2<TFloat>& c, const core::vec2<TFloat>& d,
-                                      TFloat& x, TFloat& y) {
+constexpr inline bool line_to_line_intersection(const core::vec2<TFloat>& a, const core::vec2<TFloat>& b,
+                                                const core::vec2<TFloat>& c, const core::vec2<TFloat>& d,
+                                                TFloat& x, TFloat& y) {
     auto t = core::v(x, y);
     bool ret = line_to_line_intersection(a, b, c, d, t);
     x = t.x();
@@ -61,9 +63,9 @@ inline bool line_to_line_intersection(const core::vec2<TFloat>& a, const core::v
     return ret;
 }
 template <typename TFloat>
-inline bool line_to_line_intersection(TFloat x1, TFloat y1, TFloat x2, TFloat y2,
-                                      TFloat x3, TFloat y3, TFloat x4, TFloat y4,
-                                      TFloat& x, TFloat& y) {
+constexpr  inline bool line_to_line_intersection(TFloat x1, TFloat y1, TFloat x2, TFloat y2,
+                                                 TFloat x3, TFloat y3, TFloat x4, TFloat y4,
+                                                 TFloat& x, TFloat& y) {
     auto t = core::v(x, y);
     bool ret = line_to_line_intersection(core::v(x1, y1), core::v(x2, y2), core::v(x3, y3), core::v(x4, y4), t);
     x = t.x();

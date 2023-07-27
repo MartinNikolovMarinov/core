@@ -4,12 +4,45 @@
 #include <types.h>
 #include <tuple.h>
 #include <core_traits.h>
-
-// TODO: I should probably define some INFINITY and NAN constants for f32 and f64. It's not as easy as it sounds though.
+#include <system_checks.h>
 
 namespace core {
 
 using namespace coretypes;
+
+#pragma region Limit Helper Functions ---------------------------------------------------------------------------------
+
+template <typename T>
+constexpr T limit_max() {
+    if constexpr (core::is_same_v<T, u8>)       return core::MAX_U8;
+    else if constexpr (core::is_same_v<T, u16>) return core::MAX_U16;
+    else if constexpr (core::is_same_v<T, u32>) return core::MAX_U32;
+    else if constexpr (core::is_same_v<T, u64>) return core::MAX_U64;
+    else if constexpr (core::is_same_v<T, i8>)  return core::MAX_I8;
+    else if constexpr (core::is_same_v<T, i16>) return core::MAX_I16;
+    else if constexpr (core::is_same_v<T, i32>) return core::MAX_I32;
+    else if constexpr (core::is_same_v<T, i64>) return core::MAX_I64;
+    else if constexpr (core::is_same_v<T, f32>) return core::MAX_F32;
+    else if constexpr (core::is_same_v<T, f64>) return core::MAX_F64;
+    else static_assert(core::always_false<T>, "Unsupported type");
+}
+
+template <typename T>
+constexpr T limit_min() {
+    if constexpr (core::is_same_v<T, u8>)       return 0;
+    else if constexpr (core::is_same_v<T, u16>) return 0;
+    else if constexpr (core::is_same_v<T, u32>) return 0;
+    else if constexpr (core::is_same_v<T, u64>) return 0;
+    else if constexpr (core::is_same_v<T, i8>)  return core::MIN_I8;
+    else if constexpr (core::is_same_v<T, i16>) return core::MIN_I16;
+    else if constexpr (core::is_same_v<T, i32>) return core::MIN_I32;
+    else if constexpr (core::is_same_v<T, i64>) return core::MIN_I64;
+    else if constexpr (core::is_same_v<T, f32>) return core::MIN_NORMAL_F32;
+    else if constexpr (core::is_same_v<T, f64>) return core::MIN_NORMAL_F64;
+    else static_assert(core::always_false<T>, "Unsupported type");
+}
+
+#pragma endregion
 
 #pragma region Powers of 10 and 2 -------------------------------------------------------------------------------------
 
@@ -77,32 +110,6 @@ constexpr f32 rad_to_deg(const radians& n) {
 
 #pragma endregion
 
-#pragma region Classification -----------------------------------------------------------------------------------------
-
-// The FP classification algorithm is from the musl libc implementaton.
-
-enum struct FP_Classification {
-    NAN = 0,
-    INFINITE = 1,
-    ZERO = 2,
-    SUBNORMAL = 3,
-    NORMAL = 4
-};
-
-CORE_API_EXPORT FP_Classification fpclassify(f32 x);
-CORE_API_EXPORT FP_Classification fpclassify(f64 x);
-
-CORE_API_EXPORT bool isinf(f32 x);
-CORE_API_EXPORT bool isinf(f64 x);
-
-CORE_API_EXPORT bool isnan(f32 x);
-CORE_API_EXPORT bool isnan(f64 x);
-
-CORE_API_EXPORT bool isnormal(f32 x);
-CORE_API_EXPORT bool isnormal(f64 x);
-
-#pragma endregion
-
 #pragma region Take Exponent/Mantisssa --------------------------------------------------------------------------------
 
 // NOTE:
@@ -129,25 +136,25 @@ CORE_API_EXPORT u64 mantissa(f64 n);
 
 #pragma region Min/Max/Clamp -----------------------------------------------------------------------------------------
 
-template <typename TFloat>
-constexpr TFloat max(TFloat a, TFloat b) {
+template <typename T>
+constexpr T max(T a, T b) {
     if (a < b) return b;
     return a;
 }
 
-template <typename TFloat>
-constexpr TFloat min(TFloat a, TFloat b) {
+template <typename T>
+constexpr T min(T a, T b) {
     if (a > b) return b;
     return a;
 }
 
-template <typename TFloat>
-constexpr tuple<TFloat, TFloat> minmax(TFloat a, TFloat b) {
+template <typename T>
+constexpr tuple<T, T> minmax(T a, T b) {
     return core::create_tuple(core::min(a, b), core::max(a, b));
 }
 
-template <typename TFloat>
-constexpr TFloat clamp(TFloat value, TFloat min, TFloat max) {
+template <typename T>
+constexpr T clamp(T value, T min, T max) {
     return core::max(min, core::min(max, value));
 }
 
@@ -237,23 +244,29 @@ constexpr bool is_positive(i64 a) {
 
 /**
  * @brief Safely very basic epsilon comparison.
+ *        Passing NaN or infinity to any of the arguments is undefined behaviour.
 */
 constexpr bool safe_eq(f32 a, f32 b, f32 epsilon) {
+    Assert(a == a && b == b && epsilon == epsilon, "NaN is not supported.");
     return core::abs(a - b) < epsilon;
 }
 
 /**
  * @brief Safely very basic epsilon comparison.
+ *        Passing NaN or infinity to any of the arguments is undefined behaviour.
 */
 constexpr bool safe_eq(f64 a, f64 b, f64 epsilon) {
+    Assert(a == a && b == b && epsilon == epsilon, "NaN is not supported.");
     return core::abs(a - b) < epsilon;
 }
 
 /**
  * @brief Compares two floating point numbers for being nearly equal, depending on the given epsilon.
  *        This is much more precise than the safe_eq function, but also significantly slower.
+ *        Passing NaN or infinity to any of the arguments is undefined behaviour.
 */
 constexpr bool nearly_eq(f32 a, f32 b, f32 epsilon) {
+    Assert(a == a && b == b && epsilon == epsilon, "NaN is not supported.");
     if (a == b) return true;
     f32 absA = core::abs(a);
     f32 absB = core::abs(b);
@@ -267,8 +280,10 @@ constexpr bool nearly_eq(f32 a, f32 b, f32 epsilon) {
 /**
  * @brief Compares two floating point numbers for being nearly equal, depending on the given epsilon.
  *        This is much more precise than the safe_eq function, but also significantly slower.
+ *        Passing NaN or infinity to any of the arguments is undefined behaviour.
 */
 constexpr bool nearly_eq(f64 a, f64 b, f64 epsilon) {
+    Assert(a == a && b == b && epsilon == epsilon, "NaN is not supported.");
     if (a == b) return true;
     f64 absA = core::abs(a);
     f64 absB = core::abs(b);

@@ -26,29 +26,4 @@ u64 mantissa(f64 n) {
     return ret;
 }
 
-FP_Classification fpclassify(f32 x) {
-    union { f32 f; u32 i; } u = { x };
-    i32 e = (u.i >> 23) & 0xff;
-    if (!e) return u.i << 1 ? FP_Classification::SUBNORMAL : FP_Classification::ZERO;
-    if (e == 0xff) return u.i << 9 ? FP_Classification::NAN : FP_Classification::INFINITE;
-    return FP_Classification::NORMAL;
-}
-
-FP_Classification fpclassify(f64 x) {
-    union { f64 f; u64 i; } u = { x };
-    i32 e = (u.i >> 52) & 0x7ff;
-    if (!e) return u.i << 1 ? FP_Classification::SUBNORMAL : FP_Classification::ZERO;
-    if (e == 0x7ff) return u.i << 12 ? FP_Classification::NAN : FP_Classification::INFINITE;
-    return FP_Classification::NORMAL;
-}
-
-bool isinf(f32 x) { return fpclassify(x) == FP_Classification::INFINITE; }
-bool isinf(f64 x) { return fpclassify(x) == FP_Classification::INFINITE; }
-
-bool isnan(f32 x) { return fpclassify(x) == FP_Classification::NAN; }
-bool isnan(f64 x) { return fpclassify(x) == FP_Classification::NAN; }
-
-bool isnormal(f32 x) { return fpclassify(x) == FP_Classification::NORMAL; }
-bool isnormal(f64 x) { return fpclassify(x) == FP_Classification::NORMAL; }
-
 } // namespace core

@@ -1,9 +1,8 @@
 #pragma once
 
 #include <types.h>
+#include <core_traits.h>
 #include <std/vec.h>
-
-#include <type_traits>
 
 namespace core {
 
@@ -25,8 +24,8 @@ struct mat<2, 2, T> {
     using DataType = T;
     using MatrixType = mat<NCol, NRow, T>;
 
-    static_assert(std::is_trivial_v<DataType>, "DataType must be a trivial");
-    static_assert(std::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
+    static_assert(core::is_trivial_v<DataType>, "DataType must be a trivial");
+    static_assert(core::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
 
     static constexpr MatrixType identity() { return MatrixType(1, 0, 0, 1); }
 
@@ -50,8 +49,8 @@ struct mat<2, 3, T> {
     using DataType = T;
     using MatrixType = mat<NCol, NRow, T>;
 
-    static_assert(std::is_trivial_v<DataType>, "DataType must be a trivial");
-    static_assert(std::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
+    static_assert(core::is_trivial_v<DataType>, "DataType must be a trivial");
+    static_assert(core::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
 
     DataType data[NCol][NRow] = {};
 
@@ -73,8 +72,8 @@ struct mat<2, 4, T> {
     using DataType = T;
     using MatrixType = mat<NCol, NRow, T>;
 
-    static_assert(std::is_trivial_v<DataType>, "DataType must be a trivial");
-    static_assert(std::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
+    static_assert(core::is_trivial_v<DataType>, "DataType must be a trivial");
+    static_assert(core::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
 
     DataType data[NCol][NRow] = {};
 
@@ -96,8 +95,8 @@ struct mat<3, 2, T> {
     using DataType = T;
     using MatrixType = mat<NCol, NRow, T>;
 
-    static_assert(std::is_trivial_v<DataType>, "DataType must be a trivial");
-    static_assert(std::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
+    static_assert(core::is_trivial_v<DataType>, "DataType must be a trivial");
+    static_assert(core::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
 
     DataType data[NCol][NRow] = {};
 
@@ -119,8 +118,8 @@ struct mat<3, 3, T> {
     using DataType = T;
     using MatrixType = mat<NCol, NRow, T>;
 
-    static_assert(std::is_trivial_v<DataType>, "DataType must be a trivial");
-    static_assert(std::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
+    static_assert(core::is_trivial_v<DataType>, "DataType must be a trivial");
+    static_assert(core::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
 
     static constexpr MatrixType identity() { return MatrixType(1, 0, 0, 0, 1, 0, 0, 0, 1); }
 
@@ -144,8 +143,8 @@ struct mat<3, 4, T> {
     using DataType = T;
     using MatrixType = mat<NCol, NRow, T>;
 
-    static_assert(std::is_trivial_v<DataType>, "DataType must be a trivial");
-    static_assert(std::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
+    static_assert(core::is_trivial_v<DataType>, "DataType must be a trivial");
+    static_assert(core::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
 
     DataType data[NCol][NRow] = {};
 
@@ -167,8 +166,8 @@ struct mat<4, 2, T> {
     using DataType = T;
     using MatrixType = mat<NCol, NRow, T>;
 
-    static_assert(std::is_trivial_v<DataType>, "DataType must be a trivial");
-    static_assert(std::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
+    static_assert(core::is_trivial_v<DataType>, "DataType must be a trivial");
+    static_assert(core::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
 
     DataType data[NCol][NRow] = {};
 
@@ -190,8 +189,8 @@ struct mat<4, 3, T> {
     using DataType = T;
     using MatrixType = mat<NCol, NRow, T>;
 
-    static_assert(std::is_trivial_v<DataType>, "DataType must be a trivial");
-    static_assert(std::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
+    static_assert(core::is_trivial_v<DataType>, "DataType must be a trivial");
+    static_assert(core::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
 
     DataType data[NCol][NRow] = {};
 
@@ -213,8 +212,8 @@ struct mat<4, 4, T> {
     using DataType = T;
     using MatrixType = mat<NCol, NRow, T>;
 
-    static_assert(std::is_trivial_v<DataType>, "DataType must be a trivial");
-    static_assert(std::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
+    static_assert(core::is_trivial_v<DataType>, "DataType must be a trivial");
+    static_assert(core::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
 
     static constexpr MatrixType identity() { return MatrixType(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1); }
 

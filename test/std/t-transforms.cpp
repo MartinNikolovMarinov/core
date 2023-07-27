@@ -1,4 +1,4 @@
-constexpr i32 translate_test() {
+i32 translate_test() {
     core::vec2f v = {1.0f, 2.0f};
     core::vec2f t = {3.0f, 4.0f};
     v = core::translate(v, t);
@@ -12,7 +12,7 @@ constexpr i32 translate_test() {
     return 0;
 }
 
-constexpr i32 scale_test() {
+i32 scale_test() {
     core::vec2f v = {1.0f, 2.0f};
     core::vec2f s = {3.0f, 4.0f};
     v = core::scale(v, s);
@@ -87,13 +87,6 @@ i32 run_transforms_tests_suite() {
     RunTest(translate_test);
     RunTest(scale_test);
     RunTest(rotate2d_test);
-
-    return 0;
-}
-
-constexpr i32 run_compiletime_transforms_tests_suite() {
-    RunTestCompileTime(translate_test);
-    RunTestCompileTime(scale_test);
 
     return 0;
 }

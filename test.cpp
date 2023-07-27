@@ -5,10 +5,13 @@
 
 using namespace coretypes;
 
+static i32 testCount = 0;
+
 #define RunTest(test, ...)                                                                               \
-    std::cout << "\t[TEST RUNNING] " << ANSI_BOLD(#test) << '\n';                                        \
+    testCount++;                                                                                         \
+    std::cout << "\t[TEST " << "№ " << testCount << " RUNNING] " << ANSI_BOLD(#test) << '\n';            \
     { [[maybe_unused]] auto __notused__ = test(__VA_ARGS__); }                                           \
-    std::cout << "\t[TEST " << ANSI_BOLD(ANSI_GREEN("PASSED")) << "] " << ANSI_BOLD(#test) << std::endl;
+    std::cout << "\t[TEST " << "№ " << testCount << ANSI_BOLD(ANSI_GREEN(" PASSED")) << "] " << ANSI_BOLD(#test) << std::endl;
 
 #if defined(RUN_COMPILETIME_TESTS) && RUN_COMPILETIME_TESTS == 1
     #define RunTestCompileTime(test, ...)                                                           \

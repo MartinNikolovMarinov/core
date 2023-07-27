@@ -4,6 +4,8 @@
 #include <core_math.h>
 #include <std/ccmath.h>
 
+#include <type_traits>
+
 namespace core {
 
 using namespace coretypes;
@@ -458,10 +460,8 @@ constexpr vec<Dim, T> operator/(typename vec<Dim, T>::DataType lhs, const vec<Di
 
 template<typename ...Args>
 constexpr auto v(Args... args) {
-    using commonT = args_common_type<Args...>;
-    static_assert(args_have_common_type_v<commonT, Args...>, "All arguments must be the same Type");
-
     // The absolute magic of c++ templates. What where they somking when they came up with this syntax?
+    using commonT = typename std::common_type<Args...>::type;
     vec<sizeof...(Args), commonT> ret;
     i32 i = 0;
     auto f = [&](auto arg) { ret.data[i++] = static_cast<decltype(arg)>(arg); };

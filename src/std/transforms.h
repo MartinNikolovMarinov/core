@@ -2,11 +2,10 @@
 
 #include <types.h>
 #include <arr.h>
+#include <core_traits.h>
+#include <std/ccmath.h>
 #include <std/vec.h>
 #include <std/mat.h>
-
-#include <type_traits>
-#include <cmath>
 
 namespace core {
 
@@ -15,7 +14,7 @@ using namespace coretypes;
 // Translate
 
 template<i32 Dim, typename T>
-constexpr vec<Dim, T> translate(const vec<Dim, T>& v, const vec<Dim, T>& t) {
+vec<Dim, T> translate(const vec<Dim, T>& v, const vec<Dim, T>& t) {
     vec<Dim, T> ret;
     for (i32 i = 0; i < v.dimensions(); ++i) {
         ret[i] = v[i] + t[i];
@@ -24,7 +23,7 @@ constexpr vec<Dim, T> translate(const vec<Dim, T>& v, const vec<Dim, T>& t) {
 }
 
 template<typename T>
-constexpr mat4<T> translate(const mat4<T>& m, const vec3<T>& t) {
+mat4<T> translate(const mat4<T>& m, const vec3<T>& t) {
     mat4<T> ret = m;
     ret[3][0] += t[0];
     ret[3][1] += t[1];
@@ -35,7 +34,7 @@ constexpr mat4<T> translate(const mat4<T>& m, const vec3<T>& t) {
 // Scale
 
 template<i32 Dim, typename T>
-constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& s) {
+vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& s) {
     vec<Dim, T> ret;
     for (i32 i = 0; i < v.dimensions(); ++i) {
         ret[i] = v[i] * s[i];
@@ -44,7 +43,7 @@ constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& s) {
 }
 
 template<i32 Dim, typename T>
-constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& axis, const vec<Dim, T>& s) {
+vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& axis, const vec<Dim, T>& s) {
     vec<Dim, T> ret;
     for (i32 i = 0; i < v.dimensions(); ++i) {
         ret[i] = axis[i] + (v[i] - axis[i]) * s[i];
@@ -53,7 +52,7 @@ constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& axis, const
 }
 
 template<typename T>
-constexpr mat4<T> scale(const mat4<T>& m, const vec3<T>& s) {
+mat4<T> scale(const mat4<T>& m, const vec3<T>& s) {
     auto ret = m;
     ret[0][0] *= s[0]; ret[0][1] *= s[0]; ret[0][2] *= s[0];
     ret[1][0] *= s[1]; ret[1][1] *= s[1]; ret[1][2] *= s[1];
@@ -61,16 +60,14 @@ constexpr mat4<T> scale(const mat4<T>& m, const vec3<T>& s) {
     return ret;
 }
 
-// FIXME: Add constexpr to rotate functions when std::cos and std::sin are moved to musl implementation, and are constexpr.
-
 // Rotate 2D
 
 template<typename TFloat>
-constexpr vec2<TFloat> rotate(const vec2<TFloat>& v, const vec2<TFloat>& origin, core::radians angle) {
-    static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
+vec2<TFloat> rotate(const vec2<TFloat>& v, const vec2<TFloat>& origin, core::radians angle) {
+    static_assert(core::is_float_v<TFloat>, "type must be floating point");
     vec2<TFloat> ret = v;
-    TFloat c = std::cos(angle);
-    TFloat s = std::sin(angle);
+    TFloat c = core::cos(angle);
+    TFloat s = core::sin(angle);
     ret -= origin;
     ret = core::v<TFloat>(ret.x() * c - ret.y() * s, ret.x() * s + ret.y() * c);
     ret += origin;
@@ -78,7 +75,7 @@ constexpr vec2<TFloat> rotate(const vec2<TFloat>& v, const vec2<TFloat>& origin,
 }
 
 template<typename TFloat>
-constexpr vec2<TFloat> rotate_right(const vec2<TFloat>& v, const vec2<TFloat>& origin, core::radians angle) {
+vec2<TFloat> rotate_right(const vec2<TFloat>& v, const vec2<TFloat>& origin, core::radians angle) {
     angle.value = -angle.value;
     return rotate(v, origin, angle);
 }
@@ -91,10 +88,10 @@ constexpr static vec3f Z_AXIS = core::v(0.f, 0.f, 1.f);
 
 template<typename TFloat>
 mat4<TFloat> rotate(const mat4<TFloat>& m, const vec3<TFloat>& a, core::radians angle) {
-    static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
+    static_assert(core::is_float_v<TFloat>, "type must be floating point");
 
-    TFloat c = std::cos(angle);
-    TFloat s = std::sin(angle);
+    TFloat c = core::cos(angle);
+    TFloat s = core::sin(angle);
     TFloat t = TFloat(1) - c;
 
     vec3<TFloat> axis = a.norm(); // I could assume that the axis is always normalized to avoid this call.
@@ -128,10 +125,10 @@ mat4<TFloat> rotate_right(const mat4<TFloat>& v, const vec3<TFloat>& axis, core:
 
 template<typename TFloat>
 mat4<TFloat> rotateX(const mat4<TFloat>& m, core::radians angle) {
-    static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
+    static_assert(core::is_float_v<TFloat>, "type must be floating point");
 
-    TFloat c = std::cos(angle);
-    TFloat s = std::sin(angle);
+    TFloat c = core::cos(angle);
+    TFloat s = core::sin(angle);
 
     mat4<TFloat> r (
         1, 0, 0, 0,
@@ -152,10 +149,10 @@ mat4<TFloat> rotateX_right(const mat4<TFloat>& m, core::radians angle) {
 
 template<typename TFloat>
 mat4<TFloat> rotateY(const mat4<TFloat>& m, core::radians angle) {
-    static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
+    static_assert(core::is_float_v<TFloat>, "type must be floating point");
 
-    TFloat c = std::cos(angle);
-    TFloat s = std::sin(angle);
+    TFloat c = core::cos(angle);
+    TFloat s = core::sin(angle);
 
     mat4<TFloat> r (
         c, 0,-s, 0,
@@ -176,10 +173,10 @@ mat4<TFloat> rotateY_right(const mat4<TFloat>& m, core::radians angle) {
 
 template<typename TFloat>
 mat4<TFloat> rotateZ(const mat4<TFloat>& m, core::radians angle) {
-    static_assert(std::is_floating_point_v<TFloat>, "type must be floating point");
+    static_assert(core::is_float_v<TFloat>, "type must be floating point");
 
-    TFloat c = std::cos(angle);
-    TFloat s = std::sin(angle);
+    TFloat c = core::cos(angle);
+    TFloat s = core::sin(angle);
 
     mat4<TFloat> r (
         c, s, 0, 0,

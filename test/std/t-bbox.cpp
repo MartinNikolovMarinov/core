@@ -215,7 +215,7 @@ i32 run_bbox_tests_suite() {
     RunTest(bbox2D_is_inside_test);
     RunTest(bbox2D_conv_test);
 
-    // TODO2: These tests are a bit involved. Remainder to do them at some point.
+    // TODO: These tests are a bit involved. Remainder to do them at some point.
     // RunTest(bbox2D_intersection_with_line_test);
     // RunTest(bbox2D_intersection_with_line_segment_test);
 

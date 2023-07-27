@@ -5,7 +5,6 @@
 #include "fs.h"
 #include "once.h"
 #include "plt.h"
-#include "traits.h"
 #include "vec.h"
 #include "mat.h"
 #include "ccmath.h"

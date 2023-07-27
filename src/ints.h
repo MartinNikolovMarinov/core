@@ -48,7 +48,7 @@ constexpr u32 digit_count(TUint n) {
     static_assert(sizeof(n) == 4 || sizeof(n) == 8, "Invalid TUint paramater.");
     if (n == 0) return 1;
     if (n < 0) n = -n;
-    u32 leadingZeroes = leading_zero_count(n);
+    u32 leadingZeroes = i_leading_zero_count(n);
     u32 usedBits = (sizeof(n) * 8) - u32(leadingZeroes);
     u32 digits = detail::maxdigits[usedBits];
     if (n < static_cast<TUint>(detail::powers[digits - 1])) digits--;

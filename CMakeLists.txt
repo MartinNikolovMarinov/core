@@ -112,6 +112,7 @@ set(src_files
     src/utils.h
 
     src/std/bbox.h
+    src/std/ccmath.h
     src/std/core.h
     src/std/fs.h
     src/std/lines.h
@@ -119,9 +120,9 @@ set(src_files
     src/std/once.h
     src/std/plt.h
     src/std/projections.h
+    src/std/projections.cpp
     src/std/stacktrace.h
     src/std/stringer.h
-    src/std/traits.h
     src/std/transforms.h
     src/std/vec.h
 

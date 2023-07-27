@@ -2,6 +2,7 @@
 
 #include <types.h>
 #include <mem.h>
+#include <core_traits.h>
 
 namespace core {
 
@@ -44,7 +45,7 @@ TUint swap_byte_order(TUint n) {
 
 template <typename TFloat>
 void float_to_bin(u8 bytes[sizeof(TFloat)], TFloat v) {
-    static_assert((sizeof(TFloat) == 4 || sizeof(TFloat) == 8), "Invalid TFloat argument.");
+    static_assert(core::is_float_v<TFloat>, "Invalid TFloat argument.");
     union { TFloat a; u8 bytes[sizeof(TFloat)]; } floatUnion;
     floatUnion.a = v;
     core::memcopy(bytes, floatUnion.bytes, sizeof(TFloat));

@@ -41,7 +41,7 @@ constexpr i32 leading_zero_count_test() {
     };
 
     executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        Assert(core::leading_zero_count(c.in) == c.expected, cErr);
+        Assert(core::i_leading_zero_count(c.in) == c.expected, cErr);
     });
 
     return 0;

@@ -6,6 +6,8 @@
     in every other file. Also, this file is not in the core namespace on purpose.
 */
 
+// TODO2: [x86_64 DEPENDENCY] A lot of constants here are x86_64 specific.
+
 // Include system defaults.
 #include <stdint.h>
 #include <stddef.h>
@@ -55,10 +57,6 @@ static constexpr f64 MIN_F64 =        ((f64)MAX_F64);
 static constexpr f64 MIN_NORMAL_F64 = ((f64)2.2250738585072014e-308);
 static constexpr f32 MIN_F32 =        ((f32)-MAX_F32);
 static constexpr f32 MIN_NORMAL_F32 = ((f32)1.175494351e-38f);
-
-// Epsilon floating point constants (NOTE: I think this is instruction set dependent)
-static constexpr f32 EPSILON_F32 = 1.19209289550781250000000000000000000e-7F;
-static constexpr f32 EPSILON_F64 = 2.22044604925031308084726333618164062e-16L;
 
 // Special constants
 static constexpr char term_char = '\0';

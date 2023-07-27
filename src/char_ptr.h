@@ -5,6 +5,8 @@
 #include <core_math.h>
 #include <core_traits.h>
 
+// TODO2: [PERFORMANCE] Everything in this file can be much faster.
+
 namespace core {
 
 using namespace coretypes;
@@ -14,7 +16,6 @@ constexpr inline bool is_white_space(char c) { return c == ' ' || c == '\t' || c
 
 template<typename TChar>
 constexpr ptr_size cptr_len(const TChar* p) {
-    // TODO: Should use x86 specific assembler instructions for fast strlen!
     static_assert(core::is_char_v<TChar>, "TChar must be a char type.");
     if (p == nullptr) return 0;
     const TChar* start = p;
@@ -24,7 +25,6 @@ constexpr ptr_size cptr_len(const TChar* p) {
 
 template <typename TChar>
 constexpr i32 cptr_cmp(const TChar* a, ptr_size lena, const TChar* b, ptr_size lenb) {
-    // TODO: This can be done much faster with SIMD or some other specifc x86 instruction.
     static_assert(core::is_char_v<TChar>, "TChar must be a char type.");
 
     if (a == nullptr && b == nullptr) return 0;
@@ -56,7 +56,7 @@ constexpr bool cptr_eq(const char* a, const char* b, ptr_size len) {
 
 constexpr void cptr_copy(const char *src, ptr_size n, char *dst) {
     /**
-     * TODO:
+     * TODO2: [PERFORMANCE]
      * This is slow as shit.
      *
      * AFAIK, the fastest possible copy for x86 (32 and 64-bit) uses 16-byte wide data transfers,

@@ -5,7 +5,7 @@
 #include <ints.h>
 #include <core_traits.h>
 
-// TODO: Non of this is even remotely perfromant!
+// TODO2: [PERFORMACE] Everything in this file can be much faster.
 
 namespace core {
 

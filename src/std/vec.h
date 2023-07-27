@@ -89,7 +89,6 @@ constexpr f64 vlengthsq(const vec<Dim, T>& v) {
 
 template<i32 Dim, typename T>
 constexpr f64 vlength(const vec<Dim, T>& v) {
-    // TODO: When I move to musl implementation of core::sqrt this should be constexpr
     f64 ret = vlengthsq(v);
     ret = core::sqrt(ret);
     return ret;

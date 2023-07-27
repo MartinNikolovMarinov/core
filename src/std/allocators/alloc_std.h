@@ -15,7 +15,7 @@ struct CORE_API_EXPORT std_allocator {
 
     static constexpr const char* allocator_name() { return "standard library allocator"; }
 
-    constexpr std_allocator(on_oom_fp cb = defaultOOMfp) : m_oomCb(cb) {};
+    std_allocator(on_oom_fp cb = defaultOOMfp) : m_oomCb(cb) {};
 
     // no copy
     std_allocator(const std_allocator&) = delete;

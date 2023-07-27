@@ -28,7 +28,8 @@ TUint swap_byte_order(TUint n) {
     if constexpr (sizeof(TUint) == 2) {
         u16 swapped = (n >> 8) | (n << 8);
         return swapped;
-    } else if constexpr (sizeof(TUint) == 4) {
+    }
+    else if constexpr (sizeof(TUint) == 4) {
         u32 b3Tob0 = (n >> 24) & 0xff;       // move byte 3 to byte 0
         u32 b1Tob2 = (n << 8)  & 0xff0000;   // move byte 1 to byte 2
         u32 b2Tob1 = (n >> 8)  & 0xff00;     // move byte 2 to byte 1
@@ -37,7 +38,8 @@ TUint swap_byte_order(TUint n) {
         // OR them together and the resulting number has a reversed byte order.
         u32 swapped = b3Tob0 | b1Tob2 | b2Tob1 | b0Tob3;
         return swapped;
-    } else {
+    }
+    else {
         static_assert((sizeof(TUint) == 2 || sizeof(TUint) == 4), "Invalid TUint argument.");
         return 0;
     }

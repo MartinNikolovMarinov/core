@@ -7,6 +7,8 @@
 
 // TODO2: [PERFORMANCE] Everything in this file can be much faster.
 
+// FIXME: src and dest is flipped in all these functions. Fix it.
+
 namespace core {
 
 using namespace coretypes;

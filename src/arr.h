@@ -1,6 +1,5 @@
 #pragma once
 
-#include <API.h>
 #include <types.h>
 #include <alloc.h>
 #include <mem.h>
@@ -11,7 +10,7 @@ namespace core {
 using namespace coretypes;
 
 template<typename T, typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
-struct CORE_API_EXPORT arr {
+struct arr {
     using data_type      = T;
     using size_type      = ptr_size;
     using allocator_type = TAllocator;
@@ -143,8 +142,13 @@ struct CORE_API_EXPORT arr {
     }
 
     arr& fill(const data_type& val) {
-        for (size_type i = 0; i < m_len; ++i) {
-            copyDataAt(val, i);
+        if constexpr (dataIsTrivial) {
+            core::memfill(m_data, m_len * sizeof(data_type), val);
+        }
+        else {
+            for (size_type i = 0; i < m_len; ++i) {
+                copyDataAt(val, i);
+            }
         }
         return *this;
     }
@@ -217,5 +221,7 @@ private:
         }
     }
 };
+
+static_assert(core::is_standard_layout_v<arr<i32>>, "arr<i32> must be standard layout");
 
 } // namespace core

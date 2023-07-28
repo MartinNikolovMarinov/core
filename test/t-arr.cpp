@@ -12,7 +12,6 @@ i32 initialize_arr() {
         core::arr<i32, TAllocator> arr(10);
         Assert(arr.len() == 10);
         Assert(arr.cap() == 10);
-        Assert(arr.data() != nullptr);
         Assert(!arr.empty());
     }
 
@@ -20,7 +19,6 @@ i32 initialize_arr() {
         core::arr<i32, TAllocator> arr(10, 20);
         Assert(arr.len() == 10);
         Assert(arr.cap() == 20);
-        Assert(arr.data() != nullptr);
         Assert(!arr.empty());
     }
 

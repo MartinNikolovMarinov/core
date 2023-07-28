@@ -84,7 +84,7 @@ i32 main(i32, const char**, const char**) {
     if constexpr (OS_UNKNOWN == 1) { write_line("[OS] OS_UNKNOWN\n"); }
 
     write_line("\nRUNNING COMMON TESTS\n\n");
-    int exitCode = run_all_tests();
+    i32 exitCode = run_all_tests();
 
     write_line("\n");
     write_line(ANSI_BOLD(ANSI_GREEN("Tests OK")));

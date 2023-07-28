@@ -89,8 +89,8 @@ set(src_files
     src/char_ptr_conv.h
     src/char_ptr.h
     src/cmd_flag.h
-    src/core_math.h
     src/core_math.cpp
+    src/core_math.h
     src/core_traits.h
     src/expected.h
     src/intrinsic.cpp
@@ -101,6 +101,7 @@ set(src_files
     src/rnd.cpp
     src/rnd.h
     src/static_arr.h
+    src/str_builder.h
     src/tuple.h
     src/utf.h
     src/utils.cpp

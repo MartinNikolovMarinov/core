@@ -62,5 +62,9 @@ i32 run_bump_allocator_tests_suite() {
     RunTest(custom_rule_flag_parser_test<bump_allocator_static<4096>>);
     bump_allocator_static<4096>::clear();
 
+    // String tests:
+    RunTest(initalize_str_builder<bump_allocator_static<256>>);
+    bump_allocator_static<256>::clear();
+
     return 0;
 }

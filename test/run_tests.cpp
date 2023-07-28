@@ -4,6 +4,7 @@
 // Order matters for these:
 #include "t-arr.cpp"
 #include "t-flag_parser.cpp"
+#include "t-str_builder.cpp"
 
 #include "t-alloc_bump.cpp"
 #include "t-tuple.cpp"
@@ -21,7 +22,7 @@
 #include "t-static_arr.cpp"
 #include "t-mem.cpp"
 
-int run_all_tests() {
+i32 run_all_tests() {
     RunTestSuite(run_tuple_tests_suite);
     RunTestSuite(run_rnd_tests_suite);
     RunTestSuite(run_bits_tests_suite);

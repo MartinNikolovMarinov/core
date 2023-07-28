@@ -21,6 +21,7 @@
 #include "mem.h"
 #include "rnd.h"
 #include "static_arr.h"
+#include "str_builder.h"
 #include "tuple.h"
 #include "utf.h"
 #include "utils.h"

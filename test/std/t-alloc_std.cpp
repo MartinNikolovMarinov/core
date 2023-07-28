@@ -119,5 +119,9 @@ i32 run_std_allocator_tests_suite() {
     RunTest(custom_rule_flag_parser_test<std_allocator_static>);
     Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
 
+    // String builder tests:
+    RunTest(initalize_str_builder<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+
     return 0;
 }

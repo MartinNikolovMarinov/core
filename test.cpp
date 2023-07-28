@@ -7,14 +7,14 @@ using namespace coretypes;
 
 static i32 g_testCount = 0;
 
-#define RunTest(test, ...)                                                                                 \
-    g_testCount++;                                                                                         \
-    std::cout << "\t[TEST " << "№ " << g_testCount << " RUNNING] " << ANSI_BOLD(#test) << '\n';            \
-    { [[maybe_unused]] auto __notused__ = test(__VA_ARGS__); }                                             \
+#define RunTest(test, ...)                                                                      \
+    g_testCount++;                                                                              \
+    std::cout << "\t[TEST " << "№ " << g_testCount << " RUNNING] " << ANSI_BOLD(#test) << '\n'; \
+    { [[maybe_unused]] auto __notused__ = test(__VA_ARGS__); }                                  \
     std::cout << "\t[TEST " << "№ " << g_testCount << ANSI_BOLD(ANSI_GREEN(" PASSED")) << "] " << ANSI_BOLD(#test) << std::endl;
 
 #if defined(RUN_COMPILETIME_TESTS) && RUN_COMPILETIME_TESTS == 1
-    #define RunTestCompileTime(test, ...)                                                           \
+    #define RunTestCompileTime(test, ...) \
         { [[maybe_unused]] constexpr auto __notused__ = core::force_consteval<test(__VA_ARGS__)>; }
 #else
     #define RunTestCompileTime(...)
@@ -22,9 +22,9 @@ static i32 g_testCount = 0;
 #endif
 
 
-#define RunTestSuite(suite, ...)                                                                         \
-    std::cout << "[SUITE RUNNING] " << ANSI_BOLD(#suite) << std::endl;                                   \
-    suite(__VA_ARGS__);                                                                                  \
+#define RunTestSuite(suite, ...)                                       \
+    std::cout << "[SUITE RUNNING] " << ANSI_BOLD(#suite) << std::endl; \
+    suite(__VA_ARGS__);                                                \
     std::cout << "[SUITE " << ANSI_BOLD(ANSI_GREEN("PASSED")) << "] " << ANSI_BOLD(#suite) << std::endl;
 
 #include "./common_test_helpers.h"
@@ -59,7 +59,7 @@ i32 main(i32, const char **) {
     if constexpr (OS_MAC == 1)     { std::cout << "[OS] OS_MAC" << std::endl; }
     if constexpr (OS_UNKNOWN == 1) { std::cout << "[OS] OS_UNKNOWN" << std::endl; }
 
-    int exitCode = 0;
+    i32 exitCode = 0;
 
     std::cout << "\n" << "RUNNING COMMON TESTS" << "\n\n";
     exitCode += run_all_tests();

@@ -175,12 +175,17 @@ i32 memcmp_tests() {
     return 0;
 }
 
+i32 memfill_tests() {
+    return 0;
+}
+
 i32 run_mem_tests_suite() {
     RunTest(align_test);
     RunTest(swap_bytes_test);
     RunTest(memcopy_tests);
     RunTest(memset_tests);
     RunTest(memcmp_tests);
+    RunTest(memfill_tests)
 
     return 0;
 }

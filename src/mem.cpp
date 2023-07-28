@@ -33,8 +33,8 @@ void memcopy(void* dest, const void* src, ptr_size len) {
 }
 
 void* memset(void* dest, i32 c, ptr_size n) {
-    uchar* p = reinterpret_cast<uchar*>(dest);
-    uchar x = uchar(c);
+    u8* p = reinterpret_cast<u8*>(dest);
+    u8 x = u8(c);
     while (n--) {
         *p++ = x;
     }
@@ -42,8 +42,8 @@ void* memset(void* dest, i32 c, ptr_size n) {
 }
 
 i32 memcmp(const void* s1, const void* s2, ptr_size n) {
-    const uchar* p1 = reinterpret_cast<const uchar*>(s1);
-    const uchar* p2 = reinterpret_cast<const uchar*>(s2);
+    const u8* p1 = reinterpret_cast<const u8*>(s1);
+    const u8* p2 = reinterpret_cast<const u8*>(s2);
     while (n--) {
         if (*p1 != *p2) return *p1 - *p2;
         ++p1;

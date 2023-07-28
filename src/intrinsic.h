@@ -40,7 +40,7 @@ constexpr u32 i_leading_zero_count(TInt n) {
 #if COMPILER_CLANG == 1 || COMPILER_GCC == 1
     return (sizeof(TInt) == 4) ? u32(__builtin_clz(n)) : u32(__builtin_clzll(n));
 #elif COMPILER_MSVC == 1
-    return (sizeof(TInt) == 4) ? u32(__lzcnt(n)) : u32(__lzcnt64(n));
+    return (sizeof(TInt) == 4) ? __lzcnt(u32(n)) : u32(__lzcnt64(u64(n)));
 #else
     return detail::leading_zero_count_compiletime_impl(n);
 #endif

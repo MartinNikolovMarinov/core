@@ -31,7 +31,7 @@ struct flag_parser {
     struct flag_data {
         void* arg = nullptr;
         const char* name = nullptr;
-        i32 nameLen = 0;
+        ptr_size nameLen = 0;
         flag_type type;
         bool isSet = false;
         bool isRequired = false;
@@ -86,9 +86,9 @@ struct flag_parser {
             }
 
             if (state == 1) {
-                i32 fidx = core::find(flags, [&](const flag_data& f, i32) -> bool {
-                    i32 trimmedNameLen = f.nameLen;
-                    i32 trimmedValLen = valLen;
+                ptr_size fidx = core::find(flags, [&](const flag_data& f, ptr_size) -> bool {
+                    ptr_size trimmedNameLen = f.nameLen;
+                    ptr_size trimmedValLen = valLen;
                     while (core::is_white_space(f.name[trimmedNameLen - 1])) trimmedNameLen--;
                     while (core::is_white_space(curVal[trimmedValLen - 1])) trimmedValLen--;
                     bool areEqual = core::cptr_cmp(f.name, trimmedNameLen, curVal, trimmedValLen) == 0;
@@ -246,7 +246,7 @@ private:
         f.validate = validate;
 
         // Replace existing flag if it exists.
-        i32 nameIdx = core::find(parser.flags, [&](const auto& el, i32) -> bool {
+        ptr_size nameIdx = core::find(parser.flags, [&](const auto& el, ptr_size) -> bool {
             return core::cptr_cmp(f.name, f.nameLen, el.name, el.nameLen) == 0;
         });
         if (nameIdx != -1) parser.flags[nameIdx] = f;

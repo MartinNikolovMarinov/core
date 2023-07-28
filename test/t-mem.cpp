@@ -30,14 +30,14 @@ constexpr i32 align_test() {
 
 i32 swap_bytes_test() {
     auto run_test_case = [](auto& a, auto& b, ptr_size N) {
-        for (i32 i = 0; i < N; ++i) {
+        for (ptr_size i = 0; i < N; ++i) {
             a[i] = i;
             b[i] = i + N;
         }
 
         core::swap_bytes(a, b, N);
 
-        for (i32 i = 0; i < N; ++i) {
+        for (ptr_size i = 0; i < N; ++i) {
             Assert(a[i] == i + N);
             Assert(b[i] == i);
         }
@@ -109,7 +109,7 @@ i32 memcopy_tests() {
 
     // Set the sequence from 1..N
     for (i32 i = 0; i < N; i++) {
-        sequence[i] = i;
+        sequence[i] = u8(i);
     }
 
     for (i32 i = 0; i < N; i++) {

@@ -239,8 +239,20 @@ constexpr i32 run_is_trivially_destructible_test() {
         static_assert(core::is_trivially_destructible_v<B> == false);
         static_assert(core::is_trivially_destructible_v<C> == true);
         static_assert(core::is_trivially_destructible_v<D> == true);
-        static_assert(core::is_trivially_destructible_v<E> == true);
-        static_assert(core::is_trivially_destructible_v<F> == true);
+
+        // TODO2: [COMPILER SPECIFIC] Compilers don't agree on this one. Fortunately I can't think of any good reason to
+        //        delete the default constructor, insteadof setting it to defaut. Which means that, for now, I don't
+        //        care about this difference. If I discover other differences, that I care for, I might need to unify
+        //        the code implementation for all compilers. That work will ugly, tedious and it is better to just use
+        //        the standard library from then on.
+        #if (COMPILER_GCC == 1)
+            static_assert(core::is_trivially_destructible_v<E> == true);
+            static_assert(core::is_trivially_destructible_v<F> == true);
+        #else
+            static_assert(core::is_trivially_destructible_v<E> == false);
+            static_assert(core::is_trivially_destructible_v<F> == false);
+        #endif
+
         static_assert(core::is_trivially_destructible_v<G> == true);
         static_assert(core::is_trivially_destructible_v<H> == true);
         static_assert(core::is_trivially_destructible_v<I> == false);

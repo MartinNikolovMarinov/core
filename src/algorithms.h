@@ -9,16 +9,16 @@ namespace core {
 using namespace coretypes;
 
 template <typename T, typename TAllocator, typename TPredicate>
-i32 find(const core::arr<T, TAllocator>& arr, TPredicate pred) {
-    for (i32 i = 0; i < arr.len(); ++i) {
+ptr_size find(const core::arr<T, TAllocator>& arr, TPredicate pred) {
+    for (ptr_size i = 0; i < arr.len(); ++i) {
         if (pred(arr[i], i)) return i;
     }
     return -1;
 }
 
 template <typename T, core::ptr_size N, typename TPredicate>
-constexpr i32 find(const core::sarr<T, N>& arr, TPredicate pred) {
-    for (i32 i = 0; i < arr.len(); ++i) {
+constexpr ptr_size find(const core::sarr<T, N>& arr, TPredicate pred) {
+    for (ptr_size i = 0; i < arr.len(); ++i) {
         if (pred(arr[i], i)) return i;
     }
     return -1;

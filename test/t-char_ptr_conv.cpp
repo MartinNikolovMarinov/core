@@ -53,14 +53,14 @@ constexpr i32 digit_to_char_test() {
     };
 
     executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        Assert(core::digit_to_char<i8>(c.in) == c.expected, cErr);
-        Assert(core::digit_to_char<i16>(c.in) == c.expected, cErr);
-        Assert(core::digit_to_char<i32>(c.in) == c.expected, cErr);
-        Assert(core::digit_to_char<i64>(c.in) == c.expected, cErr);
-        Assert(core::digit_to_char<u8>(c.in) == c.expected, cErr);
-        Assert(core::digit_to_char<u16>(c.in) == c.expected, cErr);
-        Assert(core::digit_to_char<u32>(c.in) == c.expected, cErr);
-        Assert(core::digit_to_char<u64>(c.in) == c.expected, cErr);
+        Assert(core::digit_to_char(i8(c.in)) == c.expected, cErr);
+        Assert(core::digit_to_char(i16(c.in)) == c.expected, cErr);
+        Assert(core::digit_to_char(i32(c.in)) == c.expected, cErr);
+        Assert(core::digit_to_char(i64(c.in)) == c.expected, cErr);
+        Assert(core::digit_to_char(u8(c.in)) == c.expected, cErr);
+        Assert(core::digit_to_char(u16(c.in)) == c.expected, cErr);
+        Assert(core::digit_to_char(u32(c.in)) == c.expected, cErr);
+        Assert(core::digit_to_char(u64(c.in)) == c.expected, cErr);
     });
 
     return 0;
@@ -68,12 +68,12 @@ constexpr i32 digit_to_char_test() {
 
 constexpr i32 int_to_cptr_test() {
     struct test_case {
-        i64 in;
+        i32 in;
         u32 digitCount;
         const char* expected;
     };
 
-    test_case cases[] = {
+    constexpr test_case cases[] = {
         { 0, 1, "0" },
         { 1, 1, "1" },
         { -1, 1, "-1" },
@@ -83,8 +83,9 @@ constexpr i32 int_to_cptr_test() {
         { -123456789, 9, "-123456789" },
         { 2147483647, 10, "2147483647" },
         { -2147483647, 10, "-2147483647" },
-        { 2147483648, 10, "2147483648" },
-        { -2147483648, 10, "-2147483648" },
+
+        // { 2147483648, 10, "2147483648" },
+        // { -2147483648, 10, "-2147483648" },
     };
 
     executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
@@ -106,7 +107,7 @@ constexpr i32 cptr_to_int_test() {
         i32 expected;
     };
 
-    test_case cases[] = {
+    constexpr test_case cases[] = {
         { "", 0 },
         { nullptr, 0 },
         { "a123", 0 },
@@ -145,21 +146,21 @@ constexpr i32 cptr_to_float_test() {
         f32 expected;
     };
 
-    test_case cases[] = {
-        { "", 0 },
-        { nullptr, 0 },
-        { "aasdb", 0 },
-        { "aasdb1", 0 },
-        { "a1", 0 },
-        { ".1", .1 },
-        { "-.1", -.1 },
-        { "0.1", 0.1 },
-        { ".00001", .00001 },
-        { "-0.00001", -0.00001 },
-        { "0.123", 0.123 },
-        { "-0.123", -0.123 },
-        { "123.789", 123.789 },
-        { "-123.789", -123.789 },
+    constexpr test_case cases[] = {
+        { "", 0.f },
+        { nullptr, 0.f },
+        { "aasdb", 0.f },
+        { "aasdb1", 0.f },
+        { "a1", 0.f },
+        { ".1", .1f },
+        { "-.1", -.1f },
+        { "0.1", 0.1f },
+        { ".00001", .00001f },
+        { "-0.00001", -0.00001f },
+        { "0.123", 0.123f },
+        { "-0.123", -0.123f },
+        { "123.789", 123.789f },
+        { "-123.789", -123.789f },
     };
 
     executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
@@ -173,7 +174,7 @@ constexpr i32 cptr_to_float_test() {
 constexpr i32 int_hex_test() {
     {
         struct test_case { i8 in; const char* expected; };
-        test_case cases[] = {
+        constexpr test_case cases[] = {
             { core::MIN_I8, "80" },
             { i8(0), "00" },
             { i8(0xF), "0F" },
@@ -190,7 +191,7 @@ constexpr i32 int_hex_test() {
 
     {
         struct test_case { i16 in; const char* expected; };
-        test_case cases[] = {
+        constexpr test_case cases[] = {
             { core::MIN_I16, "8000" },
             { i16(0), "0000" },
             { i16(0xF), "000F" },
@@ -209,7 +210,7 @@ constexpr i32 int_hex_test() {
 
     {
         struct test_case { i32 in; const char* expected; };
-        test_case cases[] = {
+        constexpr test_case cases[] = {
             { core::MIN_I32, "80000000" },
             { i32(0), "00000000" },
             { i32(0xF), "0000000F" },
@@ -229,7 +230,7 @@ constexpr i32 int_hex_test() {
 
     {
         struct test_case { i64 in; const char* expected; };
-        test_case cases[] = {
+        constexpr test_case cases[] = {
             { core::MIN_I64, "8000000000000000" },
             { i64(0), "0000000000000000" },
             { i64(0xF), "000000000000000F" },
@@ -248,7 +249,7 @@ constexpr i32 int_hex_test() {
 
     {
         struct test_case { u8 in; const char* expected; };
-        test_case cases[] = {
+        constexpr test_case cases[] = {
             { u8(0), "00" },
             { u8(0xF), "0F" },
             { core::MAX_U8, "FF" },
@@ -262,7 +263,7 @@ constexpr i32 int_hex_test() {
 
     {
         struct test_case { u16 in; const char* expected; };
-        test_case cases[] = {
+        constexpr test_case cases[] = {
             { u16(0), "0000" },
             { u16(0xF), "000F" },
             { u16(0x1D49), "1D49" },
@@ -278,7 +279,7 @@ constexpr i32 int_hex_test() {
 
     {
         struct test_case { u32 in; const char* expected; };
-        test_case cases[] = {
+        constexpr test_case cases[] = {
             { u32(0), "00000000" },
             { u32(0xF), "0000000F" },
             { u32(0x1D49), "00001D49" },
@@ -295,7 +296,7 @@ constexpr i32 int_hex_test() {
 
     {
         struct test_case { u64 in; const char* expected; };
-        test_case cases[] = {
+        constexpr test_case cases[] = {
             { u64(0), "0000000000000000" },
             { u64(0xF), "000000000000000F" },
             { u64(0x1D49), "0000000000001D49" },

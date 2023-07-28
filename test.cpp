@@ -5,13 +5,13 @@
 
 using namespace coretypes;
 
-static i32 testCount = 0;
+static i32 g_testCount = 0;
 
-#define RunTest(test, ...)                                                                               \
-    testCount++;                                                                                         \
-    std::cout << "\t[TEST " << "№ " << testCount << " RUNNING] " << ANSI_BOLD(#test) << '\n';            \
-    { [[maybe_unused]] auto __notused__ = test(__VA_ARGS__); }                                           \
-    std::cout << "\t[TEST " << "№ " << testCount << ANSI_BOLD(ANSI_GREEN(" PASSED")) << "] " << ANSI_BOLD(#test) << std::endl;
+#define RunTest(test, ...)                                                                                 \
+    g_testCount++;                                                                                         \
+    std::cout << "\t[TEST " << "№ " << g_testCount << " RUNNING] " << ANSI_BOLD(#test) << '\n';            \
+    { [[maybe_unused]] auto __notused__ = test(__VA_ARGS__); }                                             \
+    std::cout << "\t[TEST " << "№ " << g_testCount << ANSI_BOLD(ANSI_GREEN(" PASSED")) << "] " << ANSI_BOLD(#test) << std::endl;
 
 #if defined(RUN_COMPILETIME_TESTS) && RUN_COMPILETIME_TESTS == 1
     #define RunTestCompileTime(test, ...)                                                           \
@@ -41,23 +41,23 @@ i32 main(i32, const char **) {
                   << " [LINE]: " << line
                   << " [MSG]: " << errMsg
                   << ANSI_RESET()
-                  << std::endl; // flush stream!
-        std::cout << ANSI_BOLD_START() << "[TRACE]:\n" << trace << ANSI_RESET() << std::endl; // flush stream!
+                  << std::endl;
+        std::cout << ANSI_BOLD_START() << "[TRACE]:\n" << trace << ANSI_RESET() << std::endl;
         throw std::runtime_error("Assertion failed!");
         return false;
     });
 
     // Print compiler
-    if (COMPILER_CLANG == 1)   { std::cout << "[COMPILER] COMPILER_CLANG" << std::endl; }
-    if (COMPILER_GCC == 1)     { std::cout << "[COMPILER] COMPILER_GCC" << std::endl; }
-    if (COMPILER_MSVC == 1)    { std::cout << "[COMPILER] COMPILER_MSVC" << std::endl; }
-    if (COMPILER_UNKNOWN == 1) { std::cout << "[COMPILER] COMPILER_UNKNOWN" << std::endl; }
+    if constexpr (COMPILER_CLANG == 1)   { std::cout << "[COMPILER] COMPILER_CLANG" << std::endl; }
+    if constexpr (COMPILER_GCC == 1)     { std::cout << "[COMPILER] COMPILER_GCC" << std::endl; }
+    if constexpr (COMPILER_MSVC == 1)    { std::cout << "[COMPILER] COMPILER_MSVC" << std::endl; }
+    if constexpr (COMPILER_UNKNOWN == 1) { std::cout << "[COMPILER] COMPILER_UNKNOWN" << std::endl; }
 
     // Print OS
-    if (OS_WIN == 1)     { std::cout << "[OS] OS_WIN" << std::endl; }
-    if (OS_LINUX == 1)   { std::cout << "[OS] OS_LINUX" << std::endl; }
-    if (OS_MAC == 1)     { std::cout << "[OS] OS_MAC" << std::endl; }
-    if (OS_UNKNOWN == 1) { std::cout << "[OS] OS_UNKNOWN" << std::endl; }
+    if constexpr (OS_WIN == 1)     { std::cout << "[OS] OS_WIN" << std::endl; }
+    if constexpr (OS_LINUX == 1)   { std::cout << "[OS] OS_LINUX" << std::endl; }
+    if constexpr (OS_MAC == 1)     { std::cout << "[OS] OS_MAC" << std::endl; }
+    if constexpr (OS_UNKNOWN == 1) { std::cout << "[OS] OS_UNKNOWN" << std::endl; }
 
     int exitCode = 0;
 

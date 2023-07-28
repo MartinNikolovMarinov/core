@@ -186,22 +186,24 @@ i32 custom_rule_flag_parser_test() {
     flag_parser parser;
     i32 a, b;
 
-    parser.flag(&a, "a");
-    parser.flag(&b, "b");
-    const char* input[4] = {"-a", "1", "-b", "5" };
-    auto res = parser.parse(4, input);
-    Assert(!res.has_err());
+    {
+        parser.flag(&a, "a");
+        parser.flag(&b, "b");
+        const char* input[4] = {"-a", "1", "-b", "5" };
+        auto res = parser.parse(4, input);
+        Assert(!res.has_err());
 
-    // Add some rules
+        // Add some rules
 
-    parser.flag(&a, "a", false, [](void* a) -> bool {
-        i32 v = *(i32*)a;
-        return (v > 0);
-    });
-    parser.flag(&b, "b", false, [](void* b) -> bool {
-        i32 v = *(i32*)b;
-        return (v <= 10);
-    });
+        parser.flag(&a, "a", false, [](void* a) -> bool {
+            i32 v = *(i32*)a;
+            return (v > 0);
+        });
+        parser.flag(&b, "b", false, [](void* b) -> bool {
+            i32 v = *(i32*)b;
+            return (v <= 10);
+        });
+    }
 
     // Check if the rules catch errors, when they should.
 

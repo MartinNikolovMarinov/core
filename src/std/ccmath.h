@@ -85,7 +85,7 @@ constexpr bool isnormal(f64 x) { return detail::isnormal(x); }
 namespace detail {
 
 template <typename TFloat>
-constexpr TFloat fpclassify_compiletime_impl(TFloat x) {
+constexpr i32 fpclassify_compiletime_impl(TFloat x) {
     if (detail::isnan_compiletime_impl(x))                            return FP_NAN;
     if (detail::isinf_compiletime_impl(x))                            return FP_INFINITE;
     if (core::abs(x) == TFloat(0))                                    return FP_ZERO;
@@ -318,8 +318,11 @@ constexpr f64 sqrt(f64 x) { return detail::sqrt(x); }
 
 #pragma region Pow --------------------------------------------------------------------------------------------------
 
-inline f32 pow(f32 x, i32 exp) { return std::pow(x, exp); }
-inline f64 pow(f64 x, i32 exp) { return std::pow(x, exp); }
+// TODO: A cosntexpr version of pow is possible, but it will significant differences with std::pow on different standard
+//       libraries, unless it's implemented very carefully. That sounds annoying to do, so I'll leave it for now.
+
+inline f32 pow(f32 x, f32 exp) { return std::powf(x, exp); }
+inline f64 pow(f64 x, f32 exp) { return std::pow(x, exp); }
 
 #pragma endregion
 

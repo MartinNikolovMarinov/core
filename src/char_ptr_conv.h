@@ -14,22 +14,24 @@ using namespace coretypes;
 template <typename Ta>
 constexpr inline Ta char_to_int(char s) {
     static_assert(core::is_arithmetic_v<Ta>, "TInt must be an arithmetic type.");
-    return s - '0';
+    return static_cast<Ta>(s - '0');
 }
 
 template<typename TInt>
 constexpr char digit_to_char(TInt digit) {
     static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
-    return (digit % 10) + '0';
+    return static_cast<char>((digit % 10) + '0');
 }
 
 template<typename TInt>
 constexpr void int_to_cptr(TInt n, char* out, u32 digitCount = 0) {
     static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
     Assert(out != nullptr);
-    if (n < 0) {
-        *out++ = '-';
-        n = -n;
+    if constexpr (core::is_signed_v<TInt>) {
+        if (n < 0) {
+            *out++ = '-';
+            n = -n;
+        }
     }
     i32 dc = (digitCount == 0) ? digit_count(n) : digitCount;
     for (i32 i = dc - 1; i >= 0; i--) {
@@ -52,7 +54,10 @@ constexpr TInt cptr_to_int(const char* s) {
         res = res * 10 + char_to_int<TInt>(*s);
         s++;
     }
-    return neg ? -res : res;
+    if constexpr (core::is_signed_v<TInt>) {
+        if (neg) res = -res;
+    }
+    return res;
 }
 
 // This function does not handle overflows!

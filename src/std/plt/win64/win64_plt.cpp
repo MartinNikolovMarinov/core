@@ -47,13 +47,17 @@ namespace {
 AtExitCb g_atExit;
 } // namespace
 
-void os_exit(i64 exitCode) {
+void os_exit(i32 exitCode) {
     if (g_atExit) g_atExit(exitCode);
     return _exit(exitCode);
 }
 
 void at_exit(AtExitCb atExit) {
     g_atExit = atExit;
+}
+
+const char* os_get_err_cptr(plt_err_code) {
+    return "Not implemented";
 }
 
 } // namespace core

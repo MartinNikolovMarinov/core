@@ -73,15 +73,15 @@ i32 main(i32, const char**, const char**) {
         return true;
     });
 
-    if (COMPILER_CLANG == 1)   { write_line("[COMPILER] COMPILER_CLANG\n"); }
-    if (COMPILER_GCC == 1)     { write_line("[COMPILER] COMPILER_GCC\n"); }
-    if (COMPILER_MSVC == 1)    { write_line("[COMPILER] COMPILER_MSVC\n"); }
-    if (COMPILER_UNKNOWN == 1) { write_line("[COMPILER] COMPILER_UNKNOWN\n"); }
+    if constexpr (COMPILER_CLANG == 1)   { write_line("[COMPILER] COMPILER_CLANG\n"); }
+    if constexpr (COMPILER_GCC == 1)     { write_line("[COMPILER] COMPILER_GCC\n"); }
+    if constexpr (COMPILER_MSVC == 1)    { write_line("[COMPILER] COMPILER_MSVC\n"); }
+    if constexpr (COMPILER_UNKNOWN == 1) { write_line("[COMPILER] COMPILER_UNKNOWN\n"); }
 
-    if (OS_WIN == 1)     { write_line("[OS] OS_WIN\n"); }
-    if (OS_LINUX == 1)   { write_line("[OS] OS_LINUX\n"); }
-    if (OS_MAC == 1)     { write_line("[OS] OS_MAC\n"); }
-    if (OS_UNKNOWN == 1) { write_line("[OS] OS_UNKNOWN\n"); }
+    if constexpr (OS_WIN == 1)     { write_line("[OS] OS_WIN\n"); }
+    if constexpr (OS_LINUX == 1)   { write_line("[OS] OS_LINUX\n"); }
+    if constexpr (OS_MAC == 1)     { write_line("[OS] OS_MAC\n"); }
+    if constexpr (OS_UNKNOWN == 1) { write_line("[OS] OS_UNKNOWN\n"); }
 
     write_line("\nRUNNING COMMON TESTS\n\n");
     int exitCode = run_all_tests();

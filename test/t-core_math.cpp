@@ -247,22 +247,22 @@ constexpr i32 float_safe_eq_test() {
     };
 
     test_case cases[] = {
-        { 0.1, 0.1, 0.1,  0.01,  10, true },
-        { 0.1, 0.1, 0.2,  0.01,  10, true },
-        { 0.1, 0.1, 0.01, 0.01, 100, true },
+        { 0.1f, 0.1f, 0.1f,  0.01f,  10, true },
+        { 0.1f, 0.1f, 0.2f,  0.01f,  10, true },
+        { 0.1f, 0.1f, 0.01f, 0.01f, 100, true },
 
-        { 0.1, 0.2, 0.1,  0.01,  10, false },
-        { 0.1, 0.2, 0.01, 0.01, 100, false },
+        { 0.1f, 0.2f, 0.1f,  0.01f,  10, false },
+        { 0.1f, 0.2f, 0.01f, 0.01f, 100, false },
 
-        { 0.001111, 0.00999, 0.001, 0.01, 10, true },
-        { 0.001111, 0.00999, 0.001, 0.001, 10, false },
+        { 0.001111f, 0.00999f, 0.001f, 0.01f, 10, true },
+        { 0.001111f, 0.00999f, 0.001f, 0.001f, 10, false },
     };
 
     i32 i = 0;
     constexpr const char* iterAsCptrFmt = "float_safe_eq test case failed at index: ";
     constexpr const ptr_size iterAsCptrFmtLen = core::cptr_len(iterAsCptrFmt);
     char iterAsCptr[iterAsCptrFmtLen + 20] = {};
-    for (i32 i = 0; i < iterAsCptrFmtLen; ++i) iterAsCptr[i] = iterAsCptrFmt[i];
+    for (i32 j = 0; j < iterAsCptrFmtLen; ++j) iterAsCptr[j] = iterAsCptrFmt[j];
     char* appendIdx = &iterAsCptr[iterAsCptrFmtLen];
     for (auto& c : cases) {
         core::int_to_cptr(i++, appendIdx, 2);
@@ -388,7 +388,6 @@ i32 run_core_math_tests_suite() {
     RunTest(degrees_test);
     RunTest(mantissa_exponent_test);
     RunTest(abs_test);
-
     RunTest(is_positive_test);
     RunTest(float_safe_eq_test);
     RunTest(float_nearly_eq_extream_cases_test);
@@ -402,7 +401,6 @@ constexpr i32 run_compiletime_core_math_tests_suite() {
     RunTestCompileTime(pow2_test);
     RunTestCompileTime(degrees_test);
     RunTestCompileTime(abs_test);
-
     RunTestCompileTime(is_positive_test);
     RunTestCompileTime(float_safe_eq_test);
     RunTestCompileTime(float_nearly_eq_test);

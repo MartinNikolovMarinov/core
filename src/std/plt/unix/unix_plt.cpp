@@ -130,7 +130,7 @@ namespace {
 AtExitCb g_atExit;
 } // namespace
 
-void os_exit(i64 exitCode) {
+void os_exit(i32 exitCode) {
     if (g_atExit) g_atExit(exitCode);
     _exit(exitCode);
 }

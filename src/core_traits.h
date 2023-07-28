@@ -163,29 +163,17 @@ constexpr auto force_consteval = V;
 
 template <typename T>
 struct is_trivially_destructible {
-#if (COMPILER_GCC == 1) || (COMPILER_CLANG == 1)
     static constexpr bool value = __has_trivial_destructor(T);
-#elif (COMPILER_MSVC == 1)
-    static constexpr bool value = __is_trivially_destructible(T);
-#endif
 };
 
 template <typename T>
 struct is_trivially_copyable {
-#if (COMPILER_GCC == 1) || (COMPILER_CLANG == 1)
     static constexpr bool value = __has_trivial_copy(T);
-#elif (COMPILER_MSVC == 1)
-    static constexpr bool value = __is_trivially_copyable(T);
-#endif
 };
 
 template <typename T>
 struct is_trivially_assignable {
-#if (COMPILER_GCC == 1) || (COMPILER_CLANG == 1)
     static constexpr bool value = __has_trivial_assign(T);
-#elif (COMPILER_MSVC == 1)
-    static constexpr bool value = __is_trivially_assignable(T);
-#endif
 };
 
 /**

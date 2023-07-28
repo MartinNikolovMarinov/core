@@ -62,6 +62,7 @@ message(STATUS "[CORE] ---------------------------------------------")
 message(STATUS "[CORE] Platform:          ${OS}")
 # IMPORTANT: Do not relly on CMAKE_HOST_SYSTEM_PROCESSOR for anything serious !
 message(STATUS "[CORE] Arch:              ${CMAKE_HOST_SYSTEM_PROCESSOR}")
+message(STATUS "[CORE] C++ Version:       ${CMAKE_CXX_STANDARD}")
 message(STATUS "[CORE] Compiler:          ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "[CORE] Debug:             ${CORE_DEBUG}")
 message(STATUS "[CORE] Assert:            ${CORE_ASSERT_ENABLED}")
@@ -135,6 +136,7 @@ if(OS STREQUAL "linux")
 elseif(OS STREQUAL "windows")
     set(src_files ${src_files}
         src/std/plt/win64/win64_plt.cpp
+        src/std/plt/win64/win64_stacktrace.cpp
     )
 endif()
 
@@ -189,13 +191,14 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang
     set(mm_core_release_flags -O3)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(mm_core_common_flags
-        /std:c++17
-        /nologo /FC
-        /W4
-        /EHsc
+        -std:c++17
+        -nologo -FC
+        -Wall -W4
+        -WX # Compile warnings are errors
+        /fastfail
     )
-    set(mm_core_debug_flags /O0 /Zi /Od /Oi)
-    set(mm_core_release_flags /O2)
+    set(mm_core_debug_flags -Zi -Od)
+    set(mm_core_release_flags -O2)
 else()
     message(FATAL_ERROR "Unsupported compiler")
 endif()
@@ -231,10 +234,13 @@ if(CORE_BUILD_TESTS)
         set(mm_test_release_flags -O3)
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         set(mm_test_common_flags
-            /std:c++17 /nologo /FC /EHa /W4
+            -std:c++17
+            -nologo -FC
+            -Wall -W4
+            /fastfail
         )
-        set(mm_test_debug_flags /O0 /Zi /Od /Oi)
-        set(mm_test_release_flags /O2)
+        set(mm_test_debug_flags -Zi -Od)
+        set(mm_test_release_flags -O2)
     else()
         message(FATAL_ERROR "Unsupported compiler!")
     endif()

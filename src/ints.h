@@ -43,15 +43,17 @@ static constexpr u32 maxdigits[] = {
 
 } // namespace detail
 
-template <typename TUint>
-constexpr u32 digit_count(TUint n) {
-    static_assert(sizeof(n) == 4 || sizeof(n) == 8, "Invalid TUint paramater.");
+template <typename TInt>
+constexpr u32 digit_count(TInt n) {
+    static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
     if (n == 0) return 1;
-    if (n < 0) n = -n;
+    if constexpr (core::is_signed_v<TInt>) {
+        if (n < 0) n = -n;
+    }
     u32 leadingZeroes = i_leading_zero_count(n);
     u32 usedBits = (sizeof(n) * 8) - u32(leadingZeroes);
     u32 digits = detail::maxdigits[usedBits];
-    if (n < static_cast<TUint>(detail::powers[digits - 1])) digits--;
+    if (n < static_cast<TInt>(detail::powers[digits - 1])) digits--;
     return digits;
 }
 

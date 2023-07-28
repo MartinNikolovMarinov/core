@@ -245,12 +245,12 @@ constexpr i32 run_is_trivially_destructible_test() {
         //        care about this difference. If I discover other differences, that I care for, I might need to unify
         //        the code implementation for all compilers. That work will ugly, tedious and it is better to just use
         //        the standard library from then on.
-        #if (COMPILER_GCC == 1)
-            static_assert(core::is_trivially_destructible_v<E> == true);
-            static_assert(core::is_trivially_destructible_v<F> == true);
-        #else
+        #if (COMPILER_MSVC == 1)
             static_assert(core::is_trivially_destructible_v<E> == false);
             static_assert(core::is_trivially_destructible_v<F> == false);
+        #else
+            static_assert(core::is_trivially_destructible_v<E> == true);
+            static_assert(core::is_trivially_destructible_v<F> == true);
         #endif
 
         static_assert(core::is_trivially_destructible_v<G> == true);

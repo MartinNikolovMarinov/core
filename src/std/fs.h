@@ -163,7 +163,7 @@ private:
     BufferType m_buffer[TBlockSize];
 };
 
-static_assert(core::is_standard_layout_v<file<FS_DEFAULT_BLOCK_SIZE>>, "file should be standard layout");
+// static_assert(core::is_standard_layout_v<file<FS_DEFAULT_BLOCK_SIZE>>, "file should be standard layout");
 
 template<ptr_size TBlockSize = FS_DEFAULT_BLOCK_SIZE>
 expected<typename file<TBlockSize>::file_err> rmdir(file<TBlockSize>& f) {

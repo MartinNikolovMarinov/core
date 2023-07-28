@@ -107,6 +107,15 @@ i32 check_system_limits_with_std_test() {
     return 0;
 }
 
+i32 check_pow_compiles_test() {
+    Assert(core::pow(2.f, 2.f) == std::pow(2.f, 2.f));
+    Assert(core::pow(1234.1234f, 3.f) == std::pow(1234.1234f, 3.f));
+    Assert(core::pow(2.0, 2.0) == std::pow(2.0, 2.0));
+    Assert(core::pow(1234.1234, 3.0) == std::pow(1234.1234, 3.0));
+
+    return 0;
+}
+
 i32 isinf_isnan_isnormal_cc_impl_compare_with_std_test() {
     auto inf = core::infinity_f32();
     auto nan = core::quiet_NaN_f32();
@@ -697,6 +706,7 @@ i32 modf_cc_impl_compare_with_std_test() {
 i32 run_core_math_tests_suite_std() {
     RunTest(min_max_compare_with_std_test);
     RunTest(check_system_limits_with_std_test);
+    RunTest(check_pow_compiles_test);
 
     RunTest(isinf_isnan_isnormal_cc_impl_compare_with_std_test);
     RunTest(fp_classify_cc_impl_compare_with_std_test);

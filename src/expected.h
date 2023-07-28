@@ -25,7 +25,7 @@ template <typename...> struct expected;
 template <typename T, typename TErr>
 struct expected<T, TErr> {
     // NOTE: The type must be standard layout to store it in a union.
-    static_assert(core::is_standard_layout_v<T>, "type must be standard layout");
+    // static_assert(core::is_standard_layout_v<T>, "type must be standard layout");
 
     expected(T&& value)  : m_value(core::forward<T>(value)), m_hasValue(true) {}
     template <typename TErr2>

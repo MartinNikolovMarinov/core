@@ -7,8 +7,6 @@
 
 // TODO2: [PERFORMANCE] Everything in this file can be much faster.
 
-// FIXME: src and dest is flipped in all these functions. Fix it.
-
 namespace core {
 
 using namespace coretypes;
@@ -44,19 +42,12 @@ constexpr i32 cptr_cmp(const TChar* a, ptr_size lena, const TChar* b, ptr_size l
     return 0;
 }
 
-// Avoid this if you already know the length of the string.
-template <typename TChar>
-constexpr i32 cptr_cmp(const TChar* a, const TChar* b) {
-    static_assert(core::is_char_v<TChar>, "TChar must be a char type.");
-    return cptr_cmp(a, core::cptr_len(a), b, core::cptr_len(b));
-}
-
 constexpr bool cptr_eq(const char* a, const char* b, ptr_size len) {
     // static_assert(core::is_char_v<TChar>, "TChar must be a char type.");
     return cptr_cmp(a, len, b, len) == 0;
 }
 
-constexpr void cptr_copy(const char *src, ptr_size n, char *dst) {
+constexpr void cptr_copy(char *dst, const char *src, ptr_size len) {
     /**
      * TODO2: [PERFORMANCE]
      * This is slow as shit.
@@ -64,27 +55,29 @@ constexpr void cptr_copy(const char *src, ptr_size n, char *dst) {
      * AFAIK, the fastest possible copy for x86 (32 and 64-bit) uses 16-byte wide data transfers,
      * which is the size of one XMM register. This is the method recommended in Intel's
      * optimization manual.
+     *
+     * Could re-use memcopy if there is no need to use intruction set specific instructions for cptr compare.
     */
-    for (ptr_size i = 0; i < n; i++) {
+    for (ptr_size i = 0; i < len; i++) {
         dst[i] = src[i];
     }
 }
 
-constexpr ptr_size cptr_idx_of(const char *src, ptr_size slen, const char *val, ptr_size vlen) {
-    if (src == nullptr || val == nullptr) return -1;
+constexpr ptr_size cptr_idx_of(const char *s, ptr_size slen, const char *val, ptr_size vlen) {
+    if (s == nullptr || val == nullptr) return -1;
     if (slen < vlen) return -1;
     if (slen == 0 && vlen == 0) return 0;
-    for (ptr_size i = 0; i < slen; i++, src++) {
-        i32 cmpVal = cptr_cmp(src, vlen, val, vlen);
+    for (ptr_size i = 0; i < slen; i++, s++) {
+        i32 cmpVal = cptr_cmp(s, vlen, val, vlen);
         if (cmpVal == 0) return i;
     }
     return -1;
 }
 
-constexpr ptr_size cptr_idx_of_char(const char *src, ptr_size slen, char val) {
-    if (src == nullptr) return -1;
+constexpr ptr_size cptr_idx_of_char(const char *s, ptr_size slen, char val) {
+    if (s == nullptr) return -1;
     for (ptr_size i = 0; i < slen; i++) {
-        if (src[i] == val) return i;
+        if (s[i] == val) return i;
     }
     return -1;
 }

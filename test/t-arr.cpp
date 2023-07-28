@@ -127,32 +127,34 @@ i32 fill_arr() {
     }
 
     {
-        core::arr<i32, TAllocator> arr(10);
+        constexpr i32 N = 10;
+        core::arr<i32, TAllocator> arr(N);
 
         arr.fill(0);
-        for (i32 i = 0; i < arr.len(); ++i) {
+        for (i32 i = 0; i < N; ++i) {
             Assert(arr[i] == 0);
         }
 
         arr.fill(1);
-        for (i32 i = 0; i < arr.len(); ++i) {
+        for (i32 i = 0; i < N; ++i) {
             Assert(arr[i] == 1);
         }
     }
 
     {
-        core::arr<i32, TAllocator> arr(1, 5);
+        constexpr i32 N = 1;
+        core::arr<i32, TAllocator> arr(N, 5);
 
         arr.fill(0);
-        for (i32 i = 0; i < arr.len(); ++i) {
+        for (i32 i = 0; i < N; ++i) {
             Assert(arr[i] == 0);
-            Assert(i < 1, "Fill should use the length of the array, not the capacity.");
+            Assert(i < N, "Fill should use the length of the array, not the capacity.");
         }
 
         arr.fill(1);
-        for (i32 i = 0; i < arr.len(); ++i) {
+        for (i32 i = 0; i < N; ++i) {
             Assert(arr[i] == 1);
-            Assert(i < 1, "Fill should use the length of the array, not the capacity.");
+            Assert(i < N, "Fill should use the length of the array, not the capacity.");
         }
     }
 

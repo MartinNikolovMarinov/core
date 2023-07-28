@@ -65,17 +65,17 @@ CORE_API_EXPORT global_assert_handler_ptr get_global_assert_handler();
 // Move and forward implementations copied from the standard library:
 
 template<typename T>
-constexpr typename remove_ref<T>::type && move(T && arg) {
-    return static_cast<typename remove_ref<T>::type &&>(arg);
+constexpr remove_ref_t<T> && move(T && arg) {
+    return static_cast<remove_ref_t<T> &&>(arg);
 }
 
 template<typename T>
-constexpr T&& forward(typename remove_ref<T>::type & arg) {
+constexpr T&& forward(remove_ref_t<T> & arg) {
     return static_cast<T&&>(arg);
 }
 
 template<typename T>
-constexpr T&& forward(typename remove_ref<T>::type && arg) {
+constexpr T&& forward(remove_ref_t<T> && arg) {
     static_assert(!is_lvalue<T>::value, "invalid rvalue to lvalue conversion");
     return static_cast<T&&>(arg);
 }

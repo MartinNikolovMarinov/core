@@ -15,7 +15,7 @@ constexpr i32 converting_utf8_sequence_to_utf32_rune_one_bit() {
     Assert(r == 0);
     len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 1);
-    Assert(core::cptr_cmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, core::cptr_len(d), d2, core::cptr_len(d2)) == 0);
 
     // 127 is DELETE, which is the the MAXIMUM 1 byte encoded character.
     d[0] = 127;
@@ -23,7 +23,7 @@ constexpr i32 converting_utf8_sequence_to_utf32_rune_one_bit() {
     Assert(r == 127);
     len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 1);
-    Assert(core::cptr_cmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, core::cptr_len(d), d2, core::cptr_len(d2)) == 0);
 
     return 0;
 }
@@ -45,7 +45,7 @@ constexpr i32 converting_utf8_sequence_to_utf32_rune_two_bit() {
     Assert(r == 128);
     len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 2);
-    Assert(core::cptr_cmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, core::cptr_len(d), d2, core::cptr_len(d2)) == 0);
 
     // д symbol
     d[0] = 208;
@@ -54,7 +54,7 @@ constexpr i32 converting_utf8_sequence_to_utf32_rune_two_bit() {
     Assert(r == 1076);
     len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 2);
-    Assert(core::cptr_cmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, core::cptr_len(d), d2, core::cptr_len(d2)) == 0);
 
     // 223, 191 is ߿ , which is the MAXIMUM 2 byte encoded character.
     d[0] = 223;
@@ -63,7 +63,7 @@ constexpr i32 converting_utf8_sequence_to_utf32_rune_two_bit() {
     Assert(r == 2047);
     len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 2);
-    Assert(core::cptr_cmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, core::cptr_len(d), d2, core::cptr_len(d2)) == 0);
 
     return 0;
 }
@@ -86,7 +86,7 @@ constexpr i32 converting_utf8_sequence_to_utf32_rune_three_bit() {
     Assert(r == 2048);
     len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 3);
-    Assert(core::cptr_cmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, core::cptr_len(d), d2, core::cptr_len(d2)) == 0);
 
     // 239, 191, 191 is not used, but it is the MAXIMUM possible 3 byte encoding!
     d[0] = 239;
@@ -96,7 +96,7 @@ constexpr i32 converting_utf8_sequence_to_utf32_rune_three_bit() {
     Assert(r == 65535);
     len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 3);
-    Assert(core::cptr_cmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, core::cptr_len(d), d2, core::cptr_len(d2)) == 0);
 
     return 0;
 }
@@ -120,7 +120,7 @@ constexpr i32 converting_utf8_sequence_to_utf32_rune_four_bit() {
     Assert(r == 65536);
     len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 4);
-    Assert(core::cptr_cmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, core::cptr_len(d), d2, core::cptr_len(d2)) == 0);
 
     // poop emoji:
     d[0] = 240;
@@ -131,7 +131,7 @@ constexpr i32 converting_utf8_sequence_to_utf32_rune_four_bit() {
     Assert(r == 128169);
     len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 4);
-    Assert(core::cptr_cmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, core::cptr_len(d), d2, core::cptr_len(d2)) == 0);
 
     // 247, 191, 191, 191 is not used, but it is the MAXIMUM possible 4 byte encoding!
     d[0] = 247;
@@ -142,7 +142,7 @@ constexpr i32 converting_utf8_sequence_to_utf32_rune_four_bit() {
     Assert(r == 2097151);
     len = core::rune_to_bytes(r, (uchar *)d2);
     Assert(len == 4);
-    Assert(core::cptr_cmp(d, d2) == 0);
+    Assert(core::cptr_cmp(d, core::cptr_len(d), d2, core::cptr_len(d2)) == 0);
 
     return 0;
 }

@@ -185,7 +185,7 @@ constexpr i32 int_hex_test() {
         executeTestTable("test case failed for i8 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::int_to_hex(c.in, buf);
-            Assert(core::cptr_cmp(buf, c.expected) == 0, cErr);
+            Assert(core::cptr_cmp(buf, core::cptr_len(buf), c.expected, core::cptr_len(c.expected)) == 0, cErr);
         });
     }
 
@@ -204,7 +204,7 @@ constexpr i32 int_hex_test() {
         executeTestTable("test case failed for i16 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::int_to_hex(c.in, buf);
-            Assert(core::cptr_cmp(buf, c.expected) == 0, cErr);
+            Assert(core::cptr_cmp(buf, core::cptr_len(buf), c.expected, core::cptr_len(c.expected)) == 0, cErr);
         });
     }
 
@@ -224,7 +224,7 @@ constexpr i32 int_hex_test() {
         executeTestTable("test case failed for i32 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::int_to_hex(c.in, buf);
-            Assert(core::cptr_cmp(buf, c.expected) == 0, cErr);
+            Assert(core::cptr_cmp(buf, core::cptr_len(buf), c.expected, core::cptr_len(c.expected)) == 0, cErr);
         });
     }
 
@@ -243,7 +243,7 @@ constexpr i32 int_hex_test() {
         executeTestTable("test case failed for i64 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::int_to_hex(c.in, buf);
-            Assert(core::cptr_cmp(buf, c.expected) == 0, cErr);
+            Assert(core::cptr_cmp(buf, core::cptr_len(buf), c.expected, core::cptr_len(c.expected)) == 0, cErr);
         });
     }
 
@@ -257,7 +257,7 @@ constexpr i32 int_hex_test() {
         executeTestTable("test case failed for u8 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::int_to_hex(c.in, buf);
-            Assert(core::cptr_cmp(buf, c.expected) == 0, cErr);
+            Assert(core::cptr_cmp(buf, core::cptr_len(buf), c.expected, core::cptr_len(c.expected)) == 0, cErr);
         });
     }
 
@@ -273,7 +273,7 @@ constexpr i32 int_hex_test() {
         executeTestTable("test case failed for u16 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::int_to_hex(c.in, buf);
-            Assert(core::cptr_cmp(buf, c.expected) == 0, cErr);
+            Assert(core::cptr_cmp(buf, core::cptr_len(buf), c.expected, core::cptr_len(c.expected)) == 0, cErr);
         });
     }
 
@@ -290,7 +290,7 @@ constexpr i32 int_hex_test() {
         executeTestTable("test case failed for u32 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::int_to_hex(c.in, buf);
-            Assert(core::cptr_cmp(buf, c.expected) == 0, cErr);
+            Assert(core::cptr_cmp(buf, core::cptr_len(buf), c.expected, core::cptr_len(c.expected)) == 0, cErr);
         });
     }
 
@@ -308,7 +308,7 @@ constexpr i32 int_hex_test() {
         executeTestTable("test case failed for u64 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::int_to_hex(c.in, buf);
-            Assert(core::cptr_cmp(buf, c.expected) == 0, cErr);
+            Assert(core::cptr_cmp(buf, core::cptr_len(buf), c.expected, core::cptr_len(c.expected)) == 0, cErr);
         });
     }
 

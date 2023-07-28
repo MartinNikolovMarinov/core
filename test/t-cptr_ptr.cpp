@@ -143,7 +143,7 @@ constexpr i32 cptr_eq_test() {
 constexpr i32 cptr_copy_test() {
     const char* src = "1234567890";
     char dst[20] = {};
-    core::cptr_copy(src, core::cptr_len(src), dst);
+    core::cptr_copy(dst, src, core::cptr_len(src));
 
     Assert(core::cptr_len(src) == core::cptr_len(dst));
     Assert(core::cptr_eq(src, dst, core::cptr_len(dst)));
@@ -160,7 +160,7 @@ constexpr i32 cptr_copy_test() {
     Assert(dst[10] == '\0');
 
     for (u32 i = 0; i < 20; ++i) dst[i] = 0;
-    core::cptr_copy(src, 5, dst);
+    core::cptr_copy(dst, src, 5);
 
     Assert(core::cptr_eq(dst, "12345", core::cptr_len("12345")));
     Assert(dst[0] == '1');

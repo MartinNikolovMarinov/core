@@ -34,8 +34,8 @@ struct arr {
             callDefaultCtorsIfTypeIsNonTrivial();
         }
     }
-    arr(const arr& other) = delete; // prevent copy ctor
-    arr(arr&& other) : m_data(other.m_data), m_cap(other.m_cap), m_len(other.m_len) {
+    arr(const arr<T, TAllocator>& other) = delete; // prevent copy ctor
+    arr(arr<T, TAllocator>&& other) : m_data(other.m_data), m_cap(other.m_cap), m_len(other.m_len) {
         if (this == &other) return;
         other.m_data = nullptr;
         other.m_cap = 0;
@@ -43,8 +43,9 @@ struct arr {
     }
     ~arr() { free(); }
 
-    arr& operator=(const arr& other) = delete; // prevent copy assignment
-    arr& operator=(arr&& other) {
+    arr<T, TAllocator>& operator=(const arr<T, TAllocator>& other) = delete; // prevent copy assignment
+    arr<T, TAllocator>& operator=(size_type) = delete; // prevent size assignment
+    arr<T, TAllocator>& operator=(arr<T, TAllocator>&& other) {
         if (this == &other) return *this;
         free(); // very important to free before assigning new data.
         m_data = other.m_data;
@@ -104,8 +105,8 @@ struct arr {
         m_data = nullptr;
     }
 
-    data_type& at(size_type idx)                     { Assert(idx <= m_len); return m_data[idx]; }
-    const data_type& at(size_type idx)         const { Assert(idx <= m_len); return m_data[idx]; }
+    data_type& at(size_type idx)                     { Assert(idx < m_len); return m_data[idx]; }
+    const data_type& at(size_type idx)         const { Assert(idx < m_len); return m_data[idx]; }
     data_type& operator[](size_type idx)             { return at(idx); }
     const data_type& operator[](size_type idx) const { return at(idx); }
 
@@ -114,7 +115,7 @@ struct arr {
     data_type& last()              { return at(m_len - 1); }
     const data_type& last()  const { return at(m_len - 1); }
 
-    arr& append(const data_type& val) {
+    arr<T, TAllocator>& append(const data_type& val) {
         if (m_len == m_cap) {
             reserve(m_cap == 0 ? 1 : m_cap * 2);
         }
@@ -123,7 +124,7 @@ struct arr {
         return *this;
     }
 
-    arr& append(data_type&& val) {
+    arr<T, TAllocator>& append(data_type&& val) {
         if (m_len == m_cap) {
             reserve(m_cap == 0 ? 1 : m_cap * 2);
         }
@@ -132,7 +133,7 @@ struct arr {
         return *this;
     }
 
-    arr& append(const data_type* val, size_type len) {
+    arr<T, TAllocator>& append(const data_type* val, size_type len) {
         if (m_len + len > m_cap) {
             reserve(m_cap == 0 ? len : m_cap * 2);
         }
@@ -141,7 +142,7 @@ struct arr {
         return *this;
     }
 
-    arr& fill(const data_type& val) {
+    arr<T, TAllocator>& fill(const data_type& val) {
         if constexpr (dataIsTrivial) {
             core::memfill(m_data, m_len * sizeof(data_type), val);
         }
@@ -193,7 +194,7 @@ private:
 
     inline void copyDataAt(const data_type& lval, size_type pos) {
         if constexpr (dataIsTrivial) {
-            core::memcopy(m_data + pos, &lval, sizeof(data_type));
+            m_data[pos] = lval;
         }
         else {
             auto& rawBytes = m_data[pos];

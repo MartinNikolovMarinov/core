@@ -8,7 +8,7 @@ i32 expected_basic_case() {
     core::expected<i32, const char*> e2(core::unexpected("bad"));
     Assert(!e2.has_value());
     Assert(e2.has_err());
-    Assert(core::cptr_cmp(e2.err(), "bad") == 0);
+    Assert(core::cptr_eq(e2.err(), "bad", core::cptr_len(e2.err())));
 
     return 0;
 }
@@ -72,9 +72,9 @@ i32 expected_used_in_a_function() {
 
     Assert(ValueOrDie(f(5)) == 5 + 2);
     Assert(f(0).has_err());
-    Assert(core::cptr_cmp(f(0).err(), errMsg2) == 0);
+    Assert(core::cptr_eq(f(0).err(), errMsg2, core::cptr_len(errMsg2)));
     Assert(f(-1).has_err());
-    Assert(core::cptr_cmp(f(-1).err(), errMsg1) == 0);
+    Assert(core::cptr_eq(f(-1).err(), errMsg1, core::cptr_len(errMsg1)));
 
     return 0;
 }
@@ -117,7 +117,7 @@ constexpr i32 static_expected_basic_case() {
     core::static_expected<i32, const char*> e2(core::unexpected("bad"));
     Assert(!e2.has_value());
     Assert(e2.has_err());
-    Assert(core::cptr_cmp(e2.err(), "bad") == 0);
+    Assert(core::cptr_eq(e2.err(), "bad", core::cptr_len(e2.err())));
 
     return 0;
 }
@@ -181,9 +181,9 @@ constexpr i32 static_expected_used_in_a_function() {
 
     Assert(ValueOrDie(f(5)) == 5 + 2);
     Assert(f(0).has_err());
-    Assert(core::cptr_cmp(f(0).err(), errMsg2) == 0);
+    Assert(core::cptr_eq(f(0).err(), errMsg2, core::cptr_len(errMsg2)));
     Assert(f(-1).has_err());
-    Assert(core::cptr_cmp(f(-1).err(), errMsg1) == 0);
+    Assert(core::cptr_eq(f(-1).err(), errMsg1, core::cptr_len(errMsg1)));
 
     return 0;
 }

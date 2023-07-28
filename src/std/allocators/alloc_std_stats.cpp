@@ -117,8 +117,8 @@ void* std_stats_allocator::alloc(ptr_size size) noexcept {
 
 void std_stats_allocator::free(void* ptr) noexcept {
     if (ptr == nullptr) return;
-    std::free(ptr);
     m_allocatedBlocks->remove_block(ptr);
+    std::free(ptr);
 }
 
 void std_stats_allocator::clear() noexcept {

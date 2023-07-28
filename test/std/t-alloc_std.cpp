@@ -35,7 +35,42 @@ i32 on_oom_std_allocator() {
     return 0;
 }
 
-i32 stats_allocator_tests() {
+i32 stats_allocator_basic_case_tests() {
+    core::std_stats_allocator statsStdAllocator;
+
+    {
+        void* data = statsStdAllocator.alloc(4);
+        Assert(data != nullptr);
+        Assert(statsStdAllocator.used_mem() == 4);
+    }
+
+    {
+        void* data = statsStdAllocator.alloc(5);
+        Assert(data != nullptr);
+        Assert(statsStdAllocator.used_mem() == 9);
+    }
+
+    {
+        void* data = statsStdAllocator.alloc(6);
+        Assert(data != nullptr);
+        Assert(statsStdAllocator.used_mem() == 15);
+    }
+
+    {
+        void* data = statsStdAllocator.alloc(10);
+        Assert(data != nullptr);
+        Assert(statsStdAllocator.used_mem() == 25);
+        statsStdAllocator.free(data);
+        Assert(statsStdAllocator.used_mem() == 15);
+    }
+
+    statsStdAllocator.clear();
+    Assert(statsStdAllocator.used_mem() == 0);
+
+    return 0;
+}
+
+i32 stats_allocator_with_construct_tests() {
     core::std_stats_allocator statsStdAllocator;
 
     struct test_struct {
@@ -93,7 +128,8 @@ i32 stats_allocator_tests() {
 i32 run_std_allocator_tests_suite() {
     RunTest(basic_std_allocator_case);
     RunTest(on_oom_std_allocator);
-    RunTest(stats_allocator_tests);
+    RunTest(stats_allocator_basic_case_tests);
+    RunTest(stats_allocator_with_construct_tests);
 
     // Array with std allocator tests:
     RunTest(initialize_arr<std_allocator_static>);
@@ -121,6 +157,12 @@ i32 run_std_allocator_tests_suite() {
 
     // String builder tests:
     RunTest(initalize_str_builder<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+    RunTest(move_and_copy_str_builder<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+    RunTest(resize_str_builder<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+    RunTest(append_str_builder<std_allocator_static>);
     Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
 
     return 0;

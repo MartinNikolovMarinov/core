@@ -81,7 +81,7 @@ i32 friendly_input_flag_parser_test() {
     Assert(d == 99);
 
     // Check string parsing
-    Assert(core::cptr_cmp(cptrArg, "  banicata   fsa  ") == 0);
+    Assert(core::cptr_eq(cptrArg, "  banicata   fsa  ", core::cptr_len(cptrArg)));
 
     // Check boolean parsing
     Assert(bool_1);

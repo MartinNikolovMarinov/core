@@ -95,7 +95,6 @@ private:
 
 template <typename...> struct static_expected;
 
-// IMPORTANT: Do not put anything which is not trivially destructible in this struct!
 template <typename T, typename TErr>
 struct static_expected<T, TErr> {
     // NOTE: The type must be standard layout to store it in a union.

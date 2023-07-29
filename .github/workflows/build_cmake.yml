@@ -59,6 +59,38 @@ jobs:
             cc: "clang", cxx: "clang++",
             cmake_preset: "release test shared"
           }
+        - {
+            name: "Windows with MSVC Debug static", os: windows-latest,
+            cc: "cl", cxx: "cl",
+            environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
+            cmake_preset: "debug test static",
+            cmake_build_config: "--config Debug",
+            ctest_config: "-C Debug",
+          }
+        - {
+            name: "Windows with MSVC Debug shared", os: windows-latest,
+            cc: "cl", cxx: "cl",
+            environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
+            cmake_preset: "debug test shared",
+            cmake_build_config: "--config Debug",
+            ctest_config: "-C Debug",
+          }
+        - {
+            name: "Windows with MSVC Release static", os: windows-latest,
+            cc: "cl", cxx: "cl",
+            environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
+            cmake_preset: "release test static",
+            cmake_build_config: "--config Release",
+            ctest_config: "-C Release",
+          }
+        - {
+            name: "Windows with MSVC Release shared", os: windows-latest,
+            cc: "cl", cxx: "cl",
+            environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
+            cmake_preset: "release test shared",
+            cmake_build_config: "--config Release",
+            ctest_config: "-C Release",
+          }
 
     steps:
     - name: Checkout source code
@@ -71,13 +103,13 @@ jobs:
 
         message(STATUS "Using host CMake version: ${CMAKE_VERSION}")
 
-        if ("${ { runner.os } }" STREQUAL "Windows")
+        if("${ { runner.os } }" STREQUAL "Windows")
           set(cmake_suffix "win64-x64.zip")
           set(cmake_dir "cmake-${cmake_version}-win64-x64/bin")
-        elseif ("${ { runner.os } }" STREQUAL "Linux")
+        elseif("${ { runner.os } }" STREQUAL "Linux")
           set(cmake_suffix "Linux-x86_64.tar.gz")
           set(cmake_dir "cmake-${cmake_version}-Linux-x86_64/bin")
-        elseif ("${ { runner.os } }" STREQUAL "macOS")
+        elseif("${ { runner.os } }" STREQUAL "macOS")
           set(cmake_suffix "Darwin-x86_64.tar.gz")
           set(cmake_dir "cmake-${cmake_version}-Darwin-x86_64/CMake.app/Contents/bin")
         endif()
@@ -91,7 +123,7 @@ jobs:
         # message("::set-output name=cmake_dir::${cmake_dir}")
         message("cmake_dir ${cmake_dir} >> $GITHUB_OUTPUT")
 
-        if (NOT "${ { runner.os } }" STREQUAL "Windows")
+        if(NOT "${ { runner.os } }" STREQUAL "Windows")
           execute_process(
             COMMAND chmod +x ${cmake_dir}/cmake
           )
@@ -112,6 +144,27 @@ jobs:
         set(ENV{CC} ${{ matrix.config.cc }})
         set(ENV{CXX} ${{ matrix.config.cxx }})
 
+        # Run environment script if specified. Save output to file.
+        if("${{ runner.os }}" STREQUAL "Windows" AND NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
+          execute_process(
+            COMMAND "${{ matrix.config.environment_script }}" && set
+            OUTPUT_FILE environment_script_output.txt
+          )
+          file(STRINGS environment_script_output.txt output_lines)
+          foreach(line IN LISTS output_lines)
+            if(line MATCHES "^([a-zA-Z0-9_-]+)=(.*)$")
+              set(ENV{${CMAKE_MATCH_1}} "${CMAKE_MATCH_2}")
+            endif()
+          endforeach()
+        endif()
+
+        # Windows path separator is ";".
+        set(path_separator ":")
+        if("${{ runner.os }}" STREQUAL "Windows")
+          set(path_separator ";")
+        endif()
+        set(ENV{PATH} "$ENV{GITHUB_WORKSPACE}${path_separator}$ENV{PATH}")
+
         # Run cmake.
         execute_process(
           COMMAND cmake
@@ -120,22 +173,34 @@ jobs:
             --preset "${{ matrix.config.cmake_preset }}"
           RESULT_VARIABLE result
         )
-        if (NOT result EQUAL 0)
+        if(NOT result EQUAL 0)
           message(FATAL_ERROR "Bad exit status")
         endif()
 
     - name: Build
       shell: cmake -P {0}
       run: |
+        # Read the output file generated from the envoronment script.
+        if("${{ runner.os }}" STREQUAL "Windows" AND NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
+          file(STRINGS environment_script_output.txt output_lines)
+          foreach(line IN LISTS output_lines)
+            if(line MATCHES "^([a-zA-Z0-9_-]+)=(.*)$")
+              set(ENV{${CMAKE_MATCH_1}} "${CMAKE_MATCH_2}")
+            endif()
+          endforeach()
+        endif()
+
+        message("\n\nPassed Configuration: ${{ matrix.config.cmake_build_config }}\n\n")
+
         # Run build
         execute_process(
-          COMMAND cmake --build build
+          COMMAND cmake --build build ${{ matrix.config.cmake_build_config }}
           RESULT_VARIABLE result
           OUTPUT_VARIABLE output
           ERROR_VARIABLE output
           ECHO_OUTPUT_VARIABLE ECHO_ERROR_VARIABLE
         )
-        if (NOT result EQUAL 0)
+        if(NOT result EQUAL 0)
           string(REGEX MATCH "FAILED:.*$" error_message "${output}")
           string(REPLACE "\n" "%0A" error_message "${error_message}")
           message("::error::${error_message}")
@@ -150,16 +215,18 @@ jobs:
 
         set(ENV{CTEST_OUTPUT_ON_FAILURE} "ON")
 
+        message("\n\nPassed Configuration: ${{ matrix.config.ctest_config }}\n\n")
+
         # The tests I usually write are not thread safe, but I can add -j ${N} to run tests in parallel.
         execute_process(
-          COMMAND ctest --preset=default
-          WORKING_DIRECTORY .
+          COMMAND ctest ${{ matrix.config.ctest_config }} --verbose
+          WORKING_DIRECTORY build
           RESULT_VARIABLE result
           OUTPUT_VARIABLE output
           ERROR_VARIABLE output
           ECHO_OUTPUT_VARIABLE ECHO_ERROR_VARIABLE
         )
-        if (NOT result EQUAL 0)
+        if(NOT result EQUAL 0)
           string(REGEX MATCH "[0-9]+% tests.*[0-9.]+ sec.*$" test_results "${output}")
           string(REPLACE "\n" "%0A" test_results "${test_results}")
           message("::error::${test_results}")

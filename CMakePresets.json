@@ -85,13 +85,5 @@
 				"RUN_COMPILETIME_TESTS": "ON"
 			}
 		}
-	],
-	"testPresets": [
-		{
-			"name": "default",
-			"configurePreset": "default", // This is required but it does not matter.
-			"output": { "verbosity": "verbose" },
-			"execution": { "noTestsAction": "error", "stopOnFailure": true }
-		}
 	]
 }

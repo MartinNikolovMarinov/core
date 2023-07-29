@@ -164,6 +164,8 @@ i32 run_std_allocator_tests_suite() {
     Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
     RunTest(append_str_builder<std_allocator_static>);
     Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+    RunTest(take_and_steal_str_builder<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
 
     return 0;
 }

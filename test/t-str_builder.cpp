@@ -312,9 +312,142 @@ i32 append_str_builder() {
         Assert(s[2] == 'g');
     }
 
+    {
+        // Append whole string.
+        str_builder s(0, 2);
+
+        {
+            s.append("abc");
+            Assert(s.len() == 3);
+            Assert(s.cap() == 4);
+            Assert(s.view().buff != nullptr);
+            Assert(s[0] == 'a');
+            Assert(s[1] == 'b');
+            Assert(s[2] == 'c');
+
+            s.clear();
+        }
+        {
+            char buf[] = "efg";
+            s.append(buf);
+            Assert(s.len() == 3);
+            Assert(s.cap() == 4);
+            Assert(s.view().buff != buf);
+            Assert(s.view().len == 3);
+            Assert(core::cptr_eq(s.view().buff, buf, s.view().len));
+
+            s.clear();
+
+            Assert(core::cptr_eq(buf, "efg", 3), "clear must not affect the original buffer");
+        }
+        {
+            const char buf[] = "higklmn";
+            s.append(buf, 5);
+
+            Assert(s.len() == 5);
+            Assert(s.cap() == 8);
+            Assert(s.view().buff != nullptr);
+            Assert(s.view().len == 5);
+            Assert(core::cptr_eq(s.view().buff, buf, s.view().len));
+
+            s.append("opq");
+
+            Assert(s.len() == 8);
+            Assert(s.cap() == 8);
+            Assert(s.view().buff != nullptr);
+            Assert(s.view().len == 8);
+            Assert(s[0] == 'h');
+            Assert(s[1] == 'i');
+            Assert(s[2] == 'g');
+            Assert(s[3] == 'k');
+            Assert(s[4] == 'l');
+            Assert(s[5] == 'o');
+            Assert(s[6] == 'p');
+            Assert(s[7] == 'q');
+
+            Assert(core::cptr_eq(buf, "higklmn", core::cptr_len(buf)), "append must not affect the original buffer");
+            s.clear();
+            Assert(core::cptr_eq(buf, "higklmn", core::cptr_len(buf)), "clear must not affect the original buffer");
+        }
+    }
+
     return 0;
 }
 
+template<typename TAllocator>
+i32 take_and_steal_str_builder() {
+    using str_builder = core::str_builder<TAllocator>;
 
-// FIXME: Test take and steal ownership functions.
-// FIXME: Test append more.
+    {
+        // Basic take ownership.
+
+        constexpr i32 allocatedSize = 25;
+        char* data = reinterpret_cast<char*>(core::alloc<TAllocator>(allocatedSize * sizeof(char)));
+        core::memset(data, 0, allocatedSize);
+        core::memset(data, 'a', allocatedSize - 1);
+
+        str_builder s;
+        s.take_ownership_from(&data);
+        Assert(data == nullptr);
+        Assert(s.len() == allocatedSize - 1);
+        Assert(s.cap() == allocatedSize - 1);
+        Assert(s.view().buff != nullptr);
+        Assert(s.view().len == allocatedSize - 1);
+
+        for (i32 i = 0; i < allocatedSize - 1; ++i) { Assert(s[i] == 'a'); }
+    }
+
+    {
+        // Take ownership twice.
+
+        constexpr i32 allocatedSize = 17;
+        char* data = reinterpret_cast<char*>(core::alloc<TAllocator>(allocatedSize * sizeof(char)));
+        core::memset(data, 0, allocatedSize);
+        core::memset(data, 'a', allocatedSize - 1);
+
+        str_builder s(0, 5);
+        s.take_ownership_from(&data);
+        Assert(data == nullptr);
+        Assert(s.len() == allocatedSize - 1);
+        Assert(s.cap() == allocatedSize - 1);
+        Assert(s.view().buff != nullptr);
+        Assert(s.view().len == allocatedSize - 1);
+
+        for (i32 i = 0; i < allocatedSize - 1; ++i) { Assert(s[i] == 'a'); }
+
+        char* data2 = reinterpret_cast<char*>(core::alloc<TAllocator>(allocatedSize * 2 * sizeof(char)));
+        core::memset(data2, 0, allocatedSize * 2);
+        core::memset(data2, 'b', allocatedSize * 2 - 1);
+
+        s.take_ownership_from(&data2);
+        Assert(data2 == nullptr);
+        Assert(s.len() == allocatedSize * 2 - 1);
+        Assert(s.cap() == allocatedSize * 2 - 1);
+        Assert(s.view().buff != nullptr);
+        Assert(s.view().len == allocatedSize * 2 - 1);
+
+        for (i32 i = 0; i < allocatedSize * 2 - 1; ++i) { Assert(s[i] == 'b'); }
+    }
+
+    {
+        // Basic steal ownership.
+
+        str_builder s(0, 5);
+        s.append("abcde");
+
+        char* data = s.steal_ownership();
+
+        Assert(data != nullptr);
+        Assert(core::cptr_eq(data, "abcde", 5));
+
+        Assert(s.len() == 0);
+        Assert(s.cap() == 0);
+        Assert(s.view().buff == nullptr);
+        Assert(s.view().len == 0);
+
+        // The user code is now responsible for freeing the data.
+        core::free<TAllocator>(data);
+    }
+
+    return 0;
+}

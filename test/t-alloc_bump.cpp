@@ -71,6 +71,8 @@ i32 run_bump_allocator_tests_suite() {
     bump_allocator_static<256>::clear();
     RunTest(append_str_builder<bump_allocator_static<256>>);
     bump_allocator_static<256>::clear();
+    RunTest(take_and_steal_str_builder<bump_allocator_static<256>>);
+    bump_allocator_static<256>::clear();
 
     return 0;
 }

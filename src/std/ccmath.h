@@ -318,8 +318,8 @@ constexpr f64 sqrt(f64 x) { return detail::sqrt(x); }
 
 #pragma region Pow --------------------------------------------------------------------------------------------------
 
-// TODO: A cosntexpr version of pow is possible, but it will significant differences with std::pow on different standard
-//       libraries, unless it's implemented very carefully. That sounds annoying to do, so I'll leave it for now.
+// TODO2: A cosntexpr version of pow is possible, but it will significant differences with std::pow on different standard
+//        libraries, unless it's implemented very carefully. That sounds annoying to do, so I'll leave it for now.
 
 inline f32 pow(f32 x, f32 exp) { return ::powf(x, exp); }
 inline f64 pow(f64 x, f32 exp) { return ::pow(x, exp); }

@@ -131,7 +131,7 @@ struct str_builder {
     data_type& last()              { return at(m_len - 1); }
     const data_type& last()  const { return at(m_len - 1); }
 
-    void take_ownership(const char** ptr) {
+    void take_ownership_from(data_type** ptr) {
         free();
         Assert(ptr != nullptr && *ptr != nullptr);
         m_data = reinterpret_cast<data_type*>(*ptr);
@@ -140,12 +140,12 @@ struct str_builder {
         *ptr = nullptr;
     }
 
-    void steal_ownership(char** out) {
-        Assert(out != nullptr);
-        *out = reinterpret_cast<char*>(m_data);
+    data_type* steal_ownership() {
+        data_type* res = m_data;
         m_data = nullptr;
         m_cap = 0;
         m_len = 0;
+        return res;
     }
 
     str_builder<TAllocator>& append(const data_type& val) {

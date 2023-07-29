@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-// TODO: Implement missign functions
+// TODO: [Windows Suppport] Implement missign functions
 
 namespace core {
 

@@ -110,12 +110,14 @@ set(src_files
     src/std/bbox.h
     src/std/ccmath.h
     src/std/core.h
+    src/std/fs.cpp
+    src/std/fs.h
     src/std/lines.h
     src/std/mat.h
     src/std/once.h
     src/std/plt.h
-    src/std/projections.h
     src/std/projections.cpp
+    src/std/projections.h
     src/std/stacktrace.h
     src/std/stringer.h
     src/std/transforms.h

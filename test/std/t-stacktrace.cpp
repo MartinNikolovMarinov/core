@@ -19,10 +19,9 @@ inline i32 stacktrace_on_inlined() {
 }
 
 i32 run_stacktrace_tests_suite() {
-#if (defined(OS_WIN) && OS_WIN == 0) // FIXME: uncomment when done.
     RunTest(calling_stacktrace_does_not_crash);
     RunTest(stacktrace_contains_this_function);
     RunTest(stacktrace_on_inlined);
-#endif
+
     return 0;
 }

@@ -169,7 +169,7 @@ constexpr T abs_slow(T a) {
 }
 
 constexpr f32 abs(f32 a) {
-    if constexpr (core::is_const_evaluated()) {
+    if (core::is_const_evaluated()) {
         return abs_slow(a);
     }
     else {
@@ -181,7 +181,7 @@ constexpr f32 abs(f32 a) {
 }
 
 constexpr f64 abs(f64 a) {
-    if constexpr (core::is_const_evaluated()) {
+    if (core::is_const_evaluated()) {
         return abs_slow(a);
     }
     else {
@@ -196,7 +196,7 @@ constexpr f64 abs(f64 a) {
 #pragma region IsPositive ---------------------------------------------------------------------------------------------
 
 constexpr bool is_positive(f32 a) {
-    if constexpr (core::is_const_evaluated()) {
+    if (core::is_const_evaluated()) {
         return a >= 0;
     }
     else {
@@ -208,7 +208,7 @@ constexpr bool is_positive(f32 a) {
 }
 
 constexpr bool is_positive(f64 a) {
-    if constexpr (core::is_const_evaluated()) {
+    if (core::is_const_evaluated()) {
         return a >= 0;
     }
     else {

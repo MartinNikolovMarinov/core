@@ -127,12 +127,13 @@ constexpr vec<Dim, T> vcross(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
         ret[2] = v1[0] * v2[1] - v1[1] * v2[0];
         return ret;
     }
-
-    for (i32 i = 0; i < v1.dimensions(); ++i) {
-        ret[i] = v1[(i + 1) % v1.dimensions()] * v2[(i + 2) % v1.dimensions()] -
-                 v1[(i + 2) % v1.dimensions()] * v2[(i + 1) % v1.dimensions()];
+    else { // else here prevents unreachable code warnings
+        for (i32 i = 0; i < v1.dimensions(); ++i) {
+            ret[i] = v1[(i + 1) % v1.dimensions()] * v2[(i + 2) % v1.dimensions()] -
+                    v1[(i + 2) % v1.dimensions()] * v2[(i + 1) % v1.dimensions()];
+        }
+        return ret;
     }
-    return ret;
 }
 
 // Equality

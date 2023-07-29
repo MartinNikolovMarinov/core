@@ -1,28 +1,28 @@
 constexpr i32 vector_equals_test() {
     {
-        core::vec2<i32> a { 1, 2 };
-        core::vec2<i32> b { 1, 2 };
+        core::vec2<i32> a = core::v(1, 2);
+        core::vec2<i32> b = core::v(1, 2);
         Assert(a.equals(b));
-        core::vec2<i32> c { 2, 1 };
+        core::vec2<i32> c = core::v(2, 1);
         Assert(!a.equals(c));
     }
     {
-        core::vec3<i32> a { 1, 2, 3 };
-        core::vec3<i32> b { 1, 2, 3 };
+        core::vec3<i32> a = core::v(1, 2, 3);
+        core::vec3<i32> b = core::v(1, 2, 3);
         Assert(a.equals(b));
-        core::vec3<i32> c { 2, 1, 3 };
+        core::vec3<i32> c = core::v(2, 1, 3);
         Assert(!a.equals(c));
     }
     {
-        core::vec4<i32> a { 1, 2, 3, 4 };
-        core::vec4<i32> b { 1, 2, 3, 4 };
+        core::vec4<i32> a = core::v(1, 2, 3, 4);
+        core::vec4<i32> b = core::v(1, 2, 3, 4);
         Assert(a.equals(b));
-        core::vec4<i32> c { 2, 1, 3, 4 };
+        core::vec4<i32> c = core::v(2, 1, 3, 4);
         Assert(!a.equals(c));
     }
     {
-        core::vec2<f32> a { 1.0f, 2.0f };
-        core::vec2<f32> b { 1.0f, 2.1f };
+        core::vec2<f32> a = core::v(1.0f, 2.0f);
+        core::vec2<f32> b = core::v(1.0f, 2.1f);
         Assert(!a.equals(b));
         Assert(!a.equals(b, 0.09f));
         Assert(!a.equals(b, 0.09999f));
@@ -34,8 +34,8 @@ constexpr i32 vector_equals_test() {
 
 constexpr i32 vector_add_sub_mul_div_test() {
     {
-        core::vec2<i32> a { 1, 2 };
-        core::vec2<i32> b { 3, 4 };
+        core::vec2<i32> a = core::v(1, 2);
+        core::vec2<i32> b = core::v(3, 4);
         a.add(b); Assert(a.equals(core::v(4, 6)));
         a.sub(b); Assert(a.equals(core::v(1, 2)));
         a.mul(b); Assert(a.equals(core::v(3, 8)));
@@ -50,8 +50,8 @@ constexpr i32 vector_add_sub_mul_div_test() {
         Assert(a * b / b == core::v(1, 2));
     }
     {
-        core::vec3<i32> a { 1, 2, 3 };
-        core::vec3<i32> b { 3, 4, 5 };
+        core::vec3<i32> a = core::v(1, 2, 3);
+        core::vec3<i32> b = core::v(3, 4, 5);
         a.add(b); Assert(a.equals(core::v(4, 6, 8)));
         a.sub(b); Assert(a.equals(core::v(1, 2, 3)));
         a.mul(b); Assert(a.equals(core::v(3, 8, 15)));
@@ -128,10 +128,10 @@ constexpr i32 vector_add_sub_mul_div_test() {
 
 constexpr i32 vector_length_test() {
     constexpr f32 epsillon = 0.000001f;
-    Assert(std::abs(core::v(1, 2).length() - 2.23606797749979f) < epsillon);
-    Assert(std::abs(core::v(1, 2, 3).length() - 3.7416573867739413f) < epsillon);
-    Assert(std::abs(core::v(1, 2, 3, 4).length() - 5.477225575051661f) < epsillon);
-    Assert(std::abs(core::v(1.0f, 2.0f).length() - 2.23606797749979f) < epsillon);
+    Assert(core::abs(core::v(1, 2).length() - 2.23606797749979f) < epsillon);
+    Assert(core::abs(core::v(1, 2, 3).length() - 3.7416573867739413f) < epsillon);
+    Assert(core::abs(core::v(1, 2, 3, 4).length() - 5.477225575051661f) < epsillon);
+    Assert(core::abs(core::v(1.0f, 2.0f).length() - 2.23606797749979f) < epsillon);
 
     return 0;
 }
@@ -167,7 +167,7 @@ constexpr i32 vector_dot_product_test() {
         // A ⋅ A = len(A)^2
         auto a = core::v(1, 2);
         constexpr f32 epsillon = 0.000001f;
-        Assert(std::abs(a.dot(a) - a.length() * a.length()) < epsillon);
+        Assert(core::abs(a.dot(a) - a.length() * a.length()) < epsillon);
     }
     {
         // A ⋅ B ≤ len(A) * len(B)
@@ -177,8 +177,8 @@ constexpr i32 vector_dot_product_test() {
     }
     {
         // Adding different types of vectors is ok when using the direct functions and NOT the operators.
-        core::vec4<i32> a { 1, 2, 3, 4 };
-        core::vec4<f32> b { 1.0f, 2.0f, 3.0f, 4.0f };
+        core::vec4<i32> a = core::v(1, 2, 3, 4);
+        core::vec4<f32> b = core::v(1.0f, 2.0f, 3.0f, 4.0f);
         a.add(b);
         // a += b; // fails!
         // auto c = a + b; // also fails!

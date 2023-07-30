@@ -109,7 +109,7 @@ template<i32 Dim, typename T>
 constexpr f64 vdot(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
     f64 ret = 0;
     for (i32 i = 0; i < v1.dimensions(); ++i) {
-        ret += v1[i] * v2[i];
+        ret += f64(v1[i]) * f64(v2[i]);
     }
     return ret;
 }

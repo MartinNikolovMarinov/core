@@ -1020,18 +1020,18 @@ i32 run_mat_tests_suite() {
 }
 
 constexpr i32 run_compiletime_mat_tests_suite() {
-    // RunTestCompileTime(mat_equals);
-    // RunTestCompileTime(mat2xN_constructors);
-    // RunTestCompileTime(mat3xN_constructors);
-    // RunTestCompileTime(mat4xN_constructors);
-    // // RunTestCompileTime(mat_add); // TODO: these are possible in compiletime, but the tests are not. Write new simpler tests for compiletime.
-    // // RunTestCompileTime(mat_sub);
-    // RunTestCompileTime(mat_mul);
-    // RunTestCompileTime(mat_mul_vector);
-    // RunTestCompileTime(mat_determinant);
-    // RunTestCompileTime(mat_identity);
-    // RunTestCompileTime(mat_transpose);
-    // RunTestCompileTime(mat_inverse);
+    RunTestCompileTime(mat_equals);
+    RunTestCompileTime(mat2xN_constructors);
+    RunTestCompileTime(mat3xN_constructors);
+    RunTestCompileTime(mat4xN_constructors);
+    // RunTestCompileTime(mat_add); // TODO: these are possible in compiletime, but the tests are not. Write new simpler tests for compiletime.
+    // RunTestCompileTime(mat_sub);
+    RunTestCompileTime(mat_mul);
+    RunTestCompileTime(mat_mul_vector);
+    RunTestCompileTime(mat_determinant);
+    RunTestCompileTime(mat_identity);
+    RunTestCompileTime(mat_transpose);
+    RunTestCompileTime(mat_inverse);
 
     return 0;
 }

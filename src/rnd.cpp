@@ -63,7 +63,7 @@ i64 rnd_i64(i64 min, i64 max) { return (i64)rnd_u64((u64)min, (u64)max); }
 
 f32 rnd_f32()                 { return (f32)rnd_u32() / (f32(MAX_U32) + 1.0f); }
 f32 rnd_f32(f32 min, f32 max) { return min + (max - min) * rnd_f32(); }
-f64 rnd_f64()                 { return (f64)rnd_u64() / (f64(MAX_U64) + 1.0f); }
+f64 rnd_f64()                 { return (f64)rnd_u64() / (f64(MAX_U64) + f64(1.0f)); }
 f64 rnd_f64(f64 min, f64 max) { return min + (max - min) * rnd_f64(); }
 
 void rnd_cptr(char* out, ptr_size len) {

@@ -127,20 +127,20 @@ constexpr i32 vector_add_sub_mul_div_test() {
 }
 
 constexpr i32 vector_length_test() {
-    constexpr f32 epsillon = 0.000001f;
-    Assert(core::abs(core::v(1, 2).length() - 2.23606797749979f) < epsillon);
-    Assert(core::abs(core::v(1, 2, 3).length() - 3.7416573867739413f) < epsillon);
-    Assert(core::abs(core::v(1, 2, 3, 4).length() - 5.477225575051661f) < epsillon);
-    Assert(core::abs(core::v(1.0f, 2.0f).length() - 2.23606797749979f) < epsillon);
+    constexpr f64 epsillon = 0.000001f;
+    Assert(core::abs(core::v(1, 2).length() - 2.23606797749979) < epsillon);
+    Assert(core::abs(core::v(1, 2, 3).length() - 3.7416573867739413) < epsillon);
+    Assert(core::abs(core::v(1, 2, 3, 4).length() - 5.477225575051661) < epsillon);
+    Assert(core::abs(core::v(1.0f, 2.0f).length() - 2.23606797749979) < epsillon);
 
     return 0;
 }
 
 constexpr i32 vector_dot_product_test() {
-    Assert(core::v(1, 2).dot(core::v(3, 4)) == 11.0f);
-    Assert(core::v(1, 2, 3).dot(core::v(3, 4, 5)) == 26.0f);
-    Assert(core::v(1, 2, 3, 4).dot(core::v(3, 4, 5, 6)) == 50.0f);
-    Assert(core::v(1.0f, 2.0f).dot(core::v(3.0f, 4.0f)) == 11.0f);
+    Assert(core::v(1, 2).dot(core::v(3, 4)) == 11.0);
+    Assert(core::v(1, 2, 3).dot(core::v(3, 4, 5)) == 26.0);
+    Assert(core::v(1, 2, 3, 4).dot(core::v(3, 4, 5, 6)) == 50.0);
+    Assert(core::v(1.0f, 2.0f).dot(core::v(3.0f, 4.0f)) == 11.0);
 
     // Properties of dot product:
     {
@@ -166,7 +166,7 @@ constexpr i32 vector_dot_product_test() {
     {
         // A ⋅ A = len(A)^2
         auto a = core::v(1, 2);
-        constexpr f32 epsillon = 0.000001f;
+        constexpr f64 epsillon = 0.000001f;
         Assert(core::abs(a.dot(a) - a.length() * a.length()) < epsillon);
     }
     {

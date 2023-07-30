@@ -10,7 +10,7 @@ using namespace coretypes;
 
 // Least Significant N Bits are equal to bitSeq
 constexpr bool lsn_bits(u8 v, u8 bitSeq, u8 n) {
-    u8 mask = ~(MAX_U8 << n);
+    u8 mask = ~u8(MAX_U8 << n);
     v = (v & mask);
     bool ret = (v == bitSeq);
     return ret;

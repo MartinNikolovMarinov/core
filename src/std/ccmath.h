@@ -20,9 +20,12 @@ constexpr f64 signaling_NaN_f64() { return i_nans(); }
 
 namespace detail {
 
-template <typename TFloat>
-constexpr bool isinf_compiletime_impl(TFloat x) {
+constexpr bool isinf_compiletime_impl(f32 x) {
     return x == infinity_f32() || -x == infinity_f32();
+}
+
+constexpr bool isinf_compiletime_impl(f64 x) {
+    return x == infinity_f64() || -x == infinity_f64();
 }
 
 template <typename TFloat>

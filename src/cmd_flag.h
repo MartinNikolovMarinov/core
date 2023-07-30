@@ -7,6 +7,9 @@
 #include <char_ptr_conv.h>
 #include <algorithms.h>
 
+// FIXME: Add support for tag aliasing. I might want the same flag to be accessible via multiple names. Setting it
+//        through an alias should not fail a required flag.
+
 namespace core {
 
 using namespace coretypes;

@@ -8,7 +8,7 @@ i32 get_time_test() {
 }
 
 i32 thread_sleep_test() {
-    core::os_thread_sleep(100); // don't explode I guess...
+    Check(core::os_thread_sleep(100));
 
     return 0;
 }

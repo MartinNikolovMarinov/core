@@ -10,7 +10,7 @@ using namespace coretypes;
 // The assertion function, the test case table, and the error message prefix are all passed in as arguments.
 // Every error message is pre-allocated on the stack, and the test case index is manipulated inside the char array.
 template <i32 PLen, typename TCase, i32 NCases, typename Afunc>
-inline constexpr void executeTestTable(const char (&errMsgPrefix)[PLen], const TCase (&cases)[NCases], Afunc assertionFn) {
+constexpr void executeTestTable(const char (&errMsgPrefix)[PLen], const TCase (&cases)[NCases], Afunc assertionFn) {
     i32 i = 0;
     char errMsg[PLen + 20] = {}; // The 20 is for the test case index number.
     for (i32 j = 0; j < PLen; j++) { // NOTE: intentionally not using memcopy, because this needs to work in constexpr.

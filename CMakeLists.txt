@@ -89,6 +89,7 @@ set(src_files
     src/char_ptr_conv.h
     src/char_ptr.h
     src/cmd_flag.h
+    src/compiler.h
     src/core_math.cpp
     src/core_math.h
     src/core_traits.h
@@ -188,8 +189,14 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 # BEGIN Compile Options
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    set(mm_core_common_flags -std=c++17 -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-function)
-    set(mm_core_debug_flags -O0 -g -ggdb)
+    # Use -Werror if you want to treat warnings as errors. For large code refactor that might be prefereable.
+    set(mm_core_common_flags -std=c++17
+        -Wall -Wextra -Wfatal-errors -Wuninitialized -Wconversion
+        -Wdouble-promotion -Wswitch-enum -Wundef
+        -Wno-unknown-pragmas -Wno-unused-function -Wno-variadic-macros
+        -Wdisabled-optimization # warn if the compailer disables requestd level of optimization
+    )
+    set(mm_core_debug_flags -O0 -g -ggdb -Wnull-dereference)
     set(mm_core_release_flags -O3)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(mm_core_common_flags
@@ -231,8 +238,13 @@ if(CORE_BUILD_TESTS)
 
     # Compile options
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        set(mm_test_common_flags -std=c++17 -Wall -Wextra -Wno-unknown-pragmas -g -ggdb -Wfatal-errors)
-        set(mm_test_debug_flags -O0)
+        set(mm_test_common_flags -std=c++17 -g -ggdb
+            -Wall -Wextra -Wfatal-errors -Wuninitialized -Wconversion
+            -Wdouble-promotion -Wswitch-enum -Wundef
+            -Wno-unknown-pragmas -Wno-variadic-macros
+            -Wdisabled-optimization # warn if the compailer disables requestd level of optimization
+        )
+        set(mm_test_debug_flags -O0 -Wnull-dereference)
         set(mm_test_release_flags -O3)
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         set(mm_test_common_flags

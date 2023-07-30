@@ -12,7 +12,7 @@ using namespace coretypes;
 // TODO2: The default block size is platform dependant.
 constexpr static ptr_size FS_DEFAULT_BLOCK_SIZE = 4096;
 
-struct file_data {
+struct CORE_API_EXPORT file_data {
     file_desc fd = {};
     bool isOpen = false;
     // TODO: keep track of file size, current position, etc.
@@ -20,7 +20,7 @@ struct file_data {
 
 static_assert(core::is_standard_layout_v<file_data>);
 
-struct file_err {
+struct CORE_API_EXPORT file_err {
     enum struct type : u32 {
         ERR_OS = 0,
         ERR_EOF = 1,
@@ -43,6 +43,7 @@ struct file_err {
             case type::ERR_OS:              return "os error";
             case type::ERR_SHORT_WRITE:     return "short write";
             case type::ERR_FILE_NOT_OPENED: return "file not opened";
+            case type::SENTINEL:            return "sentinel";
             default:                        return "unknown error";
         }
     }
@@ -62,13 +63,12 @@ CORE_API_EXPORT expected<file_err> file_read(file_data& file,
                                              ptr_size& readBytes,
                                              ptr_size blockSize = FS_DEFAULT_BLOCK_SIZE);
 
-CORE_API_EXPORT expected<file_data, file_err> file_open(const char* path, u64 flag, u64 mode);
+CORE_API_EXPORT expected<file_data, file_err> file_open(const char* path, i32 flag, i32 mode);
 
 template <typename TAllocator>
 expected<core::arr<u8, TAllocator>, file_err> file_read_full(const char* path,
-                                                             u64 flag, u64 mode,
-                                                             u64 initBufferSize = FS_DEFAULT_BLOCK_SIZE,
-                                                             u64 blockSize = FS_DEFAULT_BLOCK_SIZE
+                                                             i32 flag, i32 mode,
+                                                             u64 expectedSize = FS_DEFAULT_BLOCK_SIZE
 ) {
     auto res = file_open(path, flag, mode);
     if (res.has_err()) return core::unexpected(res.err());
@@ -76,20 +76,20 @@ expected<core::arr<u8, TAllocator>, file_err> file_read_full(const char* path,
     file_data f = core::move(res.value());
     defer { file_close(f); };
 
-    core::arr<u8, TAllocator> ret (0, initBufferSize);
+    core::arr<u8, TAllocator> ret (0, expectedSize);
     while (true) {
         ptr_size currReadBytes = 0;
-        u8 buffer[blockSize];
-        if (expected<file_err> err = file_read(f, buffer, blockSize, currReadBytes); err.has_err()) {
+        u8 buf[FS_DEFAULT_BLOCK_SIZE];
+        if (expected<file_err> err = file_read(f, buf, FS_DEFAULT_BLOCK_SIZE, currReadBytes); err.has_err()) {
             if (err.err().is_eof()) {
-                ret.append(buffer, currReadBytes);
+                ret.append(buf, currReadBytes);
                 break;
             }
             return core::unexpected(err.err());
         }
 
         if (currReadBytes == 0) break;
-        ret.append(buffer, currReadBytes);
+        ret.append(buf, currReadBytes);
     }
 
     return ret;

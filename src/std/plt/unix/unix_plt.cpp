@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <cstring>
+#include <time.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -52,11 +53,20 @@ expected<u64, plt_err_code> os_unix_time_stamp_in_ms() {
     return timeInMs;
 }
 
-void os_thread_sleep(u64 ms) {
-    usleep(ms * 1000);
+expected<plt_err_code> os_thread_sleep(u64 ms) {
+    struct timespec rem;
+    struct timespec req = {
+        u32((ms / 1000)),/* secs (Must be Non-Negative) */
+        u32((ms % 1000) * 1000000) /* nano (Must be in range of 0 to 999999999) */
+    };
+    i32 ret = nanosleep(&req , &rem);
+    if (ret < 0) {
+        return unexpected(u64(errno));
+    }
+    return {};
 }
 
-expected<file_desc, plt_err_code> os_open(const char* path, u64 flag, u64 mode) {
+expected<file_desc, plt_err_code> os_open(const char* path, i32 flag, i32 mode) {
     i32 ret = open(path, flag, mode);
     if (ret < 0) {
         return unexpected(u64(errno));
@@ -97,7 +107,7 @@ expected<plt_err_code> os_rmfile(const char* path) {
     return {};
 }
 
-expected<plt_err_code> os_mkdir(const char* path, u64 mode) {
+expected<plt_err_code> os_mkdir(const char* path, i32 mode) {
     i32 res = mkdir(path, mode);
     if (res < 0) {
         return unexpected(u64(errno));

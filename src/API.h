@@ -1,6 +1,6 @@
 #pragma once
 
-#if CORE_LIBRARY_SHARED
+#ifdef CORE_LIBRARY_SHARED
     /* It's a dynamic library. */
     #ifdef CORE_LIBRARY_BUILD
         /* Building the library */

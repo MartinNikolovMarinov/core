@@ -28,6 +28,10 @@ constexpr i32 align_test() {
     return 0;
 }
 
+PRAGMA_WARNING_PUSH
+
+DISABLE_GCC_AND_CLANG_WARNING(-Wconversion)
+
 i32 swap_bytes_test() {
     auto run_test_case = [](auto& a, auto& b, ptr_size N) {
         for (ptr_size i = 0; i < N; ++i) {
@@ -102,6 +106,8 @@ i32 swap_bytes_test() {
 
     return 0;
 }
+
+PRAGMA_WARNING_POP
 
 i32 memcopy_tests() {
     constexpr i32 N = 20;

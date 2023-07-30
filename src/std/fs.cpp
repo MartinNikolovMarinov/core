@@ -83,7 +83,7 @@ expected<file_err> file_read(file_data& file,
     return {};
 }
 
-expected<file_data, file_err> file_open(const char* path, u64 flag, u64 mode) {
+expected<file_data, file_err> file_open(const char* path, i32 flag, i32 mode) {
     // TODO: I should create an abstraction for flag and mode which is cross platform.
     //       After that I should remove flag and mode from this function declaration.
     //       It simply does not make sense to have them here.

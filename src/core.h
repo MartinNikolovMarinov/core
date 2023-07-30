@@ -13,6 +13,7 @@
 #include "char_ptr_conv.h"
 #include "char_ptr.h"
 #include "cmd_flag.h"
+#include "compiler.h"
 #include "core_math.h"
 #include "core_traits.h"
 #include "expected.h"

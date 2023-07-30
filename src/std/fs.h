@@ -65,7 +65,7 @@ CORE_API_EXPORT expected<file_err> file_read(file_data& file,
 
 CORE_API_EXPORT expected<file_data, file_err> file_open(const char* path, i32 flag, i32 mode);
 
-template <typename TAllocator>
+template <typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
 expected<core::arr<u8, TAllocator>, file_err> file_read_full(const char* path,
                                                              i32 flag, i32 mode,
                                                              u64 expectedSize = FS_DEFAULT_BLOCK_SIZE

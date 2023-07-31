@@ -41,8 +41,6 @@ static constexpr u32 maxdigits[] = {
     20, 20, 20, 20,
 };
 
-} // namespace detail
-
 template <typename TInt>
 constexpr u32 digit_count(TInt n) {
     static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
@@ -56,5 +54,12 @@ constexpr u32 digit_count(TInt n) {
     if (n < static_cast<TInt>(detail::powers[digits - 1])) digits--;
     return digits;
 }
+
+} // namespace detail
+
+constexpr u32 digit_count(u32 n) { return detail::digit_count(n); }
+constexpr u32 digit_count(u64 n) { return detail::digit_count(n); }
+constexpr u32 digit_count(i32 n) { return detail::digit_count(n); }
+constexpr u32 digit_count(i64 n) { return detail::digit_count(n); }
 
 } // namespace core

@@ -26,8 +26,6 @@ constexpr u32 leading_zero_count_compiletime_impl(TInt n) {
     return leadingZeroes;
 }
 
-} // detail namespace
-
 template<typename TInt>
 constexpr u32 i_leading_zero_count(TInt n) {
     static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
@@ -45,6 +43,13 @@ constexpr u32 i_leading_zero_count(TInt n) {
     return detail::leading_zero_count_compiletime_impl(n);
 #endif
 }
+
+} // detail namespace
+
+constexpr u32 i_leading_zero_count(u32 n) { return detail::i_leading_zero_count(n); }
+constexpr u32 i_leading_zero_count(u64 n) { return detail::i_leading_zero_count(n); }
+constexpr u32 i_leading_zero_count(i32 n) { return detail::i_leading_zero_count(n); }
+constexpr u32 i_leading_zero_count(i64 n) { return detail::i_leading_zero_count(n); }
 
 constexpr f32 i_huge_valf() { return __builtin_huge_valf(); }
 constexpr f32 i_nanf()      { return __builtin_nanf(""); }

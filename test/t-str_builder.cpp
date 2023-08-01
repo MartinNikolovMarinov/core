@@ -16,8 +16,8 @@ constexpr i32 initalize_str_builder() {
         str_builder str(2);
         Assert(str.len() == 2);
         Assert(str.byte_len() == 2 * sizeof(typename str_builder::data_type));
-        Assert(str.cap() == 2);
-        Assert(str.byte_cap() == 2 * sizeof(typename str_builder::data_type));
+        Assert(str.cap() == 3);
+        Assert(str.byte_cap() == 3 * sizeof(typename str_builder::data_type));
         Assert(!str.empty());
 
         Assert(str.first() == '\0');
@@ -48,8 +48,8 @@ constexpr i32 initalize_str_builder() {
 
         Assert(str.len() == 5);
         Assert(str.byte_len() == 5 * sizeof(typename str_builder::data_type));
-        Assert(str.cap() == 5);
-        Assert(str.byte_cap() == 5 * sizeof(typename str_builder::data_type));
+        Assert(str.cap() == 6);
+        Assert(str.byte_cap() == 6 * sizeof(typename str_builder::data_type));
 
         Assert(str.first() == 'h');
         Assert(str.last() == 'o');
@@ -75,8 +75,8 @@ constexpr i32 initalize_str_builder() {
 
         Assert(str.len() == 5);
         Assert(str.byte_len() == 5 * sizeof(typename str_builder::data_type));
-        Assert(str.cap() == 5);
-        Assert(str.byte_cap() == 5 * sizeof(typename str_builder::data_type));
+        Assert(str.cap() == 6);
+        Assert(str.byte_cap() == 6 * sizeof(typename str_builder::data_type));
 
         Assert(str.first() == 'h');
         Assert(str.last() == 'o');
@@ -98,8 +98,8 @@ constexpr i32 initalize_str_builder() {
         str = testMsg;
         Assert(str.len() == 27);
         Assert(str.byte_len() == 27 * sizeof(typename str_builder::data_type));
-        Assert(str.cap() == 27);
-        Assert(str.byte_cap() == 27 * sizeof(typename str_builder::data_type));
+        Assert(str.cap() == 28);
+        Assert(str.byte_cap() == 28 * sizeof(typename str_builder::data_type));
 
         sview = str.view();
         Assert(core::cptr_eq(sview.buff, testMsg, sview.len));
@@ -126,8 +126,8 @@ constexpr i32 move_and_copy_str_builder() {
 
     Assert(str2.len() == 5);
     Assert(str2.byte_len() == 5 * sizeof(typename str_builder::data_type));
-    Assert(str2.cap() == 5);
-    Assert(str2.byte_cap() == 5 * sizeof(typename str_builder::data_type));
+    Assert(str2.cap() == 6);
+    Assert(str2.byte_cap() == 6 * sizeof(typename str_builder::data_type));
     Assert(!str2.empty());
     Assert(core::cptr_eq(str2.view().buff, "hello", str2.view().len));
 
@@ -143,15 +143,15 @@ constexpr i32 move_and_copy_str_builder() {
 
     Assert(str3.len() == 5);
     Assert(str3.byte_len() == 5 * sizeof(typename str_builder::data_type));
-    Assert(str3.cap() == 5);
-    Assert(str3.byte_cap() == 5 * sizeof(typename str_builder::data_type));
+    Assert(str3.cap() == 6);
+    Assert(str3.byte_cap() == 6 * sizeof(typename str_builder::data_type));
     Assert(!str3.empty());
     Assert(core::cptr_eq(str3.view().buff, "hello", str3.view().len));
 
     Assert(str4.len() == 5);
     Assert(str4.byte_len() == 5 * sizeof(typename str_builder::data_type));
-    Assert(str4.cap() == 5);
-    Assert(str4.byte_cap() == 5 * sizeof(typename str_builder::data_type));
+    Assert(str4.cap() == 6);
+    Assert(str4.byte_cap() == 6 * sizeof(typename str_builder::data_type));
     Assert(!str4.empty());
     Assert(core::cptr_eq(str4.view().buff, "hello", str4.view().len));
 
@@ -238,7 +238,7 @@ i32 append_str_builder() {
         str_builder s;
         s.append('a'); // should not crash
         Assert(s.len() == 1);
-        Assert(s.cap() == 1);
+        Assert(s.cap() == 2);
         Assert(s.view().buff != nullptr);
         Assert(s[0] == 'a');
     }
@@ -248,7 +248,7 @@ i32 append_str_builder() {
 
         s.append('b');
         Assert(s.len() == 3);
-        Assert(s.cap() == 4);
+        Assert(s.cap() == 6);
         Assert(s.view().buff != nullptr);
         Assert(s[0] == 0);
         Assert(s[1] == 0);
@@ -256,7 +256,7 @@ i32 append_str_builder() {
 
         s.append('a');
         Assert(s.len() == 4);
-        Assert(s.cap() == 4);
+        Assert(s.cap() == 6);
         Assert(s.view().buff != nullptr);
         Assert(s[0] == 0);
         Assert(s[1] == 0);
@@ -353,7 +353,7 @@ i32 append_str_builder() {
             s.append("opq");
 
             Assert(s.len() == 8);
-            Assert(s.cap() == 8);
+            Assert(s.cap() == 16);
             Assert(s.view().buff != nullptr);
             Assert(s.view().len == 8);
             Assert(s[0] == 'h');
@@ -390,7 +390,7 @@ i32 take_and_steal_str_builder() {
         s.take_ownership_from(&data);
         Assert(data == nullptr);
         Assert(s.len() == allocatedSize - 1);
-        Assert(s.cap() == allocatedSize - 1);
+        Assert(s.cap() == allocatedSize);
         Assert(s.view().buff != nullptr);
         Assert(s.view().len == allocatedSize - 1);
 
@@ -409,7 +409,7 @@ i32 take_and_steal_str_builder() {
         s.take_ownership_from(&data);
         Assert(data == nullptr);
         Assert(s.len() == allocatedSize - 1);
-        Assert(s.cap() == allocatedSize - 1);
+        Assert(s.cap() == allocatedSize );
         Assert(s.view().buff != nullptr);
         Assert(s.view().len == allocatedSize - 1);
 
@@ -422,7 +422,7 @@ i32 take_and_steal_str_builder() {
         s.take_ownership_from(&data2);
         Assert(data2 == nullptr);
         Assert(s.len() == allocatedSize * 2 - 1);
-        Assert(s.cap() == allocatedSize * 2 - 1);
+        Assert(s.cap() == allocatedSize * 2);
         Assert(s.view().buff != nullptr);
         Assert(s.view().len == allocatedSize * 2 - 1);
 
@@ -447,6 +447,47 @@ i32 take_and_steal_str_builder() {
 
         // The user code is now responsible for freeing the data.
         core::free<TAllocator>(data);
+    }
+
+    return 0;
+}
+
+template<typename TAllocator>
+i32 special_cases_related_to_null_termination_str_builder() {
+    using str_builder = core::str_builder<TAllocator>;
+
+    {
+        str_builder s(0, 3);
+        Assert(core::cptr_len(s.view().buff) == 0);
+        s.append('a');
+        Assert(core::cptr_len(s.view().buff) == 1);
+        s.append('b');
+        Assert(core::cptr_len(s.view().buff) == 2);
+        s.append('c');
+        Assert(core::cptr_len(s.view().buff) == 3);
+        s.append('d');
+        Assert(core::cptr_len(s.view().buff) == 4);
+        s.append('e');
+        Assert(core::cptr_len(s.view().buff) == 5);
+        s.append('f');
+        Assert(core::cptr_len(s.view().buff) == 6);
+        s.append('g');
+        Assert(core::cptr_len(s.view().buff) == 7);
+    }
+
+    {
+        // Same length and cap. Cap should till be +1.
+        str_builder s(1, 1);
+        s[0] = 'b'; // set the first char.
+
+        Assert(s.len() == 1);
+        Assert(s.cap() == 2);
+        s.append('a');
+        Assert(s.len() == 2);
+        Assert(s.cap() == 4);
+        Assert(core::cptr_len(s.view().buff) == 2);
+        Assert(s[0] == 'b');
+        Assert(s[1] == 'a');
     }
 
     return 0;

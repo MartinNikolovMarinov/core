@@ -39,23 +39,24 @@ struct str_builder {
         other.m_cap = 0;
         other.m_len = 0;
     }
-    str_builder(size_type len) : m_data(nullptr), m_cap(len), m_len(len) {
+    str_builder(size_type len) : m_data(nullptr), m_cap(len + 1), m_len(len) {
         allocate_to_cap();
     }
     str_builder(size_type len, size_type cap) : m_data(nullptr), m_cap(cap), m_len(len) {
         Assert(m_cap >= m_len);
+        if (m_cap == m_len) m_cap++; // +1 for null terminator
         allocate_to_cap();
     }
     str_builder(const data_type* cptr) {
         m_len = core::cptr_len(cptr);
-        m_cap = m_len;
+        m_cap = m_len + 1; // +1 for null terminator
         m_data = reinterpret_cast<data_type*>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
         Assert(m_data != nullptr);
         core::cptr_copy(m_data, cptr, m_len);
     }
     str_builder(str_view view) {
         m_len = view.len;
-        m_cap = m_len;
+        m_cap = m_len + 1; // +1 for null terminator
         m_data = reinterpret_cast<data_type*>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
         Assert(m_data != nullptr);
         core::cptr_copy(m_data, view.buff, m_len);
@@ -78,7 +79,7 @@ struct str_builder {
     str_builder<TAllocator>& operator=(const data_type* cptr) {
         free();
         m_len = core::cptr_len(cptr);
-        m_cap = m_len;
+        m_cap = m_len + 1; // +1 for null terminator
         m_data = reinterpret_cast<data_type*>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
         Assert(m_data != nullptr);
         core::cptr_copy(m_data, cptr, m_len);
@@ -87,7 +88,7 @@ struct str_builder {
     str_builder<TAllocator>& operator=(str_view view) {
         free();
         m_len = view.len;
-        m_cap = m_len;
+        m_cap = m_len + 1; // +1 for null terminator
         m_data = reinterpret_cast<data_type*>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
         Assert(m_data != nullptr);
         core::cptr_copy(m_data, view.buff, m_len);
@@ -135,8 +136,8 @@ struct str_builder {
         free();
         Assert(ptr != nullptr && *ptr != nullptr);
         m_data = reinterpret_cast<data_type*>(*ptr);
-        m_cap = core::cptr_len(*ptr);
-        m_len = m_cap;
+        m_len = core::cptr_len(*ptr);
+        m_cap = m_len + 1; // +1 for null terminator
         *ptr = nullptr;
     }
 
@@ -149,8 +150,8 @@ struct str_builder {
     }
 
     str_builder<TAllocator>& append(const data_type& val) {
-        if (m_len == m_cap) {
-             reserve(m_cap == 0 ? 1 : m_cap * 2);
+        if (m_len + 1 >= m_cap) { // +1 for null terminator
+            reserve(m_cap == 0 ? 2 : m_cap * 2);
         }
         m_data[m_len] = val;
         m_len++;
@@ -159,7 +160,7 @@ struct str_builder {
 
     str_builder<TAllocator>& append(const data_type* cptr, size_type len) {
         if (len == 0) return *this;
-        if (m_len + len > m_cap) {
+        if (m_len + len + 1 > m_cap) { // +1 for null terminator
             reserve(m_cap == 0 ? len : m_cap * 2);
         }
         core::cptr_copy(m_data + m_len, cptr, len);
@@ -182,7 +183,8 @@ struct str_builder {
 
     void reserve(size_type newCap) {
         if (newCap <= m_cap) {
-            m_len = m_len > newCap ? newCap : m_len;
+            // shrink
+            m_len = m_len > newCap ? newCap - 1 : m_len;
             m_cap = newCap;
             return;
         }

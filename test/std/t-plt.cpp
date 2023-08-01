@@ -8,7 +8,7 @@ i32 get_time_test() {
 }
 
 i32 thread_sleep_test() {
-    Check(core::os_thread_sleep(100));
+    Expect(core::os_thread_sleep(100));
 
     return 0;
 }

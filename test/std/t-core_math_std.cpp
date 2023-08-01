@@ -251,7 +251,7 @@ i32 floor_cc_impl_compare_with_std_test() {
             Assert(gotstd == c.expected, cErr);
         });
 
-        // Check for NaN and infinity
+        // Expect for NaN and infinity
 
         constexpr f32 nan = core::quiet_NaN_f32();
         constexpr f32 infinity = core::infinity_f32();
@@ -291,7 +291,7 @@ i32 floor_cc_impl_compare_with_std_test() {
             Assert(gotstd == c.expected, cErr);
         });
 
-        // Check for NaN and infinity
+        // Expect for NaN and infinity
 
         constexpr f64 nan = core::quiet_NaN_f64();
         constexpr f64 infinity = core::infinity_f64();

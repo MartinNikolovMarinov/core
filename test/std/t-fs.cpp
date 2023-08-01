@@ -6,7 +6,7 @@ i32 basic_fs_open_test() {
 
     core::file_data f1;
     defer {
-        Check(core::file_close(f1));
+        Expect(core::file_close(f1));
         Assert(!f1.isOpen);
     };
     {
@@ -15,7 +15,7 @@ i32 basic_fs_open_test() {
         Assert(f1.isOpen);
     }
     defer {
-        Check(core::os_rmfile(pathToTestFile));
+        Expect(core::os_rmfile(pathToTestFile));
     };
     {
         constexpr std::string_view phrase = "Hello World!";
@@ -27,7 +27,7 @@ i32 basic_fs_open_test() {
 
     core::file_data f2;
     defer {
-        Check(core::file_close(f2));
+        Expect(core::file_close(f2));
         Assert(!f2.isOpen);
     };
     {
@@ -59,8 +59,8 @@ i32 read_full_fs_test() {
             Assert(f1.isOpen);
         }
         defer {
-            Check(core::os_rmfile(pathToTestFile));
-            Check(core::file_close(f1));
+            Expect(core::os_rmfile(pathToTestFile));
+            Expect(core::file_close(f1));
             Assert(!f1.isOpen);
         };
         constexpr std::string_view phrase = "123456789";
@@ -88,7 +88,7 @@ i32 run_fs_tests_suite() {
     // Before starting the test suite, make sure the test data directory exists.
     bool exists = ValueOrDie(core::os_exists(PATH_TO_TEST_DATA));
     if (!exists) {
-        Check(core::os_mkdir(PATH_TO_TEST_DATA, 0777));
+        Expect(core::os_mkdir(PATH_TO_TEST_DATA, 0777));
     }
 
     RunTest(basic_fs_open_test);

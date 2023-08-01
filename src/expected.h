@@ -25,7 +25,7 @@ template <typename...> struct expected;
 template <typename T, typename TErr>
 struct expected<T, TErr> {
     // NOTE: The type must be standard layout to store it in a union.
-    // static_assert(core::is_standard_layout_v<T>, "type must be standard layout");
+    static_assert(core::is_standard_layout_v<T>, "type must be standard layout");
 
     expected(T&& value)  : m_value(core::forward<T>(value)), m_hasValue(true) {}
     template <typename TErr2>
@@ -54,8 +54,8 @@ struct expected<T, TErr> {
     const TErr& err() const { return m_err; }
     TErr& err()             { return m_err; }
 
-    expected<T, TErr>& check() {
-        Assert(!has_err(), "expected has an error");
+    expected<T, TErr>& check(const char* msg) {
+        Assert(!has_err(), msg);
         return *this;
     }
 
@@ -83,8 +83,8 @@ struct expected<TErr> {
     TErr& err()             { return m_err; }
     bool has_err()   const  { return m_hasErr; }
 
-    expected<TErr>& check() {
-        Assert(!has_err(), "expected has an error");
+    expected<TErr>& check(const char* msg) {
+        Assert(!has_err(), msg);
         return *this;
     }
 
@@ -123,8 +123,8 @@ struct static_expected<T, TErr> {
     constexpr const TErr& err() const { return m_err; }
     constexpr TErr& err()             { return m_err; }
 
-    constexpr static_expected<T, TErr>& check() {
-        Assert(!has_err(), "expected has an error");
+    constexpr static_expected<T, TErr>& check(const char* msg) {
+        Assert(!has_err(), msg);
         return *this;
     }
 
@@ -134,12 +134,16 @@ private:
     bool m_hasValue;
 };
 
-#ifndef Check
-    #define Check(expr) (expr).check()
+#ifndef Expect
+    #define Expect(...) C_VFUNC(Expect, __VA_ARGS__)
+    #define Expect1(expr) (expr).check("failed expectation")
+    #define Expect2(expr, msg) (expr).check(msg)
 #endif
 
 #ifndef ValueOrDie
-    #define ValueOrDie(expr) core::move(Check(expr).value())
+    #define ValueOrDie(...) C_VFUNC(ValueOrDie, __VA_ARGS__)
+    #define ValueOrDie1(expr) core::move(Expect1(expr).value())
+    #define ValueOrDie2(expr, msg) core::move(Expect2(expr, msg).value())
 #endif
 
 #ifndef ValueOrReturn

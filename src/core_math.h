@@ -191,6 +191,17 @@ constexpr f64 abs(f64 a) {
     }
 }
 
+constexpr i8 abs(i8 a)   { return a < 0 ? -a : a; }
+constexpr i16 abs(i16 a) { return a < 0 ? -a : a; }
+constexpr i32 abs(i32 a) { return a < 0 ? -a : a; }
+constexpr i64 abs(i64 a) { return a < 0 ? -a : a; }
+
+template <typename Invalid>
+constexpr Invalid abs(Invalid) {
+    static_assert(core::always_false<Invalid>, "Invalid type passed to abs()");
+    return Invalid();
+}
+
 #pragma endregion
 
 #pragma region IsPositive ---------------------------------------------------------------------------------------------
@@ -236,6 +247,12 @@ constexpr bool is_positive(i32 a) {
 constexpr bool is_positive(i64 a) {
     u64 temp = a >> (sizeof(i64) * 8 - 1);
     return temp == 0;
+}
+
+template <typename Invalid>
+constexpr Invalid is_positive(Invalid) {
+    static_assert(core::always_false<Invalid>, "Invalid type passed to is_positive()");
+    return Invalid();
 }
 
 #pragma endregion

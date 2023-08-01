@@ -23,8 +23,10 @@ constexpr char digit_to_char(TInt digit) {
     return static_cast<char>((digit % 10) + '0');
 }
 
+namespace detail {
+
 template<typename TInt>
-constexpr void int_to_cptr(TInt n, char* out, u32 digitCount = 0) {
+constexpr void int_to_cptr(TInt n, char* out, u32 digitCount) {
     static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
     Assert(out != nullptr);
     if constexpr (core::is_signed_v<TInt>) {
@@ -35,10 +37,24 @@ constexpr void int_to_cptr(TInt n, char* out, u32 digitCount = 0) {
     }
     i32 dc = (digitCount == 0) ? digit_count(n) : digitCount;
     for (i32 i = dc - 1; i >= 0; i--) {
-        i32 curr = (n / TInt(pow10(i))) % 10;
+        // There is a lot of believe in all this static casting, but it 'should not' be dangerous.
+        i32 curr = static_cast<i32>((n / static_cast<TInt>(pow10(i)))) % 10;
         *out++ = digit_to_char(curr);
         dc--;
     }
+}
+
+} // detail namespace
+
+constexpr void int_to_cptr(u32 n, char* out, u32 digitCount = 0) { detail::int_to_cptr(n, out, digitCount); }
+constexpr void int_to_cptr(u64 n, char* out, u32 digitCount = 0) { detail::int_to_cptr(n, out, digitCount); }
+constexpr void int_to_cptr(i32 n, char* out, u32 digitCount = 0) { detail::int_to_cptr(n, out, digitCount); }
+constexpr void int_to_cptr(i64 n, char* out, u32 digitCount = 0) { detail::int_to_cptr(n, out, digitCount); }
+
+template <typename Invalid>
+constexpr Invalid cptr_to_int(Invalid, char*, [[maybe_unused]] u32 digitCount = 0) {
+    static_assert(core::always_false<Invalid>, "Invalid type passed to cptr_to_int.");
+    return 0;
 }
 
 // This function does not handle overflows!

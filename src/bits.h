@@ -40,17 +40,23 @@ TUint swap_byte_order(TUint n) {
         return swapped;
     }
     else {
-        static_assert((sizeof(TUint) == 2 || sizeof(TUint) == 4), "Invalid TUint argument.");
+        static_assert(core::always_false<TUint>, "Invalid TUint argument.");
         return 0;
     }
 }
 
+namespace detail {
+
 template <typename TFloat>
 void float_to_bin(u8 bytes[sizeof(TFloat)], TFloat v) {
-    static_assert(core::is_float_v<TFloat>, "Invalid TFloat argument.");
     union { TFloat a; u8 bytes[sizeof(TFloat)]; } floatUnion;
     floatUnion.a = v;
     core::memcopy(bytes, floatUnion.bytes, sizeof(TFloat));
 }
+
+} // namespace detail
+
+void float_to_bin(u8 bytes[sizeof(f32)], f32 v) { return detail::float_to_bin(bytes, v); }
+void float_to_bin(u8 bytes[sizeof(f64)], f64 v) { return detail::float_to_bin(bytes, v); }
 
 } // namespace core

@@ -43,7 +43,6 @@ static constexpr u32 maxdigits[] = {
 
 template <typename TInt>
 constexpr u32 digit_count(TInt n) {
-    static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
     if (n == 0) return 1;
     if constexpr (core::is_signed_v<TInt>) {
         if (n < 0) n = -n;
@@ -61,5 +60,7 @@ constexpr u32 digit_count(u32 n) { return detail::digit_count(n); }
 constexpr u32 digit_count(u64 n) { return detail::digit_count(n); }
 constexpr u32 digit_count(i32 n) { return detail::digit_count(n); }
 constexpr u32 digit_count(i64 n) { return detail::digit_count(n); }
+template <typename TInt>
+constexpr u32 digit_count(TInt) { static_assert(core::always_false<TInt>, "unsupported TInt size"); return 0; }
 
 } // namespace core

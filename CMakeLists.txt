@@ -85,6 +85,7 @@ set(src_files
     src/alloc.h
     src/ansi_escape_codes.h
     src/arr.h
+    src/bits.cpp
     src/bits.h
     src/char_ptr_conv.h
     src/char_ptr.h

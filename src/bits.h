@@ -1,5 +1,6 @@
 #pragma once
 
+#include <API.h>
 #include <types.h>
 #include <mem.h>
 #include <core_traits.h>
@@ -23,40 +24,7 @@ constexpr bool msn_bits(u8 v, u8 bitSeq, u8 n) {
     return ret;
 }
 
-template <typename TUint>
-TUint swap_byte_order(TUint n) {
-    if constexpr (sizeof(TUint) == 2) {
-        u16 swapped = (n >> 8) | (n << 8);
-        return swapped;
-    }
-    else if constexpr (sizeof(TUint) == 4) {
-        u32 b3Tob0 = (n >> 24) & 0xff;       // move byte 3 to byte 0
-        u32 b1Tob2 = (n << 8)  & 0xff0000;   // move byte 1 to byte 2
-        u32 b2Tob1 = (n >> 8)  & 0xff00;     // move byte 2 to byte 1
-        u32 b0Tob3 = (n << 24) & 0xff000000; // byte 0 to byte 3
-
-        // OR them together and the resulting number has a reversed byte order.
-        u32 swapped = b3Tob0 | b1Tob2 | b2Tob1 | b0Tob3;
-        return swapped;
-    }
-    else {
-        static_assert(core::always_false<TUint>, "Invalid TUint argument.");
-        return 0;
-    }
-}
-
-namespace detail {
-
-template <typename TFloat>
-void float_to_bin(u8 bytes[sizeof(TFloat)], TFloat v) {
-    union { TFloat a; u8 bytes[sizeof(TFloat)]; } floatUnion;
-    floatUnion.a = v;
-    core::memcopy(bytes, floatUnion.bytes, sizeof(TFloat));
-}
-
-} // namespace detail
-
-void float_to_bin(u8 bytes[sizeof(f32)], f32 v) { return detail::float_to_bin(bytes, v); }
-void float_to_bin(u8 bytes[sizeof(f64)], f64 v) { return detail::float_to_bin(bytes, v); }
+void CORE_API_EXPORT float_to_bin(u8 bytes[sizeof(f32)], f32 v);
+void CORE_API_EXPORT float_to_bin(u8 bytes[sizeof(f64)], f64 v);
 
 } // namespace core

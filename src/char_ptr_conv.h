@@ -52,7 +52,7 @@ constexpr void int_to_cptr(i32 n, char* out, u32 digitCount = 0) { detail::int_t
 constexpr void int_to_cptr(i64 n, char* out, u32 digitCount = 0) { detail::int_to_cptr(n, out, digitCount); }
 
 template <typename Invalid>
-constexpr Invalid cptr_to_int(Invalid, char*, [[maybe_unused]] u32 digitCount = 0) {
+constexpr Invalid int_to_cptr(Invalid, char*, [[maybe_unused]] u32 digitCount = 0) {
     static_assert(core::always_false<Invalid>, "Invalid type passed to cptr_to_int.");
     return 0;
 }

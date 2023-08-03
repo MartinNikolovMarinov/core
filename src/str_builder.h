@@ -155,6 +155,7 @@ struct str_builder {
         }
         m_data[m_len] = val;
         m_len++;
+        m_data[m_len] = '\0';
         return *this;
     }
 
@@ -165,6 +166,7 @@ struct str_builder {
         }
         core::cptr_copy(m_data + m_len, cptr, len);
         m_len += len;
+        m_data[m_len] = '\0';
         return *this;
     }
 

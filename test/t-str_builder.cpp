@@ -510,5 +510,31 @@ i32 special_cases_related_to_null_termination_str_builder() {
         Assert(s.cap() == core::cptr_len(msg3) * 2, "Should resize with the length of the even larger string.");
     }
 
+    {
+        // Appending after clearing. Should be cheap and should maintain null termination.
+        str_builder s;
+        s.append("abc");
+        Assert(s.len() == 3);
+        Assert(s.cap() == 6);
+
+        s.clear();
+        Assert(s.len() == 0);
+        Assert(s.cap() == 6);
+
+        s.append('d');
+        Assert(s.len() == 1);
+        Assert(s.cap() == 6);
+        Assert(core::cptr_len(s.view().buff) == 1);
+
+        s.clear();
+        Assert(s.len() == 0);
+        Assert(s.cap() == 6);
+
+        s.append("ab");
+        Assert(s.len() == 2);
+        Assert(s.cap() == 6);
+        Assert(core::cptr_len(s.view().buff) == 2);
+    }
+
     return 0;
 }

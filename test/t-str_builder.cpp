@@ -319,7 +319,7 @@ i32 append_str_builder() {
         {
             s.append("abc");
             Assert(s.len() == 3);
-            Assert(s.cap() == 4);
+            Assert(s.cap() == 6);
             Assert(s.view().buff != nullptr);
             Assert(s[0] == 'a');
             Assert(s[1] == 'b');
@@ -331,7 +331,7 @@ i32 append_str_builder() {
             char buf[] = "efg";
             s.append(buf);
             Assert(s.len() == 3);
-            Assert(s.cap() == 4);
+            Assert(s.cap() == 6);
             Assert(s.view().buff != buf);
             Assert(s.view().len == 3);
             Assert(core::cptr_eq(s.view().buff, buf, s.view().len));
@@ -345,7 +345,7 @@ i32 append_str_builder() {
             s.append(buf, 5);
 
             Assert(s.len() == 5);
-            Assert(s.cap() == 8);
+            Assert(s.cap() == 6);
             Assert(s.view().buff != nullptr);
             Assert(s.view().len == 5);
             Assert(core::cptr_eq(s.view().buff, buf, s.view().len));
@@ -353,7 +353,7 @@ i32 append_str_builder() {
             s.append("opq");
 
             Assert(s.len() == 8);
-            Assert(s.cap() == 16);
+            Assert(s.cap() == 12);
             Assert(s.view().buff != nullptr);
             Assert(s.view().len == 8);
             Assert(s[0] == 'h');
@@ -488,6 +488,26 @@ i32 special_cases_related_to_null_termination_str_builder() {
         Assert(core::cptr_len(s.view().buff) == 2);
         Assert(s[0] == 'b');
         Assert(s[1] == 'a');
+    }
+
+    {
+        // Appending strings that have a larger length than the capacity.
+        constexpr const char* msg1 = "large-ish volume of text";
+        str_builder s;
+        s.append(msg1, core::cptr_len(msg1));
+        Assert(s.len() == core::cptr_len(msg1));
+        Assert(s.cap() == core::cptr_len(msg1) * 2, "Should resize with the length of the large-ish string.");
+        ptr_size currCap = s.cap();
+
+        constexpr const char* msg2 = "small msg";
+        s.append(msg2);
+        Assert(s.len() == core::cptr_len(msg1) + core::cptr_len(msg2));
+        Assert(s.cap() == currCap, "Should not resize.");
+
+        constexpr const char* msg3 = "Even larger text, that needs to be reallocated, but not too many times";
+        s.append(msg3);
+        Assert(s.len() == core::cptr_len(msg1) + core::cptr_len(msg2) + core::cptr_len(msg3));
+        Assert(s.cap() == core::cptr_len(msg3) * 2, "Should resize with the length of the even larger string.");
     }
 
     return 0;

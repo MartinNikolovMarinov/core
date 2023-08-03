@@ -161,7 +161,7 @@ struct str_builder {
     str_builder<TAllocator>& append(const data_type* cptr, size_type len) {
         if (len == 0) return *this;
         if (m_len + len + 1 > m_cap) { // +1 for null terminator
-            reserve(m_cap == 0 ? len : m_cap * 2);
+            reserve(m_cap <= len ? (len * 2) : m_cap * 2);
         }
         core::cptr_copy(m_data + m_len, cptr, len);
         m_len += len;

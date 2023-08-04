@@ -2,6 +2,7 @@
 
 #include <API.h>
 #include <types.h>
+#include <utils.h>
 
 namespace core {
 

@@ -4,6 +4,7 @@
 #include <system_checks.h>
 #include <types.h>
 #include <core_traits.h>
+#include <utils.h>
 
 #if COMPILER_MSVC == 1
 #include <intrin.h>
@@ -50,10 +51,8 @@ constexpr u32 i_leading_zero_count(u32 n) { return detail::i_leading_zero_count(
 constexpr u32 i_leading_zero_count(u64 n) { return detail::i_leading_zero_count(n); }
 constexpr u32 i_leading_zero_count(i32 n) { return detail::i_leading_zero_count(n); }
 constexpr u32 i_leading_zero_count(i64 n) { return detail::i_leading_zero_count(n); }
-template<typename Invalid> u32 i_leading_zero_count(Invalid) {
-    static_assert(core::always_false<Invalid>, "Invalid type passed to i_leading_zero_count");
-    return 0;
-}
+
+GUARD_FN_TYPE_DEDUCTION(i_leading_zero_count);
 
 constexpr f32 i_huge_valf() { return __builtin_huge_valf(); }
 constexpr f32 i_nanf()      { return __builtin_nanf(""); }

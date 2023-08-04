@@ -6,6 +6,8 @@
 
 #include <new>
 
+// FIXME: I should combine the except and the static except. The static-ness should be an implementation detail.
+
 namespace core {
 
 using namespace coretypes;
@@ -89,6 +91,7 @@ struct expected<TErr> {
     }
 
 private:
+
     bool m_hasErr;
     TErr m_err;
 };

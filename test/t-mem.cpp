@@ -182,6 +182,7 @@ i32 memcmp_tests() {
 }
 
 i32 memfill_tests() {
+    // TODO: Add tests for memfill
     return 0;
 }
 

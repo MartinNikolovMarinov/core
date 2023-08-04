@@ -4,6 +4,7 @@
 #include <char_ptr.h>
 #include <ints.h>
 #include <core_traits.h>
+#include <utils.h>
 
 // TODO2: [PERFORMACE] Everything in this file can be much faster.
 
@@ -51,11 +52,7 @@ constexpr void int_to_cptr(u64 n, char* out, u32 digitCount = 0) { detail::int_t
 constexpr void int_to_cptr(i32 n, char* out, u32 digitCount = 0) { detail::int_to_cptr(n, out, digitCount); }
 constexpr void int_to_cptr(i64 n, char* out, u32 digitCount = 0) { detail::int_to_cptr(n, out, digitCount); }
 
-template <typename Invalid>
-constexpr Invalid int_to_cptr(Invalid, char*, [[maybe_unused]] u32 digitCount = 0) {
-    static_assert(core::always_false<Invalid>, "Invalid type passed to cptr_to_int.");
-    return 0;
-}
+GUARD_FN_TYPE_DEDUCTION(int_to_cptr);
 
 // This function does not handle overflows!
 template <typename TInt>
@@ -65,11 +62,15 @@ constexpr TInt cptr_to_int(const char* s) {
     if (s == nullptr || (s[0] != '-' && !is_digit(s[0]))) return 0;
     TInt res = 0;
     bool neg = s[0] == '-';
-    if (neg) s++;
+    if constexpr (core::is_signed_v<TInt>) {
+        if (neg) s++;
+    }
+
     while (is_digit(*s)) {
         res = res * 10 + char_to_int<TInt>(*s);
         s++;
     }
+
     if constexpr (core::is_signed_v<TInt>) {
         if (neg) res = -res;
     }
@@ -77,6 +78,7 @@ constexpr TInt cptr_to_int(const char* s) {
 }
 
 // This function does not handle overflows!
+// TODO2: This probably needs a lot more testing for edge cases.
 template <typename TFloat>
 constexpr TFloat cptr_to_float(const char* s) {
     static_assert(core::is_float_v<TFloat>, "TFloat must be a floating point type.");
@@ -111,17 +113,28 @@ constexpr TFloat cptr_to_float(const char* s) {
 }
 
 namespace detail {
+
 static constexpr const char* hexDigits = "0123456789ABCDEF";
-} // namespace detail
 
 // The out argument must have enough space to hold the result!
-// You can use somthing like - "char out[sizeof(TInt)];"
 template <typename TInt>
-constexpr void int_to_hex(TInt v, char* out, u64 hexLen = (sizeof(TInt) << 1)) {
-    static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
+constexpr void _int_to_hex(TInt v, char* out, u64 hexLen) {
     for (size_t i = 0, j = (hexLen - 1) * 4; i < hexLen; i++, j-=4) {
         out[i] = detail::hexDigits[(v >> j) & 0x0f];
     }
 }
+
+} // namespace detail
+
+constexpr void int_to_hex(u8 v, char* out, u64 hexLen = (sizeof(u8) << 1))   { detail::_int_to_hex(v, out, hexLen); }
+constexpr void int_to_hex(u16 v, char* out, u64 hexLen = (sizeof(u16) << 1)) { detail::_int_to_hex(v, out, hexLen); }
+constexpr void int_to_hex(u32 v, char* out, u64 hexLen = (sizeof(u32) << 1)) { detail::_int_to_hex(v, out, hexLen); }
+constexpr void int_to_hex(u64 v, char* out, u64 hexLen = (sizeof(u64) << 1)) { detail::_int_to_hex(v, out, hexLen); }
+constexpr void int_to_hex(i8 v, char* out, u64 hexLen = (sizeof(i8) << 1))   { detail::_int_to_hex(v, out, hexLen); }
+constexpr void int_to_hex(i16 v, char* out, u64 hexLen = (sizeof(i16) << 1)) { detail::_int_to_hex(v, out, hexLen); }
+constexpr void int_to_hex(i32 v, char* out, u64 hexLen = (sizeof(i32) << 1)) { detail::_int_to_hex(v, out, hexLen); }
+constexpr void int_to_hex(i64 v, char* out, u64 hexLen = (sizeof(i64) << 1)) { detail::_int_to_hex(v, out, hexLen); }
+
+GUARD_FN_TYPE_DEDUCTION(int_to_hex);
 
 } // namespace core

@@ -8,6 +8,8 @@
 namespace core {
 
 // FIXME: Should extend the alloc api with a calloc function, instead of using memset here.
+// TODO: Is it a good idea to set a null terminator every time I append a char. This makes clear faster, but makes
+//       append slower. Is this a good trade off?
 
 using namespace coretypes;
 

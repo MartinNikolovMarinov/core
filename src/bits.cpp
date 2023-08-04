@@ -1,4 +1,5 @@
 #include "bits.h"
+#include <mem.h>
 
 namespace core {
 

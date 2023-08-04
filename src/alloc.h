@@ -2,7 +2,7 @@
 
 #include <types.h>
 #include <utils.h>
-
+#include <compiler.h>
 #include <new>
 
 namespace core {
@@ -28,8 +28,9 @@ T* construct(A& allocator, T&&, Args&&... args) noexcept {
 }
 
 /**
- * @brief The implementation of used_mem should return the amount of memory used by the allocator.
- *        The overall size may be larger than what the user has asked for, due to memory alignment.
+ * @brief The implementation of used_mem should return the amount of memory used by the allocator. Some allocators may
+ *        be unable to return this information. The overall size may be larger than what the user has asked for, due to
+ *        memory alignment.
 */
 template<typename A>
 ptr_size used_mem() noexcept {
@@ -55,11 +56,10 @@ const char* allocator_name() noexcept {
 }
 
 /**
- * @brief This macro should be overriden by the user to specify the default allocator to use.
- *        If it is not overriden, the default template type for most data structures will fail to compile.
+ * @brief This macro should be overriden by the user to specify the default allocator. If it is not overriden, the
+ *        DEFAULT template type for most data structures will fail to compile.
 */
 #ifndef CORE_DEFAULT_ALLOCATOR
-    // TODO2: [COMPILER_WARNING] Raise a compiler warning if this is not overriden.
     #define CORE_DEFAULT_ALLOCATOR() void
 #endif
 

@@ -6,7 +6,7 @@
     in every other file. Also, this file is not in the core namespace on purpose.
 */
 
-// TODO2: [x86_64 DEPENDENCY] A lot of constants here are x86_64 specific.
+// TODO2: [x86_64 DEPENDENCY] Some of these constants might be x86_64 specific.
 
 // Include system defaults.
 #include <stdint.h>

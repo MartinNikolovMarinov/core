@@ -5,6 +5,7 @@
 #include <tuple.h>
 #include <core_traits.h>
 #include <system_checks.h>
+#include <utils.h>
 
 namespace core {
 
@@ -162,6 +163,7 @@ constexpr T clamp(T value, T min, T max) {
 
 #pragma region Abs/Sign -----------------------------------------------------------------------------------------------
 
+// TODO2: [Nit Pick] abs_slow is a bad name for ths function. It's not slow, it's just not branchless.
 template <typename T>
 constexpr T abs_slow(T a) {
     // can be done branchless, but it's not faster.
@@ -196,11 +198,7 @@ constexpr i16 abs(i16 a) { return a < 0 ? -a : a; }
 constexpr i32 abs(i32 a) { return a < 0 ? -a : a; }
 constexpr i64 abs(i64 a) { return a < 0 ? -a : a; }
 
-template <typename Invalid>
-constexpr Invalid abs(Invalid) {
-    static_assert(core::always_false<Invalid>, "Invalid type passed to abs()");
-    return Invalid();
-}
+GUARD_FN_TYPE_DEDUCTION(abs);
 
 #pragma endregion
 
@@ -249,11 +247,7 @@ constexpr bool is_positive(i64 a) {
     return temp == 0;
 }
 
-template <typename Invalid>
-constexpr Invalid is_positive(Invalid) {
-    static_assert(core::always_false<Invalid>, "Invalid type passed to is_positive()");
-    return Invalid();
-}
+GUARD_FN_TYPE_DEDUCTION(is_positive);
 
 #pragma endregion
 

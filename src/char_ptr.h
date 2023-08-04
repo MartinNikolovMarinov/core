@@ -50,7 +50,6 @@ constexpr bool cptr_eq(const char* a, const char* b, ptr_size len) {
 constexpr void cptr_copy(char *dst, const char *src, ptr_size len) {
     /**
      * TODO2: [PERFORMANCE]
-     * This is slow as shit.
      *
      * AFAIK, the fastest possible copy for x86 (32 and 64-bit) uses 16-byte wide data transfers,
      * which is the size of one XMM register. This is the method recommended in Intel's

@@ -3,6 +3,7 @@
 #include <API.h>
 #include <types.h>
 #include <intrinsic.h>
+#include <utils.h>
 
 namespace core {
 
@@ -60,7 +61,7 @@ constexpr u32 digit_count(u32 n) { return detail::digit_count(n); }
 constexpr u32 digit_count(u64 n) { return detail::digit_count(n); }
 constexpr u32 digit_count(i32 n) { return detail::digit_count(n); }
 constexpr u32 digit_count(i64 n) { return detail::digit_count(n); }
-template <typename TInt>
-constexpr u32 digit_count(TInt) { static_assert(core::always_false<TInt>, "unsupported TInt size"); return 0; }
+
+GUARD_FN_TYPE_DEDUCTION(digit_count);
 
 } // namespace core

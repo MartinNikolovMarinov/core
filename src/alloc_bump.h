@@ -19,7 +19,7 @@ struct bump_allocator {
 
     static constexpr const char* allocator_name() { return "bump allocator"; }
 
-    constexpr bump_allocator(on_oom_fp cb = defaultOOMfp) : m_oomCb(cb) {
+    constexpr bump_allocator(on_oom_fp cb = defaultOOMfp) noexcept : m_oomCb(cb) {
         clear();
     }
 
@@ -42,7 +42,7 @@ struct bump_allocator {
         return p;
     }
 
-    constexpr  void free(void*) noexcept { /* does nothing */ }
+    constexpr void free(void*) noexcept { /* does nothing */ }
 
     constexpr void clear() noexcept {
         m_startAddr = &m_data[0];

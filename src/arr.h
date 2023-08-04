@@ -9,6 +9,8 @@ namespace core {
 
 using namespace coretypes;
 
+// TODO2: [Nit Pick] Allow the array to use custom size types. This would allow arr structures to be smaller in size.
+
 template<typename T, typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
 struct arr {
     using data_type      = T;
@@ -215,6 +217,8 @@ private:
     }
 
     inline void callDefaultCtorsIfTypeIsNonTrivial() {
+        // TODO2: [Nit Pick] Technically this can check if the type is trivially constructible, not that the data is
+        //        trivial. Not might increase performance in some cases.
         if constexpr (!dataIsTrivial) {
             for (size_type i = 0; i < m_len; ++i) {
                 new (&m_data[i]) data_type();

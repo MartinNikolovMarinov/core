@@ -27,7 +27,8 @@ CORE_API_EXPORT global_assert_handler_ptr get_global_assert_handler();
 #if defined(CORE_ASSERT_ENABLED) && CORE_ASSERT_ENABLED
     #ifndef Assert
         // This macro will dereference null to force a crash,
-        // unless the global assert handler is set and returns false.
+        // unless the global assert handler is set and returns false,
+        // or exists the program in some other way.
         #define Assert(...) C_VFUNC(Assert, __VA_ARGS__)
         #define Assert1(expr) Assert2(expr, "")
         #define Assert2(expr, msg)                                                                        \
@@ -60,6 +61,17 @@ CORE_API_EXPORT global_assert_handler_ptr get_global_assert_handler();
     #define DEFER_(LINE) zz_defer##LINE
     #define DEFER(LINE) DEFER_(LINE)
     #define defer auto DEFER(__LINE__) = core::defer_dummy{} *[&]()
+#endif
+
+// This spends some compile time to check if the type provided to a function is valid.
+// TODO2: Create an option to disable this, if it slows compilation too much.
+#ifndef GUARD_FN_TYPE_DEDUCTION
+    #define GUARD_FN_TYPE_DEDUCTION(fnName)                                  \
+        template <typename Invalid> inline constexpr i32                        \
+        fnName(Invalid) {                                                       \
+            static_assert(core::always_false<i32>, "Invalid type for "#fnName); \
+            return 0;                                                           \
+        }
 #endif
 
 // Move and forward implementations copied from the standard library:

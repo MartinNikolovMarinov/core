@@ -67,33 +67,114 @@ constexpr i32 digit_to_char_test() {
 };
 
 constexpr i32 int_to_cptr_test() {
-    struct test_case {
-        i32 in;
-        u32 digitCount;
-        const char* expected;
-    };
+    {
+        struct test_case {
+            i32 in;
+            u32 digitCount;
+            const char* expected;
+        };
 
-    constexpr test_case cases[] = {
-        { 0, 1, "0" },
-        { 1, 1, "1" },
-        { -1, 1, "-1" },
-        { 123, 3, "123" },
-        { -123, 3, "-123" },
-        { 123456789, 9, "123456789" },
-        { -123456789, 9, "-123456789" },
-        { 2147483647, 10, "2147483647" },
-        { -2147483647, 10, "-2147483647" },
+        constexpr test_case cases[] = {
+            { 0, 1, "0" },
+            { 1, 1, "1" },
+            { -1, 1, "-1" },
+            { 123, 3, "123" },
+            { -123, 3, "-123" },
+            { 123456789, 9, "123456789" },
+            { -123456789, 9, "-123456789" },
+            { 2147483647, 10, "2147483647" },
+            { -2147483647, 10, "-2147483647" },
+        };
 
-        // { 2147483648, 10, "2147483648" },
-        // { -2147483648, 10, "-2147483648" },
-    };
+        executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+            char buf[12] = {};
+            core::int_to_cptr(c.in, buf, c.digitCount);
+            Assert(core::cptr_len(buf) == core::cptr_len(c.expected));
+            Assert(core::cptr_eq(buf, c.expected, core::cptr_len(c.expected)), cErr);
+        });
+    }
+    {
+        struct test_case {
+            i64 in;
+            u32 digitCount;
+            const char* expected;
+        };
 
-    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        char buf[20] = {};
-        core::int_to_cptr(c.in, buf, c.digitCount);
-        Assert(core::cptr_len(buf) == core::cptr_len(c.expected));
-        Assert(core::cptr_eq(buf, c.expected, core::cptr_len(c.expected)), cErr);
-    });
+        constexpr test_case cases[] = {
+            { 0, 1, "0" },
+            { 1, 1, "1" },
+            { -1, 1, "-1" },
+            { 123, 3, "123" },
+            { -123, 3, "-123" },
+            { 123456789, 9, "123456789" },
+            { -123456789, 9, "-123456789" },
+            { 2147483647, 10, "2147483647" },
+            { -2147483647, 10, "-2147483647" },
+            { 2147483648, 10, "2147483648" },
+            { -2147483648, 10, "-2147483648" },
+            { 9223372036854775807, 19, "9223372036854775807" },
+            { -9223372036854775807, 19, "-9223372036854775807" },
+        };
+
+        executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+            char buf[21] = {};
+            core::int_to_cptr(c.in, buf, c.digitCount);
+            Assert(core::cptr_len(buf) == core::cptr_len(c.expected));
+            Assert(core::cptr_eq(buf, c.expected, core::cptr_len(c.expected)), cErr);
+        });
+    }
+
+    {
+        struct test_case {
+            u32 in;
+            u32 digitCount;
+            const char* expected;
+        };
+
+        constexpr test_case cases[] = {
+            { 0, 1, "0" },
+            { 1, 1, "1" },
+            { 123, 3, "123" },
+            { 123456789, 9, "123456789" },
+            { 2147483647, 10, "2147483647" },
+            { 2147483648, 10, "2147483648" },
+            { 4294967295, 10, "4294967295" },
+        };
+
+        executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+            char buf[11] = {};
+            core::int_to_cptr(c.in, buf, c.digitCount);
+            Assert(core::cptr_len(buf) == core::cptr_len(c.expected));
+            Assert(core::cptr_eq(buf, c.expected, core::cptr_len(c.expected)), cErr);
+        });
+    }
+
+    {
+        struct test_case {
+            u64 in;
+            u32 digitCount;
+            const char* expected;
+        };
+
+        constexpr test_case cases[] = {
+            { 0, 1, "0" },
+            { 1, 1, "1" },
+            { 123, 3, "123" },
+            { 123456789, 9, "123456789" },
+            { 2147483647, 10, "2147483647" },
+            { 2147483648, 10, "2147483648" },
+            { 4294967295, 10, "4294967295" },
+            { 4294967296, 10, "4294967296" },
+            { 9223372036854775807, 19, "9223372036854775807" },
+        };
+
+        executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+            char buf[20] = {};
+            core::int_to_cptr(c.in, buf, c.digitCount);
+            Assert(core::cptr_len(buf) == core::cptr_len(c.expected));
+            Assert(core::cptr_eq(buf, c.expected, core::cptr_len(c.expected)), cErr);
+        });
+    }
 
     return 0;
 }

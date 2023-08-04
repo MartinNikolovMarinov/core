@@ -66,8 +66,8 @@ CORE_API_EXPORT global_assert_handler_ptr get_global_assert_handler();
 // This spends some compile time to check if the type provided to a function is valid.
 // TODO2: Create an option to disable this, if it slows compilation too much.
 #ifndef GUARD_FN_TYPE_DEDUCTION
-    #define GUARD_FN_TYPE_DEDUCTION(fnName)                                  \
-        template <typename Invalid> inline constexpr i32                        \
+    #define GUARD_FN_TYPE_DEDUCTION(fnName)                                     \
+        template <typename Invalid> i32                                         \
         fnName(Invalid) {                                                       \
             static_assert(core::always_false<i32>, "Invalid type for "#fnName); \
             return 0;                                                           \

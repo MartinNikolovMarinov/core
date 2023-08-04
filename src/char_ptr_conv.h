@@ -39,7 +39,7 @@ constexpr void int_to_cptr(TInt n, char* out, u32 digitCount) {
     i32 dc = (digitCount == 0) ? digit_count(n) : digitCount;
     for (i32 i = dc - 1; i >= 0; i--) {
         // There is a lot of believe in all this static casting, but it 'should not' be dangerous.
-        i32 curr = static_cast<i32>((n / static_cast<TInt>(pow10(i)))) % 10;
+        TInt curr = static_cast<TInt>((n / static_cast<TInt>(pow10(i)))) % 10;
         *out++ = digit_to_char(curr);
         dc--;
     }
@@ -47,6 +47,14 @@ constexpr void int_to_cptr(TInt n, char* out, u32 digitCount) {
 
 } // detail namespace
 
+/**
+ * \brief Converts an integer to a string.
+ *        If the buffer is too small, or the digit count is incorrect, the result is undefined.
+ *
+ * \param n The integer to convert.
+ * \param out The output buffer.
+ * \param digitCount The number of digits to convert, if 0 then the number of digits is calculated.
+*/
 constexpr void int_to_cptr(u32 n, char* out, u32 digitCount = 0) { detail::int_to_cptr(n, out, digitCount); }
 constexpr void int_to_cptr(u64 n, char* out, u32 digitCount = 0) { detail::int_to_cptr(n, out, digitCount); }
 constexpr void int_to_cptr(i32 n, char* out, u32 digitCount = 0) { detail::int_to_cptr(n, out, digitCount); }

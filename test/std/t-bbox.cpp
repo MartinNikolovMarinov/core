@@ -99,7 +99,6 @@ constexpr i32 bbox2D_is_inside_test() {
         { core::v(0.0f, 0.0f), core::v(10.0f, 10.0f), core::v(10.0f, 10.00001f), false },
 
         // Flip min and max. This will likely return false for every point value.
-        // IMPORTANT: This is undefined behaviour!
         // { core::v(10.0f, 10.0f),         core::v(0.0f, 0.0f),         core::v(5.0f, 5.0f),   false },
         // { core::v(10.00001f, 10.00001f), core::v(0.0f, 0.0f),         core::v(10.0f, 10.0f), false },
         // { core::v(10.0f, 10.0f),         core::v(-0.0001f, -0.0001f), core::v(0.0f, 0.0f),   false },

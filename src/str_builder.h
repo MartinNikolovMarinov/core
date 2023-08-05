@@ -7,9 +7,10 @@
 
 namespace core {
 
-// FIXME: Should extend the alloc api with a calloc function, instead of using memset here.
-// TODO: Is it a good idea to set a null terminator every time I append a char. This makes clear faster, but makes
-//       append slower. Is this a good trade off?
+// FIXME:  JIT nulltermination. Instead of doing two writes to memory on every append, this should just write a null
+// terminator at the end of the buffer. Do this, every time a view is requested or someone wants to steal ownership of
+// the buffer. This could possible remove the need for zeroing out the buffer all together, making the string builder
+// much faster.
 
 using namespace coretypes;
 
@@ -48,19 +49,20 @@ struct str_builder {
         Assert(m_cap >= m_len);
         if (m_cap == m_len) m_cap++; // +1 for null terminator
         allocate_to_cap();
+        // FIXME: Memset with zeroes to length, not to cap!
     }
     str_builder(const data_type* cptr) {
         m_len = core::cptr_len(cptr);
         m_cap = m_len + 1; // +1 for null terminator
         m_data = reinterpret_cast<data_type*>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
-        Assert(m_data != nullptr);
+        Assert(m_data != nullptr); // FIXME: Null pointers are allowed, why do I should not assert here.
         core::cptr_copy(m_data, cptr, m_len);
     }
     str_builder(str_view view) {
         m_len = view.len;
         m_cap = m_len + 1; // +1 for null terminator
         m_data = reinterpret_cast<data_type*>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
-        Assert(m_data != nullptr);
+        Assert(m_data != nullptr); // FIXME: Null pointers are allowed, why do I should not assert here.
         core::cptr_copy(m_data, view.buff, m_len);
     }
     ~str_builder() { free(); }
@@ -83,7 +85,7 @@ struct str_builder {
         m_len = core::cptr_len(cptr);
         m_cap = m_len + 1; // +1 for null terminator
         m_data = reinterpret_cast<data_type*>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
-        Assert(m_data != nullptr);
+        Assert(m_data != nullptr); // FIXME: Null pointers are allowed, why do I should not assert here.
         core::cptr_copy(m_data, cptr, m_len);
         return *this;
     }
@@ -92,7 +94,7 @@ struct str_builder {
         m_len = view.len;
         m_cap = m_len + 1; // +1 for null terminator
         m_data = reinterpret_cast<data_type*>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
-        Assert(m_data != nullptr);
+        Assert(m_data != nullptr); // FIXME: Null pointers are allowed, why do I should not assert here.
         core::cptr_copy(m_data, view.buff, m_len);
         return *this;
     }
@@ -111,11 +113,12 @@ struct str_builder {
     }
 
     void free() {
-        if (m_data == nullptr) return;
         clear();
         m_cap = 0;
-        core::free<allocator_type>(m_data);
-        m_data = nullptr;
+        if (m_data != nullptr) {
+            core::free<allocator_type>(m_data);
+            m_data = nullptr;
+        }
     }
 
     str_builder<TAllocator> copy() const {
@@ -136,7 +139,7 @@ struct str_builder {
 
     void take_ownership_from(data_type** ptr) {
         free();
-        Assert(ptr != nullptr && *ptr != nullptr);
+        Assert(ptr != nullptr && *ptr != nullptr); // FIXME: Actually, no need to crash here.
         m_data = reinterpret_cast<data_type*>(*ptr);
         m_len = core::cptr_len(*ptr);
         m_cap = m_len + 1; // +1 for null terminator
@@ -157,7 +160,7 @@ struct str_builder {
         }
         m_data[m_len] = val;
         m_len++;
-        m_data[m_len] = '\0';
+        m_data[m_len] = '\0'; // FIXME: remove
         return *this;
     }
 
@@ -168,7 +171,7 @@ struct str_builder {
         }
         core::cptr_copy(m_data + m_len, cptr, len);
         m_len += len;
-        m_data[m_len] = '\0';
+        m_data[m_len] = '\0'; // FIXME: remove
         return *this;
     }
 
@@ -196,7 +199,7 @@ struct str_builder {
         // reallocate
         data_type* newData = reinterpret_cast<data_type *>(core::alloc<allocator_type>(newCap * sizeof(data_type)));
         Assert(newData != nullptr);
-        core::memset(newData, 0, newCap * sizeof(data_type));
+        core::memset(newData, 0, newCap * sizeof(data_type)); // FIXME: remove
         if (m_data != nullptr) {
             core::memcopy(newData, m_data, m_len * sizeof(data_type));
             core::free<allocator_type>(m_data);
@@ -214,7 +217,7 @@ private:
         if (m_cap > 0) {
             m_data = reinterpret_cast<data_type*>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
             Assert(m_data != nullptr);
-            core::memset(m_data, 0, m_cap * sizeof(data_type));
+            core::memset(m_data, 0, m_cap * sizeof(data_type)); // FIXME: remove.
         }
     }
 };

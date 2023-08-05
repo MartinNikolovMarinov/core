@@ -48,6 +48,7 @@ constexpr bool cptr_eq(const char* a, const char* b, ptr_size len) {
 }
 
 constexpr void cptr_copy(char *dst, const char *src, ptr_size len) {
+    if (dst == nullptr || src == nullptr) return;
     /**
      * TODO2: [PERFORMANCE]
      *

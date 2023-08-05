@@ -1,9 +1,9 @@
 #pragma once
 
 /*
-    IMPORTANT:
-    It's best to avoid adding any includes to this file to avoid cyclic dependencies, because it is literarily included
-    in every other file. Also, this file is not in the core namespace on purpose.
+    IMPORTANT: It's best to avoid adding any includes to this file to avoid cyclic dependencies, because it is
+    literarily included in every other file. This code will likely be used in a 'using namspace coretypes' statement,
+    which is the reason it is in a namespace separate from the rest of the code.
 */
 
 // TODO2: [x86_64 DEPENDENCY] Some of these constants might be x86_64 specific.
@@ -27,7 +27,7 @@ using f32      = float;
 using f64      = double;
 using uchar    = unsigned char;
 using schar    = signed char;
-using ptr_size = intptr_t;
+using ptr_size = intptr_t; // FIXME: I need to make this size_t, which is actually unsigned. Check if that breaks anything.
 using rune     = char32_t; // Runes represent a single UTF-32 encoded character.
 
 // Max unsigned integer constants

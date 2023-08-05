@@ -224,6 +224,7 @@ private:
                 new (&m_data[i]) data_type();
             }
         }
+        // FIXME: Zero out the memory if the type is trivially constructible! Write test.
     }
 };
 

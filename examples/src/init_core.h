@@ -1,9 +1,8 @@
 #pragma once
 
-// IMPORTANT:
-// This file initializes default settings for core and std core. Anywhere the application wants to use somthing from
-// core or std core, it must include this file instead of directly including them.
-// This is because defining default macros can be done only here.
+// IMPORTANT: This file initializes default settings for core and std core. Anywhere the application wants to use
+// somthing from core or std core, it must include this file instead of directly including any specific header. This is
+// because default macros need to be overridden before including any core or std core headers.
 
 #include <std/allocators/alloc_std_stats.h>
 

@@ -4,6 +4,7 @@
 #include <char_ptr.h>
 #include <core_traits.h>
 #include <types.h>
+#include <mem.h>
 
 namespace core {
 
@@ -42,29 +43,23 @@ struct str_builder {
         other.m_cap = 0;
         other.m_len = 0;
     }
+
     str_builder(size_type len) : m_data(nullptr), m_cap(len + 1), m_len(len) {
-        allocate_to_cap();
+        m_data = reinterpret_cast<data_type*>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
+        Assert(m_data != nullptr);
+        core::memset(m_data, 0, m_len * sizeof(data_type));
     }
     str_builder(size_type len, size_type cap) : m_data(nullptr), m_cap(cap), m_len(len) {
         Assert(m_cap >= m_len);
         if (m_cap == m_len) m_cap++; // +1 for null terminator
-        allocate_to_cap();
-        // FIXME: Memset with zeroes to length, not to cap!
-    }
-    str_builder(const data_type* cptr) {
-        m_len = core::cptr_len(cptr);
-        m_cap = m_len + 1; // +1 for null terminator
         m_data = reinterpret_cast<data_type*>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
-        Assert(m_data != nullptr); // FIXME: Null pointers are allowed, why do I should not assert here.
-        core::cptr_copy(m_data, cptr, m_len);
+        Assert(m_data != nullptr);
+        core::memset(m_data, 0, m_len * sizeof(data_type));
     }
-    str_builder(str_view view) {
-        m_len = view.len;
-        m_cap = m_len + 1; // +1 for null terminator
-        m_data = reinterpret_cast<data_type*>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
-        Assert(m_data != nullptr); // FIXME: Null pointers are allowed, why do I should not assert here.
-        core::cptr_copy(m_data, view.buff, m_len);
-    }
+
+    str_builder(const data_type* cptr) { assign_from_cptr(cptr, core::cptr_len(cptr)); }
+    str_builder(str_view view)         { assign_from_cptr(view.buff, view.len); }
+
     ~str_builder() { free(); }
 
     str_builder<TAllocator>& operator=(const str_builder<TAllocator>&) = delete; // prevent copy assignment
@@ -81,22 +76,12 @@ struct str_builder {
         return *this;
     }
     str_builder<TAllocator>& operator=(const data_type* cptr) {
-        free();
-        m_len = core::cptr_len(cptr);
-        m_cap = m_len + 1; // +1 for null terminator
-        m_data = reinterpret_cast<data_type*>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
-        Assert(m_data != nullptr); // FIXME: Null pointers are allowed, why do I should not assert here.
-        core::cptr_copy(m_data, cptr, m_len);
-        return *this;
+        clear();
+        return append(cptr, core::cptr_len(cptr));
     }
     str_builder<TAllocator>& operator=(str_view view) {
-        free();
-        m_len = view.len;
-        m_cap = m_len + 1; // +1 for null terminator
-        m_data = reinterpret_cast<data_type*>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
-        Assert(m_data != nullptr); // FIXME: Null pointers are allowed, why do I should not assert here.
-        core::cptr_copy(m_data, view.buff, m_len);
-        return *this;
+        clear();
+        return append(view.buff, view.len);
     }
 
     const char*     allocator_name() const { return core::allocator_name<allocator_type>(); }
@@ -104,16 +89,17 @@ struct str_builder {
     size_type       byte_cap()       const { return m_cap * sizeof(data_type); }
     size_type       len()            const { return m_len; }
     size_type       byte_len()       const { return m_len * sizeof(data_type); }
-    str_view        view()           const { return str_view(m_data, m_len); }
     bool            empty()          const { return m_len == 0; }
 
-    void clear() {
-        m_len = 0;
-        if (m_data != nullptr) m_data[0] = '\0';
+    str_view view() const {
+        if (m_data != nullptr) m_data[m_len] = '\0'; // JIT null terminate
+        return str_view(m_data, m_len);
     }
 
+    void clear() { m_len = 0; }
+
     void free() {
-        clear();
+        m_len = 0;
         m_cap = 0;
         if (m_data != nullptr) {
             core::free<allocator_type>(m_data);
@@ -139,14 +125,14 @@ struct str_builder {
 
     void take_ownership_from(data_type** ptr) {
         free();
-        Assert(ptr != nullptr && *ptr != nullptr); // FIXME: Actually, no need to crash here.
-        m_data = reinterpret_cast<data_type*>(*ptr);
-        m_len = core::cptr_len(*ptr);
+        m_data = reinterpret_cast<data_type*>(ptr ? *ptr : nullptr);
+        m_len = core::cptr_len(ptr ? *ptr : nullptr);
         m_cap = m_len + 1; // +1 for null terminator
         *ptr = nullptr;
     }
 
     data_type* steal_ownership() {
+        if (m_data != nullptr) m_data[m_len] = '\0'; // JIT null terminate
         data_type* res = m_data;
         m_data = nullptr;
         m_cap = 0;
@@ -155,23 +141,21 @@ struct str_builder {
     }
 
     str_builder<TAllocator>& append(const data_type& val) {
-        if (m_len + 1 >= m_cap) { // +1 for null terminator
+        if (should_resize(1)) {
             reserve(m_cap == 0 ? 2 : m_cap * 2);
         }
         m_data[m_len] = val;
         m_len++;
-        m_data[m_len] = '\0'; // FIXME: remove
         return *this;
     }
 
     str_builder<TAllocator>& append(const data_type* cptr, size_type len) {
         if (len == 0) return *this;
-        if (m_len + len + 1 > m_cap) { // +1 for null terminator
-            reserve(m_cap <= len ? (len * 2) : m_cap * 2);
+        if (should_resize(len)) {
+            reserve(m_cap <= len ? (m_cap*2 + len + 1) : m_cap * 2);
         }
         core::cptr_copy(m_data + m_len, cptr, len);
         m_len += len;
-        m_data[m_len] = '\0'; // FIXME: remove
         return *this;
     }
 
@@ -199,7 +183,6 @@ struct str_builder {
         // reallocate
         data_type* newData = reinterpret_cast<data_type *>(core::alloc<allocator_type>(newCap * sizeof(data_type)));
         Assert(newData != nullptr);
-        core::memset(newData, 0, newCap * sizeof(data_type)); // FIXME: remove
         if (m_data != nullptr) {
             core::memcopy(newData, m_data, m_len * sizeof(data_type));
             core::free<allocator_type>(m_data);
@@ -213,12 +196,17 @@ private:
     size_type  m_cap;
     size_type  m_len;
 
-    void allocate_to_cap() {
-        if (m_cap > 0) {
-            m_data = reinterpret_cast<data_type*>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
-            Assert(m_data != nullptr);
-            core::memset(m_data, 0, m_cap * sizeof(data_type)); // FIXME: remove.
-        }
+    inline void assign_from_cptr(const char* cptr, size_type len) {
+        m_len = len;
+        m_cap = m_len + 1; // +1 for null terminator
+        m_data = reinterpret_cast<data_type*>(core::alloc<allocator_type>(m_cap * sizeof(data_type)));
+        Assert(m_data != nullptr);
+        core::cptr_copy(m_data, cptr, m_len);
+    }
+
+    inline bool should_resize(size_type lenInc) {
+        constexpr size_type nullTerminatorSize = 1;
+        return (m_len + lenInc + nullTerminatorSize > m_cap);
     }
 };
 

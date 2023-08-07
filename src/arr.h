@@ -137,7 +137,7 @@ struct arr {
 
     arr<T, TAllocator>& append(const data_type* val, size_type len) {
         if (m_len + len > m_cap) {
-            reserve(m_cap == 0 ? len : m_cap * 2);
+            reserve(m_cap == 0 ? len : m_cap * 2); // FIXME: if Len is bigger than m_cap * 2 this is a bug! // reserve(m_cap <= len ? (m_cap*2 + len + 1) : m_cap * 2); ?
         }
         copyDataAt(val, m_len, len);
         m_len += len;

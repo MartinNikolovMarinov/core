@@ -27,7 +27,7 @@ i32 initialize_arr() {
         constexpr i32 testCount = 10;
         {
             core::arr<CT, TAllocator> arr(testCount);
-            for (i32 i = 0; i < arr.len(); ++i) {
+            for (i32 i = 0; i < i32(arr.len()); ++i) {
                 Assert(arr[i].a == 7, "Initializer did not call constructors!");
             }
             Assert(CT::totalCtorsCalled() == testCount, "Initializer did not call the exact number of constructors!");
@@ -36,7 +36,7 @@ i32 initialize_arr() {
             {
                 auto arrCpy = arr.copy();
                 Assert(arrCpy.data() != arr.data());
-                for (i32 i = 0; i < arrCpy.len(); ++i) {
+                for (i32 i = 0; i < i32(arrCpy.len()); ++i) {
                     Assert(arrCpy[i].a == 7, "Copy constructor did not call constructors!");
                 }
                 Assert(CT::totalCtorsCalled() == testCount, "Copy constructor did not call the exact number of constructors!");
@@ -65,7 +65,7 @@ i32 move_and_copy_arr() {
     Assert(arrCpy.cap() == arr.cap());
     Assert(arrCpy.data() != arr.data());
     Assert(!arrCpy.empty());
-    for (i32 i = 0; i < arrCpy.len(); ++i) {
+    for (i32 i = 0; i < i32(arrCpy.len()); ++i) {
         Assert(arrCpy[i] == arr[i]);
     }
 
@@ -74,7 +74,7 @@ i32 move_and_copy_arr() {
     Assert(arrCpy2.cap() == arr.cap());
     Assert(arrCpy2.data() != arr.data());
     Assert(!arrCpy2.empty());
-    for (i32 i = 0; i < arrCpy2.len(); ++i) {
+    for (i32 i = 0; i < i32(arrCpy2.len()); ++i) {
         Assert(arrCpy2[i] == arr[i]);
     }
 
@@ -86,7 +86,7 @@ i32 move_and_copy_arr() {
     Assert(arrMoved.len() == arrCpy.len());
     Assert(arrMoved.cap() == arrCpy.cap());
     Assert(!arrMoved.empty());
-    for (i32 i = 0; i < arrMoved.len(); ++i) {
+    for (i32 i = 0; i < i32(arrMoved.len()); ++i) {
         Assert(arrMoved[i] == arrCpy[i]);
     }
 
@@ -168,13 +168,13 @@ i32 fill_arr() {
         TestStruct t = { 1, 2.0 };
 
         arr2.fill(&t);
-        for (i32 i = 0; i < arr2.len(); ++i) {
+        for (i32 i = 0; i < i32(arr2.len()); ++i) {
             Assert(arr2[i]->a == 1);
             Assert(arr2[i]->b == 2.0);
         }
 
         arr2.fill(nullptr);
-        for (i32 i = 0; i < arr2.len(); ++i) {
+        for (i32 i = 0; i < i32(arr2.len()); ++i) {
             Assert(arr2[i] == nullptr);
         }
     }
@@ -187,7 +187,7 @@ i32 fill_arr() {
         {
             core::arr<CT, TAllocator> arr(testCount);
             arr.fill(v);
-            for (i32 i = 0; i < arr.len(); ++i) {
+            for (i32 i = 0; i < i32(arr.len()); ++i) {
                 Assert(arr[i].a == 7, "Fill did not call the default constructors.");
                 arr[i].a = 8;
             }
@@ -298,7 +298,7 @@ i32 append_arr() {
             arr.append(lv);
             Assert(CT::copyCtorCalled() == 1);
             Assert(CT::moveCtorCalled() == 1);
-            for (i32 i = 0; i < arr.len(); ++i) {
+            for (i32 i = 0; i < i32(arr.len()); ++i) {
                 Assert(arr[i].a == 7, "Append did not call the default constructors.");
             }
         }
@@ -315,7 +315,7 @@ i32 append_arr() {
 
             arr.append(CT{}); // calls ctor and dtor
             arr.append(lv);
-            for (i32 i = 0; i < arr.len(); ++i) {
+            for (i32 i = 0; i < i32(arr.len()); ++i) {
                 Assert(arr[i].a == 7, "Append did not call the default constructors.");
             }
             Assert(arr.len() == 2);
@@ -339,7 +339,7 @@ i32 append_arr() {
             Assert(CT::copyCtorCalled() == 5);
             Assert(CT::moveCtorCalled() == 0);
             Assert(CT::defaultCtorCalled() == 0);
-            for (i32 i = 0; i < arr.len(); ++i) {
+            for (i32 i = 0; i < i32(arr.len()); ++i) {
                 Assert(arr[i].a == 7, "Append multiple did not call the default constructors.");
             }
         }

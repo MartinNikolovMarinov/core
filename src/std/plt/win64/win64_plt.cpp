@@ -11,10 +11,10 @@ file_desc::file_desc(void* desc) : desc(desc) {}
 
 u64 file_desc::to_u64() { return (u64)desc; }
 
-expected<void*, plt_err_code> os_alloc_pages(ptr_size) {
+expected<void*, plt_err_code> os_alloc_pages(addr_size) {
     return unexpected(0);
 }
-expected<plt_err_code> os_dealloc_pages(void*, ptr_size) {
+expected<plt_err_code> os_dealloc_pages(void*, addr_size) {
     return unexpected(0);
 }
 

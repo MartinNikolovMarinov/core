@@ -9,14 +9,14 @@ namespace details {
 struct alloced_block {
     void* addr;
     alloced_block* next;
-    ptr_size size;
+    addr_size size;
 };
 
 struct allocated_block_list {
 
     alloced_block* head() noexcept { return m_head; }
     alloced_block* tail() noexcept { return m_tail; }
-    ptr_size used() noexcept { return m_used; }
+    addr_size used() noexcept { return m_used; }
 
     void add_block(alloced_block* block) noexcept {
         if (m_head == nullptr) {
@@ -75,7 +75,7 @@ struct allocated_block_list {
 private:
     alloced_block* m_head = nullptr;
     alloced_block* m_tail = nullptr;
-    ptr_size m_used = 0; // in bytes
+    addr_size m_used = 0; // in bytes
 };
 
 }
@@ -91,7 +91,7 @@ std_stats_allocator::~std_stats_allocator() {
     }
 }
 
-void* std_stats_allocator::alloc(ptr_size size) noexcept {
+void* std_stats_allocator::alloc(addr_size size) noexcept {
     using details::alloced_block;
 
     if (size == 0) return nullptr;
@@ -132,7 +132,7 @@ void std_stats_allocator::clear() noexcept {
     m_allocatedBlocks->free_blocks();
 }
 
-ptr_size std_stats_allocator::used_mem() noexcept {
+addr_size std_stats_allocator::used_mem() noexcept {
     return m_allocatedBlocks->used();
 }
 

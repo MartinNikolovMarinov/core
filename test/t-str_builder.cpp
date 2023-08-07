@@ -497,7 +497,7 @@ i32 special_cases_related_to_null_termination_str_builder() {
         s.append(msg1, core::cptr_len(msg1));
         Assert(s.len() == core::cptr_len(msg1));
         Assert(s.cap() == core::cptr_len(msg1) * 2, "Should resize with the length of the large-ish string.");
-        ptr_size currCap = s.cap();
+        addr_size currCap = s.cap();
 
         constexpr const char* msg2 = "small msg";
         s.append(msg2);

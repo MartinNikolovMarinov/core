@@ -16,7 +16,7 @@ using namespace coretypes;
 
 struct str_view {
     using data_type = char;
-    using size_type = ptr_size;
+    using size_type = addr_size;
 
     const data_type* buff;
     size_type len;
@@ -31,7 +31,7 @@ struct str_view {
 template <typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
 struct str_builder {
     using data_type      = char;
-    using size_type      = ptr_size;
+    using size_type      = addr_size;
     using allocator_type = TAllocator;
 
     str_builder() : m_data(nullptr), m_cap(0), m_len(0) {}

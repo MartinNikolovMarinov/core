@@ -1,7 +1,7 @@
 struct std_allocator_static {
     static core::std_stats_allocator stdAlloc;
 
-    static void* alloc(ptr_size size) noexcept {
+    static void* alloc(addr_size size) noexcept {
         return stdAlloc.alloc(size);
     }
 
@@ -9,7 +9,7 @@ struct std_allocator_static {
         stdAlloc.free(ptr);
     }
 
-    static ptr_size used_mem() noexcept {
+    static addr_size used_mem() noexcept {
         return stdAlloc.used_mem();
     }
 

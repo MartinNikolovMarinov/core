@@ -18,7 +18,7 @@ file_desc::file_desc(void* desc) : desc(desc) {}
 
 u64 file_desc::to_u64() { return (u64)desc; }
 
-expected<void*, plt_err_code> os_alloc_pages(ptr_size size) {
+expected<void*, plt_err_code> os_alloc_pages(addr_size size) {
     // flags - memory is private copy-on-write and is not backed by a file, i.e. anonymous
     i32 flags = ( MAP_PRIVATE | MAP_ANONYMOUS );
     // protection - memory is mapped for reading and for writing.
@@ -31,7 +31,7 @@ expected<void*, plt_err_code> os_alloc_pages(ptr_size size) {
     return addr;
 }
 
-expected<plt_err_code> os_dealloc_pages(void *addr, ptr_size size) {
+expected<plt_err_code> os_dealloc_pages(void *addr, addr_size size) {
     if (addr == nullptr) {
         return unexpected(OS_DEALLOC_NULL_ADDR_ERR);
     }

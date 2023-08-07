@@ -12,8 +12,8 @@ using plt_err_code = i64;
 
 constexpr plt_err_code OS_DEALLOC_NULL_ADDR_ERR = 1;
 
-CORE_API_EXPORT expected<void*, plt_err_code> os_alloc_pages(ptr_size size);
-CORE_API_EXPORT expected<plt_err_code>        os_dealloc_pages(void *addr, ptr_size size);
+CORE_API_EXPORT expected<void*, plt_err_code> os_alloc_pages(addr_size size);
+CORE_API_EXPORT expected<plt_err_code>        os_dealloc_pages(void *addr, addr_size size);
 
 CORE_API_EXPORT expected<u64, plt_err_code> os_unix_time_stamp_in_ms();
 CORE_API_EXPORT expected<plt_err_code>      os_thread_sleep(u64 ms);

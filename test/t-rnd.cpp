@@ -29,7 +29,7 @@ i32 rnd_signed_integers() {
 }
 
 i32 rnd_raw_str() {
-    struct test_case { ptr_size size; i32 itterCount; };
+    struct test_case { addr_size size; i32 itterCount; };
 
     constexpr i32 testCount = 1;
     test_case testTable[testCount];

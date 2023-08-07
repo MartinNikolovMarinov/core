@@ -14,7 +14,7 @@ using namespace coretypes;
 template<typename T, typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
 struct arr {
     using data_type      = T;
-    using size_type      = ptr_size;
+    using size_type      = addr_size;
     using allocator_type = TAllocator;
 
     static constexpr bool dataIsTrivial = core::is_trivial_v<data_type>;

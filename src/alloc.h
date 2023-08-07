@@ -14,7 +14,7 @@ using namespace coretypes;
  *        is because the allocator may need to align the memory.
 */
 template<typename A>
-void* alloc(ptr_size size) noexcept {
+void* alloc(addr_size size) noexcept {
     return A::alloc(size);
 }
 
@@ -33,7 +33,7 @@ T* construct(A& allocator, T&&, Args&&... args) noexcept {
  *        memory alignment.
 */
 template<typename A>
-ptr_size used_mem() noexcept {
+addr_size used_mem() noexcept {
     return A::used_mem();
 }
 

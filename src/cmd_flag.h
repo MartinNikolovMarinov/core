@@ -34,7 +34,7 @@ struct flag_parser {
     struct flag_data {
         void* arg = nullptr;
         const char* name = nullptr;
-        ptr_size nameLen = 0;
+        addr_size nameLen = 0;
         flag_type type;
         bool isSet = false;
         bool isRequired = false;
@@ -89,9 +89,9 @@ struct flag_parser {
             }
 
             if (state == 1) {
-                ptr_size fidx = core::find(flags, [&](const flag_data& f, ptr_size) -> bool {
-                    ptr_size trimmedNameLen = f.nameLen;
-                    ptr_size trimmedValLen = valLen;
+                addr_off fidx = core::find(flags, [&](const flag_data& f, addr_off) -> bool {
+                    addr_off trimmedNameLen = f.nameLen;
+                    addr_off trimmedValLen = valLen;
                     while (core::is_white_space(f.name[trimmedNameLen - 1])) trimmedNameLen--;
                     while (core::is_white_space(curVal[trimmedValLen - 1])) trimmedValLen--;
                     bool areEqual = core::cptr_cmp(f.name, trimmedNameLen, curVal, trimmedValLen) == 0;
@@ -186,7 +186,7 @@ struct flag_parser {
             }
         }
 
-        for (i32 i = 0; i < flags.len(); ++i) {
+        for (addr_size i = 0; i < flags.len(); ++i) {
             const auto& f = flags[i];
             if (f.isRequired && !f.isSet) {
                 return core::unexpected(parse_err::MissingRequiredFlag);
@@ -249,7 +249,7 @@ private:
         f.validate = validate;
 
         // Replace existing flag if it exists.
-        ptr_size nameIdx = core::find(parser.flags, [&](const auto& el, ptr_size) -> bool {
+        addr_off nameIdx = core::find(parser.flags, [&](const auto& el, addr_off) -> bool {
             return core::cptr_cmp(f.name, f.nameLen, el.name, el.nameLen) == 0;
         });
         if (nameIdx != -1) parser.flags[nameIdx] = f;

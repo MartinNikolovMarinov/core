@@ -25,11 +25,11 @@ struct CORE_API_EXPORT std_allocator {
     std_allocator(std_allocator&&) = delete;
     std_allocator& operator=(std_allocator&&) = delete;
 
-    void* alloc(ptr_size size) noexcept;
+    void* alloc(addr_size size) noexcept;
 
     void free(void* ptr) noexcept;
 
-    ptr_size used_mem() noexcept;
+    addr_size used_mem() noexcept;
 
     const on_oom_fp m_oomCb;
 };

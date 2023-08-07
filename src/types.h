@@ -15,20 +15,21 @@
 
 namespace coretypes {
 
-using i8       = int8_t;
-using i16      = int16_t;
-using i32      = int32_t;
-using i64      = int64_t;
-using u8       = uint8_t;
-using u16      = uint16_t;
-using u32      = uint32_t;
-using u64      = uint64_t;
-using f32      = float;
-using f64      = double;
-using uchar    = unsigned char;
-using schar    = signed char;
-using ptr_size = intptr_t; // FIXME: I need to make this size_t, which is actually unsigned. Check if that breaks anything.
-using rune     = char32_t; // Runes represent a single UTF-32 encoded character.
+using i8        = int8_t;
+using i16       = int16_t;
+using i32       = int32_t;
+using i64       = int64_t;
+using u8        = uint8_t;
+using u16       = uint16_t;
+using u32       = uint32_t;
+using u64       = uint64_t;
+using f32       = float;
+using f64       = double;
+using uchar     = unsigned char;
+using schar     = signed char;
+using addr_size = u64;
+using addr_off  = i64;
+using rune      = char32_t; // Runes represent a single UTF-32 encoded character.
 
 // Max unsigned integer constants
 static constexpr u64 MAX_U64 = static_cast<u64>(0xFFFFFFFFFFFFFFFF);           // 18446744073709551615

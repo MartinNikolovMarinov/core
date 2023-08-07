@@ -8,10 +8,10 @@ namespace core {
 
 using namespace coretypes;
 
-template <typename T, core::ptr_size N>
+template <typename T, addr_size N>
 struct sarr {
     using data_type = T;
-    using size_type = ptr_size;
+    using size_type = addr_size;
 
     static constexpr bool dataIsStandardLayout = core::is_standard_layout_v<data_type>;
     static_assert(dataIsStandardLayout, "sarr data type must be standard layout");

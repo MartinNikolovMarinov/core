@@ -19,7 +19,7 @@ i32 basic_fs_open_test() {
     };
     {
         constexpr std::string_view phrase = "Hello World!";
-        ptr_size written = 0;
+        addr_size written = 0;
         auto res = core::file_write(f1, phrase.data(), phrase.size(), written);
         Assert(!res.has_err());
         Assert(written == phrase.size());
@@ -38,7 +38,7 @@ i32 basic_fs_open_test() {
     {
         constexpr std::string_view phrase = "Hello World!";
         char data[500] = {};
-        ptr_size readBytes = 0;
+        addr_size readBytes = 0;
         auto res = core::file_read(f2, data, 500, readBytes);
         Assert(res.has_err() && res.err().is_eof(), "Read should have returned EOF error!");
         Assert(readBytes == phrase.size());
@@ -65,7 +65,7 @@ i32 read_full_fs_test() {
         };
         constexpr std::string_view phrase = "123456789";
         {
-            ptr_size written = 0;
+            addr_size written = 0;
             auto res = core::file_write(f1, phrase.data(), phrase.size(), written);
             Assert(!res.has_err());
             Assert(written == phrase.size());

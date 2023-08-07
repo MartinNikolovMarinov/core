@@ -53,7 +53,7 @@ constexpr i32 is_white_space_test() {
 constexpr i32 cptr_len_test() {
     struct test_case {
         const char* in;
-        ptr_size expected;
+        addr_size expected;
     };
 
     test_case cases[] = {
@@ -73,7 +73,7 @@ constexpr i32 cptr_len_test() {
     };
 
     executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        ptr_size len = core::cptr_len(c.in);
+        addr_size len = core::cptr_len(c.in);
         Assert(len == c.expected, cErr);
     });
 
@@ -117,7 +117,7 @@ constexpr i32 cptr_eq_test() {
     struct test_case {
         const char* a;
         const char* b;
-        core::ptr_size len;
+        addr_size len;
         bool expected;
     };
 
@@ -177,7 +177,7 @@ constexpr i32 cptr_idx_of_char_test() {
     struct test_case {
         const char* src;
         char val;
-        ptr_size idx;
+        addr_off idx;
     };
 
     test_case cases[] = {
@@ -195,7 +195,7 @@ constexpr i32 cptr_idx_of_char_test() {
     };
 
     executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        ptr_size idx = core::cptr_idx_of_char(c.src, core::cptr_len(c.src), c.val);
+        addr_off idx = core::cptr_idx_of_char(c.src, core::cptr_len(c.src), c.val);
         Assert(idx == c.idx, cErr);
     });
 
@@ -206,7 +206,7 @@ constexpr i32 cptr_idx_of_test() {
     struct test_case {
         const char* src;
         const char* val;
-        ptr_size idx;
+        addr_off idx;
     };
 
     test_case cases[] = {
@@ -229,7 +229,7 @@ constexpr i32 cptr_idx_of_test() {
     };
 
     executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        ptr_size idx = core::cptr_idx_of(c.src, core::cptr_len(c.src), c.val, core::cptr_len(c.val));
+        addr_off idx = core::cptr_idx_of(c.src, core::cptr_len(c.src), c.val, core::cptr_len(c.val));
         Assert(idx == c.idx, cErr);
     });
 

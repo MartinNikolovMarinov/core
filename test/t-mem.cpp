@@ -1,7 +1,7 @@
 constexpr i32 align_test() {
     struct test_case {
-        ptr_size in;
-        ptr_size expected;
+        addr_size in;
+        addr_size expected;
     };
 
     constexpr test_case cases[] = {
@@ -33,15 +33,15 @@ PRAGMA_WARNING_PUSH
 DISABLE_GCC_AND_CLANG_WARNING(-Wconversion)
 
 i32 swap_bytes_test() {
-    auto run_test_case = [](auto& a, auto& b, ptr_size N) {
-        for (ptr_size i = 0; i < N; ++i) {
+    auto run_test_case = [](auto& a, auto& b, addr_size N) {
+        for (addr_size i = 0; i < N; ++i) {
             a[i] = i;
             b[i] = i + N;
         }
 
         core::swap_bytes(a, b, N);
 
-        for (ptr_size i = 0; i < N; ++i) {
+        for (addr_size i = 0; i < N; ++i) {
             Assert(a[i] == i + N);
             Assert(b[i] == i);
         }
@@ -156,7 +156,7 @@ i32 memcmp_tests() {
      struct test_case {
         const char* a;
         const char* b;
-        ptr_size n;
+        addr_size n;
         enum { positive = 1, negative = -1, zero = 0 } expected;
     };
 

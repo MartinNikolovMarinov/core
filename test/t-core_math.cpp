@@ -260,9 +260,9 @@ constexpr i32 float_safe_eq_test() {
 
     i32 i = 0;
     constexpr const char* iterAsCptrFmt = "float_safe_eq test case failed at index: ";
-    constexpr const ptr_size iterAsCptrFmtLen = core::cptr_len(iterAsCptrFmt);
+    constexpr const addr_size iterAsCptrFmtLen = core::cptr_len(iterAsCptrFmt);
     char iterAsCptr[iterAsCptrFmtLen + 20] = {};
-    for (i32 j = 0; j < iterAsCptrFmtLen; ++j) iterAsCptr[j] = iterAsCptrFmt[j];
+    for (i32 j = 0; j < i32(iterAsCptrFmtLen); ++j) iterAsCptr[j] = iterAsCptrFmt[j];
     char* appendIdx = &iterAsCptr[iterAsCptrFmtLen];
     for (auto& c : cases) {
         core::int_to_cptr(i++, appendIdx, 2);

@@ -7,23 +7,17 @@ namespace core {
 
 using namespace coretypes;
 
-CORE_API_EXPORT void  memcopy(void* dest, const void* src, ptr_size len);
-CORE_API_EXPORT void* memset(void* dest, i32 c, ptr_size n);
-CORE_API_EXPORT i32   memcmp(const void* s1, const void* s2, ptr_size n);
+CORE_API_EXPORT void  memcopy(void* dest, const void* src, addr_size len);
+CORE_API_EXPORT void* memset(void* dest, u8 c, addr_size n);
+CORE_API_EXPORT i32   memcmp(const void* s1, const void* s2, addr_size n);
 
 template <typename T>
-void memfill(void* dest, ptr_size dstLen, const T& val) {
+void memfill(void* dest, addr_size dstLen, const T& val) {
     u8* p = reinterpret_cast<u8*>(dest);
     const u8* vbytes = reinterpret_cast<const u8*>(&val);
-    ptr_size vsize = sizeof(val);
-    while (dstLen >= vsize) {
-        memcopy(p, vbytes, vsize);
-        dstLen -= vsize;
-        p += vsize;
-    }
-
-    if (dstLen > 0) {
-        memcopy(p, vbytes, dstLen);
+    addr_size vsize = sizeof(val);
+    for (addr_size i = 0; i < dstLen; i+=vsize) {
+        core::memcopy(p + i, vbytes, vsize);
     }
 }
 
@@ -34,11 +28,11 @@ void memfill(void* dest, ptr_size dstLen, const T& val) {
  * @param value The value to align.
  * @return The aligned value.
 */
-constexpr ptr_size align(ptr_size n) {
-    return (n + sizeof(ptr_size) - 1) & ~(sizeof(ptr_size) - 1);
+constexpr addr_size align(addr_size n) {
+    return (n + sizeof(addr_size) - 1) & ~(sizeof(addr_size) - 1);
 }
 
-CORE_API_EXPORT void swap_bytes(void* a, void* b, ptr_size size);
+CORE_API_EXPORT void swap_bytes(void* a, void* b, addr_size size);
 
 template <typename T>
 constexpr void swap(T& a, T& b) {

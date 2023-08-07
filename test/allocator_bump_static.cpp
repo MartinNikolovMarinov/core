@@ -1,8 +1,8 @@
-template<ptr_size TCap>
+template<addr_size TCap>
 struct bump_allocator_static {
     static core::bump_allocator<TCap> bumpAllocator;
 
-    static void* alloc(ptr_size size) noexcept {
+    static void* alloc(addr_size size) noexcept {
         return bumpAllocator.alloc(size);
     }
 
@@ -10,7 +10,7 @@ struct bump_allocator_static {
         bumpAllocator.free(ptr);
     }
 
-    static ptr_size used_mem() noexcept {
+    static addr_size used_mem() noexcept {
         return bumpAllocator.used_mem();
     }
 
@@ -23,5 +23,5 @@ struct bump_allocator_static {
     }
 };
 
-template<ptr_size TCap>
+template<addr_size TCap>
 core::bump_allocator<TCap> bump_allocator_static<TCap>::bumpAllocator;

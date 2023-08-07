@@ -28,13 +28,13 @@ struct CORE_API_EXPORT std_stats_allocator {
     std_stats_allocator(std_stats_allocator&&) = delete;
     std_stats_allocator& operator=(std_stats_allocator&&) = delete;
 
-    void* alloc(ptr_size size) noexcept;
+    void* alloc(addr_size size) noexcept;
 
     void free(void* ptr) noexcept;
 
     void clear() noexcept;
 
-    ptr_size used_mem() noexcept;
+    addr_size used_mem() noexcept;
 
     const on_oom_fp m_oomCb;
     details::allocated_block_list* m_allocatedBlocks;

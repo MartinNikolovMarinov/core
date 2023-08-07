@@ -10,7 +10,7 @@ namespace core {
 using namespace coretypes;
 
 // TODO2: The default block size is platform dependant.
-constexpr static ptr_size FS_DEFAULT_BLOCK_SIZE = 4096;
+constexpr static addr_size FS_DEFAULT_BLOCK_SIZE = 4096;
 
 struct CORE_API_EXPORT file_data {
     file_desc fd = {};
@@ -54,14 +54,14 @@ static_assert(core::is_standard_layout_v<file_err>);
 CORE_API_EXPORT core::expected<file_err> file_close(file_data& file);
 
 CORE_API_EXPORT core::expected<file_err> file_write(file_data& file,
-                                                    const void* in, ptr_size size,
-                                                    ptr_size& writtenBytes,
-                                                    ptr_size blockSize = FS_DEFAULT_BLOCK_SIZE);
+                                                    const void* in, addr_size size,
+                                                    addr_size& writtenBytes,
+                                                    addr_size blockSize = FS_DEFAULT_BLOCK_SIZE);
 
 CORE_API_EXPORT expected<file_err> file_read(file_data& file,
-                                             void* out, ptr_size size,
-                                             ptr_size& readBytes,
-                                             ptr_size blockSize = FS_DEFAULT_BLOCK_SIZE);
+                                             void* out, addr_size size,
+                                             addr_size& readBytes,
+                                             addr_size blockSize = FS_DEFAULT_BLOCK_SIZE);
 
 CORE_API_EXPORT expected<file_data, file_err> file_open(const char* path, i32 flag, i32 mode);
 
@@ -78,7 +78,7 @@ expected<core::arr<u8, TAllocator>, file_err> file_read_full(const char* path,
 
     core::arr<u8, TAllocator> ret (0, expectedSize);
     while (true) {
-        ptr_size currReadBytes = 0;
+        addr_size currReadBytes = 0;
         u8 buf[FS_DEFAULT_BLOCK_SIZE];
         if (expected<file_err> err = file_read(f, buf, FS_DEFAULT_BLOCK_SIZE, currReadBytes); err.has_err()) {
             if (err.err().is_eof()) {

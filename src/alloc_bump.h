@@ -8,13 +8,14 @@ namespace core {
 
 using namespace coretypes;
 
-template<ptr_size TCap>
+template<addr_size TCap>
 struct bump_allocator {
     static_assert(TCap > 1, "Capacity must be greater than 1");
 
     using on_oom_fp = void(*)(void* userData);
+    using size_type = addr_size;
 
-    static constexpr ptr_size maxCap = TCap;
+    static constexpr size_type maxCap = TCap;
     static constexpr on_oom_fp defaultOOMfp = [](void*) { Assert(false, "ran out of memory"); };
 
     static constexpr const char* allocator_name() { return "bump allocator"; }
@@ -31,7 +32,7 @@ struct bump_allocator {
     bump_allocator(bump_allocator&&) = delete;
     bump_allocator& operator=(bump_allocator&&) = delete;
 
-    constexpr void* alloc(ptr_size size) noexcept {
+    constexpr void* alloc(size_type size) noexcept {
         size = core::align(size);
         if (m_used + size > maxCap) {
             m_oomCb(nullptr);
@@ -49,11 +50,11 @@ struct bump_allocator {
         m_used = 0;
     }
 
-    constexpr ptr_size used_mem() noexcept { return m_used; }
+    constexpr size_type used_mem() noexcept { return m_used; }
 
     u8 m_data[maxCap];
     const u8* m_startAddr;
-    ptr_size m_used; // in bytes
+    size_type m_used; // in bytes
     const on_oom_fp m_oomCb;
 };
 

@@ -127,10 +127,10 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
     {
         // Create vertices:
         core::arr<core::vec2f> vertices;
-        vertices.append({0.5f,  0.5f})
-                .append({0.5f, -0.5f})
-                .append({-0.5f, -0.5f})
-                .append({-0.5f,  0.5f});
+        vertices.append(core::v(0.5f,  0.5f))
+                .append(core::v(0.5f, -0.5f))
+                .append(core::v(-0.5f, -0.5f))
+                .append(core::v(-0.5f,  0.5f));
 
         glGenBuffers(1, &g_s.quadVBOId);
         glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBOId);
@@ -187,10 +187,10 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
 
         // Create texture coordinates:
         core::arr<core::vec2f> texCoords;
-        texCoords.append({1.0f, 1.0f});
-        texCoords.append({1.0f, 0.0f});
-        texCoords.append({0.0f, 0.0f});
-        texCoords.append({0.0f, 1.0f});
+        texCoords.append(core::v(1.0f, 1.0f));
+        texCoords.append(core::v(1.0f, 0.0f));
+        texCoords.append(core::v(0.0f, 0.0f));
+        texCoords.append(core::v(0.0f, 1.0f));
 
         // Link texture coordinates attributes:
         u32 posLoc = ValueOrDie(g_s.shaderProg.getAttribLocation("a_texCoord"));
@@ -203,10 +203,10 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
     // Create colors
     {
         core::arr<core::vec3f> colors;
-        colors.append({1.0f, 0.0f, 0.0f})
-              .append({0.0f, 1.0f, 0.0f})
-              .append({0.0f, 0.0f, 1.0f})
-              .append({1.0f, 1.0f, 0.0f});
+        colors.append(core::v(1.0f, 0.0f, 0.0f))
+              .append(core::v(0.0f, 1.0f, 0.0f))
+              .append(core::v(0.0f, 0.0f, 1.0f))
+              .append(core::v(1.0f, 1.0f, 0.0f));
 
         glGenBuffers(1, &g_s.textureColorVBOId);
         glBindBuffer(GL_ARRAY_BUFFER, g_s.textureColorVBOId);

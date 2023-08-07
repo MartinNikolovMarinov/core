@@ -170,7 +170,7 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         // Create VBO, bind it and store the vertex buffer data:
         glGenBuffers(1, &g_s.cubeVBOId);
         glBindBuffer(GL_ARRAY_BUFFER, g_s.cubeVBOId);
-        ptr_size bufferDataSize = vertices.len() * sizeof(core::vec3f);
+        addr_size bufferDataSize = vertices.len() * sizeof(core::vec3f);
         glBufferData(GL_ARRAY_BUFFER, bufferDataSize, vertices.data(), GL_STATIC_DRAW);
 
         // Create VAO and bind it:
@@ -178,8 +178,8 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         glBindVertexArray(g_s.cubeVAOId);
 
         // Link vertex attributes:
-        constexpr ptr_size stride = sizeof(core::vec3f);
-        constexpr ptr_size dimensions = core::vec3f::dimensions();
+        constexpr addr_size stride = sizeof(core::vec3f);
+        constexpr addr_size dimensions = core::vec3f::dimensions();
         constexpr u32 inPosAttribLocation = 0;
         glVertexAttribPointer(inPosAttribLocation, dimensions, GL_FLOAT, GL_FALSE, stride, (void*)0);
         glEnableVertexAttribArray(inPosAttribLocation);

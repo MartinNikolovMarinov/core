@@ -139,7 +139,7 @@ public:
         bool hitAnything = false;
         auto closestSoFar = tMax;
 
-        for (i32 i = 0; i < m_objects.len(); ++i) {
+        for (addr_size i = 0; i < m_objects.len(); ++i) {
             const auto& object = m_objects[i];
             if (object->hit(r, tMin, closestSoFar, tempRec)) {
                 hitAnything = true;

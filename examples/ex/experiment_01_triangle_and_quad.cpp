@@ -114,11 +114,11 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         g_s.triangleColor = core::v(1.0f, 0.5f, 0.2f, 1.0f);
 
         core::arr<core::vec2f> vertices(0, 3);
-        vertices.append({ -0.5f, -0.5f }); // left
-        vertices.append({ 0.5f, -0.5f });  // right
-        vertices.append({ 0.0f, 0.5f });   // top
+        vertices.append(core::v(-0.5f, -0.5f)); // left
+        vertices.append(core::v(0.5f, -0.5f));  // right
+        vertices.append(core::v(0.0f, 0.5f));   // top
 
-        for (i32 i = 0; i < vertices.len(); ++i) {
+        for (addr_size i = 0; i < vertices.len(); ++i) {
             vertices[i] = core::scale(vertices[i], core::v(0.0f, 0.0f), core::v(0.5f, 0.5f));
             vertices[i] = core::translate(vertices[i], core::v(0.5f, 0.0f));
         }
@@ -126,7 +126,7 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         // Create VBO, bind it and store the vertex buffer data:
         glGenBuffers(1, &g_s.trinagleVBOId);
         glBindBuffer(GL_ARRAY_BUFFER, g_s.trinagleVBOId);
-        ptr_size bufferDataSize = vertices.len() * sizeof(core::vec2f);
+        addr_size bufferDataSize = vertices.len() * sizeof(core::vec2f);
         glBufferData(GL_ARRAY_BUFFER, bufferDataSize, vertices.data(), GL_STATIC_DRAW);
 
         // Create VAO and bind it:
@@ -134,8 +134,8 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         glBindVertexArray(g_s.triangleVAOId);
 
         // Link vertex attributes:
-        constexpr ptr_size stride = sizeof(core::vec2f);
-        constexpr ptr_size dimensions = core::vec2f::dimensions();
+        constexpr addr_size stride = sizeof(core::vec2f);
+        constexpr addr_size dimensions = core::vec2f::dimensions();
         constexpr u32 inPosAttribLocation = 0;
         glVertexAttribPointer(inPosAttribLocation, dimensions, GL_FLOAT, GL_FALSE, stride, (void*)0);
         glEnableVertexAttribArray(inPosAttribLocation);
@@ -146,12 +146,12 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         g_s.quadColor = core::v(0.2f, 0.3f, 0.8f, 1.0f);
 
         core::arr<core::vec2f> vertices(0, 4);
-        vertices.append({ 0.5f, 0.5f });   // left
-        vertices.append({ 0.5f, -0.5f });  // right
-        vertices.append({ -0.5f, -0.5f }); // top
-        vertices.append({ -0.5f, 0.5f });  // bottom
+        vertices.append(core::v(0.5f, 0.5f));   // left
+        vertices.append(core::v(0.5f, -0.5f));  // right
+        vertices.append(core::v(-0.5f, -0.5f)); // top
+        vertices.append(core::v(-0.5f, 0.5f));  // bottom
 
-        for (i32 i = 0; i < vertices.len(); ++i) {
+        for (addr_size i = 0; i < vertices.len(); ++i) {
             vertices[i] = core::scale(vertices[i], core::v(0.0f, 0.0f), core::v(0.5f, 0.5f));
             vertices[i] = core::translate(vertices[i], core::v(-0.5f, 0.0f));
         }
@@ -169,7 +169,7 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
          // Create VBO, bind it and store the vertex buffer data:
         glGenBuffers(1, &g_s.quadVBOId);
         glBindBuffer(GL_ARRAY_BUFFER, g_s.quadVBOId);
-        ptr_size bufferDataSize = vertices.len() * sizeof(core::vec2f);
+        addr_size bufferDataSize = vertices.len() * sizeof(core::vec2f);
         glBufferData(GL_ARRAY_BUFFER, bufferDataSize, vertices.data(), GL_STATIC_DRAW);
 
         // Create VAO and bind it:
@@ -179,12 +179,12 @@ core::expected<GraphicsLibError> preMainLoop(CommonState&) {
         // Create EBO and bind it and store the index buffer data:
         glGenBuffers(1, &g_s.quadEBOId);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_s.quadEBOId);
-        ptr_size indicesBufferDataSize = indices.len() * sizeof(u32);
+        addr_size indicesBufferDataSize = indices.len() * sizeof(u32);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesBufferDataSize, indices.data(), GL_STATIC_DRAW);
 
          // Link vertex attributes:
-        constexpr ptr_size stride = sizeof(core::vec2f);
-        constexpr ptr_size dimensions = core::vec2f::dimensions();
+        constexpr addr_size stride = sizeof(core::vec2f);
+        constexpr addr_size dimensions = core::vec2f::dimensions();
         constexpr u32 inPosAttribLocation = 0;
         glVertexAttribPointer(inPosAttribLocation, dimensions, GL_FLOAT, GL_FALSE, stride, (void*)0);
         glEnableVertexAttribArray(inPosAttribLocation);

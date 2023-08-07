@@ -36,7 +36,7 @@ struct Example {
 
 inline i32 runExample(Example&& ex) {
     auto checkForLeaks = []() {
-        ptr_size leaked = core::used_mem<CORE_DEFAULT_ALLOCATOR()>();
+        addr_size leaked = core::used_mem<CORE_DEFAULT_ALLOCATOR()>();
         if (leaked > 0) {
             fmt::print(stderr, "Leaked {} bytes of memory\n", leaked);
             core::os_exit(common::AppExitCodes::APP_EXIT_MEMORY_LEAK);

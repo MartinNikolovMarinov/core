@@ -5,7 +5,7 @@
 
 command_line_args g_cmdLineArgs;
 
-void* std_allocator_static::alloc(ptr_size size) noexcept {
+void* std_allocator_static::alloc(addr_size size) noexcept {
     return g_stdAlloc.alloc(size);
 }
 
@@ -13,7 +13,7 @@ void std_allocator_static::free(void* ptr) noexcept {
     g_stdAlloc.free(ptr);
 }
 
-ptr_size std_allocator_static::used_mem() noexcept {
+addr_size std_allocator_static::used_mem() noexcept {
     return g_stdAlloc.used_mem();
 }
 

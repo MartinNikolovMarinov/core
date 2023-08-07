@@ -75,14 +75,14 @@ u32 g_cubeVAO;
 void immediate_cubeRendererInit(u32 inPosAttribLocation) {
     glGenBuffers(1, &g_cubeVBO);
     glBindBuffer(GL_ARRAY_BUFFER, g_cubeVBO);
-    ptr_size bufferDataSize = sizeof(core::vec3f) * CUBE_VERTICES_COUNT;
+    addr_size bufferDataSize = sizeof(core::vec3f) * CUBE_VERTICES_COUNT;
     glBufferData(GL_ARRAY_BUFFER, bufferDataSize, g_cubeVertices, GL_STATIC_DRAW);
 
     glGenVertexArrays(1, &g_cubeVAO);
     glBindVertexArray(g_cubeVAO);
 
-    constexpr ptr_size stride = sizeof(core::vec3f);
-    constexpr ptr_size dimensions = core::vec3f::dimensions();
+    constexpr addr_size stride = sizeof(core::vec3f);
+    constexpr addr_size dimensions = core::vec3f::dimensions();
     glVertexAttribPointer(inPosAttribLocation, dimensions, GL_FLOAT, GL_FALSE, stride, (void*)0);
     glEnableVertexAttribArray(inPosAttribLocation);
 }

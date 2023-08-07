@@ -137,11 +137,15 @@ struct arr {
 
     arr<T, TAllocator>& append(const data_type* val, size_type len) {
         if (m_len + len > m_cap) {
-            reserve(m_cap == 0 ? len : m_cap * 2); // FIXME: if Len is bigger than m_cap * 2 this is a bug! // reserve(m_cap <= len ? (m_cap*2 + len + 1) : m_cap * 2); ?
+            reserve(m_cap <= len ? (m_cap*2 + len) : m_cap * 2);
         }
         copyDataAt(val, m_len, len);
         m_len += len;
         return *this;
+    }
+
+    arr<T, TAllocator>& append(const arr<T, TAllocator>& other) {
+        return append(other.m_data, other.m_len);
     }
 
     arr<T, TAllocator>& fill(const data_type& val) {
@@ -217,14 +221,15 @@ private:
     }
 
     inline void callDefaultCtorsIfTypeIsNonTrivial() {
-        // TODO2: [Nit Pick] Technically this can check if the type is trivially constructible, not that the data is
-        //        trivial. Not might increase performance in some cases.
+        // This is exactly the same as calling fill(T()) but it has slightly less overhead.
         if constexpr (!dataIsTrivial) {
             for (size_type i = 0; i < m_len; ++i) {
                 new (&m_data[i]) data_type();
             }
         }
-        // FIXME: Zero out the memory if the type is trivially constructible! Write test.
+        else {
+            core::memfill(m_data, m_len * sizeof(data_type), 0);
+        }
     }
 };
 

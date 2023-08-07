@@ -45,8 +45,8 @@ i32 run_bump_allocator_tests_suite() {
     bump_allocator_static<256>::clear();
     RunTest(fill_arr<bump_allocator_static<256>>);
     bump_allocator_static<256>::clear();
-    RunTest(append_arr<bump_allocator_static<256>>);
-    bump_allocator_static<256>::clear();
+    RunTest(append_arr<bump_allocator_static<512>>);
+    bump_allocator_static<512>::clear();
     RunTest(move_and_copy_arr<bump_allocator_static<256>>);
     bump_allocator_static<256>::clear();
     RunTest(array_of_arrays_arr<bump_allocator_static<512>>);

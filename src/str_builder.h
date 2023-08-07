@@ -8,11 +8,6 @@
 
 namespace core {
 
-// FIXME:  JIT nulltermination. Instead of doing two writes to memory on every append, this should just write a null
-// terminator at the end of the buffer. Do this, every time a view is requested or someone wants to steal ownership of
-// the buffer. This could possible remove the need for zeroing out the buffer all together, making the string builder
-// much faster.
-
 using namespace coretypes;
 
 struct str_view {

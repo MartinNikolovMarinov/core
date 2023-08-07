@@ -1,3 +1,9 @@
+struct __test_with_default_ctor {
+    static i32 itter;
+    i32 a = itter++; // even this nonsense should work.
+};
+i32 __test_with_default_ctor::itter = 0;
+
 template<typename TAllocator>
 i32 initialize_arr() {
     {
@@ -13,6 +19,10 @@ i32 initialize_arr() {
         Assert(arr.len() == 10);
         Assert(arr.cap() == 10);
         Assert(!arr.empty());
+
+        for (i32 i = 0; i < i32(arr.len()); ++i) {
+            Assert(arr[i] == 0);
+        }
     }
 
     {
@@ -20,6 +30,22 @@ i32 initialize_arr() {
         Assert(arr.len() == 10);
         Assert(arr.cap() == 20);
         Assert(!arr.empty());
+
+        for (i32 i = 0; i < i32(arr.len()); ++i) {
+            Assert(arr[i] == 0);
+        }
+    }
+
+    {
+        __test_with_default_ctor::itter = 0;
+        core::arr<__test_with_default_ctor, TAllocator> arr(10);
+        Assert(arr.len() == 10);
+        Assert(arr.cap() == 10);
+        Assert(!arr.empty());
+
+        for (i32 i = 0; i < i32(arr.len()); ++i) {
+            Assert(arr[i].a == i);
+        }
     }
 
     {
@@ -345,6 +371,21 @@ i32 append_arr() {
         }
         Assert(CT::dtorsCalled() == 5);
         CT::resetAll();
+    }
+
+    {
+        // Appending arrays that are bigger than double current capacity.
+        core::arr<i32, TAllocator> arr(0, 2);
+        core::arr<i32, TAllocator> arr2;
+        arr2.append(1).append(2).append(3).append(4).append(5).append(6).append(7).append(8).append(9).append(10);
+
+        arr.append(arr2);
+        Assert(arr.len() == 10);
+        Assert(arr.cap() >= arr.len());
+        for (i32 i = 0; i < 10; ++i) {
+            Assert(arr[i] == i + 1);
+            Assert(arr.at(i) == i + 1);
+        }
     }
 
     return 0;

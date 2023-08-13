@@ -254,14 +254,94 @@ constexpr i32 leading_zero_count_test() {
     return 0;
 }
 
+constexpr i32 number_of_set_bits_test() {
+    {
+        struct test_case {
+            u32 in;
+            u32 expected;
+        };
+
+        test_case cases[] = {
+            { 0b0, 0 },
+            { 0b1, 1 },
+            { 0b11, 2 },
+            { 0b111, 3 },
+            { 0b1101, 3 },
+            { 0b10101, 3 },
+            { 0b101011, 4 },
+            { 0b1011011, 5 },
+            { 0b11011011, 6 },
+            { 0b110110110, 6 },
+            { 0b1101101101, 7 },
+            { 0b11011011011, 8 },
+            { 0b110110110110, 8 },
+            { 0b1101101101101, 9 },
+            { 0b11011011011011, 10 },
+            { 0b111011011011011, 11 },
+            { 0b1110110111011011111011011101111, 24 },
+            { 0b0000000000000000000000000000001, 1 },
+            { 0b1000000000000000000000000000000, 1 },
+            { 0b0000000000000100000000000000000, 1 },
+            { 0b1000000000000000000000000000001, 2 },
+        };
+
+        executeTestTable("number of set bits failed for u32 at index: ", cases, [](auto& c, const char* cErr) {
+            Assert(core::i_number_of_set_bits(c.in) == c.expected, cErr);
+        });
+    }
+
+    {
+        struct test_case {
+            u64 in;
+            u32 expected;
+        };
+
+        test_case cases[] = {
+            { 0b0, 0 },
+            { 0b1, 1 },
+            { 0b11, 2 },
+            { 0b111, 3 },
+            { 0b1101, 3 },
+            { 0b10101, 3 },
+            { 0b101011, 4 },
+            { 0b1011011, 5 },
+            { 0b11011011, 6 },
+            { 0b110110110, 6 },
+            { 0b1101101101, 7 },
+            { 0b11011011011, 8 },
+            { 0b110110110110, 8 },
+            { 0b1101101101101, 9 },
+            { 0b11011011011011, 10 },
+            { 0b111011011011011, 11 },
+            { 0b1110110111011011111011011101111, 24 },
+            { 0b0000000000000000000000000000001, 1 },
+            { 0b1000000000000000000000000000000, 1 },
+            { 0b0000000000000100000000000000000, 1 },
+            { 0b1000000000000000000000000000001, 2 },
+            { 0b100000000000000000000000000000000000000000000000000000000000000, 1 },
+            { 0b000000000000000000000000000000000000000000000000000000000000001, 1 },
+            { 0b100000000000000000000000000000000000000000000000000000000000001, 2 },
+            { 0b111011011101101111101101110111111101101110110111110110111011111, 49 },
+        };
+
+        executeTestTable("number of set bits failed for u64 at index: ", cases, [](auto& c, const char* cErr) {
+            Assert(core::i_number_of_set_bits(c.in) == c.expected, cErr);
+        });
+    }
+
+    return 0;
+}
+
 i32 run_intrinsics_tests_suite() {
     RunTest(leading_zero_count_test);
+    RunTest(number_of_set_bits_test);
 
     return 0;
 }
 
 constexpr i32 run_compiletime_intrinsics_tests_suite() {
     RunTestCompileTime(leading_zero_count_test);
+    RunTestCompileTime(number_of_set_bits_test);
 
     return 0;
 }

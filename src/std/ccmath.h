@@ -30,9 +30,7 @@ constexpr bool isinf_compiletime_impl(f64 x) {
 
 template <typename TFloat>
 constexpr bool isinf(TFloat x) {
-    if (core::is_const_evaluated()) {
-        return detail::isinf_compiletime_impl(x);
-    }
+    IS_CONST_EVALUATED { return detail::isinf_compiletime_impl(x); }
     return std::isinf(x);
 }
 
@@ -50,9 +48,7 @@ constexpr bool isnan_compiletime_impl(TFloat x) {
 
 template <typename TFloat>
 constexpr bool isnan(TFloat x) {
-    if (core::is_const_evaluated()) {
-        return detail::isnan_compiletime_impl(x);
-    }
+    IS_CONST_EVALUATED { return detail::isnan_compiletime_impl(x); }
     return std::isnan(x);
 }
 
@@ -74,9 +70,7 @@ constexpr bool isnormal_compiletime_impl(TFloat x) {
 
 template <typename TFloat>
 constexpr bool isnormal(TFloat x) {
-    if (core::is_const_evaluated()) {
-        return detail::isnormal_compiletime_impl(x);
-    }
+    IS_CONST_EVALUATED { return detail::isnormal_compiletime_impl(x); }
     return std::isnormal(x);
 }
 
@@ -98,9 +92,7 @@ constexpr i32 fpclassify_compiletime_impl(TFloat x) {
 
 template <typename TFloat>
 constexpr i32 fpclassify(TFloat x) {
-    if (core::is_const_evaluated()) {
-        return fpclassify_compiletime_impl(x);
-    }
+    IS_CONST_EVALUATED { return fpclassify_compiletime_impl(x); }
     return std::fpclassify(x);
 }
 
@@ -134,9 +126,7 @@ constexpr TFloat floor_compiletime_impl(TFloat x) {
 
 template <typename TFloat>
 constexpr TFloat floor(TFloat x) {
-    if (core::is_const_evaluated()) {
-        return floor_compiletime_impl(x);
-    }
+    IS_CONST_EVALUATED { return floor_compiletime_impl(x); }
     return std::floor(x);
 }
 
@@ -163,9 +153,7 @@ constexpr TFloat ceil_compiletime_impl(TFloat x) {
 
 template <typename TFloat>
 constexpr TFloat ceil(TFloat x) {
-    if (core::is_const_evaluated()) {
-        return ceil_compiletime_impl(x);
-    }
+    IS_CONST_EVALUATED { return ceil_compiletime_impl(x); }
     return std::ceil(x);
 }
 
@@ -191,9 +179,7 @@ constexpr TFloat trunc_compiletime_impl(TFloat x) {
 
 template <typename TFloat>
 constexpr TFloat trunc(TFloat x) {
-    if (core::is_const_evaluated()) {
-        return trunc_compiletime_impl(x);
-    }
+    IS_CONST_EVALUATED { return trunc_compiletime_impl(x); }
     return std::trunc(x);
 }
 
@@ -233,9 +219,7 @@ constexpr TFloat modf_compiletime_impl(TFloat x, TFloat* iptr) {
 
 template <typename TFloat>
 constexpr TFloat modf(TFloat x, TFloat* iptr) {
-    if (core::is_const_evaluated()) {
-        return modf_compiletime_impl(x, iptr);
-    }
+    IS_CONST_EVALUATED { return modf_compiletime_impl(x, iptr); }
     return std::modf(x, iptr);
 }
 
@@ -267,9 +251,7 @@ constexpr TFloat round_compiletime_impl(TFloat x) {
 
 template <typename TFloat>
 constexpr TFloat round(TFloat x) {
-    if (core::is_const_evaluated()) {
-        return round_compiletime_impl(x);
-    }
+    IS_CONST_EVALUATED { return round_compiletime_impl(x); }
     return std::round(x);
 }
 
@@ -305,9 +287,7 @@ constexpr TFloat sqrt_compiletime_impl(TFloat x) {
 
 template <typename TFloat>
 constexpr TFloat sqrt(TFloat x) {
-    if (core::is_const_evaluated()) {
-        return sqrt_compiletime_impl(x);
-    }
+    IS_CONST_EVALUATED { return sqrt_compiletime_impl(x); }
     return std::sqrt(x);
 }
 

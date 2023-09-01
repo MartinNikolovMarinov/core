@@ -134,6 +134,7 @@ set(src_files
 # OS specific files
 if(OS STREQUAL "linux")
     set(src_files ${src_files}
+        src/std/plt/unix/unix_plt.h
         src/std/plt/unix/unix_plt.cpp
         src/std/plt/unix/unix_stacktrace.cpp
     )

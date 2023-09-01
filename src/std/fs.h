@@ -5,11 +5,13 @@
 #include <expected.h>
 #include <std/plt.h>
 
+// TODO: Probably need some thread safety for this code.
+
 namespace core {
 
 using namespace coretypes;
 
-// TODO2: The default block size is platform dependant.
+// FIXME: replace this with os_get_default_block_size() !
 constexpr static addr_size FS_DEFAULT_BLOCK_SIZE = 4096;
 
 struct CORE_API_EXPORT file_data {

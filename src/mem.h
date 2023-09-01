@@ -32,6 +32,20 @@ constexpr addr_size align(addr_size n) {
     return (n + sizeof(addr_size) - 1) & ~(sizeof(addr_size) - 1);
 }
 
+/**
+ * @brief Appends a value to a pointer and advances the pointer by the size of the value.
+ *        Does NOT allocate memory and does not check for overflows!
+ *
+ * @param dst The pointer to append to.
+ * @param val The value to append.
+ * @return The pointer after the value was appended.
+*/
+template <typename T>
+constexpr T* append(T* dst, const T& val) {
+    *dst = val;
+    return dst + 1;
+}
+
 CORE_API_EXPORT void swap_bytes(void* a, void* b, addr_size size);
 
 template <typename T>

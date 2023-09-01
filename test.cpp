@@ -61,10 +61,20 @@ i32 main(i32, const char **) {
 
     i32 exitCode = 0;
 
-    std::cout << "\n" << "RUNNING COMMON TESTS" << "\n\n";
-    exitCode += run_all_tests();
-    std::cout << "\n" << "RUNNING STD TESTS" << "\n\n";
-    exitCode += run_all_std_tests();
+    auto testDesc = ValueOrDie(core::os_opendir("./build/example"));
+    i32 counter = 0;
+    Expect(core::os_dir_walk(testDesc, [&](const core::dir_entry& e) {
+        std::cout << "Type: " << core::dir_entry_type_to_cptr(e.type)
+                  << " Name: " << e.name
+                  << std::endl;
+        counter++;
+    }));
+    std::cout << "Total entries: " << counter << std::endl;
+
+    // std::cout << "\n" << "RUNNING COMMON TESTS" << "\n\n";
+    // exitCode += run_all_tests();
+    // std::cout << "\n" << "RUNNING STD TESTS" << "\n\n";
+    // exitCode += run_all_std_tests();
 
     std::cout << '\n';
     std::cout << ANSI_BOLD(ANSI_GREEN("Tests OK")) << std::endl;

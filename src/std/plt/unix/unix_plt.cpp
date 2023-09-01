@@ -1,15 +1,4 @@
-#include <std/plt.h>
-
-#include <stdlib.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <cstring>
-#include <time.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/time.h>
+#include <std/plt/unix/unix_plt.h>
 
 namespace core {
 
@@ -66,6 +55,13 @@ expected<plt_err_code> os_thread_sleep(u64 ms) {
     return {};
 }
 
+namespace {
+static addr_size g_default_block_size = 4 * core::KILOBYTE;
+}
+
+void os_set_default_block_size(addr_size size) { g_default_block_size = size; }
+addr_size os_get_default_block_size() { return g_default_block_size; }
+
 expected<file_desc, plt_err_code> os_open(const char* path, i32 flag, i32 mode) {
     i32 ret = open(path, flag, mode);
     if (ret < 0) {
@@ -73,6 +69,10 @@ expected<file_desc, plt_err_code> os_open(const char* path, i32 flag, i32 mode) 
     }
     file_desc desc = file_desc{ reinterpret_cast<void*>((u64)(ret)) };
     return desc;
+}
+
+expected<file_desc, plt_err_code> os_opendir(const char* path) {
+    return os_open(path, O_RDONLY | O_DIRECTORY | O_CLOEXEC, 0);
 }
 
 expected<plt_err_code> os_read(file_desc fd, void* buf, u64 size, i64& bytesRead) {
@@ -149,7 +149,7 @@ void at_exit(AtExitCb atExit) {
     g_atExit = atExit;
 }
 
-CORE_API_EXPORT const char* os_get_err_cptr(plt_err_code err) {
+const char* os_get_err_cptr(plt_err_code err) {
     return std::strerror(i32(err));
 }
 

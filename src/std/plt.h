@@ -85,6 +85,16 @@ CORE_API_EXPORT expected<plt_err_code> os_mkdir(const char* path, i32 mode);
 CORE_API_EXPORT expected<plt_err_code> os_rmdir(const char* path);
 CORE_API_EXPORT expected<plt_err_code> os_stat(const char* path);
 
+// TODO: Stat information should conform to the following interface:
+// type FileInfo interface {
+// 	Name() const char*  // base name of the file
+// 	Size() addr_size    // length in bytes for regular files; system-dependent for others
+// 	Type() FileType     // file mode bits // This is the type of file
+// 	ModTime() Time ?    // modification timestamp, maybe dir_entry_type could work here too ?
+// 	IsDir() bool        // is directory
+// 	Sys() any           // underlying data source (can return nil)
+// }
+
 template <typename TWalkerFn>
 expected<plt_err_code> os_dir_walk(file_desc fd, TWalkerFn cb);
 
@@ -101,5 +111,7 @@ CORE_API_EXPORT const char* os_get_err_cptr(plt_err_code err);
 // Import the OS specific headers:
 
 #if OS_LINUX == 1
+#include <std/plt/unix/unix_plt.h>
+#elif OS_MAC == 1
 #include <std/plt/unix/unix_plt.h>
 #endif

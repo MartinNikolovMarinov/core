@@ -13,7 +13,11 @@ using namespace coretypes;
 
 using plt_err_code = i64;
 
-constexpr plt_err_code OS_DEALLOC_NULL_ADDR_ERR = 1;
+namespace detail {
+constexpr plt_err_code OS_CUSTOM_ERROR_START = 0xffffffff00000000; // Custom library errors start from this value.
+}
+
+constexpr plt_err_code OS_DEALLOC_NULL_ADDR_ERR = detail::OS_CUSTOM_ERROR_START + 1;
 
 constexpr u32 MAX_FILE_LENGTH = NAME_MAX;
 constexpr u32 MAX_PATH_LENGTH = PATH_MAX;
@@ -34,7 +38,7 @@ struct CORE_API_EXPORT file_desc {
     u64 to_u64();
 };
 
-enum struct dir_entry_type : u64 {
+enum struct file_type : u64 {
     Unknown,
     Regular,
     Directory,
@@ -47,18 +51,18 @@ enum struct dir_entry_type : u64 {
     SENTINEL
 };
 
-constexpr const char* dir_entry_type_to_cptr(dir_entry_type type) {
+constexpr const char* file_type_to_cptr(file_type type) {
     switch (type) {
-        case dir_entry_type::Regular:        return "Regular";
-        case dir_entry_type::Directory:      return "Directory";
-        case dir_entry_type::Device:         return "Device";
-        case dir_entry_type::NamedPipe:      return "NamedPipe";
-        case dir_entry_type::Symlink:        return "Symlink";
-        case dir_entry_type::Socket:         return "Socket";
-        case dir_entry_type::UnixCharDevice: return "UnixCharDevice";
+        case file_type::Regular:        return "Regular";
+        case file_type::Directory:      return "Directory";
+        case file_type::Device:         return "Device";
+        case file_type::NamedPipe:      return "Named Pipe";
+        case file_type::Symlink:        return "Symlink";
+        case file_type::Socket:         return "Socket";
+        case file_type::UnixCharDevice: return "Unix Char Device";
 
-        case dir_entry_type::SENTINEL: [[fallthrough]];
-        case dir_entry_type::Unknown:  return "Unknown";
+        case file_type::SENTINEL: [[fallthrough]];
+        case file_type::Unknown:  return "Unknown";
     }
 
     return "Invalid";
@@ -71,8 +75,17 @@ CORE_API_EXPORT void os_set_default_block_size(addr_size size);
 CORE_API_EXPORT addr_size os_get_default_block_size();
 
 struct CORE_API_EXPORT dir_entry {
-    dir_entry_type type;
+    file_type type;
     const char* name;
+};
+
+struct CORE_API_EXPORT file_stat {
+    u64 mtime;
+    addr_size size;
+    addr_size blksize;
+    file_type type;
+
+    bool isDir() const { return type == file_type::Directory; }
 };
 
 CORE_API_EXPORT expected<file_desc, plt_err_code> os_open(const char* path, i32 flag, i32 mode);
@@ -83,17 +96,10 @@ CORE_API_EXPORT expected<plt_err_code> os_close(file_desc fd);
 CORE_API_EXPORT expected<plt_err_code> os_rmfile(const char* path);
 CORE_API_EXPORT expected<plt_err_code> os_mkdir(const char* path, i32 mode);
 CORE_API_EXPORT expected<plt_err_code> os_rmdir(const char* path);
-CORE_API_EXPORT expected<plt_err_code> os_stat(const char* path);
+CORE_API_EXPORT expected<bool, plt_err_code> os_exists(const char* path);
+CORE_API_EXPORT expected<file_stat, plt_err_code> os_stat(const char* path);
+CORE_API_EXPORT expected<file_stat, plt_err_code> os_fstat(file_desc fd);
 
-// TODO: Stat information should conform to the following interface:
-// type FileInfo interface {
-// 	Name() const char*  // base name of the file
-// 	Size() addr_size    // length in bytes for regular files; system-dependent for others
-// 	Type() FileType     // file mode bits // This is the type of file
-// 	ModTime() Time ?    // modification timestamp, maybe dir_entry_type could work here too ?
-// 	IsDir() bool        // is directory
-// 	Sys() any           // underlying data source (can return nil)
-// }
 
 template <typename TWalkerFn>
 expected<plt_err_code> os_dir_walk(file_desc fd, TWalkerFn cb);
@@ -103,7 +109,6 @@ using AtExitCb = void (*)(i32 exitCode);
 CORE_API_EXPORT void os_exit(i32 exitCode);
 CORE_API_EXPORT void at_exit(AtExitCb atExit);
 
-CORE_API_EXPORT expected<bool, plt_err_code> os_exists(const char* path);
 CORE_API_EXPORT const char* os_get_err_cptr(plt_err_code err);
 
 } // namespace core

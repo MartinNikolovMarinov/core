@@ -28,28 +28,28 @@ inline dir_entry to_dir_entry(const dirent& d) {
     de.name = d.d_name; // d.d_name should be null terminated according to documentation.
     switch (d.d_type) {
         case DT_REG:
-            de.type = dir_entry_type::Regular;
+            de.type = file_type::Regular;
             break;
         case DT_DIR:
-            de.type = dir_entry_type::Directory;
+            de.type = file_type::Directory;
             break;
         case DT_FIFO:
-            de.type = dir_entry_type::NamedPipe;
+            de.type = file_type::NamedPipe;
             break;
         case DT_SOCK:
-            de.type = dir_entry_type::Socket;
+            de.type = file_type::Socket;
             break;
         case DT_CHR:
-            de.type = dir_entry_type::UnixCharDevice;
+            de.type = file_type::UnixCharDevice;
             break;
         case DT_BLK:
-            de.type = dir_entry_type::Device;
+            de.type = file_type::Device;
             break;
         case DT_LNK:
-            de.type = dir_entry_type::Symlink;
+            de.type = file_type::Symlink;
             break;
         default:
-            de.type = dir_entry_type::Unknown;
+            de.type = file_type::Unknown;
     }
 
     return de;

@@ -137,6 +137,49 @@ expected<bool, plt_err_code> os_exists(const char* path) {
 }
 
 namespace {
+
+file_stat to_file_stat(struct stat& st) {
+    file_stat fs;
+    fs.mtime = (u64) st.st_mtime;
+    fs.size = (addr_size) st.st_size;
+    fs.blksize = (addr_size) st.st_blksize;
+    switch (st.st_mode & S_IFMT) {
+        case S_IFREG:  fs.type = file_type::Regular;        break;
+        case S_IFDIR:  fs.type = file_type::Directory;      break;
+        case S_IFCHR:  fs.type = file_type::UnixCharDevice; break;
+        case S_IFBLK:  fs.type = file_type::Device;         break;
+        case S_IFIFO:  fs.type = file_type::NamedPipe;      break;
+        case S_IFLNK:  fs.type = file_type::Symlink;        break;
+        case S_IFSOCK: fs.type = file_type::Socket;         break;
+
+        default: fs.type = file_type::Unknown;
+    }
+    return fs;
+}
+
+} // namespace
+
+expected<file_stat, plt_err_code> os_stat(const char* path) {
+    struct stat st;
+    i32 res = stat(path, &st);
+    if (res < 0) {
+        return unexpected(u64(errno));
+    }
+    file_stat fs = to_file_stat(st);
+    return fs;
+}
+
+expected<file_stat, plt_err_code> os_fstat(file_desc fd) {
+    struct stat st;
+    i32 res = fstat(i32(fd.to_u64()), &st);
+    if (res < 0) {
+        return unexpected(u64(errno));
+    }
+    file_stat fs = to_file_stat(st);
+    return fs;
+}
+
+namespace {
 AtExitCb g_atExit;
 } // namespace
 

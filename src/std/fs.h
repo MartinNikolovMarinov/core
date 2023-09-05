@@ -5,6 +5,9 @@
 #include <expected.h>
 #include <std/plt.h>
 
+// FIXME: Replace everything here with a more convinient API. It can be a bit slower this should be a bit higher level
+// then the current API.
+
 // TODO: Probably need some thread safety for this code.
 
 namespace core {

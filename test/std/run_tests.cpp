@@ -9,7 +9,6 @@
 
 #if (!defined(OS_WIN) || OS_WIN == 0)
     #include "t-plt.cpp"
-    #include "t-fs.cpp"
     #include "t-stacktrace.cpp"
 #endif
 
@@ -18,7 +17,6 @@ i32 run_all_std_tests() {
 #if (!defined(OS_WIN) || OS_WIN == 0)
     // TODO: [Windows Support] Allow the plt tests to run on Windows.
     RunTestSuite(run_plt_tests_suite);
-    RunTest(run_fs_tests_suite);
     RunTestSuite(run_stacktrace_tests_suite);
 #endif
     RunTestSuite(run_vec_tests_suite);

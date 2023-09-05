@@ -47,8 +47,8 @@ constexpr bool cptr_eq(const char* a, const char* b, addr_size len) {
     return cptr_cmp(a, len, b, len) == 0;
 }
 
-constexpr void cptr_copy(char *dst, const char *src, addr_size len) {
-    if (dst == nullptr || src == nullptr) return;
+constexpr char* cptr_copy(char *dst, const char *src, addr_size len) {
+    if (dst == nullptr || src == nullptr) return dst;
     /**
      * TODO2: [PERFORMANCE]
      *
@@ -59,8 +59,10 @@ constexpr void cptr_copy(char *dst, const char *src, addr_size len) {
      * Could re-use memcopy if there is no need to use intruction set specific instructions for cptr compare.
     */
     for (addr_size i = 0; i < len; i++) {
-        dst[i] = src[i];
+        *dst++ = *src++;
     }
+
+    return dst;
 }
 
 constexpr addr_off cptr_idx_of(const char *s, addr_size slen, const char *val, addr_size vlen) {

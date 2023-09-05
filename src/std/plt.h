@@ -38,7 +38,7 @@ struct CORE_API_EXPORT file_desc {
     u64 to_u64();
 };
 
-enum struct file_type : u64 {
+enum struct CORE_API_EXPORT file_type : u64 {
     Unknown,
     Regular,
     Directory,
@@ -79,26 +79,89 @@ struct CORE_API_EXPORT dir_entry {
     const char* name;
 };
 
+enum CORE_API_EXPORT file_access : u32 {
+    FA_None = 0,
+    FA_Read = 1 << 0,
+    FA_Write = 1 << 1,
+    FA_Execute = 1 << 2,
+    FA_ReadWrite = FA_Read | FA_Write,
+    FA_ReadExecute = FA_Read | FA_Execute,
+    FA_WriteExecute = FA_Write | FA_Execute,
+    FA_All = FA_Read | FA_Write | FA_Execute
+};
+
+constexpr const char* file_access_to_cptr(file_access fa) {
+    switch (fa) {
+        case FA_None:         return "None";
+        case FA_Read:         return "Read";
+        case FA_Write:        return "Write";
+        case FA_Execute:      return "Execute";
+        case FA_ReadWrite:    return "Read Write";
+        case FA_ReadExecute:  return "Read Execute";
+        case FA_WriteExecute: return "Write Execute";
+        case FA_All:          return "Read Write Execute";
+    }
+    return "Invalid";
+}
+
+struct CORE_API_EXPORT file_access_group {
+    file_access user;
+    file_access group;
+    file_access other;
+};
+
+CORE_API_EXPORT file_access_group default_file_access_group();
+
+enum CORE_API_EXPORT file_flags : u32 {
+    FF_None = 0,
+    FF_ReadOnly = 1 << 0,
+    FF_WriteOnly = 1 << 1,
+    FF_ReadWrite = FF_ReadOnly | FF_WriteOnly,
+    FF_Append = 1 << 2,
+    FF_Create = 1 << 3,
+    FF_Trunc = 1 << 4,
+    FF_Large = 1 << 5,
+    FF_Tmp = 1 << 6
+};
+
+CORE_API_EXPORT file_flags default_file_flags();
+
+struct CORE_API_EXPORT file_params {
+    file_access_group access;
+    file_flags flags;
+    i32 osSpecificFlags;
+};
+
+CORE_API_EXPORT file_params default_file_params();
+
 struct CORE_API_EXPORT file_stat {
     u64 mtime;
     addr_size size;
     addr_size blksize;
     file_type type;
+    file_access_group access;
 
     bool isDir() const { return type == file_type::Directory; }
 };
 
-CORE_API_EXPORT expected<file_desc, plt_err_code> os_open(const char* path, i32 flag, i32 mode);
+enum struct CORE_API_EXPORT seek_origin {
+    Begin = 0,
+    Current = 1,
+    End = 2
+};
+
+CORE_API_EXPORT expected<file_desc, plt_err_code> os_open(const char* path, const file_params& params);
 CORE_API_EXPORT expected<file_desc, plt_err_code> os_opendir(const char* path);
 CORE_API_EXPORT expected<plt_err_code> os_read(file_desc fd, void* buf, u64 size, i64& bytesRead);
 CORE_API_EXPORT expected<plt_err_code> os_write(file_desc fd, const void* buf, u64 size, i64& bytesWritten);
 CORE_API_EXPORT expected<plt_err_code> os_close(file_desc fd);
 CORE_API_EXPORT expected<plt_err_code> os_rmfile(const char* path);
-CORE_API_EXPORT expected<plt_err_code> os_mkdir(const char* path, i32 mode);
+CORE_API_EXPORT expected<plt_err_code> os_mkdir(const char* path, const file_access_group& access = default_file_access_group());
 CORE_API_EXPORT expected<plt_err_code> os_rmdir(const char* path);
 CORE_API_EXPORT expected<bool, plt_err_code> os_exists(const char* path);
 CORE_API_EXPORT expected<file_stat, plt_err_code> os_stat(const char* path);
 CORE_API_EXPORT expected<file_stat, plt_err_code> os_fstat(file_desc fd);
+CORE_API_EXPORT expected<addr_off, plt_err_code> os_seek(file_desc fd, addr_off offset, seek_origin origin);
 
 
 template <typename TWalkerFn>

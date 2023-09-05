@@ -83,13 +83,13 @@ expected<file_err> file_read(file_data& file,
     return {};
 }
 
-expected<file_data, file_err> file_open(const char* path, i32 flag, i32 mode) {
+expected<file_data, file_err> file_open(const char* path, const core::file_params& mode) {
     // TODO: I should create an abstraction for flag and mode which is cross platform.
     //       After that I should remove flag and mode from this function declaration.
     //       It simply does not make sense to have them here.
     //       I do it just because this file should not leak os specific stuff.
 
-    expected<file_desc, plt_err_code> fd = core::os_open(path, flag, mode);
+    expected<file_desc, plt_err_code> fd = core::os_open(path, mode);
     if (fd.has_err()) {
         const char* errCptr = core::os_get_err_cptr(fd.err());
         return core::unexpected(file_err { file_err::type::ERR_OS, errCptr });

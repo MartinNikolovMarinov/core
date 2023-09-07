@@ -84,7 +84,10 @@ expected<plt_err_code> os_dir_walk(file_desc fd, TWalkerFn cb) {
             recByteOffset += d->d_reclen;
             basep = d->d_off;
             dir_entry de = detail::to_dir_entry(*d);
-            cb(de); // Let's hope this gets inlined. Fingers corssed...
+            bool shouldSkip = core::cptr_eq(de.name, ".", 1) || core::cptr_eq(de.name, "..", 2);
+            if (!shouldSkip) {
+                cb(de); // Let's hope this gets inlined. Fingers corssed...
+            }
         } while (recByteOffset < currReadBytes);
 
         if (currReadBytes < blockSize) {

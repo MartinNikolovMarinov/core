@@ -33,6 +33,13 @@ inline constexpr addr_off find(const core::sarr<T, N>& arr, TPredicate pred) {
     }
     return -1;
 }
+template <typename T, typename TPredicate>
+inline addr_off find(const T* arr, addr_off len, TPredicate pred) {
+    for (addr_off i = 0; i < len; ++i) {
+        if (pred(arr[i], i)) return i;
+    }
+    return -1;
+}
 
 /**
  * \brief Appends an element to the array if it is not already present, this is determined by the equality function.

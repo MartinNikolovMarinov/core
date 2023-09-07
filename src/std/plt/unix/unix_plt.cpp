@@ -67,6 +67,11 @@ file_access_group default_file_access_group() {
     return ret;
 }
 
+file_access_group default_dir_access_group() {
+    file_access_group ret = { file_access::FA_All, file_access::FA_All, file_access::FA_Read };
+    return ret;
+}
+
 file_flags default_file_flags() {
     file_flags ret = file_flags(FF_ReadWrite);
     return ret;
@@ -111,8 +116,6 @@ constexpr i32 file_flags_to_osflags(file_flags flags) {
     if (flags & file_flags::FF_Append)     osflags |= O_APPEND;
     if (flags & file_flags::FF_Create)     osflags |= O_CREAT;
     if (flags & file_flags::FF_Trunc)      osflags |= O_TRUNC;
-    if (flags & file_flags::FF_Large)      osflags |= O_LARGEFILE;
-    if (flags & file_flags::FF_Tmp)        osflags |= O_TMPFILE;
 
     return osflags;
 }
@@ -128,6 +131,14 @@ expected<file_desc, plt_err_code> os_open(const char* path, const file_params& p
     }
     file_desc desc = file_desc{ reinterpret_cast<void*>((u64)(ret)) };
     return desc;
+}
+
+expected<file_desc, plt_err_code> os_create(const char* path, const file_access_group& access) {
+    file_params params;
+    params.access = access;
+    params.flags = file_flags(FF_Create | FF_WriteOnly | FF_Trunc);
+    params.osSpecificFlags = 0;
+    return os_open(path, params);
 }
 
 expected<file_desc, plt_err_code> os_opendir(const char* path) {

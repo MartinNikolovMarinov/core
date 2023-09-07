@@ -14,9 +14,6 @@ namespace core {
 
 using namespace coretypes;
 
-// FIXME: replace this with os_get_default_block_size() !
-constexpr static addr_size FS_DEFAULT_BLOCK_SIZE = 4096;
-
 struct CORE_API_EXPORT file_data {
     file_desc fd = {};
     bool isOpen = false;
@@ -61,19 +58,19 @@ CORE_API_EXPORT core::expected<file_err> file_close(file_data& file);
 CORE_API_EXPORT core::expected<file_err> file_write(file_data& file,
                                                     const void* in, addr_size size,
                                                     addr_size& writtenBytes,
-                                                    addr_size blockSize = FS_DEFAULT_BLOCK_SIZE);
+                                                    addr_size blockSize = core::os_get_default_block_size());
 
 CORE_API_EXPORT expected<file_err> file_read(file_data& file,
                                              void* out, addr_size size,
                                              addr_size& readBytes,
-                                             addr_size blockSize = FS_DEFAULT_BLOCK_SIZE);
+                                             addr_size blockSize = core::os_get_default_block_size());
 
 CORE_API_EXPORT expected<file_data, file_err> file_open(const char* path, i32 flag, i32 mode);
 
 template <typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
 expected<core::arr<u8, TAllocator>, file_err> file_read_full(const char* path,
                                                              i32 flag, i32 mode,
-                                                             u64 expectedSize = FS_DEFAULT_BLOCK_SIZE
+                                                             u64 expectedSize = core::os_get_default_block_size()
 ) {
     auto res = file_open(path, flag, mode);
     if (res.has_err()) return core::unexpected(res.err());
@@ -84,8 +81,8 @@ expected<core::arr<u8, TAllocator>, file_err> file_read_full(const char* path,
     core::arr<u8, TAllocator> ret (0, expectedSize);
     while (true) {
         addr_size currReadBytes = 0;
-        u8 buf[FS_DEFAULT_BLOCK_SIZE];
-        if (expected<file_err> err = file_read(f, buf, FS_DEFAULT_BLOCK_SIZE, currReadBytes); err.has_err()) {
+        u8 buf[core::os_get_default_block_size()];
+        if (expected<file_err> err = file_read(f, buf, core::os_get_default_block_size(), currReadBytes); err.has_err()) {
             if (err.err().is_eof()) {
                 ret.append(buf, currReadBytes);
                 break;

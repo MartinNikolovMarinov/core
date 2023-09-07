@@ -4,6 +4,7 @@
 #include <types.h>
 #include <expected.h>
 #include <system_checks.h>
+#include <io.h>
 
 #include <limits.h>
 
@@ -141,12 +142,6 @@ struct CORE_API_EXPORT file_stat {
     file_access_group access;
 
     bool isDir() const { return type == file_type::Directory; }
-};
-
-enum struct CORE_API_EXPORT seek_origin {
-    Begin = 0,
-    Current = 1,
-    End = 2
 };
 
 CORE_API_EXPORT expected<file_desc, plt_err_code> os_open(const char* path, const file_params& params = default_file_params());

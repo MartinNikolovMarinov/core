@@ -149,17 +149,4 @@ private:
     #define ValueOrDie2(expr, msg) core::move(Expect2(expr, msg).value())
 #endif
 
-#ifndef ValueOrReturn
-    #define ValueOrReturn(...) C_VFUNC(ValueOrReturn, __VA_ARGS__)
-    #define ValueOrReturn1(expr) {         \
-        auto __ret = (expr);               \
-        if (__ret.has_err()) return __ret; \
-    }
-    #define ValueOrReturn2(expr, v) {      \
-        auto __ret = (expr);               \
-        if (__ret.has_err()) return __ret; \
-        (v) = __ret.value();               \
-    }
-#endif
-
 } // namespace core

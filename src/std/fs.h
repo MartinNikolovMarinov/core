@@ -1,100 +1,76 @@
 #include <API.h>
 #include <types.h>
 #include <arr.h>
+#include <io.h>
 #include <core_traits.h>
 #include <expected.h>
 #include <std/plt.h>
-
-// FIXME: Replace everything here with a more convinient API. It can be a bit slower this should be a bit higher level
-// then the current API.
-
-// TODO: Probably need some thread safety for this code.
 
 namespace core {
 
 using namespace coretypes;
 
-struct CORE_API_EXPORT file_data {
-    file_desc fd = {};
-    bool isOpen = false;
-    // TODO: keep track of file size, current position, etc.
+constexpr const char* FS_ERR_FILE_NOT_OPENED = "file not opened";
+constexpr const char* FS_SHORT_WRITE = "short write";
+constexpr const char* FS_ERR_READING_DIRECTORY = "reading directory";
+constexpr const char* FS_ERR_WRITING_DIRECTORY = "writing directory";
+constexpr const char* FS_ERR_SEEKING_DIRECTORY = "seeking directory";
+
+struct CORE_API_EXPORT file : public ireader_writer_closer, public iseeker {
+    file() : m_fd({}), m_offset(0), m_isOpen(false), m_isDirectory(false) {}
+
+    inline bool is_open() const { return m_isOpen; }
+    inline bool is_directory() const { return m_isDirectory; }
+    inline const file_desc fd() const { return m_fd; }
+    inline addr_off offset() const { return m_offset; }
+
+    virtual core::expected<addr_size, io_err> read(void* out, addr_size size) override;
+    virtual core::expected<addr_size, io_err> write(const void* in, addr_size size) override;
+    virtual core::expected<io_err> close() override;
+    virtual core::expected<io_err> seek(addr_off offset, seek_origin origin) override;
+
+    core::expected<io_err> take_desc(file_desc&& fd, addr_off offset = 0, const file_stat* stat = nullptr);
+
+private:
+    file_desc m_fd;
+    addr_off m_offset;
+    bool m_isOpen;
+    bool m_isDirectory;
+
+    // FIXME: Use mutex!
 };
-
-static_assert(core::is_standard_layout_v<file_data>);
-
-struct CORE_API_EXPORT file_err {
-    enum struct type : u32 {
-        ERR_OS = 0,
-        ERR_EOF = 1,
-        ERR_SHORT_WRITE = 2,
-        ERR_FILE_NOT_OPENED = 3,
-
-        SENTINEL
-    };
-
-    type err;
-    const char* msg; // must be a string literal only.
-
-    file_err() noexcept : err(type::SENTINEL), msg(nullptr) {}
-    file_err(type _err, const char* _msg) noexcept : err(_err), msg(_msg) {}
-
-    inline bool is_eof() const { return err == type::ERR_EOF; }
-    inline const char* to_cptr() const {
-        switch (err) {
-            case type::ERR_EOF:             return "end of file";
-            case type::ERR_OS:              return "os error";
-            case type::ERR_SHORT_WRITE:     return "short write";
-            case type::ERR_FILE_NOT_OPENED: return "file not opened";
-            case type::SENTINEL:            return "sentinel";
-            default:                        return "unknown error";
-        }
-    }
-};
-
-static_assert(core::is_standard_layout_v<file_err>);
-
-CORE_API_EXPORT core::expected<file_err> file_close(file_data& file);
-
-CORE_API_EXPORT core::expected<file_err> file_write(file_data& file,
-                                                    const void* in, addr_size size,
-                                                    addr_size& writtenBytes,
-                                                    addr_size blockSize = core::os_get_default_block_size());
-
-CORE_API_EXPORT expected<file_err> file_read(file_data& file,
-                                             void* out, addr_size size,
-                                             addr_size& readBytes,
-                                             addr_size blockSize = core::os_get_default_block_size());
-
-CORE_API_EXPORT expected<file_data, file_err> file_open(const char* path, i32 flag, i32 mode);
 
 template <typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
-expected<core::arr<u8, TAllocator>, file_err> file_read_full(const char* path,
-                                                             i32 flag, i32 mode,
-                                                             u64 expectedSize = core::os_get_default_block_size()
-) {
-    auto res = file_open(path, flag, mode);
-    if (res.has_err()) return core::unexpected(res.err());
-
-    file_data f = core::move(res.value());
-    defer { file_close(f); };
-
-    core::arr<u8, TAllocator> ret (0, expectedSize);
-    while (true) {
-        addr_size currReadBytes = 0;
-        u8 buf[core::os_get_default_block_size()];
-        if (expected<file_err> err = file_read(f, buf, core::os_get_default_block_size(), currReadBytes); err.has_err()) {
-            if (err.err().is_eof()) {
-                ret.append(buf, currReadBytes);
-                break;
-            }
-            return core::unexpected(err.err());
-        }
-
-        if (currReadBytes == 0) break;
-        ret.append(buf, currReadBytes);
+core::expected<io_err> file_read_full(const char* path, core::arr<char, TAllocator>& out) {
+    auto openRes = core::os_open(path, core::default_file_params());
+    if (openRes.has_err()) {
+        return core::unexpected(io_err { false, core::os_get_err_cptr(openRes.err()) });
     }
 
-    return ret;
+    auto fdesec = openRes.value();
+    core::file f;
+    if (auto takeRes = f.take_desc(core::move(fdesec)); takeRes.has_err()) {
+        return core::unexpected(takeRes.err());
+    }
+
+    const addr_size blockSize = core::os_get_default_block_size();
+    char buf[blockSize] = {};
+    while (true) {
+        auto readRes = f.read(buf, blockSize);
+        if (readRes.has_err()) {
+            if (readRes.err().eof) break;
+            return core::unexpected(readRes.err());
+        }
+
+        if (readRes.value() == 0) break;
+        out.append(buf, readRes.value());
+    }
+
+    if (auto closeRes = f.close(); closeRes.has_err()) {
+        return core::unexpected(closeRes.err());
+    }
+
+    return {};
 }
 
 } // namespace core

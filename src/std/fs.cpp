@@ -3,101 +3,112 @@
 
 namespace core {
 
-core::expected<file_err> file_close(file_data& file) {
-    if (file.isOpen) {
-        if (expected<plt_err_code> err = core::os_close(file.fd); err.has_err()) {
-            const char* errCptr = core::os_get_err_cptr(err.err());
-            return core::unexpected(file_err { file_err::type::ERR_OS, errCptr });
+namespace {
+
+io_err create_io_err_from_plt(plt_err_code pltErrCode) {
+    return io_err { false, core::os_get_err_cptr(pltErrCode) };
+}
+
+} // namespace
+
+
+core::expected<addr_size, io_err> file::write(const void* in, addr_size size) {
+    if (size == 0) return 0;
+    if (in == nullptr) return 0;
+    if (m_isOpen == false) {
+        return core::unexpected(io_err { false, FS_ERR_FILE_NOT_OPENED });
+    }
+    if (m_isDirectory) {
+        return core::unexpected(io_err { false, FS_ERR_WRITING_DIRECTORY });
+    }
+
+    addr_off chunkSize = addr_off(core::min(size, core::os_get_default_block_size()));
+    addr_off written = 0;
+    if (expected<plt_err_code> err = core::os_write(m_fd, in, chunkSize, written); err.has_err()) {
+        return core::unexpected(create_io_err_from_plt(err.err()));
+    }
+
+    m_offset += written;
+
+    if (written != chunkSize) {
+        // Might mean that the OS is out of space, but that should be returned as an error in the above call.
+        return core::unexpected(io_err { false, FS_SHORT_WRITE });
+    }
+
+    return written;
+}
+
+core::expected<addr_size, io_err> file::read(void* out, addr_size size) {
+    if (size == 0) return 0;
+    if (out == nullptr) return 0;
+    if (m_isOpen == false) {
+        return core::unexpected(io_err { false, FS_ERR_FILE_NOT_OPENED });
+    }
+    if (m_isDirectory) {
+        return core::unexpected(io_err { false, FS_ERR_READING_DIRECTORY });
+    }
+
+    const addr_size chunkSize = core::min(size, core::os_get_default_block_size());
+    addr_off readBytes = 0;
+    if (expected<plt_err_code> err = core::os_read(m_fd, out, chunkSize, readBytes); err.has_err()) {
+        return core::unexpected(create_io_err_from_plt(err.err()));
+    }
+
+    if (readBytes == 0) {
+        io_err eofErr = { true, nullptr };
+        return core::unexpected(eofErr);
+    }
+
+    m_offset += readBytes;
+
+    return readBytes;
+}
+
+core::expected<io_err> file::close() {
+    if (m_isOpen) {
+        if (expected<plt_err_code> err = core::os_close(m_fd); err.has_err()) {
+            return core::unexpected(create_io_err_from_plt(err.err()));
         }
-        file = file_data{};
+        m_fd = {};
+        m_isOpen = false;
+        m_offset = 0;
     }
     return {};
 }
 
-core::expected<file_err> file_write(file_data& file,
-                                    const void* in, addr_size size,
-                                    addr_size& writtenBytes,
-                                    addr_size blockSize
-) {
-    if (size == 0) return {};
-    if (in == nullptr) return {};
-    if (file.isOpen == false) {
-        return core::unexpected(file_err { file_err::type::ERR_FILE_NOT_OPENED,
-                                           "trying to write to a file that is not open" });
+core::expected<io_err> file::seek(addr_off offset, seek_origin origin) {
+    if (m_isOpen == false) {
+        return core::unexpected(io_err { false, FS_ERR_FILE_NOT_OPENED });
+    }
+    if (m_isDirectory) {
+        return core::unexpected(io_err { false, FS_ERR_SEEKING_DIRECTORY });
     }
 
-    addr_size chunkSize = core::min(size, blockSize);
-    while (true) {
-        addr_off currWritenBytes = 0;
-        if (expected<plt_err_code> err = core::os_write(file.fd, in, chunkSize, currWritenBytes); err.has_err()) {
-            const char* errCptr = core::os_get_err_cptr(err.err());
-            return core::unexpected(file_err { file_err::type::ERR_OS, errCptr });
-        }
-
-        writtenBytes += addr_size(currWritenBytes);
-        if (addr_size(currWritenBytes) != chunkSize) {
-            // Might mean that the OS is out of space, but that should be returned as an error in the above call.
-            // TODO: Verify assumption!
-            return core::unexpected(file_err { file_err::type::ERR_SHORT_WRITE, "might be out of space on disc" });
-        }
-        Assert(writtenBytes >= size, "[BUG] wrote more than the requested size");
-        if (writtenBytes == size) break;
-        if (writtenBytes + chunkSize > size) {
-            // next chunk will be the last one and it might be smaller than the block size.
-            chunkSize = size - writtenBytes;
-        }
+    auto res = core::os_seek(m_fd, offset, origin);
+    if (res.has_err()) {
+        return core::unexpected(create_io_err_from_plt(res.err()));
     }
 
+    m_offset = res.value();
     return {};
 }
 
-expected<file_err> file_read(file_data& file,
-                             void* out, addr_size size,
-                             addr_size& readBytes,
-                             addr_size blockSize
-) {
-    if (size == 0) return {};
-    if (out == nullptr) return {};
-    if (file.isOpen == false) {
-        return core::unexpected(file_err { file_err::type::ERR_FILE_NOT_OPENED,
-                                           "trying to read from a file that is not open" });
+core::expected<io_err> file::take_desc(file_desc&& fd, addr_off offset, const file_stat* stat) {
+    m_fd = fd;
+    m_isOpen = true;
+    m_offset = offset;
+    fd = file_desc{};
+
+    if (stat == nullptr) {
+        auto res = core::os_fstat(m_fd);
+        if (res.has_err()) {
+            return core::unexpected(create_io_err_from_plt(res.err()));
+        }
+        stat = &res.value();
     }
 
-    const addr_size chunkSize = core::min(size, blockSize);
-    while (true) {
-        addr_off currReadBytes = 0;
-        if (expected<plt_err_code> err = core::os_read(file.fd, out, chunkSize, currReadBytes); err.has_err()) {
-            const char* errCptr = core::os_get_err_cptr(err.err());
-            return core::unexpected(file_err { file_err::type::ERR_OS, errCptr });
-        }
-
-        if (currReadBytes == 0) {
-            return core::unexpected(file_err { file_err::type::ERR_EOF, {} });
-        }
-
-        readBytes += addr_size(currReadBytes);
-        Assert(readBytes <= size, "[BUG] read more than the requested size");
-        if (readBytes == size) break;
-    }
-
+    m_isDirectory = stat->isDir();
     return {};
-}
-
-expected<file_data, file_err> file_open(const char* path, const core::file_params& mode) {
-    // TODO: I should create an abstraction for flag and mode which is cross platform.
-    //       After that I should remove flag and mode from this function declaration.
-    //       It simply does not make sense to have them here.
-    //       I do it just because this file should not leak os specific stuff.
-
-    expected<file_desc, plt_err_code> fd = core::os_open(path, mode);
-    if (fd.has_err()) {
-        const char* errCptr = core::os_get_err_cptr(fd.err());
-        return core::unexpected(file_err { file_err::type::ERR_OS, errCptr });
-    }
-    file_data f;
-    f.fd = fd.value();
-    f.isOpen = true;
-    return f;
 }
 
 } // namespace core

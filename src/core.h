@@ -19,6 +19,7 @@
 #include "expected.h"
 #include "intrinsic.h"
 #include "ints.h"
+#include "io.h"
 #include "mem.h"
 #include "rnd.h"
 #include "static_arr.h"

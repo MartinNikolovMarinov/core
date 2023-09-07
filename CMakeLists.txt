@@ -98,6 +98,8 @@ set(src_files
     src/intrinsic.cpp
     src/intrinsic.h
     src/ints.h
+    src/io.h
+    src/io.cpp
     src/mem.cpp
     src/mem.h
     src/rnd.cpp

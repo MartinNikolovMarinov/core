@@ -6,7 +6,10 @@
 
 #include <new>
 
-// FIXME: I should combine the except and the static except. The static-ness should be an implementation detail.
+// NOTE: Expected has 2 implementations for runtime and for compiletime. It's possible to use inheritance to avoid code
+//      duplication, but that will have a performance cost which I am not willing to pay. Unfortunately c++ does not
+//      offer a good "actual" 0 cost way to do this. This code should be optimized to a simple if statement in most
+//      cases anything else is unacceptable.
 
 namespace core {
 
@@ -26,8 +29,7 @@ template <typename...> struct expected;
 
 template <typename T, typename TErr>
 struct expected<T, TErr> {
-    // NOTE: The type must be standard layout to store it in a union.
-    static_assert(core::is_standard_layout_v<T>, "type must be standard layout");
+    static_assert(core::is_standard_layout_v<T>, "type must be standard layout to store in a union");
 
     expected(T&& value)  : m_value(core::forward<T>(value)), m_hasValue(true) {}
     template <typename TErr2>
@@ -100,9 +102,8 @@ template <typename...> struct static_expected;
 
 template <typename T, typename TErr>
 struct static_expected<T, TErr> {
-    // NOTE: The type must be standard layout to store it in a union.
-    static_assert(core::is_standard_layout_v<T>, "type must be standard layout");
-    static_assert(core::is_trivially_destructible_v<T>, "type must be trivially destructible");
+    static_assert(core::is_standard_layout_v<T>, "type must be standard layout to store it in a union");
+    static_assert(core::is_trivially_destructible_v<T>, "type must be trivially destructible to allow constant evaluation");
 
     constexpr static_expected(T&& value) : m_value(core::forward<T>(value)), m_hasValue(true) {}
     template <typename TErr2>

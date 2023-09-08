@@ -180,74 +180,312 @@ constexpr i32 int_to_cptr_test() {
 }
 
 constexpr i32 cptr_to_int_test() {
-    // FIXME: test overlow cases!
-    // FIXME: test all allowed types, like i8, i16, i32, i64, u8, u16, u32 and u64.
+    {
+        struct test_case {
+            const char* input;
+            i8 expected;
+            bool skipAtCompileTime = false;
+        };
 
-    struct test_case {
-        const char* input;
-        i32 expected;
-    };
+        constexpr test_case cases[] = {
+            { "", 0 },
+            { nullptr, 0 },
+            { "a123", 0 },
+            { ".123", 0 },
+            { "-.123", 0 },
+            { "123", 123 },
+            { "-123", -123 },
+            { "123asd", 123 },
+            { "-123  ", -123 },
+            { "    -123  ", -123 },
+            { "   \t123  ", 123 },
+            { "   \n123  ", 123 },
+            { "   \n\r123  ", 123 },
+            { "127", 127 },
+            { "-127", -127 },
+            { "128", 127 },
 
-    constexpr test_case cases[] = {
-        { "", 0 },
-        { nullptr, 0 },
-        { "a123", 0 },
-        { ".123", 0 },
-        { "-.123", 0 },
-        { "123", 123 },
-        { "-123", -123 },
-        { "123asd", 123 },
-        { "-123  ", -123 },
-        { "    -123  ", -123 },
-        { "   \t123  ", 123 },
-        { "   \n123  ", 123 },
-        { "   \n\r123  ", 123 },
-        { "2147483647", 2147483647 },
-        { "-2147483647", -2147483647 },
+            { "-128", -128, true }, // valid in runtime but fails in compiletime execution.
+        };
 
-        // FIXME: My implementation makes it impossible to use -2147483648 in constexpr, because I overflow i32. This is
-        //       minor, but it's bugging me. It's not so minor when using i8.
-        // { "-2147483648", -2147483648 },
-    };
+        executeTestTable("test case failed for i8 at index: ", cases, [](auto& c, const char* cErr) {
+            IS_CONST_EVALUATED { if (c.skipAtCompileTime) return; }
+            auto v = core::cptr_to_int<i8>(c.input);
+            Assert(v == c.expected, cErr);
+        });
+    }
 
-    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        auto v = core::cptr_to_int<i32>(c.input);
-        Assert(v == c.expected, cErr);
-    });
+    {
+        struct test_case {
+            const char* input;
+            u8 expected;
+        };
+
+        constexpr test_case cases[] = {
+            { "", 0 },
+            { nullptr, 0 },
+            { "a123", 0 },
+            { ".123", 0 },
+            { "123", 123 },
+            { "123asd", 123 },
+            { "   \t123  ", 123 },
+            { "   \n123  ", 123 },
+            { "   \n\r123  ", 123 },
+            { "254", 254 },
+            { "255", 255 },
+        };
+
+        executeTestTable("test case failed for u8 at index: ", cases, [](auto& c, const char* cErr) {
+            auto v = core::cptr_to_int<u8>(c.input);
+            Assert(v == c.expected, cErr);
+        });
+    }
+
+    {
+        struct test_case {
+            const char* input;
+            i16 expected;
+            bool skipAtCompileTime = false;
+        };
+
+        constexpr test_case cases[] = {
+            { "", 0 },
+            { nullptr, 0 },
+            { "a123", 0 },
+            { ".123", 0 },
+            { "-.123", 0 },
+            { "123", 123 },
+            { "-123", -123 },
+            { "123asd", 123 },
+            { "-123  ", -123 },
+            { "    -123  ", -123 },
+            { "   \t123  ", 123 },
+            { "   \n123  ", 123 },
+            { "   \n\r123  ", 123 },
+            { "32767", 32767 },
+            { "-32767", -32767 },
+            { "32768", 32767 },
+
+            { "-32768", -32768, true },
+        };
+
+        executeTestTable("test case failed for i16 at index: ", cases, [](auto& c, const char* cErr) {
+            IS_CONST_EVALUATED { if (c.skipAtCompileTime) return; }
+            auto v = core::cptr_to_int<i16>(c.input);
+            Assert(v == c.expected, cErr);
+        });
+    }
+
+    {
+        struct test_case {
+            const char* input;
+            u16 expected;
+        };
+
+        constexpr test_case cases[] = {
+            { "", 0 },
+            { nullptr, 0 },
+            { "a123", 0 },
+            { ".123", 0 },
+            { "123", 123 },
+            { "123asd", 123 },
+            { "   \t123  ", 123 },
+            { "   \n123  ", 123 },
+            { "   \n\r123  ", 123 },
+            { "65534", 65534 },
+            { "65535", 65535 },
+        };
+
+        executeTestTable("test case failed for u16 at index: ", cases, [](auto& c, const char* cErr) {
+            auto v = core::cptr_to_int<u16>(c.input);
+            Assert(v == c.expected, cErr);
+        });
+    }
+
+    {
+        struct test_case {
+            const char* input;
+            i32 expected;
+            bool skipAtCompileTime = false;
+        };
+
+        constexpr test_case cases[] = {
+            { "", 0 },
+            { nullptr, 0 },
+            { "a123", 0 },
+            { ".123", 0 },
+            { "-.123", 0 },
+            { "123", 123 },
+            { "-123", -123 },
+            { "123asd", 123 },
+            { "-123  ", -123 },
+            { "    -123  ", -123 },
+            { "   \t123  ", 123 },
+            { "   \n123  ", 123 },
+            { "   \n\r123  ", 123 },
+            { "2147483647", 2147483647 },
+            { "-2147483647", -2147483647 },
+
+            { "-2147483648", -2147483648, true },
+        };
+
+        executeTestTable("test case failed for i32 at index: ", cases, [](auto& c, const char* cErr) {
+            IS_CONST_EVALUATED { if (c.skipAtCompileTime) return; }
+            auto v = core::cptr_to_int<i32>(c.input);
+            Assert(v == c.expected, cErr);
+        });
+    }
+
+    {
+        struct test_case {
+            const char* input;
+            u32 expected;
+        };
+
+        constexpr test_case cases[] = {
+            { "", 0 },
+            { nullptr, 0 },
+            { "a123", 0 },
+            { ".123", 0 },
+            { "123", 123 },
+            { "123asd", 123 },
+            { "   \t123  ", 123 },
+            { "   \n123  ", 123 },
+            { "   \n\r123  ", 123 },
+            { "4294967294", 4294967294 },
+            { "4294967295", 4294967295 },
+        };
+
+        executeTestTable("test case failed for u32 at index: ", cases, [](auto& c, const char* cErr) {
+            auto v = core::cptr_to_int<u32>(c.input);
+            Assert(v == c.expected, cErr);
+        });
+    }
+
+    {
+        struct test_case {
+            const char* input;
+            i64 expected;
+            bool skipAtCompileTime = false;
+        };
+
+        constexpr test_case cases[] = {
+            { "", 0 },
+            { nullptr, 0 },
+            { "a123", 0 },
+            { ".123", 0 },
+            { "-.123", 0 },
+            { "123", 123 },
+            { "-123", -123 },
+            { "123asd", 123 },
+            { "-123  ", -123 },
+            { "    -123  ", -123 },
+            { "   \t123  ", 123 },
+            { "   \n123  ", 123 },
+            { "   \n\r123  ", 123 },
+            { "9223372036854775807", 9223372036854775807ll },
+
+            { "-9223372036854775807", -9223372036854775807ll, true },
+            { "-9223372036854775808", core::MIN_I64, true },
+        };
+
+        executeTestTable("test case failed for i64 at index: ", cases, [](auto& c, const char* cErr) {
+            IS_CONST_EVALUATED { if (c.skipAtCompileTime) return; }
+            auto v = core::cptr_to_int<i64>(c.input);
+            Assert(v == c.expected, cErr);
+        });
+    }
+
+    {
+        struct test_case {
+            const char* input;
+            u64 expected;
+        };
+
+        constexpr test_case cases[] = {
+            { "", 0 },
+            { nullptr, 0 },
+            { "a123", 0 },
+            { ".123", 0 },
+            { "123", 123 },
+            { "123asd", 123 },
+            { "   \t123  ", 123 },
+            { "   \n123  ", 123 },
+            { "   \n\r123  ", 123 },
+            { "18446744073709551614", 18446744073709551614ull },
+            { "18446744073709551615", 18446744073709551615ull },
+        };
+
+        executeTestTable("test case failed for u64 at index: ", cases, [](auto& c, const char* cErr) {
+            auto v = core::cptr_to_int<u64>(c.input);
+            Assert(v == c.expected, cErr);
+        });
+    }
 
     return 0;
 }
 
 constexpr i32 cptr_to_float_test() {
 
-    // FIXME: test overlow cases and f64 cases!
+    {
+        struct test_case {
+            const char* input;
+            f32 expected;
+        };
 
-    struct test_case {
-        const char* input;
-        f32 expected;
-    };
+        constexpr test_case cases[] = {
+            { "", 0.f },
+            { nullptr, 0.f },
+            { "aasdb", 0.f },
+            { "aasdb1", 0.f },
+            { "a1", 0.f },
+            { ".1", .1f },
+            { "-.1", -.1f },
+            { "0.1", 0.1f },
+            { ".00001", .00001f },
+            { "-0.00001", -0.00001f },
+            { "0.123", 0.123f },
+            { "-0.123", -0.123f },
+            { "123.789", 123.789f },
+            { "-123.789", -123.789f },
+        };
 
-    constexpr test_case cases[] = {
-        { "", 0.f },
-        { nullptr, 0.f },
-        { "aasdb", 0.f },
-        { "aasdb1", 0.f },
-        { "a1", 0.f },
-        { ".1", .1f },
-        { "-.1", -.1f },
-        { "0.1", 0.1f },
-        { ".00001", .00001f },
-        { "-0.00001", -0.00001f },
-        { "0.123", 0.123f },
-        { "-0.123", -0.123f },
-        { "123.789", 123.789f },
-        { "-123.789", -123.789f },
-    };
+        executeTestTable("test case failed for f32 at index: ", cases, [](auto& c, const char* cErr) {
+            auto v = core::cptr_to_float<f32>(c.input);
+            Assert(core::safe_eq(v, c.expected, 0.000001f), cErr);
+        });
+    }
 
-    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        auto v = core::cptr_to_float<f32>(c.input);
-        Assert(core::safe_eq(v, c.expected, 0.000001f), cErr);
-    });
+    {
+        struct test_case {
+            const char* input;
+            f64 expected;
+        };
+
+        constexpr test_case cases[] = {
+            { "", 0. },
+            { nullptr, 0. },
+            { "aasdb", 0. },
+            { "aasdb1", 0. },
+            { "a1", 0. },
+            { ".1", .1 },
+            { "-.1", -.1 },
+            { "0.1", 0.1 },
+            { ".00001", .00001 },
+            { "-0.00001", -0.00001 },
+            { "0.123", 0.123 },
+            { "-0.123", -0.123 },
+            { "123.789", 123.789 },
+            { "-123.789", -123.789 },
+            { "123789.10111213", 123789.10111213 },
+            { "-123789.10111213", -123789.10111213 },
+        };
+
+        executeTestTable("test case failed for f64 at index: ", cases, [](auto& c, const char* cErr) {
+            auto v = core::cptr_to_float<f64>(c.input);
+            Assert(core::safe_eq(v, c.expected, 0.00000001), cErr);
+        });
+    }
 
     return 0;
 }

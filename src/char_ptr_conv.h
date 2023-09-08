@@ -62,12 +62,13 @@ constexpr void int_to_cptr(i64 n, char* out, u32 digitCount = 0) { detail::int_t
 
 GUARD_FN_TYPE_DEDUCTION(int_to_cptr);
 
-// This function does not handle overflows!
+// This function does not handle TInt overflows!
 template <typename TInt>
 constexpr TInt cptr_to_int(const char* s) {
     static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
     s = cptr_skip_space(s);
     if (s == nullptr || (s[0] != '-' && !is_digit(s[0]))) return 0;
+
     TInt res = 0;
     bool neg = s[0] == '-';
     if constexpr (core::is_signed_v<TInt>) {
@@ -75,18 +76,23 @@ constexpr TInt cptr_to_int(const char* s) {
     }
 
     while (is_digit(*s)) {
-        res = res * 10 + char_to_int<TInt>(*s);
+        TInt next = static_cast<TInt>(res * 10) + char_to_int<TInt>(*s);
+        if (next < res) {
+            // Overflow occurred. Does NOT handle all overflow cases, that is not the point of this check!
+            return neg ? core::limit_min<TInt>() : core::limit_max<TInt>();
+        }
+        res = next;
         s++;
     }
 
     if constexpr (core::is_signed_v<TInt>) {
         if (neg) res = -res;
     }
+
     return res;
 }
 
-// This function does not handle overflows!
-// TODO2: This probably needs a lot more testing for edge cases.
+// This function does not handle TFloat overflows!
 template <typename TFloat>
 constexpr TFloat cptr_to_float(const char* s) {
     static_assert(core::is_float_v<TFloat>, "TFloat must be a floating point type.");

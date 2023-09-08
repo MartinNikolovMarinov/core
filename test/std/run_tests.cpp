@@ -6,6 +6,7 @@
 #include "t-mat.cpp"
 #include "t-core_math_std.cpp"
 #include "t-bbox.cpp"
+#include "t-io.cpp"
 
 #if (!defined(OS_WIN) || OS_WIN == 0)
     #include "t-plt.cpp"
@@ -24,6 +25,7 @@ i32 run_all_std_tests() {
     RunTestSuite(run_mat_tests_suite);
     RunTestSuite(run_core_math_tests_suite_std);
     RunTestSuite(run_bbox_tests_suite);
+    RunTestSuite(run_io_tests_suite);
 
     return 0;
 }

@@ -40,8 +40,7 @@ struct CORE_API_EXPORT ireader_closer : public ireader, public icloser {};
 struct CORE_API_EXPORT iwriter_closer : public iwriter, public icloser {};
 struct CORE_API_EXPORT ireader_writer_closer : public ireader, public iwriter, public icloser {};
 
-// TODO: Implement write_full and read_full.
-
-CORE_API_EXPORT core::expected<io_err> write_full(iwriter& writer, void* out, addr_size size);
+CORE_API_EXPORT core::expected<io_err> read_full(ireader& reader, void* out, addr_size size);
+CORE_API_EXPORT core::expected<io_err> write_full(iwriter& writer, const void* in, addr_size size);
 
 } // namespace core

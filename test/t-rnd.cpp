@@ -33,12 +33,14 @@ i32 rnd_raw_str() {
 
     constexpr i32 testCount = 1;
     test_case testTable[testCount];
-    testTable[0] = { 5, 5000 };
+    constexpr i32 max = 5000;
+    testTable[0] = { 5, max - 1 }; // -1 for null terminator
+    char buf[max];
 
     for (i32 i = 0; i < testCount; i++) {
-        char buf[5000];
         for (i32 j = 0; j < testTable[i].itterCount; j++) {
             core::rnd_cptr(buf, testTable[i].size);
+            buf[max - 1] = core::term_char;
         }
     }
 

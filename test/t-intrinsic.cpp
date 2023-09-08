@@ -42,7 +42,7 @@ constexpr i32 leading_zero_count_test() {
         };
 
         executeTestTable("leading zero count failed for u32 at index: ", cases, [](auto& c, const char* cErr) {
-            Assert(core::i_leading_zero_count(c.in) == c.expected, cErr);
+            Assert(core::i_count_leading_zeros(c.in) == c.expected, cErr);
         });
     }
 
@@ -89,7 +89,7 @@ constexpr i32 leading_zero_count_test() {
         };
 
         executeTestTable("leading zero count failed for i32 at index: ", cases, [](auto& c, const char* cErr) {
-            Assert(core::i_leading_zero_count(c.in) == c.expected, cErr);
+            Assert(core::i_count_leading_zeros(c.in) == c.expected, cErr);
         });
     }
 
@@ -168,7 +168,7 @@ constexpr i32 leading_zero_count_test() {
         };
 
         executeTestTable("leading zero count failed for u64 at index: ", cases, [](auto& c, const char* cErr) {
-            Assert(core::i_leading_zero_count(c.in) == c.expected, cErr);
+            Assert(core::i_count_leading_zeros(c.in) == c.expected, cErr);
         });
     }
 
@@ -247,7 +247,7 @@ constexpr i32 leading_zero_count_test() {
         };
 
         executeTestTable("leading zero count failed for i64 at index: ", cases, [](auto& c, const char* cErr) {
-            Assert(core::i_leading_zero_count(c.in) == c.expected, cErr);
+            Assert(core::i_count_leading_zeros(c.in) == c.expected, cErr);
         });
     }
 

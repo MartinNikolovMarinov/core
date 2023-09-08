@@ -66,13 +66,12 @@ f32 rnd_f32(f32 min, f32 max) { return min + (max - min) * rnd_f32(); }
 f64 rnd_f64()                 { return (f64)rnd_u64() / (f64(MAX_U64) + f64(1.0f)); }
 f64 rnd_f64(f64 min, f64 max) { return min + (max - min) * rnd_f64(); }
 
-void rnd_cptr(char* out, addr_size len) {
-    addr_size i;
-    for (i = 0; i < len; i++) {
+char* rnd_cptr(char* out, addr_size len) {
+    for (addr_size i = 0; i < len; i++) {
         i32 randIndex = (u32)rnd_u32() % alphaCharsLen;
         out[i] = alphaChars[randIndex];
     }
-    out[i] = '\0';
+    return out + len;
 }
 
 } // namespace core

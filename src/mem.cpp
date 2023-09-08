@@ -4,7 +4,7 @@
 
 namespace core {
 
-void memcopy(void* dest, const void* src, addr_size len) {
+void* memcopy(void* dest, const void* src, addr_size len) {
     // TODO2: [PERFORMANCE] William Chan has a good implementation of a fast memcpy.
     char* ddest = reinterpret_cast<char*>(dest);
     const char* ssrc = reinterpret_cast<const char*>(src);
@@ -30,6 +30,8 @@ void memcopy(void* dest, const void* src, addr_size len) {
         ddest[len-3] = ssrc[len-3];
         break;
     }
+
+    return dest + len;
 }
 
 void* memset(void* dest, u8 c, addr_size n) {

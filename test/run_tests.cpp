@@ -3,7 +3,7 @@
 
 // Order matters for these:
 #include "t-arr.cpp"
-#include "t-flag_parser.cpp"
+#include "t-cmd_flag.cpp"
 #include "t-str_builder.cpp"
 
 #include "t-alloc_bump.cpp"
@@ -21,6 +21,7 @@
 #include "t-defer.cpp"
 #include "t-static_arr.cpp"
 #include "t-mem.cpp"
+#include "t-hash.cpp"
 
 i32 run_all_tests() {
     RunTestSuite(run_tuple_tests_suite);
@@ -38,6 +39,7 @@ i32 run_all_tests() {
     RunTestSuite(run_defer_tests_suite);
     RunTestSuite(run_static_arr_tests_suite);
     RunTestSuite(run_mem_tests_suite);
+    RunTestSuite(run_hash_tests_suite);
 
     return 0;
 }

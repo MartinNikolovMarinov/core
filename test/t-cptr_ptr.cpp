@@ -157,7 +157,7 @@ constexpr i32 cptr_copy_test() {
     Assert(dst[7] == '8');
     Assert(dst[8] == '9');
     Assert(dst[9] == '0');
-    Assert(dst[10] == '\0');
+    Assert(dst[10] == core::term_char);
 
     for (u32 i = 0; i < 20; ++i) dst[i] = 0;
     core::cptr_copy(dst, src, 5);
@@ -168,7 +168,7 @@ constexpr i32 cptr_copy_test() {
     Assert(dst[2] == '3');
     Assert(dst[3] == '4');
     Assert(dst[4] == '5');
-    Assert(dst[5] == '\0');
+    Assert(dst[5] == core::term_char);
 
     return 0;
 }

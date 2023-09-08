@@ -20,12 +20,12 @@ constexpr i32 initalize_str_builder() {
         Assert(str.byte_cap() == 3 * sizeof(typename str_builder::data_type));
         Assert(!str.empty());
 
-        Assert(str.first() == '\0');
-        Assert(str.last() == '\0');
-        Assert(str[0] == '\0');
-        Assert(str[1] == '\0');
-        Assert(str.at(0) == '\0');
-        Assert(str.at(1) == '\0');
+        Assert(str.first() == core::term_char);
+        Assert(str.last() == core::term_char);
+        Assert(str[0] == core::term_char);
+        Assert(str[1] == core::term_char);
+        Assert(str.at(0) == core::term_char);
+        Assert(str.at(1) == core::term_char);
     }
 
     {
@@ -36,11 +36,11 @@ constexpr i32 initalize_str_builder() {
         Assert(str.byte_cap() == 5 * sizeof(typename str_builder::data_type));
         Assert(!str.empty());
 
-        Assert(str.first() == '\0');
-        Assert(str[0] == '\0');
-        Assert(str[1] == '\0');
-        Assert(str.at(0) == '\0');
-        Assert(str.at(1) == '\0');
+        Assert(str.first() == core::term_char);
+        Assert(str[0] == core::term_char);
+        Assert(str[1] == core::term_char);
+        Assert(str.at(0) == core::term_char);
+        Assert(str.at(1) == core::term_char);
     }
 
     {

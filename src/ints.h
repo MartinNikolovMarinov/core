@@ -48,7 +48,7 @@ constexpr u32 digit_count(TInt n) {
     if constexpr (core::is_signed_v<TInt>) {
         if (n < 0) n = -n;
     }
-    u32 leadingZeroes = i_leading_zero_count(n);
+    u32 leadingZeroes = i_count_leading_zeros(n);
     u32 usedBits = (sizeof(n) * 8) - u32(leadingZeroes);
     u32 digits = detail::maxdigits[usedBits];
     if (n < static_cast<TInt>(detail::powers[digits - 1])) digits--;

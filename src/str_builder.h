@@ -87,7 +87,7 @@ struct str_builder {
     bool            empty()          const { return m_len == 0; }
 
     str_view view() const {
-        if (m_data != nullptr) m_data[m_len] = '\0'; // JIT null terminate
+        if (m_data != nullptr) m_data[m_len] = core::term_char; // JIT null terminate
         return str_view(m_data, m_len);
     }
 
@@ -127,7 +127,7 @@ struct str_builder {
     }
 
     data_type* steal_ownership() {
-        if (m_data != nullptr) m_data[m_len] = '\0'; // JIT null terminate
+        if (m_data != nullptr) m_data[m_len] = core::term_char; // JIT null terminate
         data_type* res = m_data;
         m_data = nullptr;
         m_cap = 0;

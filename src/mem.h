@@ -7,7 +7,7 @@ namespace core {
 
 using namespace coretypes;
 
-CORE_API_EXPORT void  memcopy(void* dest, const void* src, addr_size len);
+CORE_API_EXPORT void*  memcopy(void* dest, const void* src, addr_size len);
 CORE_API_EXPORT void* memset(void* dest, u8 c, addr_size n);
 CORE_API_EXPORT i32   memcmp(const void* s1, const void* s2, addr_size n);
 

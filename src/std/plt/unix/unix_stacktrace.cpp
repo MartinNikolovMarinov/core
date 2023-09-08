@@ -59,9 +59,9 @@ std::string stacktrace(u32 nStackFrames, u32 skipFrames) {
         }
 
         if (beginMangledName && beginOffset && endOffset && beginMangledName < beginOffset) {
-            *beginMangledName++ = '\0';
-            *beginOffset++ = '\0';
-            *endOffset = '\0';
+            *beginMangledName++ = core::term_char;
+            *beginOffset++ = core::term_char;
+            *endOffset = core::term_char;
 
             i32 status;
             u64 maxFuncNameSize = MAX_FUNCNAME_SIZE;

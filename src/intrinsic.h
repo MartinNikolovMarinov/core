@@ -28,7 +28,7 @@ constexpr u32 leading_zero_count_compiletime_impl(TInt n) {
 }
 
 template<typename TInt>
-constexpr u32 i_leading_zero_count(TInt n) {
+constexpr u32 i_count_leading_zeros(TInt n) {
     if (n == 0) return 0; // The gnu gcc __builtin_clz and __builtin_clzll documentation states that n = 0 is undefined behavior!
 
     IS_CONST_EVALUATED { return detail::leading_zero_count_compiletime_impl(n); }
@@ -54,12 +54,12 @@ constexpr u32 i_leading_zero_count(TInt n) {
 
 } // namespace detail
 
-constexpr u32 i_leading_zero_count(u32 n) { return detail::i_leading_zero_count(n); }
-constexpr u32 i_leading_zero_count(u64 n) { return detail::i_leading_zero_count(n); }
-constexpr u32 i_leading_zero_count(i32 n) { return detail::i_leading_zero_count(n); }
-constexpr u32 i_leading_zero_count(i64 n) { return detail::i_leading_zero_count(n); }
+constexpr u32 i_count_leading_zeros(u32 n) { return detail::i_count_leading_zeros(n); }
+constexpr u32 i_count_leading_zeros(u64 n) { return detail::i_count_leading_zeros(n); }
+constexpr u32 i_count_leading_zeros(i32 n) { return detail::i_count_leading_zeros(n); }
+constexpr u32 i_count_leading_zeros(i64 n) { return detail::i_count_leading_zeros(n); }
 
-GUARD_FN_TYPE_DEDUCTION(i_leading_zero_count);
+GUARD_FN_TYPE_DEDUCTION(i_count_leading_zeros);
 
 constexpr f32 i_huge_valf() { return __builtin_huge_valf(); }
 constexpr f32 i_nanf()      { return __builtin_nanf(""); }
@@ -112,5 +112,39 @@ constexpr u32 i_number_of_set_bits(u64 n) { return detail::i_number_of_set_bits(
 GUARD_FN_TYPE_DEDUCTION(i_number_of_set_bits);
 
 CORE_API_EXPORT u64 get_cpu_ticks();
+
+namespace detail {
+
+template<typename TUint>
+constexpr inline TUint i_rotl(TUint n, TUint c) {
+    // TODO2: Should I use x86 specific intrinsics for this? Does it matter for performance at all?
+    const unsigned int mask = (8*sizeof(n) - 1);
+    c &= mask;
+    return (n << c) | (n >> ((-c) & mask));
+}
+
+}
+
+constexpr inline u32 i_rotl(u32 n, u32 c) { return detail::i_rotl(n, c); }
+constexpr inline u64 i_rotl(u64 n, u64 c) { return detail::i_rotl(n, c); }
+
+GUARD_FN_TYPE_DEDUCTION(i_rotl);
+
+namespace detail {
+
+template<typename TUint>
+constexpr inline TUint i_rotr(TUint n, TUint c) {
+    // TODO2: Should I use x86 specific intrinsics for this? Does it matter for performance at all?
+    const unsigned int mask = (8*sizeof(n) - 1);
+    c &= mask;
+    return (n >> c) | (n << ((-c) & mask));
+}
+
+}
+
+constexpr inline u32 i_rotr(u32 n, u32 c) { return detail::i_rotr(n, c); }
+constexpr inline u64 i_rotr(u64 n, u64 c) { return detail::i_rotr(n, c); }
+
+GUARD_FN_TYPE_DEDUCTION(i_rotr);
 
 } // namespace core

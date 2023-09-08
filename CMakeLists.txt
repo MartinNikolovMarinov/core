@@ -95,11 +95,13 @@ set(src_files
     src/core_math.h
     src/core_traits.h
     src/expected.h
+    src/hash.cpp
+    src/hash.h
     src/intrinsic.cpp
     src/intrinsic.h
     src/ints.h
-    src/io.h
     src/io.cpp
+    src/io.h
     src/mem.cpp
     src/mem.h
     src/rnd.cpp

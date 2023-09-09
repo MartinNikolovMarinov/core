@@ -17,12 +17,22 @@ struct str_view {
     const data_type* buff;
     size_type len;
 
-    constexpr str_view() : buff(nullptr), len(0) {}
-    constexpr str_view(const data_type* buff) : buff(buff), len(core::cptr_len(buff)) {}
-    constexpr str_view(const data_type* buff, size_type len) : buff(buff), len(len) {}
+    constexpr bool operator==(const str_view& other) const {
+        return core::cptr_cmp(buff, len, other.buff, other.len) == 0;
+    }
+
+    constexpr bool operator!=(const str_view& other) const {
+        return !(*this == other);
+    }
 
     constexpr const data_type* data() const { return buff; }
 };
+
+constexpr str_view sv()                               { return {nullptr, 0}; }
+constexpr str_view sv(const char* str)                { return {str, core::cptr_len(str)}; }
+constexpr str_view sv(const char* str, addr_size len) { return {str, len}; }
+
+static_assert(core::is_pod_v<str_view>, "str_view must be pod type");
 
 template <typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
 struct str_builder {
@@ -88,7 +98,7 @@ struct str_builder {
 
     str_view view() const {
         if (m_data != nullptr) m_data[m_len] = core::term_char; // JIT null terminate
-        return str_view(m_data, m_len);
+        return {m_data, m_len};
     }
 
     void clear() { m_len = 0; }

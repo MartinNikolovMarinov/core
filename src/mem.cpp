@@ -39,7 +39,7 @@ void* memset(void* dest, u8 c, addr_size n) {
     for (addr_size i = 0; i < n; ++i) {
         p[i] = c;
     }
-    return dest;
+    return dest + n;
 }
 
 i32 memcmp(const void* s1, const void* s2, addr_size n) {

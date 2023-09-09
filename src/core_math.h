@@ -86,6 +86,48 @@ constexpr u64 pow2(u32 i) {
 
 #pragma endregion
 
+#pragma region align to power of 2 ------------------------------------------------------------------------------------
+
+namespace detail {
+
+template <typename TInt>
+constexpr TInt align_to_pow2(TInt v) {
+    if (v == 0) return 0;
+
+    // Decrement by 1 so if the number is already a power of 2, it won't go up to the next power
+    v--;
+
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+
+    if constexpr (sizeof(TInt) >= 2) {
+        v |= v >> 8;
+    }
+    if constexpr (sizeof(TInt) >= 4) {
+        v |= v >> 16;
+    }
+    if constexpr (sizeof(TInt) >= 8) {
+        v |= v >> 32;
+    }
+
+    // Increment by 1 because of the previous decrement.
+    return v + 1;
+}
+
+} // namespace detail
+
+constexpr i8 align_to_pow2(i8 v)   { return detail::align_to_pow2(v); }
+constexpr u8 align_to_pow2(u8 v)   { return detail::align_to_pow2(v); }
+constexpr i16 align_to_pow2(i16 v) { return detail::align_to_pow2(v); }
+constexpr u16 align_to_pow2(u16 v) { return detail::align_to_pow2(v); }
+constexpr i32 align_to_pow2(i32 v) { return detail::align_to_pow2(v); }
+constexpr u32 align_to_pow2(u32 v) { return detail::align_to_pow2(v); }
+constexpr i64 align_to_pow2(i64 v) { return detail::align_to_pow2(v); }
+constexpr u64 align_to_pow2(u64 v) { return detail::align_to_pow2(v); }
+
+#pragma endregion
+
 #pragma region Radians/Degrees ----------------------------------------------------------------------------------------
 
 struct radians {

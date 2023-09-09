@@ -17,6 +17,7 @@
 #include "core_math.h"
 #include "core_traits.h"
 #include "expected.h"
+#include "hash_map.h"
 #include "hash.h"
 #include "intrinsic.h"
 #include "ints.h"

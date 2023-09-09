@@ -95,6 +95,7 @@ set(src_files
     src/core_math.h
     src/core_traits.h
     src/expected.h
+    src/hash_map.h
     src/hash.cpp
     src/hash.h
     src/intrinsic.cpp

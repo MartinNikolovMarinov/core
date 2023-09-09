@@ -1,21 +1,34 @@
-i32 simple_hash_correctness_test() {
+template <typename THash>
+i32 simple_hash_correctness_test(THash calcHash) {
     {
         constexpr const char* msg = "Hello, world!";
-        u32 first = core::simple_hash(msg, core::cptr_len(msg));
-        u32 second = core::simple_hash(msg, core::cptr_len(msg));
+        u32 first = calcHash(msg, core::cptr_len(msg), 0);
+        u32 second = calcHash(msg, core::cptr_len(msg), 0);
         Assert(first == second);
     }
     {
         constexpr const char* msg = "";
-        u32 first = core::simple_hash(msg, core::cptr_len(msg));
-        u32 second = core::simple_hash(msg, core::cptr_len(msg));
+        u32 first = calcHash(msg, core::cptr_len(msg), 0);
+        u32 second = calcHash(msg, core::cptr_len(msg), 0);
         Assert(first == second);
     }
     {
         constexpr const char* msg = nullptr;
-        u32 first = core::simple_hash(msg, core::cptr_len(msg));
-        u32 second = core::simple_hash(msg, core::cptr_len(msg));
+        u32 first = calcHash(msg, core::cptr_len(msg), 0);
+        u32 second = calcHash(msg, core::cptr_len(msg), 0);
         Assert(first == second);
+    }
+    {
+        constexpr const char* msg = nullptr;
+        u32 first = calcHash(msg, core::cptr_len(msg), 12);
+        u32 second = calcHash(msg, core::cptr_len(msg), 12);
+        Assert(first == second);
+    }
+    {
+        constexpr const char* msg = nullptr;
+        u32 first = calcHash(msg, core::cptr_len(msg), 0);
+        u32 second = calcHash(msg, core::cptr_len(msg), 1234);
+        Assert(first != second);
     }
     {
         constexpr const char* msg = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor"
@@ -37,15 +50,16 @@ i32 simple_hash_correctness_test() {
                                     "consectetur. Proident fugiat et adipisicing qui ea veniam qui adipisicing ut ea. Qui"
                                     "officia in cillum magna commodo consectetur aute cillum ex et. Id tempor eiusmod"
                                     "commodo dolor enim sint eiusmod exercitation incididunt esse nulla.";
-        u32 first = core::simple_hash(msg, core::cptr_len(msg));
-        u32 second = core::simple_hash(msg, core::cptr_len(msg));
+        u32 first = calcHash(msg, core::cptr_len(msg), 0);
+        u32 second = calcHash(msg, core::cptr_len(msg), 0);
         Assert(first == second);
     }
     return 0;
 }
 
 i32 run_hash_tests_suite() {
-    RunTest(simple_hash_correctness_test);
+    RunTest(simple_hash_correctness_test, &core::simple_hash_32);
+    RunTest(simple_hash_correctness_test, &core::djb2_32);
 
     return 0;
 }

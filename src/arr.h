@@ -9,8 +9,6 @@ namespace core {
 
 using namespace coretypes;
 
-// TODO2: [Nit Pick] Allow the array to use custom size types. This would allow arr structures to be smaller in size.
-
 template<typename T, typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
 struct arr {
     using data_type      = T;

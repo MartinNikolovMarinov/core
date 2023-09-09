@@ -17,6 +17,8 @@ using namespace coretypes;
  *
  * \return The hash.
 */
-CORE_API_EXPORT u32 simple_hash(const void* input, addr_size len);
+CORE_API_EXPORT u32 simple_hash_32(const void* input, addr_size len, u32 seed = 0);
+
+CORE_API_EXPORT u32 djb2_32(const void* input, addr_size len, u32 seed = 0);
 
 } // namespace core

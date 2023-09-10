@@ -4,7 +4,7 @@ struct __test_with_default_ctor {
 };
 i32 __test_with_default_ctor::itter = 0;
 
-template<typename TAllocator>
+template <typename TAllocator>
 i32 initialize_arr() {
     {
         core::arr<i32, TAllocator> arr;
@@ -79,7 +79,7 @@ i32 initialize_arr() {
     return 0;
 }
 
-template<typename TAllocator>
+template <typename TAllocator>
 i32 move_and_copy_arr() {
     core::arr<i32, TAllocator> arr(10);
     arr.fill(1);
@@ -119,7 +119,7 @@ i32 move_and_copy_arr() {
     return 0;
 }
 
-template<typename TAllocator>
+template <typename TAllocator>
 i32 resize_arr() {
     {
         core::arr<i32, TAllocator> arr;
@@ -144,7 +144,7 @@ i32 resize_arr() {
     return 0;
 }
 
-template<typename TAllocator>
+template <typename TAllocator>
 i32 fill_arr() {
     {
         core::arr<i32, TAllocator> arr;
@@ -235,7 +235,7 @@ i32 fill_arr() {
     return 0;
 }
 
-template<typename TAllocator>
+template <typename TAllocator>
 i32 append_arr() {
     {
         core::arr<i32, TAllocator> arr;
@@ -391,7 +391,7 @@ i32 append_arr() {
     return 0;
 }
 
-template<typename TAllocator>
+template <typename TAllocator>
 i32 array_of_arrays_arr() {
     {
         core::arr<i32, TAllocator> arr;
@@ -445,7 +445,7 @@ i32 array_of_arrays_arr() {
     return 0;
 }
 
-template<typename TAllocator>
+template <typename TAllocator>
 i32 clear_array_should_call_dtors_test() {
     defer { CT::resetAll(); };
     constexpr i32 testCount = 10;

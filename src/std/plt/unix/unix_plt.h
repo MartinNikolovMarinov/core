@@ -58,7 +58,7 @@ inline dir_entry to_dir_entry(const dirent& d) {
 };
 
 template <typename TWalkerFn>
-expected<plt_err_code> os_dir_walk(file_desc fd, TWalkerFn cb) {
+expected<plt_err_code> os_dir_walk(file_desc fd, const TWalkerFn& cb) {
     const addr_off blockSize = (addr_off) os_get_default_block_size();
     off_t basep = 0;
 

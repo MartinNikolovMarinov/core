@@ -169,5 +169,11 @@ i32 run_std_allocator_tests_suite() {
     RunTest(special_cases_related_to_null_termination_str_builder<std_allocator_static>);
     Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
 
+    // Hash map tests:
+    RunTest(initialize_hash_map<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+    RunTest(put_move_copy_hash_map<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+
     return 0;
 }

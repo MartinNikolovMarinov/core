@@ -15,8 +15,6 @@ using namespace coretypes;
  * TODO2: [PERFORMACE] No real consideration has been given to performance.
 */
 
-// FIXME: Create at least as many tests as t-arr.
-
 template <typename T> addr_size hash(const T& key);
 template <typename T> bool eq(const T& a, const T& b);
 
@@ -42,7 +40,11 @@ struct hash_map {
     static_assert(core::is_pod_v<TKey>, "TKey must be pod type");
 
     hash_map() : m_buckets(nullptr), m_cap(0), m_len(0) {};
-    hash_map(size_type cap) : m_buckets(nullptr), m_cap(core::align_to_pow2(cap)), m_len(0) {}
+    hash_map(size_type cap) : m_buckets(nullptr), m_cap(core::align_to_pow2(cap)), m_len(0) {
+        // FIXME: [Need callock]
+        m_buckets = reinterpret_cast<bucket*>(core::alloc<allocator_type>(m_cap * sizeof(bucket)));
+        core::memset(m_buckets, 0, m_cap * sizeof(bucket));
+    }
     hash_map(const map_type& other) = delete; // prevent copy ctor
     hash_map(map_type&& other) : m_buckets(other.m_buckets), m_cap(other.m_cap), m_len(other.m_len) {
         if (this == &other) return;
@@ -116,19 +118,14 @@ struct hash_map {
         return cpy;
     }
 
-    data_type* get(const key_type& key) {
-        data_type* data = nullptr;
-        auto h = hash(key);
-        size_type addr = size_type(h) & (m_cap - 1);
-        while (addr < m_cap && m_buckets[addr].occupied) {
-            if (eq(m_buckets[addr].key, key)) {
-                data = &m_buckets[addr].data;
-                break;
-            }
-            addr = (addr + 1) & (m_cap - 1);
-        }
+    const data_type* get(const key_type& key) const {
+        const bucket* b = find_bucket(key);
+        return b ? &b->data : nullptr;
+    }
 
-        return data;
+    data_type* get(const key_type& key) {
+        const data_type* data = static_cast<const map_type &>(*this).get();
+        return const_cast<data_type*>(data);
     }
 
     map_type& put(const key_type& key, const data_type& data) {
@@ -152,11 +149,23 @@ struct hash_map {
         m_buckets[addr].data = data;
         m_buckets[addr].occupied = true;
         m_len++;
+
+        return *this;
+    }
+
+    map_type& remove(const key_type& key) {
+        bucket* b = find_bucket(key);
+        if (b) {
+            b->occupied = false;
+            b->key = key_type(); // rest key
+            b->data = data_type(); // reset data
+        }
         return *this;
     }
 
     template <typename TKeyCb>
-    map_type& keys(TKeyCb cb) {
+    const map_type& keys(const TKeyCb& cb) const {
+        if (m_buckets == nullptr) return *this;
         for (size_type i = 0; i < m_cap; ++i) {
             if (m_buckets[i].occupied) {
                 cb(m_buckets[i].key);
@@ -165,8 +174,14 @@ struct hash_map {
         return *this;
     }
 
+    template <typename TKeyCb>
+    map_type& keys(const TKeyCb& cb) {
+        return const_cast<map_type&>(static_cast<const map_type&>(*this).keys(cb));
+    }
+
     template <typename TDataCb>
-    map_type& values(TDataCb cb) {
+    const map_type& values(const TDataCb& cb) const {
+        if (m_buckets == nullptr) return *this;
         for (size_type i = 0; i < m_cap; ++i) {
             if (m_buckets[i].occupied) {
                 cb(m_buckets[i].data);
@@ -175,14 +190,19 @@ struct hash_map {
         return *this;
     }
 
+    template <typename TDataCb>
+    map_type& values(const TDataCb& cb) {
+        return const_cast<map_type&>(static_cast<const map_type&>(*this).values(cb));
+    }
+
 private:
     void resize() {
         size_type newCap = m_cap < DEFAULT_CAP ? DEFAULT_CAP : m_cap * 2;
         hash_map newMap;
         newMap.m_buckets = reinterpret_cast<bucket*>(core::alloc<allocator_type>(newCap * sizeof(bucket)));
-        core::memset(newMap.m_buckets, 0, newCap * sizeof(bucket));
+        core::memset(newMap.m_buckets, 0, newCap * sizeof(bucket)); // FIXME: [Need callock]
         newMap.m_cap = newCap;
-        newMap.m_len = m_len;
+        newMap.m_len = 0;
 
         if (m_buckets) {
             for (size_type i = 0; i < m_cap; ++i) {
@@ -193,6 +213,22 @@ private:
         }
 
         *this = core::move(newMap);
+    }
+
+    const bucket* find_bucket(const key_type& key) const {
+        auto h = hash(key);
+        size_type addr = size_type(h) & (m_cap - 1);
+        while (addr < m_cap && m_buckets[addr].occupied) {
+            if (eq(m_buckets[addr].key, key)) {
+                return &m_buckets[addr];
+            }
+            addr = (addr + 1) & (m_cap - 1);
+        }
+        return nullptr;
+    }
+
+    bucket* find_bucket(const key_type& key) {
+        return const_cast<bucket*>(static_cast<const map_type&>(*this).find_bucket(key));
     }
 
     bucket* m_buckets;

@@ -76,5 +76,11 @@ i32 run_bump_allocator_tests_suite() {
     RunTest(special_cases_related_to_null_termination_str_builder<bump_allocator_static<256>>);
     bump_allocator_static<256>::clear();
 
+    // Hash map tests:
+    RunTest(initialize_hash_map<bump_allocator_static<512>>);
+    bump_allocator_static<512>::clear();
+    RunTest(put_move_copy_hash_map<bump_allocator_static<1024>>);
+    bump_allocator_static<1024>::clear();
+
     return 0;
 }

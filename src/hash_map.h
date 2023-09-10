@@ -4,6 +4,7 @@
 #include <alloc.h>
 #include <mem.h>
 #include <core_traits.h>
+#include <core_math.h>
 
 namespace core {
 
@@ -124,7 +125,7 @@ struct hash_map {
     }
 
     data_type* get(const key_type& key) {
-        const data_type* data = static_cast<const map_type &>(*this).get();
+        const data_type* data = static_cast<const map_type &>(*this).get(key);
         return const_cast<data_type*>(data);
     }
 

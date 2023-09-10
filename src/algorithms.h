@@ -2,6 +2,7 @@
 
 #include "types.h"
 #include "arr.h"
+#include "hash_map.h"
 #include "static_arr.h"
 
 namespace core {

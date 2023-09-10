@@ -6,9 +6,15 @@
 #include <char_ptr.h>
 #include <char_ptr_conv.h>
 #include <algorithms.h>
+#include <str_builder.h>
+#include <hash_map.h>
 
-// FIXME: Add support for tag aliasing. I might want the same flag to be accessible via multiple names. Setting it
-//        through an alias should not fail a required flag.
+// FIXME: Might want to consider copying the character pointers instead of trusting the user to keep them alive.
+//        This is usually fine because the parser has a very specific use case, but might bring about some terrible bugs.
+//        Possible solution - simply copy all character pointers for flag names and aliases in a large char buffer.
+//        Use the destructor to free the memory block.
+
+// FIXME: Test more extensively the aliasing feature. There are a billion edge cases that need to be tested.
 
 namespace core {
 
@@ -17,6 +23,7 @@ using namespace coretypes;
 template<typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
 struct flag_parser {
     static constexpr i32 MAX_ARG_LEN = 5000;
+    static constexpr i32 MAX_FLAG_COUNT = 100;
 
     enum flag_type {
         Bool,
@@ -33,24 +40,30 @@ struct flag_parser {
 
     struct flag_data {
         void* arg = nullptr;
-        const char* name = nullptr;
-        addr_size nameLen = 0;
+        core::str_view name = sv();
         flag_type type;
         bool isSet = false;
         bool isRequired = false;
-        ValidationFn validate;
+        ValidationFn validate = nullptr;
+    };
+
+    struct alias {
+        const core::str_view* name = nullptr;
+        core::str_view alias = sv();
     };
 
     enum struct parse_err {
         Success = 0,
         ArgLenTooLong = 1,
-        UnknownFlag = 2,
-        MissingRequiredFlag = 3,
-        NothingToParse = 4,
-        CustomRuleViolation = 5
+        TooManyFlags = 2,
+        UnknownFlag = 3,
+        MissingRequiredFlag = 4,
+        NothingToParse = 5,
+        CustomRuleViolation = 6
     };
 
     core::arr<flag_data, TAllocator> flags;
+    core::hash_map<core::str_view, flag_data*, TAllocator> aliases;
     i32 maxArgLen;
     bool allowUnknownFlags;
 
@@ -70,9 +83,12 @@ struct flag_parser {
 
         if (argv == nullptr) return core::unexpected(parse_err::NothingToParse);
         if (argc == 0) return core::unexpected(parse_err::NothingToParse);
+        if (argc > MAX_FLAG_COUNT) return core::unexpected(parse_err::TooManyFlags);
 
         for (i32 i = 0; i < argc; ++i) {
             const char* curVal = argv[i];
+
+            // Skip empty arguments and -, -- at the beginning of flags.
             if (curVal == nullptr) continue;
             if (state != 2) curVal = core::cptr_skip_space(curVal);
             if (curVal[0] == '-' && state == 0) {
@@ -80,6 +96,8 @@ struct flag_parser {
                 state = 1;
                 if (curVal[0] == '-') curVal++; // allow long -- flags
             }
+
+            // Check the length of the flag:
             i32 valLen = 0;
             while (curVal[valLen]) {
                 valLen++;
@@ -89,14 +107,33 @@ struct flag_parser {
             }
 
             if (state == 1) {
-                addr_off fidx = core::find(flags, [&](const flag_data& f, addr_off) -> bool {
-                    addr_off trimmedNameLen = f.nameLen;
-                    addr_off trimmedValLen = valLen;
-                    while (core::is_white_space(f.name[trimmedNameLen - 1])) trimmedNameLen--;
-                    while (core::is_white_space(curVal[trimmedValLen - 1])) trimmedValLen--;
-                    bool areEqual = core::cptr_cmp(f.name, trimmedNameLen, curVal, trimmedValLen) == 0;
+                auto trimmedEq = [&](const core::str_view a, const core::str_view b) -> bool {
+                    addr_off trimmedALen = a.len;
+                    addr_off trimmedBLen = b.len;
+                    while (core::is_white_space(a.data()[trimmedALen - 1])) trimmedALen--;
+                    while (core::is_white_space(b.data()[trimmedBLen - 1])) trimmedBLen--;
+                    bool areEqual = core::cptr_eq(a.data(), b.data(), core::min(trimmedALen, trimmedBLen));
                     return areEqual;
+                };
+
+                addr_off fidx = 0;
+
+                // Try to find the flag by name:
+                fidx = core::find(flags, [&](const flag_data& f, addr_off) -> bool {
+                    return trimmedEq(f.name, sv(curVal, valLen));
                 });
+
+                if (fidx == -1) {
+                    // Try to find the flag by some alias:
+                    flag_data** flagData = aliases.get(sv(curVal, valLen));
+                    if (flagData != nullptr) {
+                        Assert((*flagData), "[BUG] Alias points to nullptr flag data.");
+                        fidx = core::find(flags, [&](const flag_data& f, addr_off) -> bool {
+                            return trimmedEq(f.name, (*flagData)->name);
+                        });
+                        Assert(fidx != -1, "[BUG] Alias points to non-existing flag.");
+                    }
+                }
 
                 if (fidx == -1 && !allowUnknownFlags) {
                     return core::unexpected(parse_err::UnknownFlag);
@@ -231,6 +268,23 @@ struct flag_parser {
         return _flag(*this, out, flagName, required, validate, flag_type::Float64);
     }
 
+    void alias(const char* flagName, const char* alias) {
+        addr_off fidx = core::find(flags, [&](const flag_data& f, addr_off) -> bool {
+            return f.name == flagName;
+        });
+        if (fidx != -1) {
+            auto& f = flags[fidx];
+            auto* aliasList = aliases.get(f.name);
+            if (aliasList == nullptr) {
+                aliases.insert(f.name, core::arr<str_view, TAllocator>());
+                aliasList = aliases.get(f.name);
+                Panic(aliasList != nullptr, "[BUG] Failed to insert alias list.");
+            }
+            aliasList->append(sv(core::cptr_skip_space(alias), core::cptr_len(alias)));
+        }
+        Assert(fidx != -1, "Can't create alias for non-existing flag.");
+    }
+
 private:
     template <typename T>
     static void _flag(flag_parser& parser,
@@ -241,8 +295,7 @@ private:
                       flag_parser::flag_type type) {
         flag_parser::flag_data f;
         f.arg = (void*)out;
-        f.name = core::cptr_skip_space(flagName);
-        f.nameLen = core::cptr_len(f.name);
+        f.name = sv(core::cptr_skip_space(flagName), core::cptr_len(flagName));
         f.type = type;
         f.isSet = false;
         f.isRequired = required;
@@ -250,10 +303,15 @@ private:
 
         // Replace existing flag if it exists.
         addr_off nameIdx = core::find(parser.flags, [&](const auto& el, addr_off) -> bool {
-            return core::cptr_cmp(f.name, f.nameLen, el.name, el.nameLen) == 0;
+            return f.name == el.name;
         });
-        if (nameIdx != -1) parser.flags[nameIdx] = f;
-        else parser.flags.append(f);
+        if (nameIdx != -1) {
+            // FIXME: Update aliases!
+            parser.flags[nameIdx] = f;
+        }
+        else {
+            parser.flags.append(f);
+        }
     }
 };
 

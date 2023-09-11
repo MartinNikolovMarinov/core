@@ -1,9 +1,3 @@
-struct __test_with_default_ctor {
-    static i32 itter;
-    i32 a = itter++; // even this nonsense should work.
-};
-i32 __test_with_default_ctor::itter = 0;
-
 template <typename TAllocator>
 i32 initialize_arr() {
     {
@@ -37,8 +31,10 @@ i32 initialize_arr() {
     }
 
     {
-        __test_with_default_ctor::itter = 0;
-        core::arr<__test_with_default_ctor, TAllocator> arr(10);
+        defer { SVCT::nextId = 0; };
+
+        Assert(SVCT::nextId == 0);
+        core::arr<SVCT, TAllocator> arr(10);
         Assert(arr.len() == 10);
         Assert(arr.cap() == 10);
         Assert(!arr.empty());

@@ -7,7 +7,9 @@ namespace core {
 
 using namespace coretypes;
 
+// The function's return addres is not advanced it remains the same as the input dest pointer!
 CORE_API_EXPORT void*  memcopy(void* dest, const void* src, addr_size len);
+// The function's return addres is not advanced it remains the same as the input dest pointer!
 CORE_API_EXPORT void* memset(void* dest, u8 c, addr_size n);
 CORE_API_EXPORT i32   memcmp(const void* s1, const void* s2, addr_size n);
 

@@ -33,6 +33,18 @@ struct ConstructorTester {
     ConstructorTester(ConstructorTester&& other) : a(core::move(other.a)) { g_moveCtorCalled++; }
     ~ConstructorTester() { g_destructorsCalled++; }
 
+    ConstructorTester& operator=(const ConstructorTester& other) {
+        a = other.a;
+        g_assignmentsCopyCalled++;
+        return *this;
+    }
+
+    ConstructorTester& operator=(ConstructorTester&& other) {
+        a = core::move(other.a);
+        g_assignmentsMoveCalled++;
+        return *this;
+    }
+
     static void resetCtors() {
         g_defaultCtorCalled = 0;
         g_copyCtorCalled = 0;
@@ -43,23 +55,43 @@ struct ConstructorTester {
         g_destructorsCalled = 0;
     }
 
+    static void resetAssignments() {
+        g_assignmentsCopyCalled = 0;
+        g_assignmentsMoveCalled = 0;
+    }
+
     static void resetAll() {
         resetCtors();
         resetDtors();
+        resetAssignments();
     }
 
-    static i32 defaultCtorCalled() { return g_defaultCtorCalled; }
-    static i32 copyCtorCalled()    { return g_copyCtorCalled; }
-    static i32 moveCtorCalled()    { return g_moveCtorCalled; }
-    static i32 totalCtorsCalled()  { return g_defaultCtorCalled + g_copyCtorCalled + g_moveCtorCalled; }
-    static i32 dtorsCalled()       { return g_destructorsCalled; }
-    static bool noCtorsCalled()    { return totalCtorsCalled() == 0; }
+    static i32 defaultCtorCalled()      { return g_defaultCtorCalled; }
+    static i32 copyCtorCalled()         { return g_copyCtorCalled; }
+    static i32 moveCtorCalled()         { return g_moveCtorCalled; }
+    static i32 totalCtorsCalled()       { return g_defaultCtorCalled + g_copyCtorCalled + g_moveCtorCalled; }
+    static i32 assignmentsCopyCalled()  { return g_assignmentsCopyCalled; }
+    static i32 assignmentsMoveCalled()  { return g_assignmentsMoveCalled; }
+    static i32 assignmentsTotalCalled() { return g_assignmentsCopyCalled + g_assignmentsMoveCalled; }
+    static i32 dtorsCalled()            { return g_destructorsCalled; }
+    static bool noCtorsCalled()         { return totalCtorsCalled() == 0; }
 
 private:
     inline static i32 g_destructorsCalled;
     inline static i32 g_defaultCtorCalled;
     inline static i32 g_copyCtorCalled;
     inline static i32 g_moveCtorCalled;
+    inline static i32 g_assignmentsCopyCalled;
+    inline static i32 g_assignmentsMoveCalled;
 };
 
 using CT = ConstructorTester;
+
+struct StaticVariableDefaultCtorTester {
+    // NOTE: This is a terrible idea, but it still should work.
+    static i32 nextId;
+    i32 a = nextId++;
+};
+i32 StaticVariableDefaultCtorTester::nextId = 0;
+
+using SVCT = StaticVariableDefaultCtorTester;

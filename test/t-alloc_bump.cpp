@@ -19,6 +19,13 @@ i32 basic_bump_allocator_case() {
     Assert(ts != nullptr);
     Assert(ts->a == 42);
     Assert(ts->b == 0.1f);
+    bumpAllocator.free(ts);
+
+    ts = reinterpret_cast<test_struct*>(bumpAllocator.calloc(1, sizeof(test_struct)));
+    Assert(ts != nullptr);
+    Assert(ts->a == 0);
+    Assert(ts->b == 0.0f);
+    bumpAllocator.free(ts);
 
     return 0;
 }
@@ -39,8 +46,8 @@ i32 run_bump_allocator_tests_suite() {
     RunTest(on_oom_bump_allocator);
 
     // Array with bump allocator tests:
-    RunTest(initialize_arr<bump_allocator_static<256>>);
-    bump_allocator_static<256>::clear();
+    RunTest(initialize_arr<bump_allocator_static<512>>);
+    bump_allocator_static<512>::clear();
     RunTest(resize_arr<bump_allocator_static<256>>);
     bump_allocator_static<256>::clear();
     RunTest(fill_arr<bump_allocator_static<256>>);
@@ -79,7 +86,11 @@ i32 run_bump_allocator_tests_suite() {
     // Hash map tests:
     RunTest(initialize_hash_map<bump_allocator_static<512>>);
     bump_allocator_static<512>::clear();
-    RunTest(put_move_copy_hash_map<bump_allocator_static<1024>>);
+    RunTest(put_move_copy_hash_map<bump_allocator_static<4096>>);
+    bump_allocator_static<4096>::clear();
+    RunTest(remove_from_hash_map<bump_allocator_static<1024>>);
+    bump_allocator_static<1024>::clear();
+    RunTest(complex_types_in_hash_map<bump_allocator_static<1024>>);
     bump_allocator_static<1024>::clear();
 
     return 0;

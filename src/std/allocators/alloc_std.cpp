@@ -10,6 +10,12 @@ void* std_allocator::alloc(addr_size size) noexcept {
     return ret;
 }
 
+void* std_allocator::calloc(addr_size nmemb, addr_size size) noexcept {
+    void* ret = std::calloc(nmemb, size);
+    if (ret == nullptr && m_oomCb != nullptr) m_oomCb(nullptr);
+    return ret;
+}
+
 void std_allocator::free(void* ptr) noexcept {
     std::free(ptr);
 }

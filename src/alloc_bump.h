@@ -43,6 +43,14 @@ struct bump_allocator {
         return p;
     }
 
+    constexpr void* calloc(size_type nmemb, size_type size) noexcept {
+        size_type totalSize = nmemb * size;
+        void* p = alloc(totalSize);
+        if (p == nullptr) return nullptr;
+        core::memset(p, 0, totalSize);
+        return p;
+    }
+
     constexpr void free(void*) noexcept { /* does nothing */ }
 
     constexpr void clear() noexcept {

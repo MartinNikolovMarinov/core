@@ -91,13 +91,23 @@ std_stats_allocator::~std_stats_allocator() {
     }
 }
 
-void* std_stats_allocator::alloc(addr_size size) noexcept {
+namespace {
+
+template <bool TUseCalloc>
+void* allocation_impl(std_stats_allocator& ssa, addr_size size, addr_size nmemb = 0) {
     using details::alloced_block;
 
     if (size == 0) return nullptr;
-    void* addr = std::malloc(size);
+
+    void* addr = nullptr;
+    if constexpr (TUseCalloc) {
+        addr = std::calloc(nmemb, size);
+    } else {
+        addr = std::malloc(size);
+    }
+
     if (addr == nullptr) {
-        if (m_oomCb != nullptr) m_oomCb(nullptr);
+        if (ssa.m_oomCb != nullptr) ssa.m_oomCb(nullptr);
         return nullptr;
     }
 
@@ -105,14 +115,24 @@ void* std_stats_allocator::alloc(addr_size size) noexcept {
     if (block == nullptr) {
         // not enough memory to keep track of this allocation.
         std::free(addr); // give up on this memory
-        if (m_oomCb != nullptr) m_oomCb(nullptr);
+        if (ssa.m_oomCb != nullptr) ssa.m_oomCb(nullptr);
         return nullptr;
     }
 
     block->addr = addr;
     block->size = size;
-    m_allocatedBlocks->add_block(block);
+    ssa.m_allocatedBlocks->add_block(block);
     return addr;
+}
+
+} // namespace
+
+void* std_stats_allocator::alloc(addr_size size) noexcept {
+    return allocation_impl<false>(*this, size);
+}
+
+void* std_stats_allocator::calloc(addr_size nmemb, addr_size size) noexcept {
+    return allocation_impl<true>(*this, size, nmemb);
 }
 
 void std_stats_allocator::free(void* ptr) noexcept {

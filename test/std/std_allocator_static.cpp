@@ -5,6 +5,10 @@ struct std_allocator_static {
         return stdAlloc.alloc(size);
     }
 
+    static void* calloc(addr_size nmemb, addr_size size) noexcept {
+        return stdAlloc.calloc(nmemb, size);
+    }
+
     static void free(void* ptr) noexcept {
         stdAlloc.free(ptr);
     }

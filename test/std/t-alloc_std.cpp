@@ -21,6 +21,12 @@ i32 basic_std_allocator_case() {
     Assert(ts->b == 0.1f);
     stdAlloc.free(ts);
 
+    ts = reinterpret_cast<test_struct*>(stdAlloc.calloc(1, sizeof(test_struct)));
+    Assert(ts != nullptr);
+    Assert(ts->a == 0);
+    Assert(ts->b == 0.0f);
+    stdAlloc.free(ts);
+
     return 0;
 }
 
@@ -62,6 +68,16 @@ i32 stats_allocator_basic_case_tests() {
         Assert(statsStdAllocator.used_mem() == 25);
         statsStdAllocator.free(data);
         Assert(statsStdAllocator.used_mem() == 15);
+    }
+
+    {
+        void* data = statsStdAllocator.calloc(1, 10);
+        Assert(data != nullptr);
+        Assert(statsStdAllocator.used_mem() == 25);
+        statsStdAllocator.free(data);
+        Assert(statsStdAllocator.used_mem() == 15);
+        char buff[10] = {};
+        Assert(core::memcmp(data, buff, 10));
     }
 
     statsStdAllocator.clear();
@@ -173,6 +189,10 @@ i32 run_std_allocator_tests_suite() {
     RunTest(initialize_hash_map<std_allocator_static>);
     Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
     RunTest(put_move_copy_hash_map<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+    RunTest(remove_from_hash_map<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+    RunTest(complex_types_in_hash_map<std_allocator_static>);
     Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
 
     return 0;

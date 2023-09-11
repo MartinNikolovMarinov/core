@@ -27,6 +27,8 @@ struct CORE_API_EXPORT std_allocator {
 
     void* alloc(addr_size size) noexcept;
 
+    void* calloc(addr_size nmemb, addr_size size) noexcept;
+
     void free(void* ptr) noexcept;
 
     addr_size used_mem() noexcept;

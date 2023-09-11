@@ -31,7 +31,7 @@ void* memcopy(void* dest, const void* src, addr_size len) {
         break;
     }
 
-    return dest + len;
+    return dest;
 }
 
 void* memset(void* dest, u8 c, addr_size n) {
@@ -39,7 +39,7 @@ void* memset(void* dest, u8 c, addr_size n) {
     for (addr_size i = 0; i < n; ++i) {
         p[i] = c;
     }
-    return dest + n;
+    return dest;
 }
 
 i32 memcmp(const void* s1, const void* s2, addr_size n) {

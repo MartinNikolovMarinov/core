@@ -301,5 +301,226 @@ i32 put_move_copy_hash_map() {
     return 0;
 }
 
-// FIXME: Test the map with arrays and test with the special data type which checks desctructor and constructor calls!
-// FIXME: Test remove.
+template <typename TAllocator>
+i32 remove_from_hash_map() {
+    {
+        i32_hash_map<i32, TAllocator> m(2);
+        m.put(1, 1);
+        m.remove(1);
+
+        Assert(m.len() == 0);
+        Assert(m.cap() > 0);
+        Assert(m.empty());
+        __test_verify_no_keys(m);
+        __test_verify_no_values(m);
+    }
+
+    {
+        i32_hash_map<i32, TAllocator> m;
+        m.put(1, 1);
+        m.put(2, 1);
+        m.put(3, 1);
+
+        m.remove(2);
+        Assert(m.len() == 2);
+        Assert(!m.empty());
+        __test_verifyKeyVals(m, __test_kv<i32, i32>{1, 1}, __test_kv<i32, i32>{3, 1});
+
+        m.remove(1);
+        Assert(m.len() == 1);
+        Assert(!m.empty());
+        __test_verifyKeyVals(m, __test_kv<i32, i32>{3, 1});
+
+        m.remove(3);
+        Assert(m.len() == 0);
+        Assert(m.empty());
+        __test_verify_no_keys(m);
+        __test_verify_no_values(m);
+    }
+
+    {
+        i32_hash_map<i32, TAllocator> m(2);
+
+        m.put(1, 1);
+        m.put(2, 1);
+
+        m.remove(1);
+        m.remove(2);
+
+        m.put(1, 7);
+        m.put(2, 8);
+        Assert(m.len() == 2);
+        Assert(!m.empty());
+        __test_verifyKeyVals(m, __test_kv<i32, i32>{1, 7}, __test_kv<i32, i32>{2, 8});
+
+        m.put(3, 9);
+        Assert(m.len() == 3);
+        Assert(!m.empty());
+        __test_verifyKeyVals(m, __test_kv<i32, i32>{1, 7}, __test_kv<i32, i32>{2, 8}, __test_kv<i32, i32>{3, 9});
+    }
+
+    return 0;
+}
+
+template <typename TAllocator>
+i32 complex_types_in_hash_map() {
+    using core::sv;
+
+    {
+        defer { SVCT::nextId = 0; };
+
+        sv_hash_map<SVCT, TAllocator> m(2); // should not call the ctor!
+
+        Assert(SVCT::nextId == 0);
+
+        m.put(sv("1"), SVCT{});
+        m.put(sv("2"), SVCT{});
+        m.put(sv("3"), SVCT{});
+        m.put(sv("4"), SVCT{});
+
+        Assert(SVCT::nextId == 4);
+        Assert(m.get(sv("1")));
+        Assert(m.get(sv("2")));
+        Assert(m.get(sv("3")));
+        Assert(m.get(sv("4")));
+
+        Assert(m.get(sv("1"))->a == 0);
+        Assert(m.get(sv("2"))->a == 1);
+        Assert(m.get(sv("3"))->a == 2);
+        Assert(m.get(sv("4"))->a == 3);
+    }
+
+    {
+        defer { CT::resetAll(); };
+
+        sv_hash_map<CT, TAllocator> m(2);
+
+        Assert(CT::dtorsCalled() == 0);
+        Assert(CT::totalCtorsCalled() == 0);
+        Assert(CT::assignmentsTotalCalled() == 0);
+
+        m.put(sv("1"), CT{});
+
+        Assert(CT::defaultCtorCalled() == 1);
+        Assert(CT::copyCtorCalled() == 0);
+        Assert(CT::moveCtorCalled() == 0);
+        Assert(CT::assignmentsCopyCalled() == 0);
+        Assert(CT::assignmentsMoveCalled() == 1); // put calls move assignment
+        Assert(CT::dtorsCalled() == 1);
+        Assert(CT::totalCtorsCalled() == 1);
+        Assert(CT::assignmentsTotalCalled() == 1);
+
+        CT c;
+        m.put(sv("2"), c);
+
+        Assert(CT::defaultCtorCalled() == 2);
+        Assert(CT::copyCtorCalled() == 0);
+        Assert(CT::moveCtorCalled() == 0);
+        Assert(CT::assignmentsCopyCalled() == 1); // put calls copy assignment
+        Assert(CT::assignmentsMoveCalled() == 1);
+        Assert(CT::dtorsCalled() == 1);
+        Assert(CT::totalCtorsCalled() == 2);
+        Assert(CT::assignmentsTotalCalled() == 2);
+
+        // This triggers a resize
+        m.put(sv("3"), core::move(c));
+
+        Assert(CT::defaultCtorCalled() == 2);
+        Assert(CT::copyCtorCalled() == 0);
+        Assert(CT::moveCtorCalled() == 0);
+        Assert(CT::assignmentsCopyCalled() == 1);
+        Assert(CT::assignmentsMoveCalled() == 4); // old acount (1) += 2 assignments to resize + 1 assignment for put
+        Assert(CT::dtorsCalled() == 3); // old dcount (1) += 1 before put is called + 1 for put
+        Assert(CT::totalCtorsCalled() == 2);
+        Assert(CT::assignmentsTotalCalled() == 5);
+
+        m.put(sv("3"), CT{}); // update
+
+        Assert(CT::defaultCtorCalled() == 3);
+        Assert(CT::copyCtorCalled() == 0);
+        Assert(CT::moveCtorCalled() == 0);
+        Assert(CT::assignmentsCopyCalled() == 1);
+        Assert(CT::assignmentsMoveCalled() == 5);
+        Assert(CT::dtorsCalled() == 4);
+        Assert(CT::totalCtorsCalled() == 3);
+        Assert(CT::assignmentsTotalCalled() == 6);
+
+        // Make sure data is appropriately copied and moved in the containder.
+
+        auto v1 = m.get(sv("1")); Assert(v1);
+        auto v2 = m.get(sv("2")); Assert(v2);
+        auto v3 = m.get(sv("3")); Assert(v3);
+
+        Assert(v1->a == CT::defaultValue);
+        Assert(v2->a == CT::defaultValue);
+        Assert(v3->a == CT::defaultValue);
+
+        v1->a = 1;
+        Assert(v1->a == 1);
+        Assert(v2->a == CT::defaultValue);
+        Assert(v3->a == CT::defaultValue);
+
+        v2->a = 2;
+        Assert(v1->a == 1);
+        Assert(v2->a == 2);
+        Assert(v3->a == CT::defaultValue);
+
+        v3->a = 3;
+        Assert(v1->a == 1);
+        Assert(v2->a == 2);
+        Assert(v3->a == 3);
+    }
+
+    {
+        // Make sure that put calls the destructor and memory leaks are not possible.
+
+        struct tmp {
+            char* data = nullptr;
+            tmp() { data = reinterpret_cast<char*>(TAllocator::alloc(1)); }
+            tmp(const tmp& other) {
+                data = reinterpret_cast<char*>(TAllocator::alloc(1));
+                core::memcopy(data, other.data, 1);
+            }
+            tmp(tmp&& other) {
+                if (this == &other) return;
+                data = other.data;
+                other.data = nullptr;
+            }
+            ~tmp() {
+                free();
+            }
+
+            void free() {
+                if (data) {
+                    TAllocator::free(data);
+                }
+                data = nullptr;
+            }
+
+            tmp& operator=(const tmp& other) {
+                if (this == &other) return *this;
+                free();
+                data = reinterpret_cast<char*>(TAllocator::alloc(1));
+                core::memcopy(data, other.data, 1);
+                return *this;
+            }
+            tmp& operator=(tmp&& other) {
+                if (this == &other) return *this;
+                free();
+                data = other.data;
+                other.data = nullptr;
+                return *this;
+            }
+        };
+
+        sv_hash_map<tmp, TAllocator> m(2);
+        tmp t;
+        m.put(sv("1"), t);
+        m.put(sv("1"), tmp{});
+
+        // m.get(sv("1"))->data = nullptr; // this will be detected as a memory leak.
+    }
+
+    return 0;
+}
+

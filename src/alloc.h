@@ -13,15 +13,27 @@ using namespace coretypes;
  * @brief The allocated memory is not guaranteed to be exactly "size" bytes, but it will be at least "size" bytes. This
  *        is because the allocator may need to align the memory.
 */
-template<typename A>
+template <typename A>
 void* alloc(addr_size size) noexcept {
     return A::alloc(size);
 }
 
 /**
+ * @brief Allocates memory and sets it to zero. The allocated memory is not guaranteed to be exactly "nmemb * size"
+ *        bytes, but it will be at least "nmemb * size" bytes. This is because the allocator may need to align the
+ *        memory.
+*/
+template <typename A>
+void* calloc(addr_size nmemb, addr_size size) noexcept {
+    return A::calloc(nmemb, size);
+}
+
+// TODO2: [Performance] Should probably add realloc at some point. The std_stat_allocator will need an update for this.
+
+/**
  * @brief Uses the allocator to allocate memory and calls the constructor of T with the given args.
 */
-template<typename A, typename T, typename ...Args>
+template <typename A, typename T, typename ...Args>
 T* construct(A& allocator, T&&, Args&&... args) noexcept {
     void* p = allocator.alloc(sizeof(T));
     return new (p) T(core::forward<Args>(args)...);
@@ -32,7 +44,7 @@ T* construct(A& allocator, T&&, Args&&... args) noexcept {
  *        be unable to return this information. The overall size may be larger than what the user has asked for, due to
  *        memory alignment.
 */
-template<typename A>
+template <typename A>
 addr_size used_mem() noexcept {
     return A::used_mem();
 }
@@ -42,7 +54,7 @@ addr_size used_mem() noexcept {
  *        address that was not allocated by the allocator is undefined behavior. Some allocation algorithms may not be
  *        able to free memory.
 */
-template<typename A>
+template <typename A>
 void free(void* ptr) noexcept {
     A::free(ptr);
 }
@@ -50,7 +62,7 @@ void free(void* ptr) noexcept {
 /**
  * @brief Return the name of the allocator.
 */
-template<typename A>
+template <typename A>
 const char* allocator_name() noexcept {
     return A::allocator_name();
 }

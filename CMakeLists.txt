@@ -143,6 +143,12 @@ if(OS STREQUAL "linux")
         src/std/plt/unix/unix_plt.cpp
         src/std/plt/unix/unix_stacktrace.cpp
     )
+elseif(OS STREQUAL "darwin")
+    set(src_files ${src_files}
+        src/std/plt/unix/unix_plt.h
+        src/std/plt/unix/unix_plt.cpp
+        src/std/plt/unix/unix_stacktrace.cpp
+    )
 elseif(OS STREQUAL "windows")
     set(src_files ${src_files}
         src/std/plt/win64/win64_plt.cpp
@@ -195,7 +201,9 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 
 # BEGIN Compile Options
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR 
+   CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR 
+   CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     # Use -Werror if you want to treat warnings as errors. For large code refactor that might be prefereable.
     set(mm_core_common_flags -std=c++17
         -Wall -Wextra -Wfatal-errors -Wuninitialized -Wconversion
@@ -244,7 +252,9 @@ if(CORE_BUILD_TESTS)
     )
 
     # Compile options
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR 
+       CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
+       CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
         set(mm_test_common_flags -std=c++17 -g -ggdb
             -Wall -Wextra -Wfatal-errors -Wuninitialized -Wconversion
             -Wdouble-promotion -Wswitch-enum -Wundef

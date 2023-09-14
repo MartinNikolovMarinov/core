@@ -69,7 +69,7 @@ CORE_API_EXPORT global_assert_handler_ptr get_global_assert_handler();
     #define GUARD_FN_TYPE_DEDUCTION(fnName)                                     \
         template <typename Invalid> i32                                         \
         fnName(Invalid) {                                                       \
-            static_assert(core::always_false<i32>, "Invalid type for "#fnName); \
+            static_assert(core::always_false<Invalid>, "Invalid type for "#fnName); \
             return 0;                                                           \
         }
 #endif

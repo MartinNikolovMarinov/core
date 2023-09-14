@@ -59,8 +59,13 @@ inline dir_entry to_dir_entry(const dirent& d) {
 
 template <typename TWalkerFn>
 expected<plt_err_code> os_dir_walk(file_desc fd, const TWalkerFn& cb) {
+#if defined(OS_MAC) && OS_MAC == 1
+    // FIXME: I am forced to use readdir here because getdirentries is deprecated on macOS.
+    return {};
+#else
     const addr_off blockSize = (addr_off) os_get_default_block_size();
-    off_t basep = 0;
+
+    long basep = 0;
 
     while (true) {
 
@@ -98,6 +103,7 @@ expected<plt_err_code> os_dir_walk(file_desc fd, const TWalkerFn& cb) {
     }
 
     return {};
+#endif
 }
 
 } // namespace core

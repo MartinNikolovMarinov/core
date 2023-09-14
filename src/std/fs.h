@@ -54,7 +54,7 @@ core::expected<io_err> file_read_full(const char* path, core::arr<char, TAllocat
     }
 
     const addr_size blockSize = core::os_get_default_block_size();
-    char buf[blockSize] = {};
+    char buf[blockSize];
     while (true) {
         auto readRes = f.read(buf, blockSize);
         if (readRes.has_err()) {

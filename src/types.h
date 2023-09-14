@@ -85,3 +85,24 @@ static constexpr u64 HOUR        = static_cast<u64>(60 * MINUTE);        // 3_60
 static constexpr f32 PI = 3.14159265358979323846f;
 
 } // namespace coretypes
+
+// Sanity static asserts
+static_assert(sizeof(coretypes::i8) == 1, "i8 is not 1 byte");
+static_assert(sizeof(coretypes::i16) == 2, "i16 is not 2 bytes");
+static_assert(sizeof(coretypes::i32) == 4, "i32 is not 4 bytes");
+static_assert(sizeof(coretypes::i64) == 8, "i64 is not 8 bytes");
+
+static_assert(sizeof(coretypes::u8) == 1, "u8 is not 1 byte");
+static_assert(sizeof(coretypes::u16) == 2, "u16 is not 2 bytes");
+static_assert(sizeof(coretypes::u32) == 4, "u32 is not 4 bytes");
+static_assert(sizeof(coretypes::u64) == 8, "u64 is not 8 bytes");
+
+static_assert(sizeof(coretypes::f32) == 4, "f32 is not 4 bytes");
+static_assert(sizeof(coretypes::f64) == 8, "f64 is not 8 bytes");
+
+static_assert(sizeof(coretypes::addr_size) == 8, "addr_size is not 8 bytes");
+static_assert(sizeof(coretypes::addr_off) == 8, "addr_off is not 8 bytes");
+
+static_assert(sizeof(coretypes::rune) == 4, "rune is not 4 bytes");
+static_assert(sizeof(coretypes::uchar) == 1, "uchar is not 1 byte");
+static_assert(sizeof(coretypes::schar) == 1, "schar is not 1 byte");

@@ -35,10 +35,10 @@ constexpr u32 i_count_leading_zeros(TInt n) {
 
 #if COMPILER_CLANG == 1 || COMPILER_GCC == 1
     if constexpr (sizeof(TInt) == 4) {
-        return u32(__builtin_clz(n));
+        return u32(__builtin_clz(u32(n)));
     }
     else {
-        return u32(__builtin_clzll(n));
+        return u32(__builtin_clzll(u32(n)));
     }
 #elif COMPILER_MSVC == 1
     if constexpr (sizeof(TInt) == 4) {

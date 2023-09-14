@@ -64,7 +64,7 @@ std::string stacktrace(u32 nStackFrames, u32 skipFrames) {
             *endOffset = core::term_char;
 
             i32 status;
-            u64 maxFuncNameSize = MAX_FUNCNAME_SIZE;
+            unsigned long maxFuncNameSize = MAX_FUNCNAME_SIZE; // NOTE: unsigned long because of MAC ...
             char* ret = abi::__cxa_demangle(beginMangledName, funcName, &maxFuncNameSize, &status);
             if (status == 0) {
                 core::memcopy(funcName, ret, maxFuncNameSize);

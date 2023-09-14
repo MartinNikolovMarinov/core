@@ -30,7 +30,8 @@ struct __test_kv { const K& first; const V& second; };
 
 template <typename M, typename K, typename V>
 void __test_verifyKeyVal(const M& m, const __test_kv<K, V>& kv) {
-    auto& [key, val] = kv;
+    auto& key = kv.first;
+    auto& val = kv.second;
 
     auto a = m.get(key);
     Assert(a != nullptr, "Failed to get data for key");

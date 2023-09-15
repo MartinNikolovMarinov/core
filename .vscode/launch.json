@@ -30,6 +30,17 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
+            "name": "Debug Test with LLDB",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/core_test",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopOnEntry": false,
+            "env": {},
+            "preLaunchTask": "Build with Makefile",
+        },
+        {
             "name": "Debug examples with Makefile",
             "type": "cppdbg",
             "request": "launch",

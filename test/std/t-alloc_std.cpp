@@ -77,7 +77,7 @@ i32 stats_allocator_basic_case_tests() {
         statsStdAllocator.free(data);
         Assert(statsStdAllocator.used_mem() == 15);
         char buff[10] = {};
-        Assert(core::memcmp(data, buff, 10));
+        Assert(core::memcmp(data, buff, 10) == 0);
     }
 
     statsStdAllocator.clear();

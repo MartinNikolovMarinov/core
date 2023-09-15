@@ -4,9 +4,9 @@
     /* It's a dynamic library. */
     #ifdef CORE_LIBRARY_BUILD
         /* Building the library */
-        #if defined(_WIN32) || defined(WIN32)
+        #if defined(_MSC_VER)
             #define CORE_API_EXPORT __declspec(dllexport)
-        #elif defined(__unix__)
+        #elif defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
             #define CORE_API_EXPORT __attribute__((visibility("default")))
         #else
             #define CORE_API_EXPORT

@@ -275,7 +275,14 @@ namespace detail {
 template <typename TFloat>
 constexpr TFloat sqrt_compiletime_impl(TFloat x) {
     // Newton's algorithm
-    if (x < TFloat(0))  return core::quiet_NaN_f32();
+    if (x < TFloat(0)) {
+        if constexpr (sizeof(TFloat) == 8) {
+            return core::quiet_NaN_f64();
+        }
+        else {
+            return core::quiet_NaN_f32();
+        }
+    }
     if (x == TFloat(0)) return TFloat(0);
     TFloat z = TFloat(1);
     constexpr i32 itter = 10;

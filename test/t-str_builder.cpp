@@ -443,7 +443,7 @@ i32 take_and_steal_str_builder() {
         Assert(s.view().buff != nullptr);
         Assert(s.view().len == allocatedSize - 1);
 
-        for (i32 i = 0; i < allocatedSize - 1; ++i) { Assert(s[i] == 'a'); }
+        for (addr_size i = 0; i < allocatedSize - 1; ++i) { Assert(s[i] == 'a'); }
     }
 
     {
@@ -462,7 +462,7 @@ i32 take_and_steal_str_builder() {
         Assert(s.view().buff != nullptr);
         Assert(s.view().len == allocatedSize - 1);
 
-        for (i32 i = 0; i < allocatedSize - 1; ++i) { Assert(s[i] == 'a'); }
+        for (addr_size i = 0; i < allocatedSize - 1; ++i) { Assert(s[i] == 'a'); }
 
         char* data2 = reinterpret_cast<char*>(core::alloc<TAllocator>(allocatedSize * 2 * sizeof(char)));
         core::memset(data2, 0, allocatedSize * 2);
@@ -475,7 +475,7 @@ i32 take_and_steal_str_builder() {
         Assert(s.view().buff != nullptr);
         Assert(s.view().len == allocatedSize * 2 - 1);
 
-        for (i32 i = 0; i < allocatedSize * 2 - 1; ++i) { Assert(s[i] == 'b'); }
+        for (addr_size i = 0; i < allocatedSize * 2 - 1; ++i) { Assert(s[i] == 'b'); }
     }
 
     {

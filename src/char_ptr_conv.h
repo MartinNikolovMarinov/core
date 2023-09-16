@@ -36,10 +36,10 @@ constexpr void int_to_cptr(TInt n, char* out, u32 digitCount) {
             n = -n;
         }
     }
-    i32 dc = (digitCount == 0) ? digit_count(n) : digitCount;
+    i32 dc = (digitCount == 0) ? i32(digit_count(n)) : i32(digitCount);
     for (i32 i = dc - 1; i >= 0; i--) {
         // There is a lot of believe in all this static casting, but it 'should not' be dangerous.
-        TInt curr = static_cast<TInt>((n / static_cast<TInt>(pow10(i)))) % 10;
+        TInt curr = static_cast<TInt>((n / static_cast<TInt>(pow10(u32(i))))) % 10;
         *out++ = digit_to_char(curr);
         dc--;
     }
@@ -114,7 +114,7 @@ constexpr TFloat cptr_to_float(const char* s) {
         }
 
         if (fractionalPart > 0) {
-            res += char_to_int<TFloat>(*s) / TFloat(pow10(fractionalPart++));
+            res += char_to_int<TFloat>(*s) / TFloat(pow10(u32(fractionalPart++)));
         }
         else {
             res = res * 10 + char_to_int<TFloat>(*s);

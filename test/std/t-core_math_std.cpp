@@ -351,16 +351,16 @@ i32 ceil_cc_impl_compare_with_std_test() {
         constexpr f64 infinity = core::infinity_f64();
 
         constexpr test_case cases[] = {
-           { 3.7f, 4.0f },
-           { -2.5f, -2.0f },
-           { 0.0f, 0.0f },
-           { 10.9f, 11.0f },
-           { -7.2f, -7.0f },
-           { 2.0f, 2.0f },
-           { 6.5f, 7.0f },
-           { -9.8f, -9.0f },
-           { 15.3f, 16.0f },
-           { -4.0f, -4.0f },
+           { 3.7, 4.0 },
+           { -2.5, -2.0 },
+           { 0.0, 0.0 },
+           { 10.9, 11.0 },
+           { -7.2, -7.0 },
+           { 2.0, 2.0 },
+           { 6.5, 7.0 },
+           { -9.8, -9.0 },
+           { 15.3, 16.0 },
+           { -4.0, -4.0 },
 
             { infinity, infinity },
             { -infinity, -infinity },

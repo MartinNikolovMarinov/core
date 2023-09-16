@@ -9,7 +9,7 @@ struct A {
 };
 
 constexpr i32 run_tuple_argument_increment() {
-    auto t1 = core::create_tuple(1, A{2, 3.0f}, (u64)(6));
+    auto t1 = core::create_tuple(1, A{2, 3.0}, (u64)(6));
     auto t2 = t1;
 
     Assert(t1.get<0>() == t2.get<0>());

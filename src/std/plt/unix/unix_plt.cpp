@@ -15,7 +15,7 @@ expected<void*, plt_err_code> os_alloc_pages(addr_size size) {
 
     void* addr = mmap(nullptr, size, prot, flags, 0, 0);
     if (addr == MAP_FAILED || addr == nullptr) {
-        return unexpected(u64(errno));
+        return unexpected(plt_err_code(errno));
     }
     return addr;
 }
@@ -27,7 +27,7 @@ expected<plt_err_code> os_dealloc_pages(void *addr, addr_size size) {
     i32 ret = munmap(addr, size);
     if (ret < 0) {
         // munmap returns -1 on error and sets errno
-        return unexpected(u64(errno));
+        return unexpected(plt_err_code(errno));
     }
     return {};
 }
@@ -36,7 +36,7 @@ expected<u64, plt_err_code> os_unix_time_stamp_in_ms() {
     struct timeval now;
     i64 ret = gettimeofday(&now, 0);
     if (ret < 0) {
-        return unexpected(u64(errno));
+        return unexpected(plt_err_code(errno));
     }
     u64 timeInMs = ((u64) now.tv_sec) * 1000 + ((u64) now.tv_usec) / 1000;
     return timeInMs;
@@ -50,7 +50,7 @@ expected<plt_err_code> os_thread_sleep(u64 ms) {
     };
     i32 ret = nanosleep(&req , &rem);
     if (ret < 0) {
-        return unexpected(u64(errno));
+        return unexpected(plt_err_code(errno));
     }
     return {};
 }
@@ -127,7 +127,7 @@ expected<file_desc, plt_err_code> os_open(const char* path, const file_params& p
     i32 flags = file_flags_to_osflags(params.flags);
     i32 ret = open(path, flags | params.osSpecificFlags, osmode);
     if (ret < 0) {
-        return unexpected(u64(errno));
+        return unexpected(plt_err_code(errno));
     }
     file_desc desc = file_desc{ reinterpret_cast<void*>((u64)(ret)) };
     return desc;
@@ -151,7 +151,7 @@ expected<file_desc, plt_err_code> os_opendir(const char* path) {
 expected<plt_err_code> os_read(file_desc fd, void* buf, u64 size, i64& bytesRead) {
     bytesRead = read(i32(fd.to_u64()), buf, size);
     if (bytesRead < 0) {
-        return unexpected(u64(errno));
+        return unexpected(plt_err_code(errno));
     }
     return {};
 }
@@ -159,7 +159,7 @@ expected<plt_err_code> os_read(file_desc fd, void* buf, u64 size, i64& bytesRead
 expected<plt_err_code> os_write(file_desc fd, const void* buf, u64 size, i64& bytesWritten) {
     bytesWritten = write(i32(fd.to_u64()), buf, size);
     if (bytesWritten < 0) {
-        return unexpected(u64(errno));
+        return unexpected(plt_err_code(errno));
     }
     return {};
 }
@@ -167,7 +167,7 @@ expected<plt_err_code> os_write(file_desc fd, const void* buf, u64 size, i64& by
 expected<plt_err_code> os_close(file_desc fd) {
     i32 ret = close(i32(fd.to_u64()));
     if (ret < 0) {
-        return unexpected(u64(errno));
+        return unexpected(plt_err_code(errno));
     }
     return {};
 }
@@ -175,7 +175,7 @@ expected<plt_err_code> os_close(file_desc fd) {
 expected<plt_err_code> os_rmfile(const char* path) {
     i32 res = unlink(path);
     if (res < 0) {
-        return unexpected(u64(errno));
+        return unexpected(plt_err_code(errno));
     }
     return {};
 }
@@ -184,7 +184,7 @@ expected<plt_err_code> os_mkdir(const char* path, const file_access_group& acces
     mode_t mode = file_access_to_osmode(access);
     i32 res = mkdir(path, mode);
     if (res < 0) {
-        return unexpected(u64(errno));
+        return unexpected(plt_err_code(errno));
     }
     return {};
 }
@@ -192,7 +192,7 @@ expected<plt_err_code> os_mkdir(const char* path, const file_access_group& acces
 expected<plt_err_code> os_rmdir(const char* path) {
     i32 res = rmdir(path);
     if (res < 0) {
-        return unexpected(u64(errno));
+        return unexpected(plt_err_code(errno));
     }
     return {};
 }
@@ -205,7 +205,7 @@ expected<bool, plt_err_code> os_exists(const char* path) {
             return false;
         }
         // Some other unexpected error occurred:
-        return unexpected(u64(errno));
+        return unexpected(plt_err_code(errno));
     }
     return true;
 }
@@ -252,7 +252,7 @@ expected<file_stat, plt_err_code> os_stat(const char* path) {
     struct stat st;
     i32 res = stat(path, &st);
     if (res < 0) {
-        return unexpected(u64(errno));
+        return unexpected(plt_err_code(errno));
     }
     file_stat fs = to_file_stat(st);
     return fs;
@@ -262,7 +262,7 @@ expected<file_stat, plt_err_code> os_fstat(file_desc fd) {
     struct stat st;
     i32 res = fstat(i32(fd.to_u64()), &st);
     if (res < 0) {
-        return unexpected(u64(errno));
+        return unexpected(plt_err_code(errno));
     }
     file_stat fs = to_file_stat(st);
     return fs;
@@ -277,7 +277,7 @@ expected<addr_off, plt_err_code> os_seek(file_desc fd, addr_off offset, seek_ori
     }
     i64 res = lseek(i32(fd.to_u64()), offset, whence);
     if (res < 0) {
-        return unexpected(u64(errno));
+        return unexpected(plt_err_code(errno));
     }
     return addr_off(res);
 }

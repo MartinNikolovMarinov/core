@@ -1,6 +1,6 @@
 constexpr i32 pow10_test() {
     struct test_case {
-        i32 in;
+        u32 in;
         u64 expected;
     };
 
@@ -36,7 +36,7 @@ constexpr i32 pow10_test() {
 
 constexpr i32 pow2_test() {
     struct test_case {
-        i32 in;
+        u32 in;
         u64 expected;
     };
 

@@ -120,7 +120,7 @@ i32 memcopy_tests() {
 
     for (i32 i = 0; i < N; i++) {
         u8 buf[N] = {};
-        core::memcopy(buf, sequence, i); // copy the sequence into the buffer to i
+        core::memcopy(buf, sequence, addr_size(i)); // copy the sequence into the buffer to i
         for (i32 j = 0; j < i; j++) {
             // Assert that the first i bytes are the same as the sequence
             Assert(buf[j] == j);
@@ -138,7 +138,7 @@ i32 memset_tests() {
     constexpr i32 N = 20;
     for (i32 i = 0; i < N; i++) {
         u8 buf[N] = {};
-        core::memset(buf, 7, i); // set the first i bytes to 7
+        core::memset(buf, 7, addr_size(i)); // set the first i bytes to 7
         for (i32 j = 0; j < i; j++) {
             // Assert that the first i bytes are 7
             Assert(buf[j] == 7);

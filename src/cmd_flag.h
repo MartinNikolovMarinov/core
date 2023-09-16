@@ -108,11 +108,11 @@ struct flag_parser {
 
             if (state == 1) {
                 auto trimmedEq = [&](const core::str_view a, const core::str_view b) -> bool {
-                    addr_off trimmedALen = a.len;
-                    addr_off trimmedBLen = b.len;
+                    addr_off trimmedALen = addr_off(a.len);
+                    addr_off trimmedBLen = addr_off(b.len);
                     while (core::is_white_space(a.data()[trimmedALen - 1])) trimmedALen--;
                     while (core::is_white_space(b.data()[trimmedBLen - 1])) trimmedBLen--;
-                    bool areEqual = core::cptr_eq(a.data(), b.data(), core::min(trimmedALen, trimmedBLen));
+                    bool areEqual = core::cptr_eq(a.data(), b.data(), addr_size(core::min(trimmedALen, trimmedBLen)));
                     return areEqual;
                 };
 
@@ -120,12 +120,12 @@ struct flag_parser {
 
                 // Try to find the flag by name:
                 fidx = core::find(flags, [&](const flag_data& f, addr_off) -> bool {
-                    return trimmedEq(f.name, sv(curVal, valLen));
+                    return trimmedEq(f.name, sv(curVal, addr_size(valLen)));
                 });
 
                 if (fidx == -1) {
                     // Try to find the flag by some alias:
-                    flag_data** flagData = aliases.get(sv(curVal, valLen));
+                    flag_data** flagData = aliases.get(sv(curVal, addr_size(valLen)));
                     if (flagData != nullptr) {
                         Assert((*flagData), "[BUG] Alias points to nullptr flag data.");
                         fidx = core::find(flags, [&](const flag_data& f, addr_off) -> bool {
@@ -139,7 +139,7 @@ struct flag_parser {
                     return core::unexpected(parse_err::UnknownFlag);
                 }
 
-                if (fidx != -1) curFlag = &flags[fidx];
+                if (fidx != -1) curFlag = &flags[addr_size(fidx)];
                 state = 2;
             }
             else if (state == 2) {
@@ -307,7 +307,7 @@ private:
         });
         if (nameIdx != -1) {
             // FIXME: Update aliases!
-            parser.flags[nameIdx] = f;
+            parser.flags[addr_size(nameIdx)] = f;
         }
         else {
             parser.flags.append(f);

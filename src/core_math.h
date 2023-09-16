@@ -262,22 +262,22 @@ constexpr bool is_positive(f64 a) {
 }
 
 constexpr bool is_positive(i8 a) {
-    u32 temp = a >> (sizeof(i8) * 8 - 1);
+    i32 temp = a >> (sizeof(i8) * 8 - 1);
     return temp == 0;
 }
 
 constexpr bool is_positive(i16 a) {
-    u32 temp = a >> (sizeof(i16) * 8 - 1);
+    i32 temp = a >> (sizeof(i16) * 8 - 1);
     return temp == 0;
 }
 
 constexpr bool is_positive(i32 a) {
-    u32 temp = a >> (sizeof(i32) * 8 - 1);
+    i32 temp = a >> (sizeof(i32) * 8 - 1);
     return temp == 0;
 }
 
 constexpr bool is_positive(i64 a) {
-    u64 temp = a >> (sizeof(i64) * 8 - 1);
+    i64 temp = a >> (sizeof(i64) * 8 - 1);
     return temp == 0;
 }
 

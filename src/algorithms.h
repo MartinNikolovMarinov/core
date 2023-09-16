@@ -23,21 +23,21 @@ using namespace coretypes;
 template <typename T, typename TAllocator, typename TPredicate>
 inline addr_off find(const core::arr<T, TAllocator>& arr, TPredicate pred) {
     for (addr_off i = 0; i < addr_off(arr.len()); ++i) {
-        if (pred(arr[i], i)) return i;
+        if (pred(arr[addr_size(i)], i)) return i;
     }
     return -1;
 }
 template <typename T, core::addr_off N, typename TPredicate>
 inline constexpr addr_off find(const core::sarr<T, N>& arr, TPredicate pred) {
     for (addr_off i = 0; i < addr_off(arr.len()); ++i) {
-        if (pred(arr[i], i)) return i;
+        if (pred(arr[addr_size(i)], i)) return i;
     }
     return -1;
 }
 template <typename T, typename TPredicate>
 inline addr_off find(const T* arr, addr_off len, TPredicate pred) {
     for (addr_off i = 0; i < len; ++i) {
-        if (pred(arr[i], i)) return i;
+        if (pred(arr[addr_size(i)], i)) return i;
     }
     return -1;
 }
@@ -55,28 +55,28 @@ inline addr_off find(const T* arr, addr_off len, TPredicate pred) {
 template <typename T, typename TAllocator, typename TEq>
 inline void appendUnique(core::arr<T, TAllocator>& arr, const T& el, TEq eqFn) {
     for (addr_off i = 0; i < addr_off(arr.len()); ++i) {
-        if (eqFn(arr[i])) return;
+        if (eqFn(arr[addr_size(i)])) return;
     }
     arr.append(el);
 }
 template <typename T, typename TAllocator, typename TEq>
 inline void appendUnique(core::arr<T, TAllocator>& arr, T&& el, TEq eqFn) {
     for (addr_off i = 0; i < addr_off(arr.len()); ++i) {
-        if (eqFn(arr[i])) return;
+        if (eqFn(arr[addr_size(i)])) return;
     }
     arr.append(el);
 }
 template <typename T, core::addr_off N, typename TPredicate>
-inline constexpr void appendUnique(core::sarr<T, N>& arr, const T& el, TPredicate pred) {
+inline constexpr void appendUnique(core::sarr<T, N>& arr, const T& el, TPredicate eqFn) {
     for (addr_off i = 0; i < addr_off(arr.len()); ++i) {
-        if (eqFn(arr[i])) return;
+        if (eqFn(arr[addr_size(i)])) return;
     }
     arr.append(el);
 }
 template <typename T, core::addr_off N, typename TPredicate>
-inline constexpr void appendUnique(core::sarr<T, N>& arr, T&& el, TPredicate pred) {
+inline constexpr void appendUnique(core::sarr<T, N>& arr, T&& el, TPredicate eqFn) {
     for (addr_off i = 0; i < addr_off(arr.len()); ++i) {
-        if (eqFn(arr[i])) return;
+        if (eqFn(arr[addr_size(i)])) return;
     }
     arr.append(el);
 }

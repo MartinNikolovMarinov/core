@@ -61,6 +61,8 @@ template <typename TWalkerFn>
 expected<plt_err_code> os_dir_walk(file_desc fd, const TWalkerFn& cb) {
 #if defined(OS_MAC) && OS_MAC == 1
     // FIXME: I am forced to use readdir here because getdirentries is deprecated on macOS.
+    [[maybe_unused]] auto& fd2 = fd;
+    [[maybe_unused]] auto& cb2 = cb;
     return {};
 #else
     const addr_off blockSize = (addr_off) os_get_default_block_size();

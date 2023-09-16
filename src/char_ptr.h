@@ -20,7 +20,7 @@ constexpr addr_size cptr_len(const TChar* p) {
     if (p == nullptr) return 0;
     const TChar* start = p;
     while(*p) p++;
-    return p - start;
+    return addr_size(p - start);
 }
 
 template <typename TChar>
@@ -33,7 +33,7 @@ constexpr i32 cptr_cmp(const TChar* a, addr_size lena, const TChar* b, addr_size
 
     addr_size i = 0;
     while(i < lena && i < lenb) {
-        if (a[i] != b[i]) return (a[i] > b[i]) - (b[i] > a[i]);
+        if (a[i] != b[i]) return i32(a[i] > b[i]) - (b[i] > a[i]);
         i++;
     }
 

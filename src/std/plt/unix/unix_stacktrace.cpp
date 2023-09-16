@@ -9,12 +9,12 @@
 
 namespace core {
 
-std::string stacktrace(u32 nStackFrames, u32 skipFrames) {
+std::string stacktrace(i32 nStackFrames, i32 skipFrames) {
     // TODO: print the thread I am on in the initial line next to the traceback.
     std::string result;
 
     // Storage array for stack trace address data:
-    void** addrList = reinterpret_cast<void**>(std::malloc(nStackFrames * sizeof(void*)));
+    void** addrList = reinterpret_cast<void**>(std::malloc(size_t(nStackFrames) * sizeof(void*)));
     if (addrList == nullptr) {
         result += "  <failed to allocate memory for stacktrace>\n";
         return result;

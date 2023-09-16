@@ -9,7 +9,7 @@ struct test_str_buffer : public core::ireader_writer_closer, public core::iseeke
     bool closed = false;
 
     core::expected<core::addr_size, core::io_err> read(void* out, core::addr_size size) override {
-        if (off + size > BUF_MAX_SIZE) {
+        if (off + addr_off(size) > addr_off(BUF_MAX_SIZE)) {
             return core::unexpected(core::io_err { false, "read out of bounds" });
         }
         size = core::min(size, ReadBlockSize);
@@ -19,7 +19,7 @@ struct test_str_buffer : public core::ireader_writer_closer, public core::iseeke
     }
 
     core::expected<core::addr_size, core::io_err> write(const void* in, core::addr_size size) override {
-        if (off + size > BUF_MAX_SIZE) {
+        if (off + addr_off(size) > addr_off(BUF_MAX_SIZE)) {
             return core::unexpected(core::io_err { false, "write out of bounds" });
         }
         size = core::min(size, ReadBlockSize);
@@ -36,9 +36,9 @@ struct test_str_buffer : public core::ireader_writer_closer, public core::iseeke
     core::expected<core::io_err> seek(core::addr_off offset, core::seek_origin origin) override {
         addr_off nextOff = off;
         switch (origin) {
-            case core::seek_origin::Begin:   nextOff = offset;                break;
-            case core::seek_origin::Current: nextOff += offset;               break;
-            case core::seek_origin::End:     nextOff = BUF_MAX_SIZE - offset; break;
+            case core::seek_origin::Begin:   nextOff = offset;                          break;
+            case core::seek_origin::Current: nextOff += offset;                         break;
+            case core::seek_origin::End:     nextOff = addr_off(BUF_MAX_SIZE) - offset; break;
         }
         if (nextOff < 0 || addr_size(nextOff) > BUF_MAX_SIZE) {
             return core::unexpected(core::io_err { false, "seek out of bounds" });

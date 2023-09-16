@@ -25,7 +25,7 @@ i32 expected_sizeof() {
     core::expected<u64, test_struct> e1(1);
     core::expected<u64, test_struct> e2(core::unexpected(test_struct{1,2,3,4,"123"}));
     core::expected<test_struct, u64> e3(test_struct{1,2,3,4,"123"});
-    core::expected<test_struct, u64> e4(core::unexpected(1));
+    core::expected<test_struct, u64> e4(core::unexpected(u64(1)));
 
     Assert(sizeof(e1) == sizeof(e2));
     Assert(sizeof(e1) == sizeof(e3));
@@ -131,10 +131,10 @@ constexpr i32 static_expected_sizeof() {
         char test[18];
     };
 
-    core::static_expected<u64, test_struct> e1(1);
+    core::static_expected<u64, test_struct> e1(u64(1));
     core::static_expected<u64, test_struct> e2(core::unexpected(test_struct{1,2,3,4,"123"}));
     core::static_expected<test_struct, u64> e3(test_struct{1,2,3,4,"123"});
-    core::static_expected<test_struct, u64> e4(core::unexpected(1));
+    core::static_expected<test_struct, u64> e4(core::unexpected(u64(1)));
 
     Assert(sizeof(e1) == sizeof(e2));
     Assert(sizeof(e1) == sizeof(e3));

@@ -127,7 +127,7 @@ constexpr i32 vector_add_sub_mul_div_test() {
 }
 
 constexpr i32 vector_length_test() {
-    constexpr f64 epsillon = 0.000001f;
+    constexpr f64 epsillon = 0.000001;
     Assert(core::abs(core::v(1, 2).length() - 2.23606797749979) < epsillon);
     Assert(core::abs(core::v(1, 2, 3).length() - 3.7416573867739413) < epsillon);
     Assert(core::abs(core::v(1, 2, 3, 4).length() - 5.477225575051661) < epsillon);
@@ -166,7 +166,7 @@ constexpr i32 vector_dot_product_test() {
     {
         // A ⋅ A = len(A)^2
         auto a = core::v(1, 2);
-        constexpr f64 epsillon = 0.000001f;
+        constexpr f64 epsillon = 0.000001;
         Assert(core::abs(a.dot(a) - a.length() * a.length()) < epsillon);
     }
     {

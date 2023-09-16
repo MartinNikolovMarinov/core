@@ -15,7 +15,7 @@ using namespace coretypes;
 using plt_err_code = i64;
 
 namespace detail {
-constexpr plt_err_code OS_CUSTOM_ERROR_START = 0xffffffff00000000; // Custom library errors start from this value.
+constexpr plt_err_code OS_CUSTOM_ERROR_START = plt_err_code(0xffffffff00000000); // Custom library errors start from this value.
 }
 
 constexpr plt_err_code OS_DEALLOC_NULL_ADDR_ERR = detail::OS_CUSTOM_ERROR_START + 1;

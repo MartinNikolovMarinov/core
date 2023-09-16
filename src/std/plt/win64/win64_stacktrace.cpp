@@ -2,7 +2,7 @@
 
 namespace core {
 
-std::string stacktrace(u32, u32) {
+std::string stacktrace(i32, i32) {
     // TODO: [Windows Support] Should implement this!
     return "<stacktrace not implemented for this platform>\n";
 }

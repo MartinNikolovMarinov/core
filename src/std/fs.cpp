@@ -24,7 +24,7 @@ core::expected<addr_size, io_err> file::write(const void* in, addr_size size) {
 
     addr_off chunkSize = addr_off(core::min(size, core::os_get_default_block_size()));
     addr_off written = 0;
-    if (auto res = core::os_write(m_fd, in, chunkSize, written); res.has_err()) {
+    if (auto res = core::os_write(m_fd, in, u64(chunkSize), written); res.has_err()) {
         return core::unexpected(create_io_err_from_plt(res.err()));
     }
 
@@ -35,7 +35,7 @@ core::expected<addr_size, io_err> file::write(const void* in, addr_size size) {
         return core::unexpected(io_err { false, FS_SHORT_WRITE });
     }
 
-    return written;
+    return addr_size(written);
 }
 
 core::expected<addr_size, io_err> file::read(void* out, addr_size size) {
@@ -61,7 +61,7 @@ core::expected<addr_size, io_err> file::read(void* out, addr_size size) {
 
     m_offset += readBytes;
 
-    return readBytes;
+    return addr_size(readBytes);
 }
 
 core::expected<io_err> file::close() {

@@ -436,7 +436,7 @@ i32 take_and_steal_str_builder() {
         core::memset(data, 'a', allocatedSize - 1);
 
         str_builder s;
-        s.take_ownership_from(&data);
+        s.reset(&data);
         Assert(data == nullptr);
         Assert(s.len() == allocatedSize - 1);
         Assert(s.cap() == allocatedSize);
@@ -455,7 +455,7 @@ i32 take_and_steal_str_builder() {
         core::memset(data, 'a', allocatedSize - 1);
 
         str_builder s(0, 5);
-        s.take_ownership_from(&data);
+        s.reset(&data);
         Assert(data == nullptr);
         Assert(s.len() == allocatedSize - 1);
         Assert(s.cap() == allocatedSize );
@@ -468,7 +468,7 @@ i32 take_and_steal_str_builder() {
         core::memset(data2, 0, allocatedSize * 2);
         core::memset(data2, 'b', allocatedSize * 2 - 1);
 
-        s.take_ownership_from(&data2);
+        s.reset(&data2);
         Assert(data2 == nullptr);
         Assert(s.len() == allocatedSize * 2 - 1);
         Assert(s.cap() == allocatedSize * 2);
@@ -484,7 +484,7 @@ i32 take_and_steal_str_builder() {
         str_builder s(0, 5);
         s.append("abcde");
 
-        char* data = s.steal_ownership();
+        char* data = s.steal();
 
         Assert(data != nullptr);
         Assert(core::cptr_eq(data, "abcde", 5));

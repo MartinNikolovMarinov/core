@@ -73,9 +73,6 @@ struct flag_parser {
      * \brief Parses the given arguments and sets the flags accordingly. If argv is modified or freed the parser will
      *        break. The lifetime of argv must be as long as the parser. This is an odd interface, but it uses very
      *        little memory, and besides, argv is usually global and it usually is never changed, or freed.
-     *
-     * \param argc The number of arguments in argv.
-     * \param argv The arguments to parse.
      */
     core::expected<parse_err> parse(i32 argc, const char** argv) {
         i32 state = 0;

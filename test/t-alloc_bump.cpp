@@ -93,5 +93,8 @@ i32 run_bump_allocator_tests_suite() {
     RunTest(complex_types_in_hash_map<bump_allocator_static<1024>>);
     bump_allocator_static<1024>::clear();
 
+    // Unique ptr tests:
+    RunTest(initialize_unique_ptr<bump_allocator_static<256>>);
+
     return 0;
 }

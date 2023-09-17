@@ -110,6 +110,7 @@ set(src_files
     src/static_arr.h
     src/str_builder.h
     src/tuple.h
+    src/unique_ptr.h
     src/utf.h
     src/utils.cpp
     src/utils.h

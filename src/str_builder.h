@@ -128,7 +128,7 @@ struct str_builder {
     data_type& last()              { return at(m_len - 1); }
     const data_type& last()  const { return at(m_len - 1); }
 
-    void take_ownership_from(data_type** ptr) {
+    void reset(data_type** ptr) {
         free();
         m_data = reinterpret_cast<data_type*>(ptr ? *ptr : nullptr);
         m_len = core::cptr_len(ptr ? *ptr : nullptr);
@@ -136,7 +136,7 @@ struct str_builder {
         *ptr = nullptr;
     }
 
-    data_type* steal_ownership() {
+    data_type* steal() {
         if (m_data != nullptr) m_data[m_len] = core::term_char; // JIT null terminate
         data_type* res = m_data;
         m_data = nullptr;

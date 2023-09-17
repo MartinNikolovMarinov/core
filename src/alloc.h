@@ -38,6 +38,11 @@ T* construct(A& allocator, T&&, Args&&... args) noexcept {
     void* p = allocator.alloc(sizeof(T));
     return new (p) T(core::forward<Args>(args)...);
 }
+template <typename A, typename T, typename ...Args>
+T* construct(Args&&... args) noexcept {
+    void* p = A::alloc(sizeof(T));
+    return new (p) T(core::forward<Args>(args)...);
+} 
 
 /**
  * @brief The implementation of used_mem should return the amount of memory used by the allocator. Some allocators may

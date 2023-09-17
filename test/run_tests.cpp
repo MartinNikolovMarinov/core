@@ -6,6 +6,7 @@
 #include "t-cmd_flag.cpp"
 #include "t-str_builder.cpp"
 #include "t-hash_map.cpp"
+#include "t-unique_ptr.cpp"
 
 #include "t-alloc_bump.cpp"
 #include "t-tuple.cpp"

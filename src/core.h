@@ -27,5 +27,6 @@
 #include "static_arr.h"
 #include "str_builder.h"
 #include "tuple.h"
+#include "unique_ptr.h"
 #include "utf.h"
 #include "utils.h"

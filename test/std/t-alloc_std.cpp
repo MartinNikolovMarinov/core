@@ -198,6 +198,14 @@ i32 run_std_allocator_tests_suite() {
     // Unique ptr tests:
     RunTest(initialize_unique_ptr<std_allocator_static>);
     Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+    RunTest(steal_unique_ptr<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+    RunTest(reset_unique_ptr<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+    RunTest(copy_unique_ptr<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
+    RunTest(swap_unique_ptr<std_allocator_static>);
+    Assert(std_allocator_static::used_mem() == 0, "memory leak detected");
 
     return 0;
 }

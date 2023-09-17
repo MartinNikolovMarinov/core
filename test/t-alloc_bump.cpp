@@ -95,6 +95,15 @@ i32 run_bump_allocator_tests_suite() {
 
     // Unique ptr tests:
     RunTest(initialize_unique_ptr<bump_allocator_static<256>>);
+    bump_allocator_static<256>::clear();
+    RunTest(steal_unique_ptr<bump_allocator_static<256>>);
+    bump_allocator_static<256>::clear();
+    RunTest(reset_unique_ptr<bump_allocator_static<256>>);
+    bump_allocator_static<256>::clear();
+    RunTest(copy_unique_ptr<bump_allocator_static<256>>);
+    bump_allocator_static<256>::clear();
+    RunTest(swap_unique_ptr<bump_allocator_static<256>>);
+    bump_allocator_static<256>::clear();
 
     return 0;
 }

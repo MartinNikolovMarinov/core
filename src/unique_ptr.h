@@ -53,6 +53,12 @@ struct unique_ptr {
         return ret;
     }
 
+    void swap(uptr_type& other) {
+        data_type* tmp = _ptr;
+        _ptr = other._ptr;
+        other._ptr = tmp;
+    }
+
     data_type* operator->() const { return _ptr; }
     data_type& operator*() const { return *_ptr; }
 

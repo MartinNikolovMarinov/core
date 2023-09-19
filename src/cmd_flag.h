@@ -9,13 +9,6 @@
 #include <hash_map.h>
 #include <str_builder.h>
 
-// FIXME: Might want to consider copying the character pointers instead of trusting the user to keep them alive.
-//        This is usually fine because the parser has a very specific use case, but might bring about some terrible bugs.
-//        Possible solution - simply copy all character pointers for flag names and aliases in a large char buffer.
-//        Use the destructor to free the memory block.
-
-// FIXME: Test more extensively the aliasing feature. There are a billion edge cases that need to be tested.
-
 // NOTE: Do not expect thread safety from this code.
 
 namespace core {
@@ -77,11 +70,6 @@ struct flag_parser {
 
     flag_parser() : flags(), maxArgLen(MAX_ARG_LEN), allowUnknownFlags(false) {}
 
-    /**
-     * \brief Parses the given arguments and sets the flags accordingly. If argv is modified or freed the parser will
-     *        break. The lifetime of argv must be as long as the parser. This is an odd interface, but it uses very
-     *        little memory, and besides, argv is usually global and it usually is never changed, or freed.
-     */
     core::expected<parse_err> parse(i32 argc, const char** argv) {
         i32 state = 0;
         flag_parser::flag_data* curFlag = nullptr;
@@ -319,7 +307,7 @@ private:
             parser.flags[addr_size(nameIdx)] = core::move(f);
             flag_data* newFlagPtr = &parser.flags[addr_size(nameIdx)];
 
-            // Update aliases to point to the new flag.
+            // Update existing aliases to point to the new flag.
             parser.aliases.values([&](flag_alias& alias) {
                 if (alias.flag == oldFlagPtr) {
                     alias.flag = newFlagPtr;

@@ -95,3 +95,27 @@ struct StaticVariableDefaultCtorTester {
 i32 StaticVariableDefaultCtorTester::nextId = 0;
 
 using SVCT = StaticVariableDefaultCtorTester;
+
+// Common types hash map related functions
+
+template<>
+addr_size core::hash(const i32& key) {
+    addr_size h = addr_size(core::simple_hash_32(reinterpret_cast<const void*>(&key), sizeof(key)));
+    return h;
+}
+
+template<>
+bool core::eq(const i32& a, const i32& b) {
+    return a == b;
+}
+
+template<>
+addr_size core::hash(const core::str_view& key) {
+    addr_size h = addr_size(core::simple_hash_32(key.data(), key.len()));
+    return h;
+}
+
+template<>
+bool core::eq(const core::str_view& a, const core::str_view& b) {
+    return a.eq(b);
+}

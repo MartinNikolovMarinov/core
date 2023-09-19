@@ -285,7 +285,34 @@ i32 alias_flag_parser_test() {
         Assert(arg2 == 2); // the alias should work with the new argument only.
     }
 
+    // Use more than one alias
+    {
+        flag_parser parser;
+        i32 arg1 = -1;
+
+        parser.flag(&arg1, core::sv("full_name")); // change the type of the flag
+        parser.alias(core::sv("full_name"), core::sv("a"));
+        parser.alias(core::sv("full_name"), core::sv("b"));
+
+        const char* input[2] = { "-a", "2" };
+        auto res = parser.parse(2, input);
+        Assert(!res.has_err());
+        Assert(arg1 == 2);
+
+        arg1 = -1;
+
+        const char* input2[2] = { "-b", "3" };
+        auto res2 = parser.parse(2, input2);
+        Assert(!res2.has_err());
+        Assert(arg1 == 3);
+
+        arg1 = -1;
+
+        const char* input3[4] = { "-a", "4", "-b", "5" };
+        auto res3 = parser.parse(4, input3);
+        Assert(!res3.has_err());
+        Assert(arg1 == 5); // When two aliases for the same flag are used the system should take the last one.
+    }
+
     return 0;
 }
-
-// FIXME: Test setting new flags with 

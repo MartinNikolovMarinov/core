@@ -8,13 +8,13 @@ i32 friendly_input_flag_parser_test() {
     i64 b = 0;
     u32 c = 0;
     u64 d = 0;
-    parser.flag(&a, " int32");
-    parser.flag(&b, "int64 ");
-    parser.flag(&c, "uint32\t");
-    parser.flag(&d, "\nuint64");
+    parser.flag(&a, core::sv(" int32"));
+    parser.flag(&b, core::sv("int64 "));
+    parser.flag(&c, core::sv("uint32\t"));
+    parser.flag(&d, core::sv("\nuint64"));
 
     char* cptrArg = nullptr;
-    parser.flag(&cptrArg, "string");
+    parser.flag(&cptrArg, core::sv("string"));
 
     bool bool_1 = false;
     bool bool_2 = false;
@@ -24,25 +24,25 @@ i32 friendly_input_flag_parser_test() {
     bool bool_6 = false;
     bool bool_7 = false;
     bool bool_8 = false;
-    parser.flag(&bool_1, "   bool-1");
-    parser.flag(&bool_2, "bool-2");
-    parser.flag(&bool_3, "bool-3 ");
-    parser.flag(&bool_4, "bool-4");
-    parser.flag(&bool_5, "bool-5   ");
-    parser.flag(&bool_6, "  bool-6");
-    parser.flag(&bool_7, "bool-7");
-    parser.flag(&bool_8, "bool-8");
+    parser.flag(&bool_1, core::sv("   bool-1"));
+    parser.flag(&bool_2, core::sv("bool-2"));
+    parser.flag(&bool_3, core::sv("bool-3 "));
+    parser.flag(&bool_4, core::sv("bool-4"));
+    parser.flag(&bool_5, core::sv("bool-5   "));
+    parser.flag(&bool_6, core::sv("  bool-6"));
+    parser.flag(&bool_7, core::sv("bool-7"));
+    parser.flag(&bool_8, core::sv("bool-8"));
 
     f32 fa = 0, fb = 0, fc = 0, fd = 0;
     f64 fe = 0, ff = 0, fg = 0, fh = 0;
-    parser.flag(&fa, "float32-1");
-    parser.flag(&fb, "float32-2");
-    parser.flag(&fc, "float32-3");
-    parser.flag(&fd, "float32-4");
-    parser.flag(&fe, "float64-5");
-    parser.flag(&ff, "float64-6");
-    parser.flag(&fg, "float64-7");
-    parser.flag(&fh, "float64-8");
+    parser.flag(&fa, core::sv("float32-1"));
+    parser.flag(&fb, core::sv("float32-2"));
+    parser.flag(&fc, core::sv("float32-3"));
+    parser.flag(&fd, core::sv("float32-4"));
+    parser.flag(&fe, core::sv("float64-5"));
+    parser.flag(&ff, core::sv("float64-6"));
+    parser.flag(&fg, core::sv("float64-7"));
+    parser.flag(&fh, core::sv("float64-8"));
 
     constexpr i32 ARGC = 44;
     const char* input[ARGC] = {
@@ -153,20 +153,20 @@ i32 adverse_input_flag_parser_test() {
 
         i32 a;
         parser.maxArgLen = 500;
-        parser.flag(&a, "not_a_flag", true);
+        parser.flag(&a, core::sv("not_a_flag"), true);
         auto res4 = parser.parse(1, input);
         Assert(res4.has_err());
         Assert(res4.err() == flag_parser::parse_err::MissingRequiredFlag);
 
         // overload that same flag to not be required
-        parser.flag(&a, "not_a_flag", false);
+        parser.flag(&a, core::sv("not_a_flag"), false);
         auto res5 = parser.parse(1, input);
         Assert(!res5.has_err());
     }
     {
         char* a = nullptr;
         flag_parser parser;
-        parser.flag(&a, "str");
+        parser.flag(&a, core::sv("str"));
         parser.allowUnknownFlags = true;
         const char* input[10] = {"-asdxczzxcad", "asd", "ascxz", "zxc", "asd", "-dasda", "", "-str", nullptr, "asd" };
         auto res = parser.parse(10, input);
@@ -187,19 +187,19 @@ i32 custom_rule_flag_parser_test() {
     i32 a, b;
 
     {
-        parser.flag(&a, "a");
-        parser.flag(&b, "b");
+        parser.flag(&a, core::sv("a"));
+        parser.flag(&b, core::sv("b"));
         const char* input[4] = {"-a", "1", "-b", "5" };
         auto res = parser.parse(4, input);
         Assert(!res.has_err());
 
         // Add some rules
 
-        parser.flag(&a, "a", false, [](void* a) -> bool {
+        parser.flag(&a, core::sv("a"), false, [](void* a) -> bool {
             i32 v = *(i32*)a;
             return (v > 0);
         });
-        parser.flag(&b, "b", false, [](void* b) -> bool {
+        parser.flag(&b, core::sv("b"), false, [](void* b) -> bool {
             i32 v = *(i32*)b;
             return (v <= 10);
         });
@@ -244,3 +244,48 @@ i32 custom_rule_flag_parser_test() {
 
     return 0;
 }
+
+template <typename TAllocator>
+i32 alias_flag_parser_test() {
+    using flag_parser = core::flag_parser<TAllocator>;
+
+    {
+        flag_parser parser;
+        i32 arg1 = -1; 
+        bool arg2 = false;
+        
+        parser.flag(&arg1, core::sv("full_name"));
+        parser.flag(&arg2, core::sv("full_name_2"));
+        parser.alias(core::sv("full_name"), core::sv("a"));
+        parser.alias(core::sv("full_name_2"), core::sv("b"));
+
+        const char* input[4] = { "-a", "1", "-b", "true" };
+        auto res = parser.parse(4, input);
+
+        Assert(!res.has_err());
+        Assert(arg1 == 1);
+        Assert(arg2 == true);
+    }
+
+    // Update a flag that has an alias
+    {
+        flag_parser parser;
+        i32 arg1 = -1;
+        i64 arg2 = -1;
+
+        parser.flag(&arg1, core::sv("full_name"));
+        parser.alias(core::sv("full_name"), core::sv("a"));
+        parser.flag(&arg2, core::sv("full_name")); // change the type of the flag
+
+        const char* input[2] = { "-a", "2" };
+        auto res = parser.parse(2, input); // setting through the alias should work when the flag is required.
+
+        Assert(!res.has_err());
+        Assert(arg1 == -1);
+        Assert(arg2 == 2); // the alias should work with the new argument only.
+    }
+
+    return 0;
+}
+
+// FIXME: Test setting new flags with 

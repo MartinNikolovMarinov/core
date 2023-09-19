@@ -15,17 +15,14 @@ struct str_view {
     using size_type = addr_size;
 
     const data_type* buff;
-    size_type len;
+    size_type length;
 
-    constexpr bool operator==(const str_view& other) const {
-        return core::cptr_cmp(buff, len, other.buff, other.len) == 0;
-    }
-
-    constexpr bool operator!=(const str_view& other) const {
-        return !(*this == other);
+    constexpr bool eq(const str_view& other) const {
+        return cptr_cmp(buff, length, other.buff, other.length) == 0;
     }
 
     constexpr const data_type* data() const { return buff; }
+    constexpr size_type len() const { return length; }
 };
 
 constexpr str_view sv()                               { return {nullptr, 0}; }
@@ -33,6 +30,8 @@ constexpr str_view sv(const char* str)                { return {str, core::cptr_
 constexpr str_view sv(const char* str, addr_size len) { return {str, len}; }
 
 static_assert(core::is_pod_v<str_view>, "str_view must be pod type");
+
+// TODO2: [Performance] Might want to do some small string optimization.
 
 template <typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
 struct str_builder {
@@ -63,7 +62,7 @@ struct str_builder {
     }
 
     str_builder(const data_type* cptr) { assign_from_cptr(cptr, core::cptr_len(cptr)); }
-    str_builder(str_view view)         { assign_from_cptr(view.buff, view.len); }
+    str_builder(str_view view)         { assign_from_cptr(view.data(), view.len()); }
 
     ~str_builder() { free(); }
 
@@ -86,7 +85,7 @@ struct str_builder {
     }
     str_builder<TAllocator>& operator=(str_view view) {
         clear();
-        return append(view.buff, view.len);
+        return append(view.buff, view.len());
     }
 
     const char*     allocator_name() const { return core::allocator_name<allocator_type>(); }
@@ -99,6 +98,10 @@ struct str_builder {
     str_view view() const {
         if (m_data != nullptr) m_data[m_len] = core::term_char; // JIT null terminate
         return {m_data, m_len};
+    }
+
+    bool eq(const str_builder<TAllocator>& other) const {
+        return view().eq(other.view());
     }
 
     void clear() { m_len = 0; }
@@ -169,7 +172,7 @@ struct str_builder {
     }
 
     str_builder<TAllocator>& append(str_view view) {
-        return append(view.buff, view.len);
+        return append(view.buff, view.len());
     }
 
     str_builder<TAllocator>& fill(const data_type& val) {

@@ -65,7 +65,7 @@ constexpr i32 initalize_str_builder() {
         Assert(str.at(4) == 'o');
 
         auto sview = str.view();
-        Assert(core::cptr_eq(sview.buff, "hello", sview.len));
+        Assert(core::cptr_eq(sview.buff, "hello", sview.len()));
     }
 
     {
@@ -93,8 +93,8 @@ constexpr i32 initalize_str_builder() {
         Assert(str.at(4) == 'o');
 
         auto sview = str.view();
-        Assert(core::cptr_eq(sview.buff, "hello", sview.len));
-        Assert(core::cptr_len(sview.buff) == sview.len, "string view should be correctly null terminated");
+        Assert(core::cptr_eq(sview.buff, "hello", sview.len()));
+        Assert(core::cptr_len(sview.buff) == sview.len(), "string view should be correctly null terminated");
 
         constexpr const char* testMsg = "should not memory leak this";
         prevCap = str.cap();
@@ -105,8 +105,8 @@ constexpr i32 initalize_str_builder() {
         Assert(str.byte_cap() == (prevCap*2 + core::cptr_len(testMsg) + 1) * sizeof(typename str_builder::data_type));
 
         sview = str.view();
-        Assert(core::cptr_eq(sview.buff, testMsg, sview.len));
-        Assert(core::cptr_len(sview.buff) == sview.len, "string view should be correctly null terminated");
+        Assert(core::cptr_eq(sview.buff, testMsg, sview.len()));
+        Assert(core::cptr_len(sview.buff) == sview.len(), "string view should be correctly null terminated");
     }
 
     return 0;
@@ -134,8 +134,8 @@ constexpr i32 move_and_copy_str_builder() {
         Assert(str2.cap() == 6);
         Assert(str2.byte_cap() == 6 * sizeof(typename str_builder::data_type));
         Assert(!str2.empty());
-        Assert(core::cptr_eq(str2.view().buff, "hello", str2.view().len));
-        Assert(core::cptr_len(str2.view().buff) == str2.view().len, "string view should be correctly null terminated");
+        Assert(core::cptr_eq(str2.view().buff, "hello", str2.view().len()));
+        Assert(core::cptr_len(str2.view().buff) == str2.view().len(), "string view should be correctly null terminated");
 
         str3 = core::move(str2);
         str4 = str3.copy();
@@ -152,16 +152,16 @@ constexpr i32 move_and_copy_str_builder() {
         Assert(str3.cap() == 6);
         Assert(str3.byte_cap() == 6 * sizeof(typename str_builder::data_type));
         Assert(!str3.empty());
-        Assert(core::cptr_eq(str3.view().buff, "hello", str3.view().len));
-        Assert(core::cptr_len(str3.view().buff) == str3.view().len, "string view should be correctly null terminated");
+        Assert(core::cptr_eq(str3.view().buff, "hello", str3.view().len()));
+        Assert(core::cptr_len(str3.view().buff) == str3.view().len(), "string view should be correctly null terminated");
 
         Assert(str4.len() == 5);
         Assert(str4.byte_len() == 5 * sizeof(typename str_builder::data_type));
         Assert(str4.cap() == 6);
         Assert(str4.byte_cap() == 6 * sizeof(typename str_builder::data_type));
         Assert(!str4.empty());
-        Assert(core::cptr_eq(str4.view().buff, "hello", str4.view().len));
-        Assert(core::cptr_len(str4.view().buff) == str4.view().len, "string view should be correctly null terminated");
+        Assert(core::cptr_eq(str4.view().buff, "hello", str4.view().len()));
+        Assert(core::cptr_len(str4.view().buff) == str4.view().len(), "string view should be correctly null terminated");
 
         Assert(str3.view().buff != str4.view().buff);
     }
@@ -176,7 +176,7 @@ constexpr i32 move_and_copy_str_builder() {
         Assert(a.cap() == 6);
         Assert(a.byte_cap() == 6 * sizeof(typename str_builder::data_type));
         Assert(!a.empty());
-        Assert(core::cptr_eq(a.view().buff, "hello", a.view().len));
+        Assert(core::cptr_eq(a.view().buff, "hello", a.view().len()));
     }
 
     {
@@ -379,8 +379,8 @@ i32 append_str_builder() {
             Assert(s.len() == 3);
             Assert(s.cap() == prevCap, "No need to resize, there is enough space.");
             Assert(s.view().buff != buf);
-            Assert(s.view().len == 3);
-            Assert(core::cptr_eq(s.view().buff, buf, s.view().len));
+            Assert(s.view().len() == 3);
+            Assert(core::cptr_eq(s.view().buff, buf, s.view().len()));
 
             s.clear();
 
@@ -394,8 +394,8 @@ i32 append_str_builder() {
             Assert(s.len() == 5);
             Assert(s.cap() == prevCap, "No need to resize, there is enough space.");
             Assert(s.view().buff != nullptr);
-            Assert(s.view().len == 5);
-            Assert(core::cptr_eq(s.view().buff, buf, s.view().len));
+            Assert(s.view().len() == 5);
+            Assert(core::cptr_eq(s.view().buff, buf, s.view().len()));
             Assert(core::cptr_len(s.view().buff) == core::cptr_len("higkl"), "string view should be null terminated");
 
             s.append("opq");
@@ -403,7 +403,7 @@ i32 append_str_builder() {
             Assert(s.len() == 8);
             Assert(s.cap() == prevCap * 2, "Should just double the capacity.");
             Assert(s.view().buff != nullptr);
-            Assert(s.view().len == 8);
+            Assert(s.view().len() == 8);
             Assert(s[0] == 'h');
             Assert(s[1] == 'i');
             Assert(s[2] == 'g');
@@ -441,7 +441,7 @@ i32 take_and_steal_str_builder() {
         Assert(s.len() == allocatedSize - 1);
         Assert(s.cap() == allocatedSize);
         Assert(s.view().buff != nullptr);
-        Assert(s.view().len == allocatedSize - 1);
+        Assert(s.view().len() == allocatedSize - 1);
 
         for (addr_size i = 0; i < allocatedSize - 1; ++i) { Assert(s[i] == 'a'); }
     }
@@ -460,7 +460,7 @@ i32 take_and_steal_str_builder() {
         Assert(s.len() == allocatedSize - 1);
         Assert(s.cap() == allocatedSize );
         Assert(s.view().buff != nullptr);
-        Assert(s.view().len == allocatedSize - 1);
+        Assert(s.view().len() == allocatedSize - 1);
 
         for (addr_size i = 0; i < allocatedSize - 1; ++i) { Assert(s[i] == 'a'); }
 
@@ -473,7 +473,7 @@ i32 take_and_steal_str_builder() {
         Assert(s.len() == allocatedSize * 2 - 1);
         Assert(s.cap() == allocatedSize * 2);
         Assert(s.view().buff != nullptr);
-        Assert(s.view().len == allocatedSize * 2 - 1);
+        Assert(s.view().len() == allocatedSize * 2 - 1);
 
         for (addr_size i = 0; i < allocatedSize * 2 - 1; ++i) { Assert(s[i] == 'b'); }
     }
@@ -492,7 +492,7 @@ i32 take_and_steal_str_builder() {
         Assert(s.len() == 0);
         Assert(s.cap() == 0);
         Assert(s.view().buff == nullptr);
-        Assert(s.view().len == 0);
+        Assert(s.view().len() == 0);
 
         // The user code is now responsible for freeing the data.
         core::free<TAllocator>(data);

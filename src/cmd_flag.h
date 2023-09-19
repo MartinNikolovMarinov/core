@@ -6,8 +6,8 @@
 #include <char_ptr.h>
 #include <char_ptr_conv.h>
 #include <algorithms.h>
-#include <str_builder.h>
 #include <hash_map.h>
+#include <str_builder.h>
 
 // FIXME: Might want to consider copying the character pointers instead of trusting the user to keep them alive.
 //        This is usually fine because the parser has a very specific use case, but might bring about some terrible bugs.
@@ -16,16 +16,22 @@
 
 // FIXME: Test more extensively the aliasing feature. There are a billion edge cases that need to be tested.
 
+// NOTE: Do not expect thread safety from this code.
+
 namespace core {
 
 using namespace coretypes;
 
 template<typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
 struct flag_parser {
+    using sb = core::str_builder<TAllocator>;
+
     static constexpr i32 MAX_ARG_LEN = 5000;
     static constexpr i32 MAX_FLAG_COUNT = 100;
 
-    enum flag_type {
+    enum struct flag_type {
+        None,
+
         Bool,
         Int32,
         Int64,
@@ -34,22 +40,24 @@ struct flag_parser {
         Float32,
         Float64,
         CPtr,
+
+        SENTINEL
     };
 
     using ValidationFn = bool (*)(void* val);
 
     struct flag_data {
         void* arg = nullptr;
-        core::str_view name = sv();
-        flag_type type;
+        sb nameSb;
+        flag_type type = flag_type::None;
         bool isSet = false;
         bool isRequired = false;
         ValidationFn validate = nullptr;
     };
 
-    struct alias {
-        const core::str_view* name = nullptr;
-        core::str_view alias = sv();
+    struct flag_alias {
+        sb aliasSb;
+        flag_data* flag;
     };
 
     enum struct parse_err {
@@ -63,7 +71,7 @@ struct flag_parser {
     };
 
     core::arr<flag_data, TAllocator> flags;
-    core::hash_map<core::str_view, flag_data*, TAllocator> aliases;
+    core::hash_map<core::str_view, flag_alias, TAllocator> aliases;
     i32 maxArgLen;
     bool allowUnknownFlags;
 
@@ -105,11 +113,17 @@ struct flag_parser {
 
             if (state == 1) {
                 auto trimmedEq = [&](const core::str_view a, const core::str_view b) -> bool {
-                    addr_off trimmedALen = addr_off(a.len);
-                    addr_off trimmedBLen = addr_off(b.len);
-                    while (core::is_white_space(a.data()[trimmedALen - 1])) trimmedALen--;
-                    while (core::is_white_space(b.data()[trimmedBLen - 1])) trimmedBLen--;
-                    bool areEqual = core::cptr_eq(a.data(), b.data(), addr_size(core::min(trimmedALen, trimmedBLen)));
+                    addr_size startA = 0;
+                    addr_size startB = 0;
+                    addr_size endA = a.len();
+                    addr_size endB = b.len();
+
+                    while (startA < endA && core::is_white_space(a.data()[startA])) startA++;
+                    while (startB < endB && core::is_white_space(b.data()[startB])) startB++;
+                    while (endA > startA && core::is_white_space(a.data()[endA - 1])) endA--;
+                    while (endB > startB && core::is_white_space(b.data()[endB - 1])) endB--;
+
+                    bool areEqual = core::cptr_cmp(a.data() + startA, endA - startA, b.data() + startB, endB - startB) == 0;
                     return areEqual;
                 };
 
@@ -117,18 +131,17 @@ struct flag_parser {
 
                 // Try to find the flag by name:
                 fidx = core::find(flags, [&](const flag_data& f, addr_off) -> bool {
-                    return trimmedEq(f.name, sv(curVal, addr_size(valLen)));
+                    return trimmedEq(f.nameSb.view(), sv(curVal, addr_size(valLen)));
                 });
 
                 if (fidx == -1) {
                     // Try to find the flag by some alias:
-                    flag_data** flagData = aliases.get(sv(curVal, addr_size(valLen)));
-                    if (flagData != nullptr) {
-                        Assert((*flagData), "[BUG] Alias points to nullptr flag data.");
-                        fidx = core::find(flags, [&](const flag_data& f, addr_off) -> bool {
-                            return trimmedEq(f.name, (*flagData)->name);
-                        });
-                        Assert(fidx != -1, "[BUG] Alias points to non-existing flag.");
+                    flag_alias* as = aliases.get(sv(curVal, addr_size(valLen)));
+                    if (as != nullptr) {
+                        Assert(as->flag, "[BUG] Alias points to nullptr flag data.");
+                        curFlag = as->flag;
+                        state = 2;
+                        continue;
                     }
                 }
 
@@ -211,6 +224,9 @@ struct flag_parser {
                         curFlag->isSet = true;
                         break;
                     }
+
+                    case flag_type::None:     [[fallthrough]];
+                    case flag_type::SENTINEL: [[fallthrough]];
                     default:
                     {
                         if (allowUnknownFlags) break;
@@ -233,66 +249,62 @@ struct flag_parser {
         return {};
     }
 
-    void flag(char** out, const char* flagName, bool required = false, ValidationFn validate = nullptr) {
+    void flag(char** out, str_view flagName, bool required = false, ValidationFn validate = nullptr) {
         return _flag(*this, out, flagName, required, validate, flag_type::CPtr);
     }
 
-    void flag(i32* out, const char* flagName, bool required = false, ValidationFn validate = nullptr) {
+    void flag(i32* out, str_view flagName, bool required = false, ValidationFn validate = nullptr) {
         return _flag(*this, out, flagName, required, validate, flag_type::Int32);
     }
 
-    void flag(i64* out, const char* flagName, bool required = false, ValidationFn validate = nullptr) {
+    void flag(i64* out, str_view flagName, bool required = false, ValidationFn validate = nullptr) {
         return _flag(*this, out, flagName, required, validate, flag_type::Int64);
     }
 
-    void flag(u32* out, const char* flagName, bool required = false, ValidationFn validate = nullptr) {
+    void flag(u32* out, str_view flagName, bool required = false, ValidationFn validate = nullptr) {
         return _flag(*this, out, flagName, required, validate, flag_type::Uint32);
     }
 
-    void flag(u64* out, const char* flagName, bool required = false, ValidationFn validate = nullptr) {
+    void flag(u64* out, str_view flagName, bool required = false, ValidationFn validate = nullptr) {
         return _flag(*this, out, flagName, required, validate, flag_type::Uint64);
     }
 
-    void flag(bool* out, const char* flagName, bool required = false, ValidationFn validate = nullptr) {
+    void flag(bool* out, str_view flagName, bool required = false, ValidationFn validate = nullptr) {
         return _flag(*this, out, flagName, required, validate, flag_type::Bool);
     }
 
-    void flag(f32* out, const char* flagName, bool required = false, ValidationFn validate = nullptr) {
+    void flag(f32* out, str_view flagName, bool required = false, ValidationFn validate = nullptr) {
         return _flag(*this, out, flagName, required, validate, flag_type::Float32);
     }
 
-    void flag(f64* out, const char* flagName, bool required = false, ValidationFn validate = nullptr) {
+    void flag(f64* out, str_view flagName, bool required = false, ValidationFn validate = nullptr) {
         return _flag(*this, out, flagName, required, validate, flag_type::Float64);
     }
 
-    void alias(const char* flagName, const char* alias) {
+    void alias(str_view flagName, str_view alias) {
         addr_off fidx = core::find(flags, [&](const flag_data& f, addr_off) -> bool {
-            return f.name == flagName;
+            return core::cptr_eq(f.nameSb.view().data(), flagName.data(), flagName.len());
         });
-        if (fidx != -1) {
-            auto& f = flags[fidx];
-            auto* aliasList = aliases.get(f.name);
-            if (aliasList == nullptr) {
-                aliases.insert(f.name, core::arr<str_view, TAllocator>());
-                aliasList = aliases.get(f.name);
-                Panic(aliasList != nullptr, "[BUG] Failed to insert alias list.");
-            }
-            aliasList->append(sv(core::cptr_skip_space(alias), core::cptr_len(alias)));
-        }
-        Assert(fidx != -1, "Can't create alias for non-existing flag.");
+
+        Assert(fidx != -1, "Can't create an alias for non-existing flag.");
+        auto& f = flags[addr_size(fidx)];
+        flag_alias a;
+        a.aliasSb = alias; // makes a copy
+        a.flag = &f;
+        aliases.put(a.aliasSb.view(), core::move(a)); // The alias holds it's own copy of the name in an sb instance.
     }
 
 private:
     template <typename T>
     static void _flag(flag_parser& parser,
                       T* out,
-                      const char* flagName,
+                      str_view flagName,
                       bool required,
                       ValidationFn validate,
                       flag_parser::flag_type type) {
         flag_parser::flag_data f;
         f.arg = (void*)out;
-        f.name = sv(core::cptr_skip_space(flagName), core::cptr_len(flagName));
+        f.nameSb = flagName; // makes a copy
         f.type = type;
         f.isSet = false;
         f.isRequired = required;
@@ -300,14 +312,22 @@ private:
 
         // Replace existing flag if it exists.
         addr_off nameIdx = core::find(parser.flags, [&](const auto& el, addr_off) -> bool {
-            return f.name == el.name;
+            return f.nameSb.eq(el.nameSb);
         });
         if (nameIdx != -1) {
-            // FIXME: Update aliases!
-            parser.flags[addr_size(nameIdx)] = f;
+            flag_data* oldFlagPtr = &parser.flags[addr_size(nameIdx)];
+            parser.flags[addr_size(nameIdx)] = core::move(f);
+            flag_data* newFlagPtr = &parser.flags[addr_size(nameIdx)];
+
+            // Update aliases to point to the new flag.
+            parser.aliases.values([&](flag_alias& alias) {
+                if (alias.flag == oldFlagPtr) {
+                    alias.flag = newFlagPtr;
+                }
+            });
         }
         else {
-            parser.flags.append(f);
+            parser.flags.append(core::move(f));
         }
     }
 };

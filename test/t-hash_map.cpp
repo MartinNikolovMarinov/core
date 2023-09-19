@@ -11,13 +11,13 @@ bool core::eq(const i32& a, const i32& b) {
 
 template<>
 addr_size core::hash(const core::str_view& key) {
-    addr_size h = addr_size(core::simple_hash_32(key.data(), key.len));
+    addr_size h = addr_size(core::simple_hash_32(key.data(), key.len()));
     return h;
 }
 
 template<>
 bool core::eq(const core::str_view& a, const core::str_view& b) {
-    return a == b;
+    return a.eq(b);
 }
 
 template <typename TVal, typename TAllocator>

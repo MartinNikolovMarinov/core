@@ -13,12 +13,12 @@ static i32 g_testCount = 0;
     { [[maybe_unused]] auto __notused__ = test(__VA_ARGS__); }                                  \
     std::cout << "\t[TEST " << "№ " << g_testCount << ANSI_BOLD(ANSI_GREEN(" PASSED")) << "] " << ANSI_BOLD(#test) << std::endl;
 
-#if defined(RUN_COMPILETIME_TESTS) && RUN_COMPILETIME_TESTS == 1
+#if defined(CORE_RUN_COMPILETIME_TESTS) && CORE_RUN_COMPILETIME_TESTS == 1
     #define RunTestCompileTime(test, ...) \
         { [[maybe_unused]] constexpr auto __notused__ = core::force_consteval<test(__VA_ARGS__)>; }
 #else
     #define RunTestCompileTime(...)
-    #define RUN_COMPILETIME_TESTS 0
+    #define CORE_RUN_COMPILETIME_TESTS 0
 #endif
 
 
@@ -69,7 +69,7 @@ i32 main(i32, const char **) {
     std::cout << '\n';
     std::cout << ANSI_BOLD(ANSI_GREEN("Tests OK")) << std::endl;
 
-    if constexpr (RUN_COMPILETIME_TESTS != 1) {
+    if constexpr (CORE_RUN_COMPILETIME_TESTS != 1) {
         std::cout << ANSI_YELLOW_START() << ANSI_BOLD_START()
                   << "[WARN] DID NOT RUN COMPILETIME TESTS!"
                   << ANSI_RESET() << std::endl;

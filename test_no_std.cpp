@@ -46,8 +46,8 @@ void write_line(const char* data) {
     write_line(ANSI_BOLD(#suite));                              \
     write_line("\n");
 
-#ifndef RUN_COMPILETIME_TESTS
-    #define RUN_COMPILETIME_TESTS 0
+#ifndef CORE_RUN_COMPILETIME_TESTS
+    #define CORE_RUN_COMPILETIME_TESTS 0
 #endif
 
 #include "common_test_helpers.h"
@@ -90,7 +90,7 @@ i32 main(i32, const char**, const char**) {
     write_line(ANSI_BOLD(ANSI_GREEN("Tests OK")));
     write_line("\n");
 
-    if constexpr (RUN_COMPILETIME_TESTS != 1) {
+    if constexpr (CORE_RUN_COMPILETIME_TESTS != 1) {
         write_line(ANSI_YELLOW_START());
         write_line(ANSI_BOLD_START());
         write_line("[WARN] DID NOT RUN COMPILETIME TESTS!");

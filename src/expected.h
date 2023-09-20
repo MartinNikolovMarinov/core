@@ -58,7 +58,7 @@ struct expected<T, TErr> {
     const TErr& err() const { return m_err; }
     TErr& err()             { return m_err; }
 
-    expected<T, TErr>& check(const char* msg) {
+    expected<T, TErr>& check([[maybe_unused]] const char* msg) {
         Assert(!has_err(), msg);
         return *this;
     }
@@ -87,7 +87,7 @@ struct expected<TErr> {
     TErr& err()             { return m_err; }
     bool has_err()   const  { return m_hasErr; }
 
-    expected<TErr>& check(const char* msg) {
+    expected<TErr>& check([[maybe_unused]] const char* msg) {
         Assert(!has_err(), msg);
         return *this;
     }
@@ -126,8 +126,8 @@ struct static_expected<T, TErr> {
     constexpr T& value()              { return m_value; }
     constexpr const TErr& err() const { return m_err; }
     constexpr TErr& err()             { return m_err; }
-
-    constexpr static_expected<T, TErr>& check(const char* msg) {
+    
+    constexpr static_expected<T, TErr>& check([[maybe_unused]] const char* msg) {
         Assert(!has_err(), msg);
         return *this;
     }

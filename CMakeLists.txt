@@ -49,9 +49,28 @@ if(NOT DEFINED CORE_BUILD_TESTS)
     set(CORE_BUILD_TESTS OFF CACHE BOOL "Build core tests.")
 endif()
 
-if(NOT DEFINED RUN_COMPILETIME_TESTS)
+if(NOT DEFINED CORE_RUN_COMPILETIME_TESTS)
     # This option can slow down compilation significantly.
-    set(RUN_COMPILETIME_TESTS OFF CACHE BOOL "Run compile-time tests.")
+    set(CORE_RUN_COMPILETIME_TESTS OFF CACHE BOOL "Run compile-time tests.")
+endif()
+
+if(NOT DEFINED CORE_USE_CPPCHECK)
+    set(CORE_USE_CPPCHECK OFF CACHE BOOL "Use cppcheck. [WARNING] This makes compilation incredibly slow!")
+endif()
+
+if(CORE_USE_CPPCHECK)
+    # IMPORTANT: This makes compilation incredibly slow!
+    find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
+    if(CMAKE_CXX_CPPCHECK)
+        list(APPEND CMAKE_CXX_CPPCHECK 
+                "--enable=all"
+                "--inconclusive"
+                "--inline-suppr"
+                "--std=c++17"
+                "--check-level=exhaustive"
+                "--output-file=${CMAKE_BINARY_DIR}/cppcheck.out.txt"
+                "--suppressions-list=${CMAKE_SOURCE_DIR}/CppCheckSuppressions.txt")
+    endif()
 endif()
 
 # END Options
@@ -68,7 +87,8 @@ message(STATUS "[CORE] Debug:             ${CORE_DEBUG}")
 message(STATUS "[CORE] Assert:            ${CORE_ASSERT_ENABLED}")
 message(STATUS "[CORE] Shared:            ${CORE_LIBRARY_SHARED}")
 message(STATUS "[CORE] Build Tests:       ${CORE_BUILD_TESTS}")
-message(STATUS "[CORE] Run Compile Tests: ${RUN_COMPILETIME_TESTS}")
+message(STATUS "[CORE] Run Compile Tests: ${CORE_RUN_COMPILETIME_TESTS}")
+message(STATUS "[CORE] Use CppCheck:      ${CORE_USE_CPPCHECK}")
 
 # END Print Selected Options
 
@@ -195,7 +215,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 target_compile_definitions(${PROJECT_NAME} PUBLIC
     "CORE_DEBUG=$<BOOL:${CORE_DEBUG}>"
     "CORE_ASSERT_ENABLED=$<BOOL:${CORE_ASSERT_ENABLED}>"
-    "RUN_COMPILETIME_TESTS=$<BOOL:${RUN_COMPILETIME_TESTS}>"
+    "CORE_RUN_COMPILETIME_TESTS=$<BOOL:${CORE_RUN_COMPILETIME_TESTS}>"
 )
 
 # END Definitions

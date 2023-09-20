@@ -19,13 +19,13 @@ void* alloc(addr_size size) noexcept {
 }
 
 /**
- * @brief Allocates memory and sets it to zero. The allocated memory is not guaranteed to be exactly "nmemb * size"
- *        bytes, but it will be at least "nmemb * size" bytes. This is because the allocator may need to align the
+ * @brief Allocates memory and sets it to zero. The allocated memory is not guaranteed to be exactly "count * size"
+ *        bytes, but it will be at least "count * size" bytes. This is because the allocator may need to align the
  *        memory.
 */
 template <typename A>
-void* calloc(addr_size nmemb, addr_size size) noexcept {
-    return A::calloc(nmemb, size);
+void* calloc(addr_size count, addr_size size) noexcept {
+    return A::calloc(count, size);
 }
 
 // TODO2: [Performance] Should probably add realloc at some point. The std_stat_allocator will need an update for this.

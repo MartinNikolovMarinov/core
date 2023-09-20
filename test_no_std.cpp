@@ -70,7 +70,9 @@ i32 main(i32, const char**, const char**) {
         write_line(errMsg);
         write_line("\n");
         write_line(ANSI_RESET());
-        return true;
+
+        // Crash on purpouse.
+        *(volatile coretypes::i32 *)0 = 0;
     });
 
     if constexpr (COMPILER_CLANG == 1)   { write_line("[COMPILER] COMPILER_CLANG\n"); }

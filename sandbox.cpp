@@ -18,7 +18,6 @@ i32 main(i32, const char **) {
                   << std::endl;
         std::cout << ANSI_BOLD_START() << "[TRACE]:\n" << trace << ANSI_RESET() << std::endl;
         throw std::runtime_error("Assertion failed!");
-        return false;
     });
 
     // Print compiler

@@ -20,7 +20,7 @@ using namespace coretypes;
 #define C_VFUNC(func, ...) __OVERLOAD_MACRO(func, __COUNT_ARGS_MAX10(__VA_ARGS__)) (__VA_ARGS__)
 
 // Customizeble global assert handler:
-using global_assert_handler_ptr = bool (*)(const char* failedExpr, const char* file, i32 line, const char* errMsg);
+using global_assert_handler_ptr = void (*)(const char* failedExpr, const char* file, i32 line, const char* errMsg);
 CORE_API_EXPORT void set_global_assert_handler(global_assert_handler_ptr handler);
 CORE_API_EXPORT global_assert_handler_ptr get_global_assert_handler();
 
@@ -31,14 +31,13 @@ CORE_API_EXPORT global_assert_handler_ptr get_global_assert_handler();
         // or exists the program in some other way.
         #define Assert(...) C_VFUNC(Assert, __VA_ARGS__)
         #define Assert1(expr) Assert2(expr, "")
-        #define Assert2(expr, msg)                                                                        \
-            if (!(expr)) {                                                                                \
-                if (core::get_global_assert_handler()) {                                                  \
-                    bool shouldCrash = core::get_global_assert_handler()(#expr, __FILE__, __LINE__, msg); \
-                    if (shouldCrash) *(volatile coretypes::i32 *)0 = 0;                                   \
-                } else {                                                                                  \
-                    *(volatile coretypes::i32 *)0 = 0;                                                    \
-                }                                                                                         \
+        #define Assert2(expr, msg)                                                     \
+            if (!(expr)) {                                                             \
+                if (core::get_global_assert_handler()) {                               \
+                    core::get_global_assert_handler()(#expr, __FILE__, __LINE__, msg); \
+                } else {                                                               \
+                    *(volatile coretypes::i32 *)0 = 0;                                 \
+                }                                                                      \
             }
     #endif
 #else

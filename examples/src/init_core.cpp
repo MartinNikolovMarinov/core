@@ -35,7 +35,6 @@ void initCore(i32 argc, const char** argv) {
                     failedExpr, file, line, errMsg);
         fmt::print(fmt::emphasis::bold, "[TRACE]:\n{}\n", trace);
         throw std::runtime_error("Assertion failed!");
-        return false;
     });
 
     core::rnd_init();

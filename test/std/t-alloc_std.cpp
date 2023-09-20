@@ -71,7 +71,7 @@ i32 stats_allocator_basic_case_tests() {
     }
 
     {
-        void* data = statsStdAllocator.calloc(1, 10);
+        void* data = statsStdAllocator.calloc(10, sizeof(char));
         Assert(data != nullptr);
         Assert(statsStdAllocator.used_mem() == 25);
         statsStdAllocator.free(data);

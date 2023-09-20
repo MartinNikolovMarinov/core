@@ -94,14 +94,15 @@ std_stats_allocator::~std_stats_allocator() {
 namespace {
 
 template <bool TUseCalloc>
-void* allocation_impl(std_stats_allocator& ssa, addr_size size, addr_size nmemb = 0) {
+void* allocation_impl(std_stats_allocator& ssa, addr_size size, addr_size count = 0) {
     using details::alloced_block;
 
     if (size == 0) return nullptr;
 
     void* addr = nullptr;
     if constexpr (TUseCalloc) {
-        addr = std::calloc(nmemb, size);
+        addr = std::calloc(count, size);
+        size *= count;
     } else {
         addr = std::malloc(size);
     }
@@ -131,8 +132,8 @@ void* std_stats_allocator::alloc(addr_size size) noexcept {
     return allocation_impl<false>(*this, size);
 }
 
-void* std_stats_allocator::calloc(addr_size nmemb, addr_size size) noexcept {
-    return allocation_impl<true>(*this, size, nmemb);
+void* std_stats_allocator::calloc(addr_size count, addr_size size) noexcept {
+    return allocation_impl<true>(*this, size, count);
 }
 
 void std_stats_allocator::free(void* ptr) noexcept {

@@ -16,13 +16,30 @@ struct tuple<T1, T2> {
 
     template <i32 TIdx>
     constexpr auto& get() {
-        if      constexpr (TIdx == 0) return v1;
-        else if constexpr (TIdx == 1) return v2;
+        if constexpr (TIdx == 0) {
+            return v1;
+        }
+        else if constexpr (TIdx == 1) {
+            return v2;
+        }
+        else {
+            static_assert(core::always_false<T1>, "Invalid get index.");
+            return v1;
+        }
     }
+
     template <i32 TIdx>
     constexpr const auto& get() const {
-        if      constexpr (TIdx == 0) return v1;
-        else if constexpr (TIdx == 1) return v2;
+        if constexpr (TIdx == 0) {
+            return v1;
+        }
+        else if constexpr (TIdx == 1) {
+            return v2;
+        }
+        else {
+            static_assert(core::always_false<T1>, "Invalid get index.");
+            return v1;
+        }
     }
 
     T1 v1;
@@ -35,15 +52,36 @@ struct tuple<T1, T2, T3> {
 
     template <i32 TIdx>
     constexpr auto& get() {
-        if      constexpr (TIdx == 0) return v1;
-        else if constexpr (TIdx == 1) return v2;
-        else if constexpr (TIdx == 2) return v3;
+        if constexpr (TIdx == 0) {
+            return v1;
+        }
+        else if constexpr (TIdx == 1) {
+            return v2;
+        }
+        else if constexpr (TIdx == 2) {
+            return v3;
+        }
+        else {
+            static_assert(core::always_false<T1>, "Invalid get index.");
+            return v1;
+        }
     }
+
     template <i32 TIdx>
     constexpr const auto& get() const {
-        if      constexpr (TIdx == 0) return v1;
-        else if constexpr (TIdx == 1) return v2;
-        else if constexpr (TIdx == 2) return v3;
+        if constexpr (TIdx == 0) {
+            return v1;
+        }
+        else if constexpr (TIdx == 1) {
+            return v2;
+        }
+        else if constexpr (TIdx == 2) {
+            return v3;
+        }
+        else {
+            static_assert(core::always_false<T1>, "Invalid get index.");
+            return v1;
+        }
     }
 
     T1 v1;
@@ -57,17 +95,42 @@ struct tuple<T1, T2, T3, T4> {
 
     template <i32 TIdx>
     constexpr auto& get() {
-        if      constexpr (TIdx == 0) return v1;
-        else if constexpr (TIdx == 1) return v2;
-        else if constexpr (TIdx == 2) return v3;
-        else if constexpr (TIdx == 3) return v4;
+        if constexpr (TIdx == 0) {
+            return v1;
+        }
+        else if constexpr (TIdx == 1) {
+            return v2;
+        }
+        else if constexpr (TIdx == 2) {
+            return v3;
+        }
+        else if constexpr (TIdx == 3) {
+            return v4;
+        }
+        else {
+            static_assert(core::always_false<T1>, "Invalid get index.");
+            return v1;
+        }
     }
+
     template <i32 TIdx>
     constexpr const auto& get() const {
-        if      constexpr (TIdx == 0) return v1;
-        else if constexpr (TIdx == 1) return v2;
-        else if constexpr (TIdx == 2) return v3;
-        else if constexpr (TIdx == 3) return v4;
+        if constexpr (TIdx == 0) {
+            return v1;
+        }
+        else if constexpr (TIdx == 1) {
+            return v2;
+        }
+        else if constexpr (TIdx == 2) {
+            return v3;
+        }
+        else if constexpr (TIdx == 3) {
+            return v4;
+        }
+        else {
+            static_assert(core::always_false<T1>, "Invalid get index.");
+            return v1;
+        }
     }
 
     T1 v1;
@@ -86,8 +149,11 @@ constexpr tuple<TArgs...> create_tuple(TArgs&&... args) {
     else if constexpr (NArgs == 3) {
         return tuple<TArgs...>{ core::forward<TArgs>(args)... };
     }
-    else {
+    else if constexpr (NArgs == 4) {
         return tuple<TArgs...>{ core::forward<TArgs>(args)... };
+    }
+    else {
+        static_assert(core::always_false<TArgs...>, "Can't create tuple with that many arguments.");
     }
 }
 

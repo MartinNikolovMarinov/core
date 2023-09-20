@@ -166,17 +166,22 @@ constexpr auto force_consteval = V;
 
 template <typename T>
 struct is_trivially_destructible {
+#if defined(COMPILER_GCC) && COMPILER_GCC == 1
+    // Gcc is a very special boy.
     static constexpr bool value = __has_trivial_destructor(T);
+#else
+    static constexpr bool value = __is_trivially_destructible(T);
+#endif
 };
 
 template <typename T>
 struct is_trivially_copyable {
-    static constexpr bool value = __has_trivial_copy(T);
+    static constexpr bool value = __is_trivially_copyable(T);
 };
 
-template <typename T>
+template <typename T, typename U>
 struct is_trivially_assignable {
-    static constexpr bool value = __has_trivial_assign(T);
+    static constexpr bool value = __is_trivially_assignable(T, U);
 };
 
 /**
@@ -233,8 +238,8 @@ template <typename T>
 inline constexpr bool is_trivially_destructible_v = is_trivially_destructible<T>::value;
 template <typename T>
 inline constexpr bool is_trivially_copyable_v = is_trivially_copyable<T>::value;
-template <typename T>
-inline constexpr bool is_trivially_assignable_v = is_trivially_assignable<T>::value;
+template <typename T, typename U>
+inline constexpr bool is_trivially_assignable_v = is_trivially_assignable<T, U>::value;
 template <typename T>
 inline constexpr bool is_standard_layout_v = is_standard_layout<T>::value;
 template <typename T>

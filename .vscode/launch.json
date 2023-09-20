@@ -29,6 +29,7 @@
             "preLaunchTask": "Build with Makefile",
             "miDebuggerPath": "/usr/bin/gdb"
         },
+
         {
             "name": "Debug Test with LLDB",
             "type": "lldb",
@@ -40,8 +41,21 @@
             "env": {},
             "preLaunchTask": "Build with Makefile",
         },
+
         {
-            "name": "Debug examples with Makefile",
+            "name": "Debug Sandbox with LLDB",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/sandbox",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopOnEntry": false,
+            "env": {},
+            "preLaunchTask": "Build with Makefile",
+        },
+        
+        {
+            "name": "Debug Examples with Makefile",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/examples/build/main",

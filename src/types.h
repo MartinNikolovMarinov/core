@@ -6,8 +6,6 @@
     which is the reason it is in a namespace separate from the rest of the code.
 */
 
-// TODO2: [x86_64 DEPENDENCY] Some of these constants might be x86_64 specific.
-
 // Include system defaults.
 #include <stdint.h>
 #include <stddef.h>

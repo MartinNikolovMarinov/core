@@ -1,25 +1,25 @@
 struct std_allocator_static {
-    static core::std_stats_allocator stdAlloc;
+    static core::std_stats_allocator stdStatsAlloc;
 
     static void* alloc(addr_size size) noexcept {
-        return stdAlloc.alloc(size);
+        return stdStatsAlloc.alloc(size);
     }
 
     static void* calloc(addr_size count, addr_size size) noexcept {
-        return stdAlloc.calloc(count, size);
+        return stdStatsAlloc.calloc(count, size);
     }
 
     static void free(void* ptr) noexcept {
-        stdAlloc.free(ptr);
+        stdStatsAlloc.free(ptr);
     }
 
     static addr_size used_mem() noexcept {
-        return stdAlloc.used_mem();
+        return stdStatsAlloc.used_mem();
     }
 
     static const char* allocator_name() noexcept {
-        return stdAlloc.allocator_name();
+        return stdStatsAlloc.allocator_name();
     }
 };
 
-core::std_stats_allocator std_allocator_static::stdAlloc;
+core::std_stats_allocator std_allocator_static::stdStatsAlloc;

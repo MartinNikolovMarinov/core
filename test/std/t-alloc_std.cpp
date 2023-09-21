@@ -27,6 +27,14 @@ i32 basic_std_allocator_case() {
     Assert(ts->b == 0.0f);
     stdAlloc.free(ts);
 
+    for (i32 i = 1; i < 100; ++i) {
+        char* dcptr = reinterpret_cast<char*>(stdAlloc.calloc(addr_size(i), sizeof(char)));
+        for (i32 j = 0; j < i; ++j) {
+            Assert(dcptr[j] == 0, "Calloc is not zeroing memory.");
+        }
+        stdAlloc.free(dcptr);
+    }
+
     return 0;
 }
 
@@ -74,10 +82,10 @@ i32 stats_allocator_basic_case_tests() {
         void* data = statsStdAllocator.calloc(10, sizeof(char));
         Assert(data != nullptr);
         Assert(statsStdAllocator.used_mem() == 25);
+        char buff[10] = {};
+        Assert(core::memcmp(data, buff, 10) == 0, "Memory should be zeroed out.");
         statsStdAllocator.free(data);
         Assert(statsStdAllocator.used_mem() == 15);
-        char buff[10] = {};
-        Assert(core::memcmp(data, buff, 10) == 0);
     }
 
     statsStdAllocator.clear();

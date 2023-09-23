@@ -159,7 +159,7 @@ CORE_API_EXPORT expected<file_stat, plt_err_code> os_fstat(file_desc fd);
 CORE_API_EXPORT expected<addr_off, plt_err_code> os_seek(file_desc fd, addr_off offset, seek_origin origin);
 
 template <typename TWalkerFn>
-expected<plt_err_code> os_dir_walk(file_desc fd, const TWalkerFn& cb);
+expected<plt_err_code> os_dir_walk(const char* path, const TWalkerFn& cb);
 
 using AtExitCb = void (*)(i32 exitCode);
 

@@ -8,15 +8,15 @@
 #include "t-bbox.cpp"
 #include "t-io.cpp"
 
-// FIXME: The platform layer needs more work for Windows and Mac M1 devices.
-#if (defined(OS_LINUX) && OS_LINUX == 1)
+// TODO: The Windows implementation of the plt layer is still pending.
+#if (!defined(OS_WINDOWS) || OS_WINDOWS == 0)
     #include "t-plt.cpp"
     #include "t-stacktrace.cpp"
 #endif
 
 i32 run_all_std_tests() {
     RunTestSuite(run_std_allocator_tests_suite);
-#if (defined(OS_LINUX) && OS_LINUX == 1)
+#if (!defined(OS_WINDOWS) || OS_WINDOWS == 0)
     RunTestSuite(run_plt_tests_suite);
     RunTestSuite(run_stacktrace_tests_suite);
 #endif

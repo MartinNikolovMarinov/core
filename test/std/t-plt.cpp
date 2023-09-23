@@ -96,19 +96,19 @@ void __delete_testdir(const char* path) {
     __check_verbose_os_err(core::os_rmdir(path));
 }
 
-i64 __write_small_testmsg(core::file_desc fdesc, const char* msg, i32 msgLen) {
+i64 __write_small_testmsg(core::file_desc fdesc, const char* msg, addr_size msgLen) {
     i64 bytesWritten = 0;
     auto res = core::os_write(fdesc, msg, msgLen, bytesWritten);
     __check_verbose_os_err(res);
-    Assert(bytesWritten == msgLen);
+    Assert(bytesWritten == i64(msgLen));
     return bytesWritten;
 }
 
-i64 __read_small_testmsg(core::file_desc fdesc, char* buf, i32 bufLen) {
+i64 __read_small_testmsg(core::file_desc fdesc, char* buf, addr_size bufLen) {
     i64 bytesRead = 0;
     auto res = core::os_read(fdesc, buf, bufLen, bytesRead);
     __check_verbose_os_err(res);
-    Assert(bytesRead == bufLen);
+    Assert(bytesRead == i64(bufLen));
     return bytesRead;
 }
 
@@ -249,18 +249,18 @@ i32 os_walk_directories_test() {
 
     // Walk the test data directory:
     {
-        auto rootDir = ValueOrDie(core::os_opendir(PATH_TO_TEST_DATA));
-        defer { __close_testf(rootDir); };
+        const char* rootDir = PATH_TO_TEST_DATA;
         i32 counter = 0;
         struct dirEntry {
             core::file_type type;
             char name[core::MAX_FILE_LENGTH];
         };
         dirEntry rootEntries[3] = {};
-        core::os_dir_walk(rootDir, [&](const core::dir_entry& de) {
+        core::os_dir_walk(rootDir, [&](const core::dir_entry& de) -> bool {
             dirEntry& entry = rootEntries[counter++];
             entry.type = de.type;
             core::cptr_copy(entry.name, de.name, core::cptr_len(de.name));
+            return true;
         });
 
         Assert(counter == 3);

@@ -215,7 +215,7 @@ constexpr T abs_slow(T a) {
 constexpr f32 abs(f32 a) {
     IS_CONST_EVALUATED { return abs_slow(a); }
     else {
-        // NOTE: This is pretty fast branchless check. Its collapsed to a single instruction on x86 and ARM by most compilers.
+        // NOTE: This is pretty fast branchless check. It's collapsed to a single instruction on x86 and ARM by most compilers.
         i32* ip = reinterpret_cast<i32*>(&a);
         *ip &= 0x7fffffff;
         return a;
@@ -245,7 +245,7 @@ GUARD_FN_TYPE_DEDUCTION(abs);
 constexpr bool is_positive(f32 a) {
     IS_CONST_EVALUATED { return a >= 0; }
     else {
-        // NOTE: This is pretty fast branchless check. Its collapsed to a single instruction on x86 and ARM by most compilers.
+        // NOTE: This is pretty fast branchless check. It's collapsed to a single instruction on x86 and ARM by most compilers.
         i32* ip = reinterpret_cast<i32*>(&a);
         *ip = (*ip >> 31) << 1;
         return *ip == 0;

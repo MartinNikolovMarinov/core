@@ -172,6 +172,14 @@ expected<plt_err_code> os_close(file_desc fd) {
     return {};
 }
 
+expected<plt_err_code> os_truncate(file_desc fd, addr_size size) {
+    i32 res = ftruncate(i32(fd.to_u64()), size);
+    if (res < 0) {
+        return unexpected(plt_err_code(errno));
+    }
+    return {};
+}
+
 expected<plt_err_code> os_rmfile(const char* path) {
     i32 res = unlink(path);
     if (res < 0) {
@@ -280,6 +288,19 @@ expected<addr_off, plt_err_code> os_seek(file_desc fd, addr_off offset, seek_ori
         return unexpected(plt_err_code(errno));
     }
     return addr_off(res);
+}
+
+expected<plt_err_code> os_flush(file_desc fd) {
+#if defined(OS_MAC) && OS_MAC == 1
+    i32 res = fcntl(i32(fd.to_u64()), F_FULLFSYNC);
+#else
+    i32 res = fsync(i32(fd.to_u64()));
+#endif
+
+    if (res < 0) {
+        return unexpected(plt_err_code(errno));
+    }
+    return {};
 }
 
 namespace {

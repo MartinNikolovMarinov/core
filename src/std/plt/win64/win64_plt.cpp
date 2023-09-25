@@ -43,6 +43,10 @@ expected<plt_err_code> os_rmfile(const char*) {
 expected<plt_err_code> os_rmdir(const char*) {
     return unexpected(0);
 }
+expected<plt_err_code> os_flush(file_desc fd) {
+    // TODO: Use FlushFileBuffers for this !
+    return unexpected(0);
+}
 
 namespace {
 AtExitCb g_atExit;

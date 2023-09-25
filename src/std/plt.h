@@ -150,6 +150,7 @@ CORE_API_EXPORT expected<file_desc, plt_err_code> os_opendir(const char* path);
 CORE_API_EXPORT expected<plt_err_code> os_read(file_desc fd, void* buf, u64 size, i64& bytesRead);
 CORE_API_EXPORT expected<plt_err_code> os_write(file_desc fd, const void* buf, u64 size, i64& bytesWritten);
 CORE_API_EXPORT expected<plt_err_code> os_close(file_desc fd);
+CORE_API_EXPORT expected<plt_err_code> os_truncate(file_desc fd, addr_size size);
 CORE_API_EXPORT expected<plt_err_code> os_rmfile(const char* path);
 CORE_API_EXPORT expected<plt_err_code> os_mkdir(const char* path, const file_access_group& access = default_dir_access_group());
 CORE_API_EXPORT expected<plt_err_code> os_rmdir(const char* path);
@@ -157,6 +158,11 @@ CORE_API_EXPORT expected<bool, plt_err_code> os_exists(const char* path);
 CORE_API_EXPORT expected<file_stat, plt_err_code> os_stat(const char* path);
 CORE_API_EXPORT expected<file_stat, plt_err_code> os_fstat(file_desc fd);
 CORE_API_EXPORT expected<addr_off, plt_err_code> os_seek(file_desc fd, addr_off offset, seek_origin origin);
+CORE_API_EXPORT expected<plt_err_code> os_flush(file_desc fd);
+
+// TODO2: [Performance] At some point positonal os_pread and os_pwrite might be useful? They can reduce the need for seek calls in some cases.
+// TODO2: [Performance] I might want to implement an interface for scatter/gather IO. I might want to separate such an API from the plt layer.
+//                      The right set of system calls must be chosen for each platform after extensive performance testing.
 
 template <typename TWalkerFn>
 expected<plt_err_code> os_dir_walk(const char* path, const TWalkerFn& cb);

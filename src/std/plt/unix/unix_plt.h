@@ -6,6 +6,7 @@
 #include <char_ptr.h>
 #include <utils.h>
 
+#include <stdio.h>
 #include <cstring>
 #include <dirent.h>
 #include <errno.h>
@@ -18,6 +19,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/ioctl.h>
 
 namespace core {
 

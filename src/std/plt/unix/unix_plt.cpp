@@ -148,6 +148,10 @@ expected<file_desc, plt_err_code> os_opendir(const char* path) {
     return os_open(path, { access, flags, osflags});
 }
 
+expected<file_desc, plt_err_code> os_opencwd() {
+    return os_opendir(".");
+}
+
 expected<plt_err_code> os_read(file_desc fd, void* buf, u64 size, i64& bytesRead) {
     bytesRead = read(i32(fd.to_u64()), buf, size);
     if (bytesRead < 0) {
@@ -172,7 +176,7 @@ expected<plt_err_code> os_close(file_desc fd) {
     return {};
 }
 
-expected<plt_err_code> os_truncate(file_desc fd, addr_size size) {
+expected<plt_err_code> os_truncate(file_desc fd, addr_off size) {
     i32 res = ftruncate(i32(fd.to_u64()), size);
     if (res < 0) {
         return unexpected(plt_err_code(errno));
@@ -199,6 +203,22 @@ expected<plt_err_code> os_mkdir(const char* path, const file_access_group& acces
 
 expected<plt_err_code> os_rmdir(const char* path) {
     i32 res = rmdir(path);
+    if (res < 0) {
+        return unexpected(plt_err_code(errno));
+    }
+    return {};
+}
+
+expected<plt_err_code> os_chdir(const char* path) {
+    i32 res = chdir(path);
+    if (res < 0) {
+        return unexpected(plt_err_code(errno));
+    }
+    return {};
+}
+
+expected<plt_err_code> os_fchdir(file_desc fd) {
+    i32 res = fchdir(i32(fd.to_u64()));
     if (res < 0) {
         return unexpected(plt_err_code(errno));
     }
@@ -297,6 +317,23 @@ expected<plt_err_code> os_flush(file_desc fd) {
     i32 res = fsync(i32(fd.to_u64()));
 #endif
 
+    if (res < 0) {
+        return unexpected(plt_err_code(errno));
+    }
+    return {};
+}
+
+expected<plt_err_code> os_rename(const char* oldPath, const char* newPath) {
+    i32 res = rename(oldPath, newPath);
+    if (res < 0) {
+        return unexpected(plt_err_code(errno));
+    }
+    return {};
+}
+
+expected<plt_err_code> os_access(file_desc fd, const file_access_group& access) {
+    mode_t mode = file_access_to_osmode(access);
+    i32 res = fchmod(i32(fd.to_u64()), mode);
     if (res < 0) {
         return unexpected(plt_err_code(errno));
     }

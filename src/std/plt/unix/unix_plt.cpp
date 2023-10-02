@@ -22,7 +22,7 @@ expected<void*, plt_err_code> os_alloc_pages(addr_size size) {
 
 expected<plt_err_code> os_dealloc_pages(void *addr, addr_size size) {
     if (addr == nullptr) {
-        return unexpected(OS_DEALLOC_NULL_ADDR_ERR);
+        return unexpected(ERR_OS_DEALLOC_NULL_ADDR_ERR);
     }
     i32 ret = munmap(addr, size);
     if (ret < 0) {

@@ -62,7 +62,7 @@ if(CORE_USE_CPPCHECK)
     # IMPORTANT: This makes compilation incredibly slow!
     find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
     if(CMAKE_CXX_CPPCHECK)
-        list(APPEND CMAKE_CXX_CPPCHECK 
+        list(APPEND CMAKE_CXX_CPPCHECK
                 "--enable=all"
                 "--inconclusive"
                 "--inline-suppr"
@@ -143,11 +143,13 @@ set(src_files
     src/std/lines.h
     src/std/mat.h
     src/std/once.h
+    src/std/plt_error.h
     src/std/plt.h
     src/std/projections.cpp
     src/std/projections.h
     src/std/stacktrace.h
     src/std/stringer.h
+    src/std/threading.h
     src/std/transforms.h
     src/std/vec.h
 
@@ -163,12 +165,14 @@ if(OS STREQUAL "linux")
         src/std/plt/unix/unix_plt.h
         src/std/plt/unix/unix_plt.cpp
         src/std/plt/unix/unix_stacktrace.cpp
+        src/std/plt/unix/unix_threading.cpp
     )
 elseif(OS STREQUAL "darwin")
     set(src_files ${src_files}
         src/std/plt/unix/unix_plt.h
         src/std/plt/unix/unix_plt.cpp
         src/std/plt/unix/unix_stacktrace.cpp
+        src/std/plt/unix/unix_threading.cpp
     )
 elseif(OS STREQUAL "windows")
     set(src_files ${src_files}
@@ -222,11 +226,11 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 
 # BEGIN Compile Options
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR 
-   CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
+   CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
    CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     # Use -Werror if you want to treat warnings as errors. For large code refactor that might be prefereable.
-    set(mm_core_common_flags -std=c++17
+    set(mm_core_common_flags -std=c++17 -pthread
         -Wall -Wextra -Wfatal-errors -Wuninitialized -Wconversion
         -Wdouble-promotion -Wswitch-enum -Wundef
         -Wno-unknown-pragmas -Wno-unused-function -Wno-variadic-macros
@@ -273,10 +277,10 @@ if(CORE_BUILD_TESTS)
     )
 
     # Compile options
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR 
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
        CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
        CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-        set(mm_test_common_flags -std=c++17 -g -ggdb
+        set(mm_test_common_flags -std=c++17 -g -ggdb -pthread
             -Wall -Wextra -Wfatal-errors -Wuninitialized -Wconversion
             -Wdouble-promotion -Wswitch-enum -Wundef
             -Wno-unknown-pragmas -Wno-variadic-macros

@@ -5,20 +5,13 @@
 #include <expected.h>
 #include <system_checks.h>
 #include <io.h>
+#include <std/plt_error.h>
 
 #include <limits.h>
 
 namespace core {
 
 using namespace coretypes;
-
-using plt_err_code = i64;
-
-namespace detail {
-constexpr plt_err_code OS_CUSTOM_ERROR_START = plt_err_code(0xffffffff00000000); // Custom library errors start from this value.
-}
-
-constexpr plt_err_code OS_DEALLOC_NULL_ADDR_ERR = detail::OS_CUSTOM_ERROR_START + 1;
 
 constexpr u32 MAX_FILE_LENGTH = NAME_MAX;
 constexpr u32 MAX_PATH_LENGTH = PATH_MAX;

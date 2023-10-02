@@ -34,7 +34,7 @@ i32 os_alloc_de_alloc_pages_test() {
     {
         auto deallocErr = core::os_dealloc_pages(nullptr, 1024);
         Assert(deallocErr.has_err());
-        Assert(deallocErr.err() == core::OS_DEALLOC_NULL_ADDR_ERR, "error code equality check should work bi-directionally");
+        Assert(deallocErr.err() == core::ERR_OS_DEALLOC_NULL_ADDR_ERR, "error code equality check should work bi-directionally");
     }
 
     return 0;

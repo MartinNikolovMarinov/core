@@ -11,5 +11,7 @@
 #include "plt.h"
 #include "projections.h"
 #include "stacktrace.h"
+#include "threading.h"
 #include "transforms.h"
 #include "vec.h"
+#include "plt_error.h"

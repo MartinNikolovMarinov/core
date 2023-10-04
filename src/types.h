@@ -28,6 +28,7 @@ using schar     = signed char;
 using addr_size = u64;
 using addr_off  = i64;
 using rune      = char32_t; // Runes represent a single UTF-32 encoded character.
+using thread_id = u64;
 
 // Max unsigned integer constants
 static constexpr u64 MAX_U64 = static_cast<u64>(0xFFFFFFFFFFFFFFFF);           // 18446744073709551615

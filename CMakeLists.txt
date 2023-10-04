@@ -142,7 +142,6 @@ set(src_files
     src/std/fs.h
     src/std/lines.h
     src/std/mat.h
-    src/std/once.h
     src/std/plt_error.h
     src/std/plt.h
     src/std/projections.cpp

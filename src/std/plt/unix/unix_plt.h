@@ -6,20 +6,22 @@
 #include <char_ptr.h>
 #include <utils.h>
 
-#include <stdio.h>
 #include <cstring>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <pthread.h>
+#include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
+#include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <sys/ioctl.h>
+#include <time.h>
+#include <unistd.h>
 
 namespace core {
 
@@ -62,18 +64,18 @@ inline dir_entry to_dir_entry(const dirent& d) {
 template <typename TWalkerFn>
 expected<plt_err_code> os_dir_walk(const char* path, const TWalkerFn& cb) {
 
-    // IMPORTANT: 
+    // IMPORTANT:
     //
     // Big thanks to the MacOS developers.
     //
-    // readdir_r and getdirentries are both depricated on Mac so do NOT use them! 
+    // readdir_r and getdirentries are both depricated on Mac so do NOT use them!
     // Very unfortunelty the std directory api forces dynamic memory allocation and it does it under the hood without giving any control over how it happens.
     // I hope some std implementations don't allocate memory, but musl, for example, does.
     //
     // Another very annoying thing:
     //
-    // If this functions needs to be extended to use file_desc it needs to copy the underlining fd! 
-    // The DIR* created from fdreaddir uses the same fd that it is passed. That is fine, but it also allcoates memory for DIR* and that memory is freed by 
+    // If this functions needs to be extended to use file_desc it needs to copy the underlining fd!
+    // The DIR* created from fdreaddir uses the same fd that it is passed. That is fine, but it also allcoates memory for DIR* and that memory is freed by
     // closedir. So I can't just use close on the file descriptor. After I use opendir I have to use closedir, which complicates the API. It can, possibly
     // be implemented with some more involved abstraction layer, but that defeates the pourpuse of the plt layer, which I want to remain as tin as possible!
     //

@@ -2,10 +2,10 @@
 
 namespace core {
 
-file_desc::file_desc()           : desc((void*)(-1)) {}
-file_desc::file_desc(void* desc) : desc(desc) {}
+file_desc::file_desc()             : native((void*)(-1)) {}
+file_desc::file_desc(void* native) : native(native) {}
 
-u64 file_desc::to_u64() { return (u64)desc; }
+u64 file_desc::to_u64() { return (u64)native; }
 
 expected<void*, plt_err_code> os_alloc_pages(addr_size size) {
     // flags - memory is private copy-on-write and is not backed by a file, i.e. anonymous
@@ -341,20 +341,87 @@ expected<plt_err_code> os_access(file_desc fd, const file_access_group& access) 
 }
 
 namespace {
-AtExitCb g_atExit;
-} // namespace
 
-void os_exit(i32 exitCode) {
-    if (g_atExit) g_atExit(exitCode);
-    _exit(exitCode);
+i32 to_native_signal(core_signal sig) {
+    switch (sig) {
+        case core_signal::CORE_SIGABRT: return SIGABRT;
+        case core_signal::CORE_SIGFPE:  return SIGFPE;
+        case core_signal::CORE_SIGILL:  return SIGILL;
+        case core_signal::CORE_SIGINT:  return SIGINT;
+        case core_signal::CORE_SIGSEGV: return SIGSEGV;
+        case core_signal::CORE_SIGTERM: return SIGTERM;
+        case core_signal::CORE_SIGKILL: return SIGKILL;
+        case core_signal::CORE_SIGSTOP: return SIGSTOP;
+
+        case core_signal::SENTINEL: return -1;
+    }
+
+    return -1;
 }
 
-void at_exit(AtExitCb atExit) {
-    g_atExit = atExit;
+core_signal from_native_signal(i32 sig) {
+    switch (sig) {
+        case SIGABRT: return core_signal::CORE_SIGABRT;
+        case SIGFPE:  return core_signal::CORE_SIGFPE;
+        case SIGILL:  return core_signal::CORE_SIGILL;
+        case SIGINT:  return core_signal::CORE_SIGINT;
+        case SIGSEGV: return core_signal::CORE_SIGSEGV;
+        case SIGTERM: return core_signal::CORE_SIGTERM;
+        case SIGKILL: return core_signal::CORE_SIGKILL;
+        case SIGSTOP: return core_signal::CORE_SIGSTOP;
+
+        default: return core_signal::SENTINEL;
+    }
+
+    return core_signal::SENTINEL;
+}
+
+} // namespace
+
+expected<plt_err_code> os_send_signal(core_signal sig, thread_id threadId) {
+    i32 nsig = to_native_signal(sig);
+    if (nsig < 0) {
+        return unexpected(ERR_OS_UNSUPPORTED_SIGNAL);
+    }
+
+    i32 res;
+    if (threadId == 0) {
+        res = raise(nsig);
+    }
+    else {
+        // I can technically use the system thread id and the kill system call, but that will be inconsistent with the
+        // threading library.
+        res = pthread_kill(pthread_t(threadId), nsig);
+    }
+
+    if (res < 0) {
+        return unexpected(plt_err_code(res));
+    }
+
+    return {};
+}
+
+expected<signal_handler, plt_err_code> os_register_signal_handler(core_signal sig, signal_handler handler) {
+    i32 nsig = to_native_signal(sig);
+    if (nsig < 0) {
+        return unexpected(ERR_OS_UNSUPPORTED_SIGNAL);
+    }
+
+    signal_handler prevHandler = signal(nsig, handler);
+    if (prevHandler == SIG_ERR) {
+        return unexpected(plt_err_code(errno));
+    }
+
+    return prevHandler;
 }
 
 const char* os_get_err_cptr(plt_err_code err) {
-    return std::strerror(i32(err));
+    if (err < detail::ERR_START_OF_CUSTOM_ERRORS) {
+        return std::strerror(i32(err));
+    }
+
+    auto res = custom_plt_err_code_to_cptr(err);
+    return res;
 }
 
 } // namespace core

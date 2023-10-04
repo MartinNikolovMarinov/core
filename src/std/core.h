@@ -7,7 +7,6 @@
 #include "fs.h"
 #include "lines.h"
 #include "mat.h"
-#include "once.h"
 #include "plt.h"
 #include "projections.h"
 #include "stacktrace.h"

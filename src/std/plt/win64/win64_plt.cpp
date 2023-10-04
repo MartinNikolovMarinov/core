@@ -6,10 +6,10 @@
 
 namespace core {
 
-file_desc::file_desc()           : desc((void*)(-1)) {}
-file_desc::file_desc(void* desc) : desc(desc) {}
+file_desc::file_desc()             : native((void*)(-1)) {}
+file_desc::file_desc(void* native) : native(native) {}
 
-u64 file_desc::to_u64() { return (u64)desc; }
+u64 file_desc::to_u64() { return (u64)native; }
 
 expected<void*, plt_err_code> os_alloc_pages(addr_size) {
     return unexpected(0);
@@ -46,19 +46,6 @@ expected<plt_err_code> os_rmdir(const char*) {
 expected<plt_err_code> os_flush(file_desc fd) {
     // TODO: Use FlushFileBuffers for this !
     return unexpected(0);
-}
-
-namespace {
-AtExitCb g_atExit;
-} // namespace
-
-void os_exit(i32 exitCode) {
-    if (g_atExit) g_atExit(exitCode);
-    return _exit(exitCode);
-}
-
-void at_exit(AtExitCb atExit) {
-    g_atExit = atExit;
 }
 
 const char* os_get_err_cptr(plt_err_code) {

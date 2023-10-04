@@ -25,10 +25,10 @@ CORE_API_EXPORT expected<plt_err_code>      os_thread_sleep(u64 ms);
 // file descriptor
 struct CORE_API_EXPORT file_desc {
     // Holds the OS specific file descriptor.
-    void* desc;
+    void* native;
 
     file_desc();
-    file_desc(void* desc);
+    file_desc(void* native);
     u64 to_u64();
 };
 
@@ -184,10 +184,23 @@ CORE_API_EXPORT expected<plt_err_code> os_access(file_desc fd, const file_access
 template <typename TWalkerFn>
 expected<plt_err_code> os_dir_walk(const char* path, const TWalkerFn& cb);
 
-using AtExitCb = void (*)(i32 exitCode);
+enum struct core_signal {
+    CORE_SIGABRT,  // Abnormal termination
+    CORE_SIGFPE,   // Floating-point error most likely caused by division by zero
+    CORE_SIGILL,   // Illegal instruction
+    CORE_SIGINT,   // CTRL+C signal
+    CORE_SIGSEGV,  // Illegal storage access most likely caused by dereferencing a bad/null pointer
+    CORE_SIGTERM,  // Termination request
+    CORE_SIGKILL,  // Kill the process
+    CORE_SIGSTOP,  // Stop the process
 
-CORE_API_EXPORT void os_exit(i32 exitCode);
-CORE_API_EXPORT void at_exit(AtExitCb atExit);
+    SENTINEL
+};
+
+using signal_handler = void (*)(i32 s);
+
+CORE_API_EXPORT expected<plt_err_code> os_send_signal(core_signal sig, thread_id threadId = 0);
+CORE_API_EXPORT expected<signal_handler, plt_err_code> os_register_signal_handler(core_signal sig, signal_handler handler);
 
 CORE_API_EXPORT const char* os_get_err_cptr(plt_err_code err);
 

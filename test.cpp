@@ -84,6 +84,8 @@ using namespace coretypes;
 //        * The code that gets time might also be moved ? Check if Windows will have a problem with that.
 //        * Replace the existing once with pthread_once and move it to the appropriate place.
 
+#include <signal.h>
+
 i32 main() {
     auto numCores = core::threading_get_num_cores();
     std::cout << ANSI_RED("[MAIN]: ") << "Number of cores: " << numCores.value() << std::endl;
@@ -123,7 +125,7 @@ i32 main() {
         });
         Assert(err.has_err());
         core::plt_err_code errCode = err.err();
-        Assert(errCode == core::ERR_THREAD_IS_ALREADY_RUNNING);
+        Assert(errCode == core::ERR_THREADING_THREAD_IS_ALREADY_RUNNING);
     }
     {
         auto err = core::thread_start(t2, nullptr, [](void*) -> void* {
@@ -141,6 +143,7 @@ i32 main() {
     //     auto err = core::thread_join(t1);
     //     Expect(err);
     // }
+
     // {
     //     auto err = core::thread_join(t2);
     //     Expect(err);

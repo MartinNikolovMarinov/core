@@ -24,9 +24,14 @@ using core_atomic_ptr = std::atomic<void*>;
 
 using thread_routine = void* (*)(void*);
 
+constexpr u32 MAX_THREAD_NAME_LENGTH = 32;
+
 CORE_API_EXPORT expected<i32, plt_err_code> threading_get_num_cores();
 CORE_API_EXPORT thread threading_get_current();
 CORE_API_EXPORT void threading_exit(i32 exitCode);
+CORE_API_EXPORT expected<plt_err_code> threading_sleep(u64 ms);
+CORE_API_EXPORT expected<plt_err_code> threading_set_name(const char* name);
+CORE_API_EXPORT expected<plt_err_code> threading_get_name(char out[MAX_THREAD_NAME_LENGTH]);
 
 CORE_API_EXPORT bool thread_is_running(const thread& t);
 CORE_API_EXPORT expected<plt_err_code> thread_start(thread& out, void* arg, thread_routine routine);
@@ -52,6 +57,8 @@ CORE_API_EXPORT expected<plt_err_code> mutex_lock(mutex& m);
 CORE_API_EXPORT expected<plt_err_code> mutex_trylock(mutex& m);
 CORE_API_EXPORT expected<plt_err_code> mutex_unlock(mutex& m);
 
+// TODO: Add Read/Write specific mutexes at some point.
+
 struct barrier;
 
 CORE_API_EXPORT expected<plt_err_code> barrier_init(barrier& out, u32 count);
@@ -66,6 +73,8 @@ CORE_API_EXPORT expected<plt_err_code> cond_var_wait(cond_var& cv, mutex& m);
 CORE_API_EXPORT expected<plt_err_code> cond_var_timed_wait(cond_var& cv, mutex& m, u64 timeoutMs);
 CORE_API_EXPORT expected<plt_err_code> cond_var_signal(cond_var& cv);
 CORE_API_EXPORT expected<plt_err_code> cond_var_broadcast(cond_var& cv);
+
+// TODO: Add Semaphores at some point.
 
 } // namespace core
 

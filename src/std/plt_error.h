@@ -25,6 +25,7 @@ constexpr plt_err_code ERR_OS_UNSUPPORTED_SIGNAL = detail::ERR_OS_CUSTOM_ERROR_S
 constexpr plt_err_code ERR_THREADING_THREAD_IS_NOT_STARTED = detail::ERR_THREAD_CUSTOM_ERROR_START + 0;
 constexpr plt_err_code ERR_THREADING_THREAD_IS_ALREADY_RUNNING = detail::ERR_THREAD_CUSTOM_ERROR_START + 1;
 constexpr plt_err_code ERR_THREADING_INVALID_MUTEX_TYPE = detail::ERR_THREAD_CUSTOM_ERROR_START + 2;
+constexpr plt_err_code ERR_THREADING_INVALID_THREAD_NAME = detail::ERR_THREAD_CUSTOM_ERROR_START + 3;
 
 constexpr char const* custom_plt_err_code_to_cptr(plt_err_code err) {
     if (err < detail::ERR_START_OF_CUSTOM_ERRORS) {
@@ -37,6 +38,7 @@ constexpr char const* custom_plt_err_code_to_cptr(plt_err_code err) {
 
         case ERR_THREADING_THREAD_IS_NOT_STARTED:     return "Thread is not started";
         case ERR_THREADING_THREAD_IS_ALREADY_RUNNING: return "Thread is already running";
+        case ERR_THREADING_INVALID_THREAD_NAME:       return "Invalid thread name";
 
         case ERR_THREADING_INVALID_MUTEX_TYPE: return "Invalid mutex type";
     }

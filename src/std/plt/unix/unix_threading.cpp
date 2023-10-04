@@ -1,5 +1,7 @@
 #include <std/plt/unix/unix_threading.h>
 
+#include <system_checks.h>
+
 namespace core {
 
 #pragma region THREADING
@@ -21,6 +23,60 @@ expected<i32, plt_err_code> threading_get_num_cores() {
 
 void threading_exit(i32 exitCode) {
     pthread_exit(reinterpret_cast<void*>(exitCode));
+}
+
+expected<plt_err_code> threading_sleep(u64 ms) {
+    struct timespec rem;
+    struct timespec req = {
+        u32((ms / 1000)),/* secs (Must be Non-Negative) */
+        u32((ms % 1000) * 1000000) /* nano (Must be in range of 0 to 999999999) */
+    };
+    i32 ret = nanosleep(&req , &rem);
+    if (ret < 0) {
+        return unexpected(plt_err_code(errno));
+    }
+    return {};
+}
+
+expected<plt_err_code> threading_set_name(const char* name) {
+    if (name == nullptr) {
+        return unexpected(ERR_THREADING_INVALID_THREAD_NAME);
+    }
+
+    u32 len = core::cptr_len(name);
+    if (len > MAX_THREAD_NAME_LENGTH) {
+        return unexpected(ERR_THREADING_INVALID_THREAD_NAME);
+    }
+
+#if OS_MAC == 1
+    i32 res = pthread_setname_np(name);
+#else
+    i32 res = pthread_setname_np(pthread_self(), name);
+#endif
+
+    if (res != 0) {
+        return unexpected(plt_err_code(res));
+    }
+
+    return {};
+}
+
+expected<plt_err_code> threading_get_name(char out[MAX_THREAD_NAME_LENGTH]) {
+    if (out == nullptr) {
+        return unexpected(ERR_THREADING_INVALID_THREAD_NAME);
+    }
+
+#if OS_MAC == 1
+    i32 res = pthread_getname_np(out, MAX_THREAD_NAME_LENGTH);
+#else
+    i32 res = pthread_getname_np(pthread_self(), out, MAX_THREAD_NAME_LENGTH);
+#endif
+
+    if (res != 0) {
+        return unexpected(plt_err_code(res));
+    }
+
+    return {};
 }
 
 namespace {

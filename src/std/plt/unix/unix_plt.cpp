@@ -42,19 +42,6 @@ expected<u64, plt_err_code> os_unix_time_stamp_in_ms() {
     return timeInMs;
 }
 
-expected<plt_err_code> os_thread_sleep(u64 ms) {
-    struct timespec rem;
-    struct timespec req = {
-        u32((ms / 1000)),/* secs (Must be Non-Negative) */
-        u32((ms % 1000) * 1000000) /* nano (Must be in range of 0 to 999999999) */
-    };
-    i32 ret = nanosleep(&req , &rem);
-    if (ret < 0) {
-        return unexpected(plt_err_code(errno));
-    }
-    return {};
-}
-
 namespace {
 static addr_size g_default_block_size = 4 * core::KILOBYTE;
 } // namespace

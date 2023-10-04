@@ -205,5 +205,98 @@ expected<plt_err_code> mutex_unlock(mutex& m) {
 
 #pragma endregion
 
+#pragma region BARRIER
+
+expected<plt_err_code> barrier_init(barrier& out, u32 count) {
+    i32 res = pthread_barrier_init(&out.native, nullptr, count);
+    if (res != 0) {
+        return unexpected(plt_err_code(res));
+    }
+
+    return {};
+}
+
+expected<plt_err_code> barrier_destroy(barrier& b) {
+    i32 res = pthread_barrier_destroy(&b.native);
+    if (res != 0) {
+        return unexpected(plt_err_code(res));
+    }
+
+    return {};
+}
+
+expected<plt_err_code> barrier_wait(barrier& b) {
+    i32 res = pthread_barrier_wait(&b.native);
+    if (res != 0 && res != PTHREAD_BARRIER_SERIAL_THREAD) {
+        return unexpected(plt_err_code(res));
+    }
+
+    return {};
+}
+
+#pragma endregion
+
+#pragma region CONDITIONAL VARIABLE
+
+expected<plt_err_code> cond_var_init(cond_var& out) {
+    i32 res = pthread_cond_init(&out.native, nullptr);
+    if (res != 0) {
+        return unexpected(plt_err_code(res));
+    }
+
+    return {};
+}
+
+expected<plt_err_code> cond_var_destroy(cond_var& cv) {
+    i32 res = pthread_cond_destroy(&cv.native);
+    if (res != 0) {
+        return unexpected(plt_err_code(res));
+    }
+
+    return {};
+}
+
+expected<plt_err_code> cond_var_wait(cond_var& cv, mutex& m) {
+    i32 res = pthread_cond_wait(&cv.native, &m.native);
+    if (res != 0) {
+        return unexpected(plt_err_code(res));
+    }
+
+    return {};
+}
+
+expected<plt_err_code> cond_var_timed_wait(cond_var& cv, mutex& m, u64 timeoutMs) {
+    timespec ts;
+    ts.tv_sec = timeoutMs / 1000;
+    ts.tv_nsec = (timeoutMs % 1000) * 1000000;
+
+    i32 res = pthread_cond_timedwait(&cv.native, &m.native, &ts);
+    if (res != 0) {
+        return unexpected(plt_err_code(res));
+    }
+
+    return {};
+}
+
+expected<plt_err_code> cond_var_signal(cond_var& cv) {
+    i32 res = pthread_cond_signal(&cv.native);
+    if (res != 0) {
+        return unexpected(plt_err_code(res));
+    }
+
+    return {};
+}
+
+expected<plt_err_code> cond_var_broadcast(cond_var& cv) {
+    i32 res = pthread_cond_broadcast(&cv.native);
+    if (res != 0) {
+        return unexpected(plt_err_code(res));
+    }
+
+    return {};
+}
+
+#pragma endregion
+
 } // namespace core
 

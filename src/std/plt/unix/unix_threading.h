@@ -15,4 +15,12 @@ struct mutex {
     mutex_type type;
 };
 
+struct barrier {
+    pthread_barrier_t native;
+};
+
+struct cond_var {
+    pthread_cond_t native;
+};
+
 } // namespace core

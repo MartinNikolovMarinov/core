@@ -52,6 +52,21 @@ CORE_API_EXPORT expected<plt_err_code> mutex_lock(mutex& m);
 CORE_API_EXPORT expected<plt_err_code> mutex_trylock(mutex& m);
 CORE_API_EXPORT expected<plt_err_code> mutex_unlock(mutex& m);
 
+struct barrier;
+
+CORE_API_EXPORT expected<plt_err_code> barrier_init(barrier& out, u32 count);
+CORE_API_EXPORT expected<plt_err_code> barrier_destroy(barrier& b);
+CORE_API_EXPORT expected<plt_err_code> barrier_wait(barrier& b);
+
+struct cond_var;
+
+CORE_API_EXPORT expected<plt_err_code> cond_var_init(cond_var& out);
+CORE_API_EXPORT expected<plt_err_code> cond_var_destroy(cond_var& cv);
+CORE_API_EXPORT expected<plt_err_code> cond_var_wait(cond_var& cv, mutex& m);
+CORE_API_EXPORT expected<plt_err_code> cond_var_timed_wait(cond_var& cv, mutex& m, u64 timeoutMs);
+CORE_API_EXPORT expected<plt_err_code> cond_var_signal(cond_var& cv);
+CORE_API_EXPORT expected<plt_err_code> cond_var_broadcast(cond_var& cv);
+
 } // namespace core
 
 #if OS_LINUX == 1 || OS_MAC == 1

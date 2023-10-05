@@ -27,7 +27,7 @@ using thread_routine = void* (*)(void*);
 constexpr u32 MAX_THREAD_NAME_LENGTH = 32;
 
 CORE_API_EXPORT expected<i32, plt_err_code> threading_get_num_cores();
-CORE_API_EXPORT thread threading_get_current();
+CORE_API_EXPORT void threading_get_current(thread& out);
 CORE_API_EXPORT void threading_exit(i32 exitCode);
 CORE_API_EXPORT expected<plt_err_code> threading_sleep(u64 ms);
 CORE_API_EXPORT expected<plt_err_code> threading_set_name(const char* name);

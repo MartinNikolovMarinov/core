@@ -20,7 +20,6 @@ CORE_API_EXPORT expected<void*, plt_err_code> os_alloc_pages(addr_size size);
 CORE_API_EXPORT expected<plt_err_code>        os_dealloc_pages(void *addr, addr_size size);
 
 CORE_API_EXPORT expected<u64, plt_err_code> os_unix_time_stamp_in_ms();
-CORE_API_EXPORT expected<plt_err_code>      os_thread_sleep(u64 ms);
 
 // file descriptor
 struct CORE_API_EXPORT file_desc {

@@ -81,13 +81,6 @@ expected<plt_err_code> threading_get_name(char out[MAX_THREAD_NAME_LENGTH]) {
 
 namespace {
 
-thread thread_from_native(pthread_t id) {
-    thread t;
-    auto pthreadId = reinterpret_cast<pthread_t*>(&t.native);
-    *pthreadId = id;
-    return t;
-}
-
 pthread_t thread_to_native(const thread& t) {
     auto pthreadId = reinterpret_cast<const pthread_t*>(&t.native);
     return *pthreadId;
@@ -95,14 +88,13 @@ pthread_t thread_to_native(const thread& t) {
 
 }
 
-thread threading_get_current() {
-    thread t = thread_from_native(pthread_self());
-    return t;
+void threading_get_current(thread& t) {
+    t.native = pthread_self();
 }
 
 bool thread_is_running(const thread& t) {
-    // FIXME: This absolutely needs to be thread safe!
-    return t.native != 0;
+    bool ret = (t.native != 0);
+    return ret;
 }
 
 expected<plt_err_code> thread_start(thread& out, void* arg, thread_routine routine) {
@@ -117,7 +109,7 @@ expected<plt_err_code> thread_start(thread& out, void* arg, thread_routine routi
         return unexpected(plt_err_code(res));
     }
 
-    out = thread_from_native(pthreadId);
+    out.native = pthreadId;
     return {};
 }
 

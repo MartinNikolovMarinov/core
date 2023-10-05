@@ -21,9 +21,6 @@ expected<plt_err_code> os_dealloc_pages(void*, addr_size) {
 expected<u64, plt_err_code> os_unix_time_stamp_in_ms() {
     return unexpected(0);
 }
-expected<plt_err_code> os_thread_sleep(u64) {
-    return unexpected(0);
-}
 
 expected<file_desc, plt_err_code> os_open(const char*, i32, i32) {
     return unexpected(0);

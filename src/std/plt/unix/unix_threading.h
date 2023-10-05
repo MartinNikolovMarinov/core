@@ -7,7 +7,7 @@
 namespace core {
 
 struct thread {
-    pthread_t native;
+    mutable std::atomic<pthread_t> native = 0;
 };
 
 struct mutex {

@@ -7,12 +7,6 @@ i32 get_time_test() {
     return 0;
 }
 
-i32 thread_sleep_test() {
-    Expect(core::os_thread_sleep(100));
-
-    return 0;
-}
-
 i32 os_alloc_de_alloc_pages_test() {
     auto res = core::os_alloc_pages(1024);
     Assert(res.has_value());
@@ -414,7 +408,6 @@ i32 os_fs_read_write_test() {
 
 i32 run_plt_tests_suite() {
     RunTest(get_time_test);
-    RunTest(thread_sleep_test);
     RunTest(os_alloc_de_alloc_pages_test);
 
     // Before starting the test suite, make sure the test data directory exists.

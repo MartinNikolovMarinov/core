@@ -12,6 +12,7 @@
 #if (!defined(OS_WINDOWS) || OS_WINDOWS == 0)
     #include "t-plt.cpp"
     #include "t-stacktrace.cpp"
+    #include "t-threading.cpp"
 #endif
 
 i32 run_all_std_tests() {
@@ -19,6 +20,7 @@ i32 run_all_std_tests() {
 #if (!defined(OS_WINDOWS) || OS_WINDOWS == 0)
     RunTestSuite(run_plt_tests_suite);
     RunTestSuite(run_stacktrace_tests_suite);
+    RunTestSuite(run_threading_tests_suite);
 #endif
     RunTestSuite(run_vec_tests_suite);
     RunTestSuite(run_transforms_tests_suite);

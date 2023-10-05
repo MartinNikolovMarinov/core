@@ -26,6 +26,7 @@ constexpr plt_err_code ERR_THREADING_THREAD_IS_NOT_STARTED = detail::ERR_THREAD_
 constexpr plt_err_code ERR_THREADING_THREAD_IS_ALREADY_RUNNING = detail::ERR_THREAD_CUSTOM_ERROR_START + 1;
 constexpr plt_err_code ERR_THREADING_INVALID_MUTEX_TYPE = detail::ERR_THREAD_CUSTOM_ERROR_START + 2;
 constexpr plt_err_code ERR_THREADING_INVALID_THREAD_NAME = detail::ERR_THREAD_CUSTOM_ERROR_START + 3;
+constexpr plt_err_code ERR_THREADING_MISSING_TLS_VALUE = detail::ERR_THREAD_CUSTOM_ERROR_START + 4;
 
 constexpr char const* custom_plt_err_code_to_cptr(plt_err_code err) {
     if (err < detail::ERR_START_OF_CUSTOM_ERRORS) {
@@ -39,8 +40,8 @@ constexpr char const* custom_plt_err_code_to_cptr(plt_err_code err) {
         case ERR_THREADING_THREAD_IS_NOT_STARTED:     return "Thread is not started";
         case ERR_THREADING_THREAD_IS_ALREADY_RUNNING: return "Thread is already running";
         case ERR_THREADING_INVALID_THREAD_NAME:       return "Invalid thread name";
-
-        case ERR_THREADING_INVALID_MUTEX_TYPE: return "Invalid mutex type";
+        case ERR_THREADING_INVALID_MUTEX_TYPE:        return "Invalid mutex type";
+        case ERR_THREADING_MISSING_TLS_VALUE:         return "Missing TLS value";
     }
 
     return "Unknown error";

@@ -80,6 +80,13 @@ using once_routine = void ();
 
 CORE_API_EXPORT expected<plt_err_code> do_once(once& o, once_routine routine);
 
+template <typename T> struct tl_storage; // Thread local storage
+
+template <typename T> expected<tl_storage<T>, plt_err_code> tl_storage_init();
+template <typename T> void tl_storage_destroy(tl_storage<T>& tls);
+template <typename T> expected<plt_err_code> tl_storage_set(tl_storage<T>& tls, T* value);
+template <typename T> expected<T*, plt_err_code> tl_storage_get(tl_storage<T>& tls);
+
 // TODO: Add Semaphores at some point.
 
 } // namespace core

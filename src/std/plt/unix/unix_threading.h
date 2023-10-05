@@ -23,4 +23,8 @@ struct cond_var {
     pthread_cond_t native;
 };
 
+struct once {
+    pthread_once_t native;
+};
+
 } // namespace core

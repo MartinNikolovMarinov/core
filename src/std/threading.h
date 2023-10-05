@@ -74,6 +74,12 @@ CORE_API_EXPORT expected<plt_err_code> cond_var_timed_wait(cond_var& cv, mutex& 
 CORE_API_EXPORT expected<plt_err_code> cond_var_signal(cond_var& cv);
 CORE_API_EXPORT expected<plt_err_code> cond_var_broadcast(cond_var& cv);
 
+struct once;
+
+using once_routine = void ();
+
+CORE_API_EXPORT expected<plt_err_code> do_once(once& o, once_routine routine);
+
 // TODO: Add Semaphores at some point.
 
 } // namespace core

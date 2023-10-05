@@ -43,7 +43,7 @@ expected<plt_err_code> threading_set_name(const char* name) {
         return unexpected(ERR_THREADING_INVALID_THREAD_NAME);
     }
 
-    u32 len = core::cptr_len(name);
+    addr_size len = core::cptr_len(name);
     if (len > MAX_THREAD_NAME_LENGTH) {
         return unexpected(ERR_THREADING_INVALID_THREAD_NAME);
     }
@@ -345,6 +345,19 @@ expected<plt_err_code> cond_var_signal(cond_var& cv) {
 
 expected<plt_err_code> cond_var_broadcast(cond_var& cv) {
     i32 res = pthread_cond_broadcast(&cv.native);
+    if (res != 0) {
+        return unexpected(plt_err_code(res));
+    }
+
+    return {};
+}
+
+#pragma endregion
+
+#pragma Once
+
+expected<plt_err_code> do_once(once& o, once_routine routine) {
+    i32 res = pthread_once(&o.native, routine);
     if (res != 0) {
         return unexpected(plt_err_code(res));
     }

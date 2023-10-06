@@ -156,6 +156,9 @@ CORE_API_EXPORT expected<addr_off, plt_err_code> os_seek(file_desc fd, addr_off 
 CORE_API_EXPORT expected<plt_err_code> os_flush(file_desc fd);
 CORE_API_EXPORT expected<plt_err_code> os_rename(const char* oldPath, const char* newPath);
 CORE_API_EXPORT expected<plt_err_code> os_access(file_desc fd, const file_access_group& access);
+CORE_API_EXPORT i32 os_getpid();
+CORE_API_EXPORT i32 os_getppid();
+CORE_API_EXPORT expected<plt_err_code> os_exec(const char* path, char* const argv[]);
 
 // FIXME: 1. Provide a copy and recursive copy interface.
 // FIXME: 2. Provide a process exec interface.

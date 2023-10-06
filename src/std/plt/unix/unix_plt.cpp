@@ -327,6 +327,22 @@ expected<plt_err_code> os_access(file_desc fd, const file_access_group& access) 
     return {};
 }
 
+i32 os_getpid() {
+    return i32(getpid());
+}
+
+i32 os_getppid() {
+    return i32(getppid());
+}
+
+expected<plt_err_code> os_exec(const char* path, char* const argv[]) {
+    i32 res = execv(path, argv);
+    if (res < 0) {
+        return unexpected(plt_err_code(errno));
+    }
+    return {};
+}
+
 namespace {
 
 i32 to_native_signal(core_signal sig) {

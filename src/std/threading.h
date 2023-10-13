@@ -35,7 +35,6 @@ CORE_API_EXPORT expected<plt_err_code> threading_get_name(char out[MAX_THREAD_NA
 
 CORE_API_EXPORT bool thread_is_running(const thread& t);
 CORE_API_EXPORT expected<plt_err_code> thread_start(thread& out, void* arg, thread_routine routine);
-CORE_API_EXPORT thread_id thread_get_id(const thread& t);
 CORE_API_EXPORT expected<bool, plt_err_code> thread_eq(const thread& t1, const thread& t2);
 CORE_API_EXPORT expected<plt_err_code> thread_join(thread& t);
 CORE_API_EXPORT expected<plt_err_code> thread_detach(thread& t);
@@ -58,12 +57,6 @@ CORE_API_EXPORT expected<plt_err_code> mutex_trylock(mutex& m);
 CORE_API_EXPORT expected<plt_err_code> mutex_unlock(mutex& m);
 
 // TODO: Add Read/Write specific mutexes at some point.
-
-struct barrier;
-
-CORE_API_EXPORT expected<plt_err_code> barrier_init(barrier& out, u32 count);
-CORE_API_EXPORT expected<plt_err_code> barrier_destroy(barrier& b);
-CORE_API_EXPORT expected<plt_err_code> barrier_wait(barrier& b);
 
 struct cond_var;
 

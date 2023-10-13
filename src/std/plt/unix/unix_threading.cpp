@@ -48,7 +48,7 @@ expected<plt_err_code> threading_set_name(const char* name) {
         return unexpected(ERR_THREADING_INVALID_THREAD_NAME);
     }
 
-#if OS_MAC == 1
+#if defined(OS_MAC) && OS_MAC == 1
     i32 res = pthread_setname_np(name);
 #else
     i32 res = pthread_setname_np(pthread_self(), name);
@@ -66,11 +66,8 @@ expected<plt_err_code> threading_get_name(char out[MAX_THREAD_NAME_LENGTH]) {
         return unexpected(ERR_THREADING_INVALID_THREAD_NAME);
     }
 
-#if OS_MAC == 1
-    i32 res = pthread_getname_np(out, MAX_THREAD_NAME_LENGTH);
-#else
+    // FIXME: This might not be available on some versions of MAC. I should provide a fallback.
     i32 res = pthread_getname_np(pthread_self(), out, MAX_THREAD_NAME_LENGTH);
-#endif
 
     if (res != 0) {
         return unexpected(plt_err_code(res));
@@ -111,12 +108,6 @@ expected<plt_err_code> thread_start(thread& out, void* arg, thread_routine routi
 
     out.native = pthreadId;
     return {};
-}
-
-thread_id thread_get_id(const thread& t) {
-    if (!thread_is_running(t)) return 0;
-    auto pthreadId = thread_to_native(t);
-    return pthreadId;
 }
 
 expected<plt_err_code> thread_join(thread& t) {
@@ -245,37 +236,6 @@ expected<plt_err_code> mutex_trylock(mutex& m) {
 expected<plt_err_code> mutex_unlock(mutex& m) {
     i32 res = pthread_mutex_unlock(&m.native);
     if (res != 0) {
-        return unexpected(plt_err_code(res));
-    }
-
-    return {};
-}
-
-#pragma endregion
-
-#pragma region BARRIER
-
-expected<plt_err_code> barrier_init(barrier& out, u32 count) {
-    i32 res = pthread_barrier_init(&out.native, nullptr, count);
-    if (res != 0) {
-        return unexpected(plt_err_code(res));
-    }
-
-    return {};
-}
-
-expected<plt_err_code> barrier_destroy(barrier& b) {
-    i32 res = pthread_barrier_destroy(&b.native);
-    if (res != 0) {
-        return unexpected(plt_err_code(res));
-    }
-
-    return {};
-}
-
-expected<plt_err_code> barrier_wait(barrier& b) {
-    i32 res = pthread_barrier_wait(&b.native);
-    if (res != 0 && res != PTHREAD_BARRIER_SERIAL_THREAD) {
         return unexpected(plt_err_code(res));
     }
 

@@ -381,25 +381,27 @@ core_signal from_native_signal(i32 sig) {
 
 } // namespace
 
-expected<plt_err_code> os_send_signal(core_signal sig, thread_id threadId) {
+expected<plt_err_code> os_send_signal(core_signal sig) {
     i32 nsig = to_native_signal(sig);
     if (nsig < 0) {
         return unexpected(ERR_OS_UNSUPPORTED_SIGNAL);
     }
 
-    i32 res;
-    if (threadId == 0) {
-        res = raise(nsig);
-    }
-    else {
-        // I can technically use the system thread id and the kill system call, but that will be inconsistent with the
-        // threading library.
-        res = pthread_kill(pthread_t(threadId), nsig);
-    }
+    // i32 res;
+    // if (threadId == 0) {
+    //     res = raise(nsig);
+    // }
+    // else {
+    //     // I can technically use the system thread id and the kill system call, but that will be inconsistent with the
+    //     // threading library.
+    //     res = pthread_kill(pthread_t(threadId), nsig);
+    // }
 
-    if (res < 0) {
-        return unexpected(plt_err_code(res));
-    }
+    // if (res < 0) {
+    //     return unexpected(plt_err_code(res));
+    // }
+
+    // FIXME: Implement this.
 
     return {};
 }

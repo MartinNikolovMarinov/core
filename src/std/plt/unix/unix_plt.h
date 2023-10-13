@@ -68,16 +68,16 @@ expected<plt_err_code> os_dir_walk(const char* path, const TWalkerFn& cb) {
     //
     // Big thanks to the MacOS developers.
     //
-    // readdir_r and getdirentries are both depricated on Mac so do NOT use them!
-    // Very unfortunelty the std directory api forces dynamic memory allocation and it does it under the hood without giving any control over how it happens.
+    // readdir_r and getdirentries are both deprecated on Mac so do NOT use them!
+    // Very unfortunate the std directory api forces dynamic memory allocation and it does it under the hood without giving any control over how it happens.
     // I hope some std implementations don't allocate memory, but musl, for example, does.
     //
     // Another very annoying thing:
     //
     // If this functions needs to be extended to use file_desc it needs to copy the underlining fd!
-    // The DIR* created from fdreaddir uses the same fd that it is passed. That is fine, but it also allcoates memory for DIR* and that memory is freed by
+    // The DIR* created from fdreaddir uses the same fd that it is passed. That is fine, but it also allocates memory for DIR* and that memory is freed by
     // closedir. So I can't just use close on the file descriptor. After I use opendir I have to use closedir, which complicates the API. It can, possibly
-    // be implemented with some more involved abstraction layer, but that defeates the pourpuse of the plt layer, which I want to remain as tin as possible!
+    // be implemented with some more involved abstraction layer, but that defeats the purpose of the plt layer, which I want to remain as tin as possible!
     //
     // That is the reason why this function takes path instead of file_desc.
     //

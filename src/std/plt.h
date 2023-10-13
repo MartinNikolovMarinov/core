@@ -201,7 +201,7 @@ enum struct core_signal {
 
 using signal_handler = void (*)(i32 s);
 
-CORE_API_EXPORT expected<plt_err_code> os_send_signal(core_signal sig, thread_id threadId = 0);
+CORE_API_EXPORT expected<plt_err_code> os_send_signal(core_signal sig);
 CORE_API_EXPORT expected<signal_handler, plt_err_code> os_register_signal_handler(core_signal sig, signal_handler handler);
 
 CORE_API_EXPORT const char* os_get_err_cptr(plt_err_code err);

@@ -55,16 +55,13 @@ i32 threading_get_and_set_name_test() {
 }
 
 i32 thread_start_and_join_two_basic_threads_test() {
-    static core::thread_id t1id = 0;
-    static core::thread_id t2id = 0;
+    static core::thread t1c;
+    static core::thread t2c;
 
     core::thread t1;
     {
         auto err = core::thread_start(t1, nullptr, [](void*) -> void* {
-            core::thread currt;
-            core::threading_get_current(currt);
-            core::thread_id id = core::thread_get_id(currt);
-            t1id = id;
+            core::threading_get_current(t1c);
             Expect(core::threading_sleep(100));
             return nullptr;
         });
@@ -86,10 +83,7 @@ i32 thread_start_and_join_two_basic_threads_test() {
     core::thread t2;
     {
         auto err = core::thread_start(t2, nullptr, [](void*) -> void* {
-            core::thread currt;
-            core::threading_get_current(currt);
-            core::thread_id id = core::thread_get_id(currt);
-            t2id = id;
+            core::threading_get_current(t2c);
             Expect(core::threading_sleep(100));
             return nullptr;
         });
@@ -107,9 +101,9 @@ i32 thread_start_and_join_two_basic_threads_test() {
         Expect(err);
     }
 
-    Assert(t1id != 0);
-    Assert(t2id != 0);
-    Assert(t1id != t2id);
+    Assert(ValueOrDie(core::thread_eq(t1, t1c)) == true);
+    Assert(ValueOrDie(core::thread_eq(t2, t2c)) == true);
+    Assert(ValueOrDie(core::thread_eq(t1, t2)) == false);
 
     return 0;
 }
@@ -142,47 +136,6 @@ i32 thread_mutex_basic_sync_test() {
     Assert(counter == ITERATION_COUNT * 2);
 
     Expect(core::mutex_destroy(mux));
-
-    return 0;
-}
-
-i32 thread_barrier_basic_progression_sync_test() {
-    static constexpr i32 THREAD_COUNT = 5;
-    static i32 threadProgress[THREAD_COUNT] = {};
-    static i32 threadSleepIntervals[THREAD_COUNT] = { 70, 100, 28, 34, 140 };
-    static core::barrier bar;
-
-    core::thread threads[THREAD_COUNT];
-
-    Expect(core::barrier_init(bar, THREAD_COUNT));
-
-    for (i32 i = 0; i < THREAD_COUNT; i++) {
-        auto err = core::thread_start(threads[i], reinterpret_cast<void*>(i), [](void* arg) -> void* {
-            i64 i = i64(arg);
-
-            threadProgress[i] = 1; // Mark as "Doing some work"
-            Expect(core::threading_sleep(threadSleepIntervals[i])); // Do some work
-
-            threadProgress[i] = 2; // Mark as "Done"
-            Expect(core::barrier_wait(bar)); // Wait for others
-
-            // All threads should have passed the barrier and done the work at this point.
-            // All threads check this fact here:
-            for (i32 j = 0; j < THREAD_COUNT; j++) {
-                if (i == j) continue; // This is me, skip.
-                Assert(threadProgress[j] == 2);
-            }
-
-            return nullptr;
-        });
-        Expect(err);
-    }
-
-    for (i32 i = 0; i < THREAD_COUNT; i++) {
-        Expect(core::thread_join(threads[i]));
-    }
-
-    Expect(core::barrier_destroy(bar));
 
     return 0;
 }
@@ -248,7 +201,6 @@ i32 run_threading_tests_suite() {
 
     RunTest(thread_start_and_join_two_basic_threads_test);
     RunTest(thread_mutex_basic_sync_test);
-    RunTest(thread_barrier_basic_progression_sync_test);
     RunTest(thread_cond_var_basic_signaling_test);
 
     return 0;

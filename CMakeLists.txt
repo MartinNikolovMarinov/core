@@ -230,7 +230,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
    CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     # Use -Werror if you want to treat warnings as errors. For large code refactor that might be prefereable.
     set(mm_core_common_flags -std=c++17 -pthread
-        -Wall -Wextra -Wfatal-errors -Wuninitialized -Wconversion
+        -Wall -Wextra -Wfatal-errors -Wuninitialized -Wconversion -Wunused-value
         -Wdouble-promotion -Wswitch-enum -Wundef
         -Wno-unknown-pragmas -Wno-unused-function -Wno-variadic-macros
         -Wdisabled-optimization # warn if the compailer disables requestd level of optimization
@@ -280,7 +280,7 @@ if(CORE_BUILD_TESTS)
        CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
        CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
         set(mm_test_common_flags -std=c++17 -g -ggdb -pthread
-            -Wall -Wextra -Wfatal-errors -Wuninitialized -Wconversion
+            -Wall -Wextra -Wfatal-errors -Wuninitialized -Wconversion -Wunused-value
             -Wdouble-promotion -Wswitch-enum -Wundef
             -Wno-unknown-pragmas -Wno-variadic-macros
             -Wdisabled-optimization # warn if the compailer disables requestd level of optimization

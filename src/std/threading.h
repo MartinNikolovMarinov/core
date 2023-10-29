@@ -80,8 +80,6 @@ template <typename T> void tl_storage_destroy(tl_storage<T>& tls);
 template <typename T> expected<plt_err_code> tl_storage_set(tl_storage<T>& tls, T* value);
 template <typename T> expected<T*, plt_err_code> tl_storage_get(tl_storage<T>& tls);
 
-// TODO: Add Semaphores at some point.
-
 } // namespace core
 
 #if OS_LINUX == 1 || OS_MAC == 1

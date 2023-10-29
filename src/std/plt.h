@@ -133,7 +133,8 @@ struct CORE_API_EXPORT file_stat {
     file_type type;
     file_access_group access;
 
-    bool isDir() const { return type == file_type::Directory; }
+    bool isDir()     const { return type == file_type::Directory; }
+    bool isSymlink() const { return type == file_type::Symlink; }
 };
 
 CORE_API_EXPORT expected<file_desc, plt_err_code> os_open(const char* path, const file_params& params = default_file_params());
@@ -160,31 +161,34 @@ CORE_API_EXPORT i32 os_getpid();
 CORE_API_EXPORT i32 os_getppid();
 CORE_API_EXPORT expected<plt_err_code> os_exec(const char* path, char* const argv[]);
 
-// FIXME: 1. Provide a copy and recursive copy interface.
-// FIXME: 2. Provide a process exec interface.
-// FIXME: 3. Test all functions that are not tested yet.
+template <typename TWalkerFn>
+expected<plt_err_code> os_dir_walk(const char* path, const TWalkerFn& cb);
 
-// TODO: Provide a memory mapping interface. The work is trivial but tedious because of the flags and permissions of mapping.
-//       Don't forget memory mapping synchronization.
+// TODO: 1. Provide a copy and recursive copy interface.
+// TODO: 2. Provide a process exec interface.
+// TODO: 3. Test all functions that are not tested yet.
+
+// TODO: Provide a memory mapping interface. The work is trivial but tedious because of the flags and permissions of
+//       mapping. Don't forget memory mapping synchronization.
 
 // TODO2: Provide a file linking interface.
 
 // TODO: Implement the Windows layer after the above are finished ^
 
-// TODO2: [Performance] At some point positional os_pread and os_pwrite might be useful? They can reduce the need for seek calls in some cases.
-// TODO2: [Performance] I might want to implement an interface for scatter/gather IO. I might want to separate such an API from the plt layer.
-//                      The right set of system calls must be chosen for each platform after extensive performance testing.
-//                      I need to design a good test suite to test the pros and cons of the following APIs on each platform:
-//                          * writev and readv
-//                          * aio_read and aio_write
-//                          * epoll
-//                          * select
-//                          * io_uring and platform alternatives
-//                          * Scatter/Gather for Windows
-//                          * mmap-ed files (I have a feeling this will be the fastest approach)
+// TODO2: [Performance] At some point positional os_pread and os_pwrite might be useful? They can reduce the need for
+//                      seek calls in some cases.
 
-template <typename TWalkerFn>
-expected<plt_err_code> os_dir_walk(const char* path, const TWalkerFn& cb);
+// TODO2: [Performance] I might want to implement an interface for scatter/gather IO. I might want to separate such an
+//                      API from the plt layer. The right set of system calls must be chosen for each platform after
+//                      extensive performance testing. I need to design a good test suite to test the pros and cons of
+//                      the following APIs on each platform:
+//                            * writev and readv
+//                            * aio_read and aio_write
+//                            * epoll
+//                            * select
+//                            * io_uring and platform alternatives
+//                            * Scatter/Gather for Windows
+//                            * mmap-ed files (I have a feeling this will be the fastest approach)
 
 enum struct core_signal {
     CORE_SIGABRT,  // Abnormal termination

@@ -1,5 +1,6 @@
 #include <core.h>
 #include <std/core.h>
+#include <core_config.h>
 
 #include <iostream>
 #include <pthread.h>
@@ -46,6 +47,12 @@ i32 main(i32, const char **) {
         std::cout << ANSI_BOLD_START() << "[TRACE]:\n" << trace << ANSI_RESET() << std::endl;
         throw std::runtime_error("Assertion failed!");
     });
+
+    std::cout << "[CORE VERSION] "
+              << CORE_VERSION_MAJOR << "."
+              << CORE_VERSION_MINOR << "."
+              << CORE_VERSION_PATCH
+              << std::endl;
 
     // Print compiler
     if constexpr (COMPILER_CLANG == 1)   { std::cout << "[COMPILER] COMPILER_CLANG" << std::endl; }

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.2)
 
-project(core)
+project(core VERSION 0.1.0)
 
 # BEGIN Options
 
@@ -78,9 +78,9 @@ endif()
 # BEGIN Print Selected Options
 
 message(STATUS "[CORE] ---------------------------------------------")
+message(STATUS "[CORE] Version:           ${PROJECT_VERSION}")
 message(STATUS "[CORE] Platform:          ${OS}")
-# IMPORTANT: Do not relly on CMAKE_HOST_SYSTEM_PROCESSOR for anything serious !
-message(STATUS "[CORE] Arch:              ${CMAKE_HOST_SYSTEM_PROCESSOR}")
+message(STATUS "[CORE] Arch:              ${CMAKE_HOST_SYSTEM_PROCESSOR}") # IMPORTANT: Do not relly on CMAKE_HOST_SYSTEM_PROCESSOR for anything serious !
 message(STATUS "[CORE] C++ Version:       ${CMAKE_CXX_STANDARD}")
 message(STATUS "[CORE] Compiler:          ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "[CORE] Debug:             ${CORE_DEBUG}")
@@ -201,10 +201,17 @@ endif()
 
 # END Add Library.
 
+# BEGIN Set Configure File
+
+configure_file(src/core_config.h.in core_config.h)
+
+# END Set Configure File
+
 # BEGIN Include Path Directories
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${PROJECT_BINARY_DIR} # for core_config.h
 )
 
 # END Include Path Directories

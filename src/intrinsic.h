@@ -86,12 +86,17 @@ constexpr u32 i_number_of_set_bits(TUint n) {
     IS_CONST_EVALUATED { return detail::number_of_set_bits_compiletime_impl(n); }
 
 #if COMPILER_CLANG == 1 || COMPILER_GCC == 1
-    if constexpr (sizeof(TUint) == 4) {
-        return u32(__builtin_popcount(TUint(n)));
-    }
-    else {
-        return u32(__builtin_popcountll(TUint(n)));
-    }
+    #if defined(CORE_NO_STD) && CORE_NO_STD == 1
+        // The builtin popcount seems to be unavailable for clang and gcc when compiling with -nostdlib.
+        return detail::number_of_set_bits_compiletime_impl(n);
+    #else
+        if constexpr (sizeof(TUint) == 4) {
+            return u32(__builtin_popcount(TUint(n)));
+        }
+        else {
+            return u32(__builtin_popcountll(TUint(n)));
+        }
+    #endif
 #elif COMPILER_MSVC == 1
     if constexpr (sizeof(TUint) == 4) {
         return u32(__popcnt(u32(n)));

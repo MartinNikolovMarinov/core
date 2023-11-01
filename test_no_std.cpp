@@ -64,7 +64,7 @@ i32 main(i32, const char**, const char**) {
         write_line(" [LINE]: ");
         char lineBuf[50];
         core::memset(lineBuf, 0, 50);
-        core::int_to_cptr<i32>(line, lineBuf);
+        core::int_to_cptr(line, lineBuf);
         write_line(lineBuf);
         write_line(" [MSG]: ");
         write_line(errMsg);

@@ -299,113 +299,6 @@ i32 os_walk_directories_test() {
     return 0;
 }
 
-template <typename TAllocator>
-i32 os_fs_read_write_test() {
-    core::file wf;
-    {
-        auto params = core::default_file_params();
-        params.flags = core::file_flags(core::FF_Create | core::FF_WriteOnly | core::FF_Trunc);
-        auto res = core::os_open(__test_f1_path, params);
-        Assert(!res.has_err());
-        Assert(res.has_value());
-        Expect(wf.take_desc(core::move(res.value())));
-        Assert(!wf.is_directory());
-    }
-    defer { Expect(wf.close()); };
-
-    core::file rf;
-    {
-        auto params = core::default_file_params();
-        params.flags = core::file_flags(core::FF_ReadOnly);
-        auto res = core::os_open(__test_f1_path, params);
-        Assert(!res.has_err());
-        Assert(res.has_value());
-        Expect(rf.take_desc(core::move(res.value())));
-        Assert(!rf.is_directory());
-    }
-    defer { Expect(wf.close()); };
-
-    {
-        constexpr const char* msg = "aaa";
-        addr_size written = ValueOrDie(wf.write(msg, core::cptr_len(msg)));
-        Assert(written == core::cptr_len(msg));
-
-        char buf[core::cptr_len(msg)] = {};
-        addr_size read = ValueOrDie(rf.read(buf, core::cptr_len(msg)));
-        Assert(read == core::cptr_len(msg));
-        Assert(core::cptr_eq(buf, msg, core::cptr_len(msg)));
-    }
-
-    {
-        constexpr const char* msg = "bbb";
-        addr_size written = ValueOrDie(wf.write(msg, core::cptr_len(msg)));
-        Assert(written == core::cptr_len(msg));
-
-        char buf[core::cptr_len(msg)] = {};
-        addr_size read = ValueOrDie(rf.read(buf, core::cptr_len(msg)));
-        Assert(read == core::cptr_len(msg));
-        Assert(core::cptr_eq(buf, msg, core::cptr_len(msg)));
-    }
-
-    // Seek from begining:
-    {
-        Expect(wf.seek(2, core::seek_origin::Begin));
-
-        constexpr const char* msg = "ccc";
-        addr_size written = ValueOrDie(wf.write(msg, core::cptr_len(msg)));
-        Assert(written == core::cptr_len(msg));
-
-        core::arr<char, TAllocator> out;
-        Expect(core::file_read_full(__test_f1_path, out));
-        Assert(core::cptr_eq(out.data(), "aacccb", out.len()));
-    }
-
-    // Seek from current:
-    {
-        Expect(wf.seek(1, core::seek_origin::Current));
-
-        constexpr const char* msg = "dd";
-        addr_size written = ValueOrDie(wf.write(msg, core::cptr_len(msg)));
-        Assert(written == core::cptr_len(msg));
-
-        core::arr<char, TAllocator> out;
-        Expect(core::file_read_full(__test_f1_path, out));
-        Assert(core::cptr_eq(out.data(), "aacccbdd", out.len()));
-    }
-
-    // Seek from end with negative offset.
-    {
-        Expect(wf.seek(-3, core::seek_origin::End));
-
-        constexpr const char* msg = "ppp";
-        addr_size written = ValueOrDie(wf.write(msg, core::cptr_len(msg)));
-        Assert(written == core::cptr_len(msg));
-
-        core::arr<char, TAllocator> out;
-        Expect(core::file_read_full(__test_f1_path, out));
-        Assert(core::cptr_eq(out.data(), "aacccppp", out.len()));
-    }
-
-    // Write more than 2 times the block size of data and read it back.
-    {
-        Expect(wf.seek(0, core::seek_origin::Begin));
-
-        const addr_size bufLen = core::os_get_default_block_size() * 2 + 100;
-        char buf[bufLen];
-        core::memset(buf, '9', bufLen); // all 9s
-        Expect(core::write_full(wf, buf, bufLen));
-
-        core::arr<char, TAllocator> out;
-        Expect(core::file_read_full(__test_f1_path, out));
-        Assert(out.len() == bufLen);
-        for (addr_size i = 0; i < bufLen; ++i) {
-            Assert(out[i] == '9'); // all 9s baby
-        }
-    }
-
-    return 0;
-}
-
 i32 run_plt_tests_suite() {
     RunTest(get_time_test);
     RunTest(os_alloc_de_alloc_pages_test);
@@ -421,8 +314,6 @@ i32 run_plt_tests_suite() {
     RunTest(os_open_with_append_test);
     RunTest(os_open_with_trunc_test);
     RunTest(os_walk_directories_test);
-
-    RunTest(os_fs_read_write_test<std_allocator_static>);
 
     return 0;
 }

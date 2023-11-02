@@ -4,7 +4,6 @@
 #include "allocators/alloc_std.h"
 #include "bbox.h"
 #include "ccmath.h"
-#include "fs.h"
 #include "lines.h"
 #include "mat.h"
 #include "plt.h"

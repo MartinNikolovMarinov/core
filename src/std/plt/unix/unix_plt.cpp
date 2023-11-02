@@ -66,7 +66,7 @@ file_flags default_file_flags() {
 
 file_params default_file_params() {
     file_params ret = {};
-    ret.access = default_file_access_group();
+    ret.access = {};
     ret.flags = default_file_flags();
     ret.osSpecificFlags = 0;
     return ret;
@@ -335,12 +335,32 @@ i32 os_getppid() {
     return i32(getppid());
 }
 
-expected<plt_err_code> os_exec(const char* path, char* const argv[]) {
-    i32 res = execv(path, argv);
-    if (res < 0) {
-        return unexpected(plt_err_code(errno));
+expected<i32, plt_err_code> os_system(const char* command) {
+    if (command == nullptr) {
+        return unexpected(ERR_OS_SYSTEM_NULL_COMMAND);
     }
-    return {};
+
+    i32 res = system(command);
+
+    if (res == -1) {
+        return unexpected(ERR_OS_SYSTEM_EXECUTION_FAILED);
+    }
+
+    if (WIFEXITED(res)) {
+        // Normal termination with exit status
+        return WEXITSTATUS(res);
+    }
+    else if (WIFSIGNALED(res)) {
+        // Killed by signal
+        return WTERMSIG(res);
+    }
+    else if (WIFSTOPPED(res)) {
+        // Stopped by signal
+        return WSTOPSIG(res);
+    }
+
+    // Some other error
+    return unexpected(ERR_OS_SYSTEM_EXECUTION_FAILED);
 }
 
 namespace {
@@ -418,6 +438,18 @@ expected<signal_handler, plt_err_code> os_register_signal_handler(core_signal si
     }
 
     return prevHandler;
+}
+
+void os_exit(i32 code) {
+    exit(code);
+}
+
+expected<plt_err_code> os_on_exit(void (*handler)(i32, void*), void* arg) {
+    i32 res = on_exit(handler, arg);
+    if (res != 0) {
+        return unexpected(plt_err_code(errno));
+    }
+    return {};
 }
 
 const char* os_get_err_cptr(plt_err_code err) {

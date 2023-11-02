@@ -5,6 +5,7 @@
 #include <expected.h>
 #include <system_checks.h>
 #include <io.h>
+#include <arr.h>
 #include <std/plt_error.h>
 
 #include <limits.h>
@@ -70,6 +71,8 @@ CORE_API_EXPORT addr_size os_get_default_block_size();
 struct CORE_API_EXPORT dir_entry {
     file_type type;
     const char* name;
+
+    bool isDir() const { return type == file_type::Directory; }
 };
 
 enum CORE_API_EXPORT file_access : u32 {
@@ -159,7 +162,43 @@ CORE_API_EXPORT expected<plt_err_code> os_rename(const char* oldPath, const char
 CORE_API_EXPORT expected<plt_err_code> os_access(file_desc fd, const file_access_group& access);
 CORE_API_EXPORT i32 os_getpid();
 CORE_API_EXPORT i32 os_getppid();
-CORE_API_EXPORT expected<plt_err_code> os_exec(const char* path, char* const argv[]);
+CORE_API_EXPORT expected<i32, plt_err_code> os_system(const char* command);
+
+template <typename TAllocator>
+expected<plt_err_code> os_read_entire_file(const char* path, arr<u8, TAllocator>& out) {
+    file_params params = {};
+    params.access = {};
+    params.flags = FF_ReadOnly;
+
+    file_desc fd = {};
+    {
+        auto res = os_open(path, params);
+        if (res.has_err()) {
+            return core::unexpected(res.err());
+        }
+        fd = res.value();
+    }
+    defer { [[maybe_unused]] auto ignore = os_close(fd); };
+
+    const addr_size blockSize = core::os_get_default_block_size();
+    u8 buf[blockSize] = {};
+    while (true) {
+        i64 currBytesRead = 0;
+        auto res = os_read(fd, buf, blockSize, currBytesRead);
+        if (res.has_err()) {
+            return core::unexpected(res.err());
+        }
+
+        if (currBytesRead == 0) {
+            // EOF reached.
+            break;
+        }
+
+        out.append(buf, currBytesRead);
+    }
+
+    return {};
+}
 
 template <typename TWalkerFn>
 expected<plt_err_code> os_dir_walk(const char* path, const TWalkerFn& cb);
@@ -207,6 +246,9 @@ using signal_handler = void (*)(i32 s);
 
 CORE_API_EXPORT expected<plt_err_code> os_send_signal(core_signal sig);
 CORE_API_EXPORT expected<signal_handler, plt_err_code> os_register_signal_handler(core_signal sig, signal_handler handler);
+
+CORE_API_EXPORT void os_exit(i32 code);
+CORE_API_EXPORT expected<plt_err_code> os_on_exit(void (*handler)(i32, void*), void* arg);
 
 CORE_API_EXPORT const char* os_get_err_cptr(plt_err_code err);
 

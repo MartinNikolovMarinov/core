@@ -21,6 +21,8 @@ constexpr plt_err_code ERR_THREAD_CUSTOM_ERROR_START = detail::ERR_START_OF_CUST
 // Custom library errors start from this value.
 constexpr plt_err_code ERR_OS_DEALLOC_NULL_ADDR_ERR = detail::ERR_OS_CUSTOM_ERROR_START + 0;
 constexpr plt_err_code ERR_OS_UNSUPPORTED_SIGNAL = detail::ERR_OS_CUSTOM_ERROR_START + 1;
+constexpr plt_err_code ERR_OS_SYSTEM_NULL_COMMAND = detail::ERR_OS_CUSTOM_ERROR_START + 2;
+constexpr plt_err_code ERR_OS_SYSTEM_EXECUTION_FAILED = detail::ERR_OS_CUSTOM_ERROR_START + 3;
 
 constexpr plt_err_code ERR_THREADING_THREAD_IS_NOT_STARTED = detail::ERR_THREAD_CUSTOM_ERROR_START + 0;
 constexpr plt_err_code ERR_THREADING_THREAD_IS_ALREADY_RUNNING = detail::ERR_THREAD_CUSTOM_ERROR_START + 1;
@@ -34,8 +36,10 @@ constexpr char const* custom_plt_err_code_to_cptr(plt_err_code err) {
     }
 
     switch (err) {
-        case ERR_OS_DEALLOC_NULL_ADDR_ERR: return "Deallocating a null address";
-        case ERR_OS_UNSUPPORTED_SIGNAL:    return "Unsupported signal";
+        case ERR_OS_DEALLOC_NULL_ADDR_ERR:   return "Deallocating a null address";
+        case ERR_OS_UNSUPPORTED_SIGNAL:      return "Unsupported signal";
+        case ERR_OS_SYSTEM_NULL_COMMAND:     return "System command is null";
+        case ERR_OS_SYSTEM_EXECUTION_FAILED: return "System command execution failed";
 
         case ERR_THREADING_THREAD_IS_NOT_STARTED:     return "Thread is not started";
         case ERR_THREADING_THREAD_IS_ALREADY_RUNNING: return "Thread is already running";

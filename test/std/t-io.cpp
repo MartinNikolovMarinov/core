@@ -58,7 +58,7 @@ i32 str_buffer_test() {
         Assert(buffer.off == 5);
     }
     {
-        auto res = core::write_full(buffer, "klmnopqrstu", 11);
+        auto res = core::write_nbytes(buffer, "klmnopqrstu", 11);
         Assert(!res.has_err());
         Assert(buffer.off == 16);
     }
@@ -69,7 +69,7 @@ i32 str_buffer_test() {
     }
     {
         char out[16] = {};
-        auto res = core::read_full(buffer, out, 16);
+        auto res = core::read_nbytes(buffer, out, 16);
         Assert(!res.has_err());
         Assert(core::cptr_eq(out, "abcdeklmnopqrstu", 16));
         Assert(buffer.off == 16);
@@ -81,7 +81,7 @@ i32 str_buffer_test() {
     }
     {
         char out[10] = {};
-        auto res = core::read_full(buffer, out, 10);
+        auto res = core::read_nbytes(buffer, out, 10);
         Assert(!res.has_err());
         Assert(core::cptr_eq(out, "abcdeklmno", 10));
         Assert(buffer.off == 10);

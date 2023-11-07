@@ -330,4 +330,181 @@ private:
 
 static_assert(core::is_standard_layout_v<hash_map<const char*, i32>>, "hash_map must be standard layout");
 
+template<typename TKey, typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
+struct hash_set {
+    constexpr static addr_size DEFAULT_CAP = 16;
+
+    using key_type       = TKey;
+    using set_type       = hash_set<TKey, TAllocator>;
+    using size_type      = addr_size;
+    using allocator_type = TAllocator;
+
+    struct bucket {
+        key_type key;
+        bool occupied;
+    };
+
+    static_assert(core::is_pod_v<TKey>, "TKey must be pod type");
+
+    hash_set() : m_buckets(nullptr), m_cap(0), m_len(0) {};
+    hash_set(size_type cap) : m_buckets(nullptr), m_cap(core::align_to_pow2(cap)), m_len(0) {
+        m_buckets = reinterpret_cast<bucket*>(core::calloc<allocator_type>(m_cap, sizeof(bucket)));
+    }
+    hash_set(const set_type& other) = delete; // prevent copy ctor
+    hash_set(set_type&& other) : m_buckets(other.m_buckets), m_cap(other.m_cap), m_len(other.m_len) {
+        if (this == &other) return;
+        other.m_buckets = nullptr;
+        other.m_cap = 0;
+        other.m_len = 0;
+    }
+    ~hash_set() { free(); }
+
+    hash_set& operator=(const set_type& other) = delete; // prevent copy assignment
+    hash_set& operator=(size_type) = delete; // prevent size assignment
+    hash_set& operator=(set_type&& other) {
+        if (this == &other) return *this;
+        free(); // very important to free before assigning new data.
+        m_buckets = other.m_buckets;
+        m_cap = other.m_cap;
+        m_len = other.m_len;
+        other.m_buckets = nullptr;
+        other.m_cap = 0;
+        other.m_len = 0;
+        return *this;
+    }
+
+    const char* allocator_name() const { return core::allocator_name<allocator_type>(); }
+    size_type   cap()            const { return m_cap; }
+    size_type   byte_cap()       const { return m_cap * sizeof(bucket); }
+    size_type   len()            const { return m_len; }
+    size_type   byte_len()       const { return m_len * sizeof(bucket); }
+    bool        empty()          const { return m_len == 0; }
+
+    void clear() {
+        for (size_type i = 0; i < m_cap; ++i) {
+            if (m_buckets[i].occupied) {
+                m_buckets[i].occupied = false;
+                m_buckets[i].key = key_type();
+            }
+        }
+        m_len = 0;
+    }
+
+    void free() {
+        if (m_buckets == nullptr) return;
+        m_len = 0;
+        m_cap = 0;
+        core::free<allocator_type>(m_buckets);
+        m_buckets = nullptr;
+    }
+
+    set_type copy() {
+        set_type cpy(m_cap);
+        for (size_type i = 0; i < m_cap; ++i) {
+            if (m_buckets[i].occupied) {
+                cpy.put(m_buckets[i].key);
+            }
+        }
+        return cpy;
+    }
+
+    const key_type* get(const key_type& key) const {
+        const bucket* b = find_bucket(key);
+        return b ? &b->key : nullptr;
+    }
+
+    key_type* get(const key_type& key) {
+        return const_cast<key_type*>(static_cast<const set_type &>(*this).get(key));
+    }
+
+    set_type& put(const key_type& key) {
+        if (m_len >= detail::lookup_max_load_factor(m_cap)) {
+            // Resize based on a load factor of 0.80
+            resize();
+        }
+
+        auto h = hash(key);
+        size_type addr = size_type(h) & (m_cap - 1);
+        while (m_buckets[addr].occupied) {
+            if (eq(m_buckets[addr].key, key)) {
+                return *this;
+            }
+            addr = (addr + 1) & (m_cap - 1);
+        }
+        m_buckets[addr].key = key;
+        m_buckets[addr].occupied = true;
+        m_len++;
+
+        return *this;
+    }
+
+    set_type& remove(const key_type& key) {
+        bucket* b = find_bucket(key);
+        if (b) {
+            b->occupied = false;
+            b->key = key_type(); // rest key
+            m_len--;
+        }
+        return *this;
+    }
+
+    template <typename TKeyCb>
+    const set_type& keys(const TKeyCb& cb) const {
+        if (m_buckets == nullptr) return *this;
+        for (size_type i = 0; i < m_cap; ++i) {
+            if (m_buckets[i].occupied) {
+                cb(m_buckets[i].key);
+            }
+        }
+        return *this;
+    }
+
+    template <typename TKeyCb>
+    set_type& keys(const TKeyCb& cb) {
+        return const_cast<set_type&>(static_cast<const set_type&>(*this).keys(cb));
+    }
+
+private:
+
+    void resize() {
+        size_type newCap = m_cap < DEFAULT_CAP ? DEFAULT_CAP : m_cap * 2;
+        set_type newSet;
+        newSet.m_buckets = reinterpret_cast<bucket*>(core::calloc<allocator_type>(newCap, sizeof(bucket)));
+        newSet.m_cap = newCap;
+        newSet.m_len = 0;
+
+        if (m_buckets) {
+            for (size_type i = 0; i < m_cap; ++i) {
+                if (m_buckets[i].occupied) {
+                    newSet.put(m_buckets[i].key);
+                }
+            }
+        }
+
+        *this = core::move(newSet);
+    }
+
+    const bucket* find_bucket(const key_type& key) const {
+        auto h = hash(key);
+        size_type addr = size_type(h) & (m_cap - 1);
+        while (addr < m_cap && m_buckets[addr].occupied) {
+            if (eq(m_buckets[addr].key, key)) {
+                return &m_buckets[addr];
+            }
+            addr = (addr + 1) & (m_cap - 1);
+        }
+        return nullptr;
+    }
+
+    bucket* find_bucket(const key_type& key) {
+        return const_cast<bucket*>(static_cast<const set_type&>(*this).find_bucket(key));
+    }
+
+    bucket* m_buckets;
+    size_type m_cap; // The capacity must always be a power of 2.
+    size_type m_len;
+};
+
+static_assert(core::is_standard_layout_v<hash_set<const char*>>, "hash_set must be standard layout");
+
 } // namespace core

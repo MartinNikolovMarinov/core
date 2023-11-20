@@ -33,11 +33,13 @@ struct flag_parser {
         Float32,
         Float64,
         CPtr,
+        Option,
 
         SENTINEL
     };
 
     using ValidationFn = bool (*)(void* val);
+    using OptionCallbackFn = void (*)(bool val);
 
     struct flag_data {
         void* arg = nullptr;
@@ -45,7 +47,10 @@ struct flag_parser {
         flag_type type = flag_type::None;
         bool isSet = false;
         bool isRequired = false;
-        ValidationFn validate = nullptr;
+        union {
+            ValidationFn validate;
+            OptionCallbackFn optCb;
+        };
     };
 
     struct flag_alias {
@@ -129,6 +134,17 @@ struct flag_parser {
                         Assert(as->flag, "[BUG] Alias points to nullptr flag data.");
                         curFlag = as->flag;
                         state = 2;
+
+                        // FIXME: CODE DUPLICATION!
+                        // Treat options specially - if the option is present the assumed value is true.
+                        if (curFlag->type == flag_type::Option) {
+                            *(bool*)curFlag->arg = true;
+                            curFlag->isSet = true;
+                            state = 0;
+                            continue;
+                        }
+                        // END: CODE DUPLICATION!
+
                         continue;
                     }
                 }
@@ -138,11 +154,25 @@ struct flag_parser {
                 }
 
                 if (fidx != -1) curFlag = &flags[addr_size(fidx)];
+
+
+                // FIXME: CODE DUPLICATION!
+                // Treat options specially - if the option is present the assumed value is true.
+                if (curFlag->type == flag_type::Option) {
+                    *(bool*)curFlag->arg = true;
+                    curFlag->isSet = true;
+                    state = 0;
+                    continue;
+                }
+                // END: CODE DUPLICATION!
+
                 state = 2;
             }
             else if (state == 2) {
+
                 state = 0;
                 if (curFlag == nullptr) continue; // maybe unknown flag, or just some random argument that is not a flag.
+
                 switch (curFlag->type) {
                     case flag_type::Bool:
                     {
@@ -224,12 +254,21 @@ struct flag_parser {
             }
         }
 
+        // Firstly execute all option callbacks:
+        for (addr_size i = 0; i < flags.len(); ++i) {
+            const auto& f = flags[i];
+            if (f.type == flag_type::Option && f.isSet && f.optCb) {
+                f.optCb(*(bool*)f.arg);
+            }
+        }
+
+        // Start checking for argument errors:
         for (addr_size i = 0; i < flags.len(); ++i) {
             const auto& f = flags[i];
             if (f.isRequired && !f.isSet) {
                 return core::unexpected(parse_err::MissingRequiredFlag);
             }
-            if (f.isSet && f.validate && !f.validate(f.arg)) {
+            if (f.isSet && f.validate && f.type != flag_type::Option && !f.validate(f.arg)) {
                 return core::unexpected(parse_err::CustomRuleViolation);
             }
         }
@@ -238,35 +277,47 @@ struct flag_parser {
     }
 
     void flag(char** out, str_view flagName, bool required = false, ValidationFn validate = nullptr) {
-        return _flag(*this, out, flagName, required, validate, flag_type::CPtr);
+        _flag(*this, out, flagName, required, validate, flag_type::CPtr);
     }
 
     void flag(i32* out, str_view flagName, bool required = false, ValidationFn validate = nullptr) {
-        return _flag(*this, out, flagName, required, validate, flag_type::Int32);
+        _flag(*this, out, flagName, required, validate, flag_type::Int32);
     }
 
     void flag(i64* out, str_view flagName, bool required = false, ValidationFn validate = nullptr) {
-        return _flag(*this, out, flagName, required, validate, flag_type::Int64);
+        _flag(*this, out, flagName, required, validate, flag_type::Int64);
     }
 
     void flag(u32* out, str_view flagName, bool required = false, ValidationFn validate = nullptr) {
-        return _flag(*this, out, flagName, required, validate, flag_type::Uint32);
+        _flag(*this, out, flagName, required, validate, flag_type::Uint32);
     }
 
     void flag(u64* out, str_view flagName, bool required = false, ValidationFn validate = nullptr) {
-        return _flag(*this, out, flagName, required, validate, flag_type::Uint64);
+        _flag(*this, out, flagName, required, validate, flag_type::Uint64);
     }
 
     void flag(bool* out, str_view flagName, bool required = false, ValidationFn validate = nullptr) {
-        return _flag(*this, out, flagName, required, validate, flag_type::Bool);
+        _flag(*this, out, flagName, required, validate, flag_type::Bool);
     }
 
     void flag(f32* out, str_view flagName, bool required = false, ValidationFn validate = nullptr) {
-        return _flag(*this, out, flagName, required, validate, flag_type::Float32);
+        _flag(*this, out, flagName, required, validate, flag_type::Float32);
     }
 
     void flag(f64* out, str_view flagName, bool required = false, ValidationFn validate = nullptr) {
-        return _flag(*this, out, flagName, required, validate, flag_type::Float64);
+        _flag(*this, out, flagName, required, validate, flag_type::Float64);
+    }
+
+    void option(bool* out, str_view optName, OptionCallbackFn optCb = nullptr) {
+        flag_data f;
+        f.arg = (void*)out;
+        f.nameSb = optName; // makes a copy
+        f.type = flag_type::Option;
+        f.isSet = false;
+        f.isRequired = false;
+        f.optCb = optCb;
+
+        insert_flag(*this, core::move(f));
     }
 
     void alias(str_view flagName, str_view alias) {
@@ -283,21 +334,8 @@ struct flag_parser {
     }
 
 private:
-    template <typename T>
-    static void _flag(flag_parser& parser,
-                      T* out,
-                      str_view flagName,
-                      bool required,
-                      ValidationFn validate,
-                      flag_parser::flag_type type) {
-        flag_parser::flag_data f;
-        f.arg = (void*)out;
-        f.nameSb = flagName; // makes a copy
-        f.type = type;
-        f.isSet = false;
-        f.isRequired = required;
-        f.validate = validate;
 
+    static void insert_flag(flag_parser& parser, flag_parser::flag_data&& f) {
         // Replace existing flag if it exists.
         addr_off nameIdx = core::find(parser.flags, [&](const auto& el, addr_off) -> bool {
             return f.nameSb.eq(el.nameSb);
@@ -317,6 +355,24 @@ private:
         else {
             parser.flags.append(core::move(f));
         }
+    }
+
+    template <typename T>
+    static void _flag(flag_parser& parser,
+                      T* out,
+                      str_view flagName,
+                      bool required,
+                      ValidationFn validate,
+                      flag_parser::flag_type type) {
+        flag_parser::flag_data f;
+        f.arg = (void*)out;
+        f.nameSb = flagName; // makes a copy
+        f.type = type;
+        f.isSet = false;
+        f.isRequired = required;
+        f.validate = validate;
+
+        insert_flag(parser, core::move(f));
     }
 };
 

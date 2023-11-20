@@ -12,6 +12,8 @@ static core::std_stats_allocator g_stdAlloc;
 struct std_allocator_static {
     static void* alloc(addr_size size) noexcept;
 
+    static void* calloc(addr_size count, addr_size size) noexcept;
+
     static void free(void* ptr) noexcept;
 
     static addr_size used_mem() noexcept;

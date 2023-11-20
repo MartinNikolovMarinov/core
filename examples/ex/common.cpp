@@ -72,7 +72,9 @@ void initOpenGL() {
 core::expected<GraphicsLibError> init(InitProps&& props) {
     Assert(props.mainLoopCb != nullptr, "Provided nullptr for Main Loop.");
 
-    ValueOrReturn(initGlfw());
+    if (auto res = initGlfw(); res.has_err()) {
+        return core::unexpected(res.err());
+    }
 
     CommonState& g_s = state();
     g_s.mainLoopCb = props.mainLoopCb;
@@ -100,14 +102,18 @@ core::expected<GraphicsLibError> init(InitProps&& props) {
     glfwSwapInterval(1);
 
     // Init glew after there is a window:
-    ValueOrReturn(initGlew());
+    if (auto res = initGlew(); res.has_err()) {
+        return core::unexpected(res.err());
+    }
 
     // Initialize OpenGL:
     initOpenGL();
 
     // Call the custom user provided callback:
     if (props.initStateCb) {
-        ValueOrReturn(props.initStateCb(g_s))
+        if(auto res = props.initStateCb(g_s); res.has_err()) {
+            return core::unexpected(res.err());
+        }
     }
 
     return {};

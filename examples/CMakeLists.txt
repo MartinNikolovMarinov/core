@@ -104,11 +104,6 @@ find_package(glfw3 CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 
 # Core library:
-option(CORE_DEBUG "" ON)
-option(CORE_ASSERT_ENABLED "" ON)
-option(CORE_LIBRARY_SHARED "" ON)
-option(CORE_BUILD_TESTS "" OFF)
-option(CORE_RUN_COMPILETIME_TESTS "" OFF)
 target_link_libraries(${PROJECT_NAME} PRIVATE core)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/core)
 

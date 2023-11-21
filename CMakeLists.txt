@@ -1,34 +1,25 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.5)
 
-project(core VERSION 0.1.0)
-
-# BEGIN Options
+project(core VERSION 0.2.0)
 
 # Global CMake options:
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Generates compile_commands.json
 
-if(NOT DEFINED CORE_LIBRARY_SHARED)
-    set(CORE_LIBRARY_SHARED OFF CACHE BOOL "Build core as a shared library.")
-endif()
+# BEGIN Options
 
-if(NOT DEFINED CORE_DEBUG)
-    if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")
-        # By default, in release builds, disable debug.
-        set(CORE_DEBUG OFF CACHE BOOL "Enable debug mode.")
-    else()
-        set(CORE_DEBUG ON CACHE BOOL "Enable debug mode.")
-    endif()
-endif()
+option(CORE_LIBRARY_SHARED "Build core as a shared library." OFF)
+option(CORE_ASSERT_ENABLED "Enable asserts." ON)
+option(CORE_BUILD_TESTS "Build core tests." OFF)
+option(CORE_RUN_COMPILETIME_TESTS "Run compile-time tests." OFF)
+option(CORE_USE_CPPCHECK "Use cppcheck. [WARNING] This makes compilation incredibly slow!" OFF)
 
-if(NOT DEFINED CORE_ASSERT_ENABLED)
-    if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")
-        # By default, in release builds, disable asserts.
-        set(CORE_ASSERT_ENABLED OFF CACHE BOOL "Enable asserts.")
-    else()
-        set(CORE_ASSERT_ENABLED ON CACHE BOOL "Enable asserts.")
-    endif()
+if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(CORE_DEBUG OFF)
+else()
+    set(CORE_DEBUG ON)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows" OR
@@ -43,19 +34,6 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 else()
     set(OS "unsupported")
     message(FATAL_ERROR "Unsupported OS: ${CMAKE_SYSTEM_NAME}!")
-endif()
-
-if(NOT DEFINED CORE_BUILD_TESTS)
-    set(CORE_BUILD_TESTS OFF CACHE BOOL "Build core tests.")
-endif()
-
-if(NOT DEFINED CORE_RUN_COMPILETIME_TESTS)
-    # This option can slow down compilation significantly.
-    set(CORE_RUN_COMPILETIME_TESTS OFF CACHE BOOL "Run compile-time tests.")
-endif()
-
-if(NOT DEFINED CORE_USE_CPPCHECK)
-    set(CORE_USE_CPPCHECK OFF CACHE BOOL "Use cppcheck. [WARNING] This makes compilation incredibly slow!")
 endif()
 
 if(CORE_USE_CPPCHECK)
@@ -75,7 +53,7 @@ endif()
 
 # END Options
 
-# BEGIN Print Selected Options
+# BEGIN Print selected options
 
 message(STATUS "[CORE] ---------------------------------------------")
 message(STATUS "[CORE] Version:           ${PROJECT_VERSION}")
@@ -90,100 +68,27 @@ message(STATUS "[CORE] Build Tests:       ${CORE_BUILD_TESTS}")
 message(STATUS "[CORE] Run Compile Tests: ${CORE_RUN_COMPILETIME_TESTS}")
 message(STATUS "[CORE] Use CppCheck:      ${CORE_USE_CPPCHECK}")
 
-# END Print Selected Options
+# END Print selected options
 
 # BEGIN Declare Source Files
 
 set(src_files
-    src/API.h
-    src/system_checks.h
-    src/types.h
-    src/core.h
-
-    src/algorithms.h
-    src/alloc_bump.h
-    src/alloc.h
-    src/ansi_escape_codes.h
-    src/arr.h
-    src/bits.cpp
-    src/bits.h
-    src/char_ptr_conv.h
-    src/char_ptr.h
-    src/cmd_flag.h
-    src/compiler.h
-    src/core_math.cpp
-    src/core_math.h
-    src/core_traits.h
-    src/expected.h
-    src/hash_map.h
-    src/hash.cpp
-    src/hash.h
-    src/intrinsic.cpp
-    src/intrinsic.h
-    src/ints.h
-    src/io.cpp
-    src/io.h
-    src/mem.cpp
-    src/mem.h
-    src/rnd.cpp
-    src/rnd.h
-    src/static_arr.h
-    src/str_builder.h
-    src/tuple.h
-    src/unique_ptr.h
-    src/utf.h
-    src/utils.cpp
-    src/utils.h
-
-    src/std/bbox.h
-    src/std/ccmath.h
-    src/std/core.h
-    src/std/lines.h
-    src/std/mat.h
-    src/std/plt_error.h
-    src/std/plt.h
-    src/std/projections.cpp
-    src/std/projections.h
-    src/std/stacktrace.h
-    src/std/stringer.h
-    src/std/threading.h
-    src/std/transforms.h
-    src/std/vec.h
-
-    src/std/allocators/alloc_std_stats.cpp
-    src/std/allocators/alloc_std_stats.h
-    src/std/allocators/alloc_std.cpp
-    src/std/allocators/alloc_std.h
+    src/core_hash.cpp
 )
 
-# OS specific files
 if(OS STREQUAL "linux")
-    set(src_files ${src_files}
-        src/std/plt/unix/unix_plt.h
-        src/std/plt/unix/unix_plt.cpp
-        src/std/plt/unix/unix_stacktrace.cpp
-        src/std/plt/unix/unix_threading.cpp
-    )
+    set(src_files ${src_files})
 elseif(OS STREQUAL "darwin")
-    set(src_files ${src_files}
-        src/std/plt/unix/unix_plt.h
-        src/std/plt/unix/unix_plt.cpp
-        src/std/plt/unix/unix_stacktrace.cpp
-        src/std/plt/unix/unix_threading.cpp
-    )
+    set(src_files ${src_files})
 elseif(OS STREQUAL "windows")
-    set(src_files ${src_files}
-        src/std/plt/win64/win64_plt.cpp
-        src/std/plt/win64/win64_stacktrace.cpp
-    )
+    set(src_files ${src_files})
 endif()
 
 # END Declare Source Files
 
-# BEGIN Add Library
+# BEGIN Add library
 
 if(CORE_LIBRARY_SHARED)
-    message(STATUS "[CORE] Configuring corelib as a shared library")
     add_library(${PROJECT_NAME} SHARED ${src_files})
     # Set symbols visibility to be hidden by default:
     set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -193,26 +98,25 @@ if(CORE_LIBRARY_SHARED)
         CXX_VISIBILITY_INLINE_PRESET hidden
     )
 else()
-    message(STATUS "[CORE] Configuring corelib as a static library")
     add_library(${PROJECT_NAME} STATIC ${src_files})
 endif()
 
-# END Add Library.
+# END Add library
 
 # BEGIN Set Configure File
 
-configure_file(src/core_config.h.in core_config.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/core_config.h.in core_config.h)
 
 # END Set Configure File
 
-# BEGIN Include Path Directories
+# BEGIN Include Path
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${PROJECT_BINARY_DIR} # for core_config.h
 )
 
-# END Include Path Directories
+# END Include Path
 
 # BEGIN Definitions
 
@@ -234,20 +138,28 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
    CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
    CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     # Use -Werror if you want to treat warnings as errors. For large code refactor that might be prefereable.
-    set(mm_core_common_flags -std=c++17 -pthread
-        -Wall -Wextra -Wfatal-errors -Wuninitialized -Wconversion -Wunused-value
-        -Wdouble-promotion -Wswitch-enum -Wundef
-        -Wno-unknown-pragmas -Wno-unused-function -Wno-variadic-macros
+    set(mm_core_common_flags
+        -nostdinc++
+        -std=c++17 -pthread
+        -Wall -Wextra -Wfatal-errors -Wconversion
+        -Wshadow -Wold-style-cast -Wdouble-promotion -Wswitch-enum -Wundef -Wcast-align -Wsign-conversion
+        -Wmisleading-indentation -Woverloaded-virtual -Wnon-virtual-dtor
         -Wdisabled-optimization # warn if the compailer disables requestd level of optimization
+        -Wno-unknown-pragmas -Wno-unused-function -Wno-variadic-macros
     )
     set(mm_core_debug_flags -O0 -g -ggdb -Wnull-dereference)
     set(mm_core_release_flags -O3)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(mm_core_common_flags
         -std:c++17
+        -Wall -W4 -WX
+        /w14254 # Warns if more than one operator conversion is applied to get from one type to another (useful for finding implicit conversions that might be unintended).
+        /w14263 # Warns if a member function hides a base class virtual function (similar to -Woverloaded-virtual in GCC/Clang).
+        /w14265 # Warns if a class is derived from two or more classes that are not interfaces.
+        /w14287 # Warns for 'unsigned' char, short, int or long types in a conditional expression, which can lead to unexpected behaviors.
+        /w14296 # Warns if a constructor is declared without specifying either 'explicit' or 'implicit'.
+        /w14311 # Warns if a catch block has been written to catch C++ exceptions by value rather than by reference.
         -nologo -FC
-        -Wall -W4
-        -WX # Compile warnings are errors
         /fastfail
     )
     set(mm_core_debug_flags -Zi -Od)
@@ -264,7 +176,7 @@ endif()
 
 # END Compile Options
 
-# BEGIN Adding Tests
+# BEGIN Create Testing Executable
 
 if(CORE_BUILD_TESTS)
     message(STATUS "[CORE] Configuring tests")
@@ -284,19 +196,27 @@ if(CORE_BUILD_TESTS)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
        CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
        CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-        set(mm_test_common_flags -std=c++17 -g -ggdb -pthread
-            -Wall -Wextra -Wfatal-errors -Wuninitialized -Wconversion -Wunused-value
-            -Wdouble-promotion -Wswitch-enum -Wundef
-            -Wno-unknown-pragmas -Wno-variadic-macros
+        set(mm_test_common_flags
+            -std=c++17 -g -ggdb -pthread
+            -Wall -Wextra -Wfatal-errors -Wconversion
+            -Wshadow -Wold-style-cast -Wdouble-promotion -Wswitch-enum -Wundef -Wcast-align -Wsign-conversion
+            -Wmisleading-indentation -Woverloaded-virtual -Wnon-virtual-dtor
             -Wdisabled-optimization # warn if the compailer disables requestd level of optimization
+            -Wno-unknown-pragmas -Wno-unused-function -Wno-variadic-macros
         )
         set(mm_test_debug_flags -O0 -Wnull-dereference)
         set(mm_test_release_flags -O3)
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         set(mm_test_common_flags
             -std:c++17
+            -Wall -W4 -WX
+            /w14254 # Warns if more than one operator conversion is applied to get from one type to another (useful for finding implicit conversions that might be unintended).
+            /w14263 # Warns if a member function hides a base class virtual function (similar to -Woverloaded-virtual in GCC/Clang).
+            /w14265 # Warns if a class is derived from two or more classes that are not interfaces.
+            /w14287 # Warns for 'unsigned' char, short, int or long types in a conditional expression, which can lead to unexpected behaviors.
+            /w14296 # Warns if a constructor is declared without specifying either 'explicit' or 'implicit'.
+            /w14311 # Warns if a catch block has been written to catch C++ exceptions by value rather than by reference.
             -nologo -FC
-            -Wall -W4
             /fastfail
         )
         set(mm_test_debug_flags -Zi -Od)
@@ -316,6 +236,6 @@ if(CORE_BUILD_TESTS)
     add_test(NAME core_test COMMAND core_test)
 endif()
 
-# END Adding Test
+# END Create Testing Executable
 
 message(STATUS "[CORE] ---------------------------------------------")

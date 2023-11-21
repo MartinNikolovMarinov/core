@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "*.edf": "html",
-        "*.tcc": "cpp",
-        "string": "cpp"
-    }
-}

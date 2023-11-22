@@ -4,7 +4,7 @@ project(core VERSION 0.2.0)
 
 # Global CMake options:
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Generates compile_commands.json
 
@@ -44,7 +44,7 @@ if(CORE_USE_CPPCHECK)
                 "--enable=all"
                 "--inconclusive"
                 "--inline-suppr"
-                "--std=c++17"
+                "--std=c++20"
                 "--check-level=exhaustive"
                 "--output-file=${CMAKE_BINARY_DIR}/cppcheck.out.txt"
                 "--suppressions-list=${CMAKE_SOURCE_DIR}/CppCheckSuppressions.txt")
@@ -74,12 +74,19 @@ message(STATUS "[CORE] Use CppCheck:      ${CORE_USE_CPPCHECK}")
 
 set(src_files
     src/core_hash.cpp
+    src/core_mem.cpp
+    src/core_utils.cpp
+    src/core_intrinsics.cpp
 )
 
 if(OS STREQUAL "linux")
-    set(src_files ${src_files})
+    set(src_files ${src_files}
+        src/plt/unix/unix_stacktrace.cpp
+    )
 elseif(OS STREQUAL "darwin")
-    set(src_files ${src_files})
+    set(src_files ${src_files}
+        src/plt/unix/unix_stacktrace.cpp
+    )
 elseif(OS STREQUAL "windows")
     set(src_files ${src_files})
 endif()
@@ -139,8 +146,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
    CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     # Use -Werror if you want to treat warnings as errors. For large code refactor that might be prefereable.
     set(mm_core_common_flags
-        -nostdinc++
-        -std=c++17 -pthread
+        -std=c++20 -pthread
         -Wall -Wextra -Wfatal-errors -Wconversion
         -Wshadow -Wold-style-cast -Wdouble-promotion -Wswitch-enum -Wundef -Wcast-align -Wsign-conversion
         -Wmisleading-indentation -Woverloaded-virtual -Wnon-virtual-dtor
@@ -181,14 +187,21 @@ endif()
 if(CORE_BUILD_TESTS)
     message(STATUS "[CORE] Configuring tests")
 
+    set(TEST_EXECUTABLE ${PROJECT_NAME}_test)
+
     # Create executable
-    add_executable(core_test test.cpp)
+    add_executable(${TEST_EXECUTABLE}
+        ${TEST_EXECUTABLE}.cpp
+        tests/t-defer.cpp
+        tests/t-cptr_conv.cpp
+        tests/t-cptr.cpp
+    )
 
     # Link core
-    target_link_libraries(core_test ${PROJECT_NAME})
+    target_link_libraries(${TEST_EXECUTABLE} ${PROJECT_NAME})
 
     # Definitions
-    target_compile_definitions(core_test PRIVATE
+    target_compile_definitions(${TEST_EXECUTABLE} PRIVATE
         -DPATH_TO_TEST_DATA="${CMAKE_CURRENT_SOURCE_DIR}/test/data"
     )
 
@@ -197,7 +210,7 @@ if(CORE_BUILD_TESTS)
        CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
        CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
         set(mm_test_common_flags
-            -std=c++17 -g -ggdb -pthread
+            -std=c++20 -g -ggdb -pthread
             -Wall -Wextra -Wfatal-errors -Wconversion
             -Wshadow -Wold-style-cast -Wdouble-promotion -Wswitch-enum -Wundef -Wcast-align -Wsign-conversion
             -Wmisleading-indentation -Woverloaded-virtual -Wnon-virtual-dtor
@@ -226,14 +239,14 @@ if(CORE_BUILD_TESTS)
     endif()
 
     if(CORE_DEBUG)
-        target_compile_options(core_test PRIVATE ${mm_test_common_flags} ${mm_test_debug_flags})
+        target_compile_options(${TEST_EXECUTABLE} PRIVATE ${mm_test_common_flags} ${mm_test_debug_flags})
     else()
-        target_compile_options(core_test PRIVATE ${mm_test_common_flags} ${mm_test_release_flags})
+        target_compile_options(${TEST_EXECUTABLE} PRIVATE ${mm_test_common_flags} ${mm_test_release_flags})
     endif()
 
     # Add the test
     enable_testing()
-    add_test(NAME core_test COMMAND core_test)
+    add_test(NAME ${TEST_EXECUTABLE} COMMAND ${TEST_EXECUTABLE})
 endif()
 
 # END Create Testing Executable

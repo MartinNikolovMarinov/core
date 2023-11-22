@@ -91,6 +91,16 @@ template <typename T> struct is_same<T, T>       { static constexpr bool value =
 
 template <typename T, typename U> constexpr bool is_same_v = is_same<T, U>::value;
 
+namespace detail {
+
+template <class T, class U>
+concept SameHelper = core::is_same_v<T, U>;
+
+} // namespace detail
+
+template <typename T, typename U>
+concept same_as = detail::SameHelper<T, U> && detail::SameHelper<U, T>;
+
 template <typename> struct _is_char  { static constexpr bool value = false_type_v; };
 template <> struct _is_char<char>    { static constexpr bool value = true_type_v; };
 template <> struct _is_char<uchar>   { static constexpr bool value = true_type_v; };

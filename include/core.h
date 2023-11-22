@@ -1,7 +1,20 @@
 #pragma once
 
+#include "core_ansi_escape_codes.h"
 #include "core_API.h"
+#include "core_config.h"
+#include "core_cptr_conv.h"
+#include "core_cptr.h"
+#include "core.h"
 #include "core_hash.h"
+#include "core_intrinsics.h"
+#include "core_ints.h"
+#include "core_math.h"
+#include "core_mem.h"
+#include "core_system_checks.h"
 #include "core_traits.h"
+#include "core_tuple.h"
 #include "core_types.h"
 #include "core_utils.h"
+
+#include "plt/core_stacktrace.h"

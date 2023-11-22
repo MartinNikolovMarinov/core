@@ -31,13 +31,14 @@ CORE_API_EXPORT globalAssertHandlerPtr getGlobalAssertHandler();
         // or exists the program in some other way.
         #define Assert(...) C_VFUNC(Assert, __VA_ARGS__)
         #define Assert1(expr) Assert2(expr, "")
-        #define Assert2(expr, msg)                                                     \
-            if (!(expr)) {                                                             \
+        #define Assert2(expr, msg)                                                  \
+            if (!(expr)) {                                                          \
                 if (core::getGlobalAssertHandler()) {                               \
                     core::getGlobalAssertHandler()(#expr, __FILE__, __LINE__, msg); \
-                } else {                                                               \
-                    *(volatile coretypes::i32 *)0 = 0;                                 \
-                }                                                                      \
+                } else {                                                            \
+                    i32* __forceCrash = nullptr;                                    \
+                    [[maybe_unused]] i32 __ignored = *__forceCrash;                 \
+                }                                                                   \
             }
     #endif
 #else
@@ -55,8 +56,8 @@ CORE_API_EXPORT globalAssertHandlerPtr getGlobalAssertHandler();
 // Zero cost defer:
 #ifndef defer
     struct CORE_API_EXPORT deferDummy {};
-    template <class F> struct deferrer { F f; ~deferrer() { f(); } };
-    template <class F> deferrer<F> operator*(core::deferDummy, F f) { return {f}; }
+    template <typename F> struct deferrer { F f; ~deferrer() { f(); } };
+    template <typename F> deferrer<F> operator*(core::deferDummy, F f) { return {f}; }
     #define DEFER_(LINE) zz_defer##LINE
     #define DEFER(LINE) DEFER_(LINE)
     #define defer auto DEFER(__LINE__) = core::deferDummy{} *[&]()

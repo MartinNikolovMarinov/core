@@ -46,14 +46,14 @@
             "name": "Debug Sandbox with LLDB",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/build/sandbox",
+            "program": "${workspaceFolder}/build/core_sandbox",
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopOnEntry": false,
             "env": {},
             "preLaunchTask": "Build with Makefile",
         },
-        
+
         {
             "name": "Debug Examples with Makefile",
             "type": "cppdbg",

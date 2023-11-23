@@ -54,6 +54,20 @@
 //     }
 // };
 
-// i32 main() {
-//     return anotherFunction(50);
-// }
+void anotherFunction() {
+    constexpr addr_size BUF_MAX = core::KILOBYTE * 4;
+    char buf[BUF_MAX] = {};
+    addr_size bufWritten = 0;
+
+    bool ok = core::stacktrace(buf, BUF_MAX, bufWritten, 20);
+    std::cout << buf << std::endl;
+}
+
+void someFunction() {
+    anotherFunction();
+}
+
+i32 main() {
+    someFunction();
+    return 0;
+}

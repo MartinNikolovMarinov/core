@@ -170,8 +170,14 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         /w14296 # Warns if a constructor is declared without specifying either 'explicit' or 'implicit'.
         /w14311 # Warns if a catch block has been written to catch C++ exceptions by value rather than by reference.
     )
-    set(mm_core_debug_flags -Zi -Od /link -incremental:no -opt:ref DbgHelp.lib)
+    set(mm_core_debug_flags -Zi -Od)
     set(mm_core_release_flags -O2)
+
+    if (CORE_DEBUG)
+        # DbgHelp.lib is required for stacktrace.
+        target_link_options(${PROJECT_NAME} PRIVATE /INCREMENTAL:NO /OPT:REF)
+        target_link_libraries(${PROJECT_NAME} PRIVATE DbgHelp.lib)
+    endif()
 else()
     message(FATAL_ERROR "Unsupported compiler")
 endif()

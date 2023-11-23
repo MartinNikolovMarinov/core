@@ -52,17 +52,17 @@ constexpr T limitMin() {
 
 template <typename T>
 constexpr i32 maxDigitsBase2() {
-    if constexpr (core::is_same_v<T, u8>)         return core::CHAR_BIT;
-    else if constexpr (core::is_same_v<T, u16>)   return core::CHAR_BIT * sizeof(u16);
-    else if constexpr (core::is_same_v<T, u32>)   return core::CHAR_BIT * sizeof(u32);
-    else if constexpr (core::is_same_v<T, u64>)   return core::CHAR_BIT * sizeof(u64);
-    else if constexpr (core::is_same_v<T, i8>)    return core::CHAR_BIT * sizeof(i8) - 1;
-    else if constexpr (core::is_same_v<T, i16>)   return core::CHAR_BIT * sizeof(i16) - 1;
-    else if constexpr (core::is_same_v<T, i32>)   return core::CHAR_BIT * sizeof(i32) - 1;
-    else if constexpr (core::is_same_v<T, i64>)   return core::CHAR_BIT * sizeof(i64) - 1;
-    else if constexpr (core::is_same_v<T, char>)  return core::CHAR_BIT * sizeof(char);
-    else if constexpr (core::is_same_v<T, uchar>) return core::CHAR_BIT * sizeof(uchar);
-    else if constexpr (core::is_same_v<T, schar>) return core::CHAR_BIT * sizeof(schar) - 1;
+    if constexpr (core::is_same_v<T, u8>)         return core::BYTE_SIZE;
+    else if constexpr (core::is_same_v<T, u16>)   return core::BYTE_SIZE * sizeof(u16);
+    else if constexpr (core::is_same_v<T, u32>)   return core::BYTE_SIZE * sizeof(u32);
+    else if constexpr (core::is_same_v<T, u64>)   return core::BYTE_SIZE * sizeof(u64);
+    else if constexpr (core::is_same_v<T, i8>)    return core::BYTE_SIZE * sizeof(i8) - 1;
+    else if constexpr (core::is_same_v<T, i16>)   return core::BYTE_SIZE * sizeof(i16) - 1;
+    else if constexpr (core::is_same_v<T, i32>)   return core::BYTE_SIZE * sizeof(i32) - 1;
+    else if constexpr (core::is_same_v<T, i64>)   return core::BYTE_SIZE * sizeof(i64) - 1;
+    else if constexpr (core::is_same_v<T, char>)  return core::BYTE_SIZE * sizeof(char);
+    else if constexpr (core::is_same_v<T, uchar>) return core::BYTE_SIZE * sizeof(uchar);
+    else if constexpr (core::is_same_v<T, schar>) return core::BYTE_SIZE * sizeof(schar) - 1;
     else static_assert(core::always_false<T>, "Unsupported type");
 }
 

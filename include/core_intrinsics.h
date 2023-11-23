@@ -18,8 +18,8 @@ namespace detail {
 
 template<typename TInt>
 constexpr u32 leadingZeroCountCompiletimeImpl(TInt n) {
-    u32 leadingZeroes = sizeof(n) * core::CHAR_BIT;
-    for (i32 i = 0; i < i32(sizeof(n) * core::CHAR_BIT); i++) {
+    u32 leadingZeroes = sizeof(n) * core::BYTE_SIZE;
+    for (i32 i = 0; i < i32(sizeof(n) * core::BYTE_SIZE); i++) {
         leadingZeroes--;
         n = n >> 1;
         if (n == 0) break;
@@ -72,7 +72,7 @@ namespace detail {
 template<typename TUint>
 constexpr u32 numberOfSetBitsCompiletimeImpl(TUint n) {
     u32 setBits = 0;
-    for (i32 i = 0; i < i32(sizeof(n) * core::CHAR_BIT); i++) {
+    for (i32 i = 0; i < i32(sizeof(n) * core::BYTE_SIZE); i++) {
         if (n & 1) setBits++;
         n = n >> 1;
     }
@@ -118,7 +118,7 @@ namespace detail {
 
 template<typename TUint>
 constexpr inline TUint intrin_rotl(TUint x, i32 s) {
-    constexpr i32 N = sizeof(TUint) * core::CHAR_BIT;
+    constexpr i32 N = sizeof(TUint) * core::BYTE_SIZE;
     auto r = s % N;
     if (r == 0)     return x;
     else if (r > 0) return (x << r) | (x >> (N - r));
@@ -135,7 +135,7 @@ namespace detail {
 
 template<typename TUint>
 constexpr inline TUint intrin_rotr(TUint x, i32 s) {
-    constexpr i32 N = sizeof(TUint) * core::CHAR_BIT;
+    constexpr i32 N = sizeof(TUint) * core::BYTE_SIZE;
     auto r = s % N;
     if (r == 0)     return x;
     else if (r > 0) return (x >> r) | (x << (N - r));

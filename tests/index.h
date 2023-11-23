@@ -100,7 +100,10 @@ inline i32 runAllTests() {
     RunTestSuite(runMathTestsSuite);
     RunTestSuite(runTraitsTestsSuite);
 
-    RunTestSuite(runPltStacktraceTestsSuite);
+    #if defined(CORE_DEBUG) && CORE_DEBUG == 1
+        // Stacktrace should only be expected to work in debug builds.
+        RunTestSuite(runPltStacktraceTestsSuite);
+    #endif
 
     std::cout << '\n';
     std::cout << ANSI_BOLD(ANSI_GREEN("Tests OK")) << std::endl;

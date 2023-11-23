@@ -1,46 +1,97 @@
 #include <plt/core_stacktrace.h>
 
+#include <core_utils.h>
+#include <core_cptr.h>
+#include <core_cptr_conv.h>
+
+#include <cstdlib>
 #include <windows.h>
 #include <DbgHelp.h>
 
-#pragma comment(lib, "DbgHelp.lib")
+namespace core {
 
-void stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
-                int nStackFrames, int skipFrames = 1) {
-    void* stack[nStackFrames + skipFrames];
-    HANDLE process = GetCurrentProcess();
-    SymInitialize(process, NULL, TRUE);
+#if defined(CORE_DEBUG) && CORE_DEBUG == 1
 
-    USHORT frames = CaptureStackBackTrace(skipFrames, nStackFrames, stack, NULL);
-    SYMBOL_INFO* symbol = (SYMBOL_INFO*)calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
-    symbol->MaxNameLen = 255;
-    symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-    defer { free(symbol); };
+bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
+                i32 nStackFrames, i32 skipFrames) {
+
+    auto writeToBuf = [&](const char* s) -> bool {
+        auto slen = core::cptrLen(s);
+        if (bufWritten + slen >= bufMax) {
+            return false;
+        }
+        bufWritten += slen;
+        buf = core::cptrCopy(buf, s, slen);
+        return true;
+    };
+    auto writeIntToBuf = [&](auto n) -> bool {
+        char buf[50] = {};
+        core::intToCptr(n, buf);
+        return writeToBuf(buf);
+    };
 
     bufWritten = 0;
-    for (int i = 0; i < frames; ++i) {
-        SymFromAddr(process, (DWORD64)(stack[i]), 0, symbol);
+
+    HANDLE process = GetCurrentProcess();
+    bool ret = SymInitialize(process, NULL, TRUE);
+    if (!ret) {
+        writeToBuf("  <sym initialize failed>\n");
+        return false;
+    }
+    defer { SymCleanup(process); };
+
+    void** stack = reinterpret_cast<void**>(std::malloc((nStackFrames + skipFrames) * sizeof(void*)));
+    defer { std::free(stack); };
+
+    USHORT framesCount = CaptureStackBackTrace(skipFrames, nStackFrames, stack, NULL);
+    if (framesCount == 0) {
+        writeToBuf("  <empty, possibly corrupt>\n");
+        return false;
+    }
+
+    SYMBOL_INFO* symbol = (SYMBOL_INFO*)std::calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
+    symbol->MaxNameLen = 255;
+    symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+    defer { std::free(symbol); };
+
+    for (int i = 0; i < framesCount; ++i) {
+        if (!SymFromAddr(process, reinterpret_cast<DWORD64>(stack[i]), 0, symbol)) {
+            if (!writeToBuf(" <sym from addr failed>\n")) return false;
+            continue;
+        }
+
+        const char* funcName = symbol->Name;
 
         DWORD64 displacement = 0;
         IMAGEHLP_LINE64 line;
         line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-        if (SymGetLineFromAddr64(process, symbol->Address, (PDWORD)&displacement, &line)) {
-            // Successfully found the line
-            int written = snprintf(buf + bufWritten, bufMax - bufWritten,
-                                   "at %s in %s: line: %lu: address: 0x%0X\n",
-                                   symbol->Name, line.FileName, line.LineNumber, symbol->Address);
-            if (written > 0) {
-                bufWritten += written;
-            }
-        } else {
-            // Line information not available
-            int written = snprintf(buf + bufWritten, bufMax - bufWritten,
-                                   "at %s, address 0x%0X\n", symbol->Name, symbol->Address);
-            if (written > 0) {
-                bufWritten += written;
-            }
+        bool ok = SymGetLineFromAddr64(process, symbol->Address, reinterpret_cast<PDWORD>(&displacement), &line);
+        if (ok) {
+            const char* fileName = line.FileName;
+            u64 lineNumber = line.LineNumber;
+
+            if (!writeToBuf("  "))            return false;
+            if (!writeToBuf(fileName))        return false;
+            if (!writeToBuf(":"))             return false;
+            if (!writeIntToBuf(lineNumber))   return false;
+            if (!writeToBuf("  "))            return false;
+            if (!writeToBuf(funcName))        return false;
+            if (!writeToBuf("\n"))            return false;
+        }
+        else {
+            if (!writeToBuf("  "))                        return false;
+            if (!writeToBuf(funcName))                    return false;
+            if (!writeToBuf(" <failed to parse line>\n")) return false;
         }
     }
 
-    SymCleanup(process);
+    return true;
 }
+
+#else
+
+bool stacktrace(char*, addr_size, addr_size&, i32, i32) { return false; }
+
+#endif
+
+} // namespace core

@@ -196,6 +196,11 @@ if(CORE_BUILD_TESTS)
         tests/t-cptr_conv.cpp
         tests/t-cptr.cpp
         tests/t-mem.cpp
+        tests/t-hash.cpp
+        tests/t-tuple.cpp
+        tests/t-ints.cpp
+        tests/t-intrinsics.cpp
+        tests/t-math.cpp
     )
 
     # Link core

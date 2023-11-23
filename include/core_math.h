@@ -1,11 +1,14 @@
 #pragma once
 
 #include <core_API.h>
-#include <core_types.h>
-#include <core_tuple.h>
-#include <core_traits.h>
+#include <core_intrinsics.h>
 #include <core_system_checks.h>
+#include <core_traits.h>
+#include <core_tuple.h>
+#include <core_types.h>
 #include <core_utils.h>
+
+#include <cmath>
 
 namespace core {
 
@@ -42,6 +45,409 @@ constexpr T limitMin() {
     else if constexpr (core::is_same_v<T, f64>) return core::MIN_NORMAL_F64;
     else static_assert(core::always_false<T>, "Unsupported type");
 }
+
+#pragma endregion
+
+#pragma region Max Digits ---------------------------------------------------------------------------------------------
+
+template <typename T>
+constexpr i32 maxDigitsBase2() {
+    if constexpr (core::is_same_v<T, u8>)         return core::CHAR_BIT;
+    else if constexpr (core::is_same_v<T, u16>)   return core::CHAR_BIT * sizeof(u16);
+    else if constexpr (core::is_same_v<T, u32>)   return core::CHAR_BIT * sizeof(u32);
+    else if constexpr (core::is_same_v<T, u64>)   return core::CHAR_BIT * sizeof(u64);
+    else if constexpr (core::is_same_v<T, i8>)    return core::CHAR_BIT * sizeof(i8) - 1;
+    else if constexpr (core::is_same_v<T, i16>)   return core::CHAR_BIT * sizeof(i16) - 1;
+    else if constexpr (core::is_same_v<T, i32>)   return core::CHAR_BIT * sizeof(i32) - 1;
+    else if constexpr (core::is_same_v<T, i64>)   return core::CHAR_BIT * sizeof(i64) - 1;
+    else if constexpr (core::is_same_v<T, char>)  return core::CHAR_BIT * sizeof(char);
+    else if constexpr (core::is_same_v<T, uchar>) return core::CHAR_BIT * sizeof(uchar);
+    else if constexpr (core::is_same_v<T, schar>) return core::CHAR_BIT * sizeof(schar) - 1;
+    else static_assert(core::always_false<T>, "Unsupported type");
+}
+
+template <typename T>
+constexpr i32 maxDigitsBase10() {
+    if constexpr (core::is_same_v<T, u8>    &&
+                  core::is_same_v<T, u16>   &&
+                  core::is_same_v<T, u32>   &&
+                  core::is_same_v<T, u64>   &&
+                  core::is_same_v<T, i8>    &&
+                  core::is_same_v<T, i16>   &&
+                  core::is_same_v<T, i32>   &&
+                  core::is_same_v<T, i64>   &&
+                  core::is_same_v<T, char>  &&
+                  core::is_same_v<T, uchar> &&
+                  core::is_same_v<T, schar>
+    ) {
+        return maxDigitsBase2<T>() * i32(std::log10(2));
+    }
+    else {
+        static_assert(core::always_false<T>, "Unsupported type");
+    }
+}
+
+#pragma endregion
+
+#pragma region Abs/Sign -----------------------------------------------------------------------------------------------
+
+template <typename T>
+constexpr T absGeneric(T a) {
+    return T(a) < T(0) ? T(-a) : T(a);
+}
+
+constexpr f32 abs(f32 a) {
+    IS_CONST_EVALUATED { return core::absGeneric(a); }
+    else {
+        // NOTE: This is pretty fast branchless check. It's collapsed to a single instruction on x86 and ARM by most compilers.
+        i32* ip = reinterpret_cast<i32*>(&a);
+        *ip &= 0x7fffffff;
+        return a;
+    }
+}
+
+constexpr f64 abs(f64 a) {
+    IS_CONST_EVALUATED { return core::absGeneric(a); }
+    else {
+        // NOTE: This is pretty fast branchless check. It's collapsed to a single instruction on x86 and ARM by most compilers.
+        i64* ip = reinterpret_cast<i64*>(&a);
+        *ip &= 0x7fffffffffffffff;
+        return a;
+    }
+}
+
+#pragma endregion
+
+#pragma region Classification -----------------------------------------------------------------------------------------
+
+constexpr f32 infinityF32()     { return core::intrin_hugeValf(); }
+constexpr f32 quietNaNF32()     { return core::intrin_nanf(); }
+constexpr f32 signalingNaNF32() { return core::intrin_nansf(); }
+
+constexpr f64 infinityF64()     { return core::intrin_hugeVal(); }
+constexpr f64 quietNaNF64()     { return core::intrin_nan(); }
+constexpr f64 signalingNaNF64() { return core::intrin_nans(); }
+
+namespace detail {
+
+constexpr bool isinfCompiletimeImpl(f32 x) {
+    return x == infinityF32() || -x == infinityF32();
+}
+
+constexpr bool isinfCompiletimeImpl(f64 x) {
+    return x == infinityF64() || -x == infinityF64();
+}
+
+template <typename TFloat>
+constexpr bool isinf(TFloat x) {
+    IS_CONST_EVALUATED { return detail::isinfCompiletimeImpl(x); }
+    return std::isinf(x);
+}
+
+} // namespace detail
+
+constexpr bool isinf(f32 x) { return detail::isinf(x); }
+constexpr bool isinf(f64 x) { return detail::isinf(x); }
+
+namespace detail {
+
+template <typename TFloat>
+constexpr bool isnanCompiletimeImpl(TFloat x) {
+    return x != x;
+}
+
+template <typename TFloat>
+constexpr bool isnan(TFloat x) {
+    IS_CONST_EVALUATED { return detail::isnanCompiletimeImpl(x); }
+    return std::isnan(x);
+}
+
+} // namespace detail
+
+constexpr bool isnan(f32 x) { return detail::isnan(x); }
+constexpr bool isnan(f64 x) { return detail::isnan(x); }
+
+namespace detail {
+
+template <typename TFloat>
+constexpr bool isnormalCompiletimeImpl(TFloat x) {
+    bool res = x != 0 &&
+               !detail::isinfCompiletimeImpl(x) &&
+               !detail::isnanCompiletimeImpl(x) &&
+                core::abs(x) >= core::limitMin<TFloat>();
+    return res;
+}
+
+template <typename TFloat>
+constexpr bool isnormal(TFloat x) {
+    IS_CONST_EVALUATED { return detail::isnormalCompiletimeImpl(x); }
+    return std::isnormal(x);
+}
+
+} // namespace detail
+
+constexpr bool isnormal(f32 x) { return detail::isnormal(x); }
+constexpr bool isnormal(f64 x) { return detail::isnormal(x); }
+
+namespace detail {
+
+template <typename TFloat>
+constexpr i32 fpclassifyCompiletimeImpl(TFloat x) {
+    if (detail::isnanCompiletimeImpl(x))                              return FP_NAN;
+    if (detail::isinfCompiletimeImpl(x))                              return FP_INFINITE;
+    if (core::abs(x) == TFloat(0))                                    return FP_ZERO;
+    if (core::abs(x) > 0 && core::abs(x) < core::limitMin<TFloat>())  return FP_SUBNORMAL;
+    return FP_NORMAL;
+}
+
+template <typename TFloat>
+constexpr i32 fpclassify(TFloat x) {
+    IS_CONST_EVALUATED { return fpclassifyCompiletimeImpl(x); }
+    return std::fpclassify(x);
+}
+
+} // namespace detail
+
+constexpr i32 fpclassify(f32 x) { return detail::fpclassify(x); }
+constexpr i32 fpclassify(f64 x) { return detail::fpclassify(x); }
+
+#pragma endregion
+
+#pragma region Floor -------------------------------------------------------------------------------------------------
+
+namespace detail {
+
+template <typename TFloat>
+constexpr TFloat floorCompiletimeImpl(TFloat x) {
+    if (core::abs(x) == TFloat(0)) return x;
+    if (core::isinf(x))            return x;
+    if (core::isnan(x))            return x;
+
+    if (x >= 0) {
+        return (x < 1) ? TFloat(0) : TFloat(u64(x));
+    }
+
+    if (x > -1) return TFloat(-1);
+    u64 posIntPart = u64(-x);
+    if (TFloat(posIntPart) == -x) return x; // no fractional part.
+    return -TFloat(posIntPart + 1);
+}
+
+template <typename TFloat>
+constexpr TFloat floor(TFloat x) {
+    IS_CONST_EVALUATED { return floorCompiletimeImpl(x); }
+    return std::floor(x);
+}
+
+} // detail
+
+constexpr f32 floor(f32 x) { return detail::floor(x); }
+constexpr f64 floor(f64 x) { return detail::floor(x); }
+
+#pragma endregion
+
+#pragma region Ceil --------------------------------------------------------------------------------------------------
+
+namespace detail {
+
+template <typename TFloat>
+constexpr TFloat ceilCompiletimeImpl(TFloat x) {
+    if (core::abs(x) == TFloat(0)) return x;
+    if (core::isinf(x))            return x;
+    if (core::isnan(x))            return x;
+
+    TFloat res = core::detail::floorCompiletimeImpl(x);
+    return res == x ? res : res + TFloat(1);
+}
+
+template <typename TFloat>
+constexpr TFloat ceil(TFloat x) {
+    IS_CONST_EVALUATED { return ceilCompiletimeImpl(x); }
+    return std::ceil(x);
+}
+
+} // namespace detail
+
+constexpr f32 ceil(f32 x) { return detail::ceil(x); }
+constexpr f64 ceil(f64 x) { return detail::ceil(x); }
+
+#pragma endregion
+
+#pragma region Trunc -------------------------------------------------------------------------------------------------
+
+namespace detail {
+
+template <typename TFloat>
+constexpr TFloat truncCompiletimeImpl(TFloat x) {
+    if (core::abs(x) == TFloat(0)) return x;
+    if (core::isinf(x))            return x;
+    if (core::isnan(x))            return x;
+
+    return (x > 0) ? floorCompiletimeImpl(x) : ceilCompiletimeImpl(x);
+}
+
+template <typename TFloat>
+constexpr TFloat trunc(TFloat x) {
+    IS_CONST_EVALUATED { return truncCompiletimeImpl(x); }
+    return std::trunc(x);
+}
+
+} // namespace detail
+
+constexpr f32 trunc(f32 x) { return detail::trunc(x); }
+constexpr f64 trunc(f64 x) { return detail::trunc(x); }
+
+#pragma endregion
+
+#pragma region Modf --------------------------------------------------------------------------------------------------
+
+namespace detail {
+
+template <typename TFloat>
+constexpr TFloat modfErrorImpl(TFloat x, TFloat* iptr) {
+    *iptr = x;
+    if (core::abs(x) == TFloat(0)) return x;
+    return x > TFloat(0) ? TFloat(0) : -TFloat(0);
+}
+
+template <typename TFloat>
+constexpr TFloat modfNanImpl(TFloat x, TFloat* iptr) {
+    *iptr = x;
+    return x;
+}
+
+template <typename TFloat>
+constexpr TFloat modfCompiletimeImpl(TFloat x, TFloat* iptr) {
+    if (detail::isnanCompiletimeImpl(x)) return modfNanImpl(x, iptr);
+    if (detail::isinfCompiletimeImpl(x)) return modfErrorImpl(x, iptr);
+    if (core::abs(x) == TFloat(0))         return modfErrorImpl(x, iptr);
+
+    *iptr = core::detail::truncCompiletimeImpl(x);
+    return (x - *iptr);
+}
+
+template <typename TFloat>
+constexpr TFloat modf(TFloat x, TFloat* iptr) {
+    IS_CONST_EVALUATED { return modfCompiletimeImpl(x, iptr); }
+    return std::modf(x, iptr);
+}
+
+} // namespace detail
+
+constexpr f32 modf(f32 x, f32* iptr) { return detail::modf(x, iptr); }
+constexpr f64 modf(f64 x, f64* iptr) { return detail::modf(x, iptr); }
+
+#pragma endregion
+
+#pragma region Round -------------------------------------------------------------------------------------------------
+
+namespace detail {
+
+template <typename TFloat>
+constexpr TFloat roundCompiletimeImpl(TFloat x) {
+    if (detail::isnanCompiletimeImpl(x)) return x;
+    if (detail::isinfCompiletimeImpl(x)) return x;
+    if (core::abs(x) == TFloat(0))         return x;
+
+    TFloat iptr = 0;
+    const TFloat modx = core::detail::modfCompiletimeImpl(x, &iptr);
+    constexpr TFloat half = TFloat(1)/2;
+
+    if (modx >= half && iptr >= 0) return iptr + 1;
+    if (core::abs(modx) >= half && iptr <= 0) return iptr - 1;
+    return iptr;
+}
+
+template <typename TFloat>
+constexpr TFloat round(TFloat x) {
+    IS_CONST_EVALUATED { return roundCompiletimeImpl(x); }
+    return std::round(x);
+}
+
+} // namespace detail
+
+constexpr f32 round(f32 x) { return detail::round(x); }
+constexpr f64 round(f64 x) { return detail::round(x); }
+
+template <typename TFloat>
+constexpr TFloat roundTo(TFloat n, u32 to) {
+    static_assert(core::is_float_v<TFloat>, "Invalid TFloat argument.");
+    return TFloat(round(n * TFloat(10*to))) / TFloat(10*to);
+}
+
+#pragma endregion
+
+#pragma region Sqrt --------------------------------------------------------------------------------------------------
+
+namespace detail {
+
+template <typename TFloat>
+constexpr TFloat sqrtCompiletimeImpl(TFloat x) {
+    // Newton's algorithm
+    if (x < TFloat(0)) {
+        if constexpr (sizeof(TFloat) == 8) {
+            return core::quietNaNF64();
+        }
+        else {
+            return core::quietNaNF32();
+        }
+    }
+    if (x == TFloat(0)) return TFloat(0);
+    TFloat z = TFloat(1);
+    constexpr i32 itter = 10;
+    for (i32 i = 1; i <= itter; i++) {
+        z -= (z*z - x) / (2*z);
+    }
+    return z;
+}
+
+template <typename TFloat>
+constexpr TFloat sqrt(TFloat x) {
+    IS_CONST_EVALUATED { return sqrtCompiletimeImpl(x); }
+    return std::sqrt(x);
+}
+
+} // namespace detail
+
+
+constexpr f32 sqrt(f32 x) { return detail::sqrt(x); }
+constexpr f64 sqrt(f64 x) { return detail::sqrt(x); }
+
+#pragma endregion
+
+#pragma region Pow --------------------------------------------------------------------------------------------------
+
+// NOTE:
+// A constexpr version of pow is possible, but it will have significant differences with std::pow on different standard
+// libraries, unless it's implemented very carefully. That sounds annoying to do so I'm not going to bother.
+
+inline f32 pow(f32 x, f32 exp) { return ::powf(x, exp); }
+inline f64 pow(f64 x, f32 exp) { return ::pow(x, exp); }
+
+#pragma endregion
+
+#pragma region Trig --------------------------------------------------------------------------------------------------
+
+inline f32 sin(f32 x) { return std::sin(x); }
+inline f64 sin(f64 x) { return std::sin(x); }
+
+inline f32 cos(f32 x) { return std::cos(x); }
+inline f64 cos(f64 x) { return std::cos(x); }
+
+inline f32 tan(f32 x) { return std::tan(x); }
+inline f64 tan(f64 x) { return std::tan(x); }
+
+inline f32 asin(f32 x) { return std::asin(x); }
+inline f64 asin(f64 x) { return std::asin(x); }
+
+inline f32 acos(f32 x) { return std::acos(x); }
+inline f64 acos(f64 x) { return std::acos(x); }
+
+inline f32 atan(f32 x) { return std::atan(x); }
+inline f64 atan(f64 x) { return std::atan(x); }
+
+inline f32 atan2(f32 a, f32 b) { return std::atan2(a, b); }
+inline f64 atan2(f64 a, f64 b) { return std::atan2(a, b); }
 
 #pragma endregion
 
@@ -94,7 +500,7 @@ template <typename TInt>
 constexpr TInt alignToPow2(TInt v) {
     if (v == 0) return 0;
 
-    // Decrement by 1 so if the number is already a power of 2, it won't go up to the next power
+    // Decrement by 1 in case the number is already a power of 2 ensuring it won't go up to the next power.
     v--;
 
     v |= v >> 1;
@@ -153,30 +559,6 @@ constexpr f32 radToDeg(const radians& n) {
 
 #pragma endregion
 
-#pragma region Take Exponent/Mantisssa --------------------------------------------------------------------------------
-
-// NOTE:
-// The following code takes the exponent and mantissa of a floating point number, which is encoded in the IEEE-754.
-// The code does not support little-endian systems. Support should not be too difficult if I need it.
-//
-// Here is a representation of a floating point number in memory (Little Endian) as a reference for some of the bitwise
-// operations:
-//
-//   31 bit 30 bit     23 bit                    0 bit
-//   |      |          |                         |
-//   | Sign | Exponent |        Mantissa         |
-//   |  1   | 10000010 | 10001100000000000000000 |
-//
-// This number in decimal is -12.375.
-// The value of a IEEE-754 number is computed as: sign * 2^exponent * mantissa.
-
-CORE_API_EXPORT u32 exponent(f32 n);
-CORE_API_EXPORT u32 exponent(f64 n);
-CORE_API_EXPORT u32 mantissa(f32 n);
-CORE_API_EXPORT u64 mantissa(f64 n);
-
-#pragma endregion
-
 #pragma region Min/Max/Clamp -----------------------------------------------------------------------------------------
 
 template <typename T>
@@ -193,48 +575,13 @@ constexpr T min(T a, T b) {
 
 template <typename T>
 constexpr tuple<T, T> minmax(T a, T b) {
-    return core::create_tuple(core::min(a, b), core::max(a, b));
+    return core::createTuple(core::min(a, b), core::max(a, b));
 }
 
 template <typename T>
 constexpr T clamp(T value, T min, T max) {
     return core::max(min, core::min(max, value));
 }
-
-#pragma endregion
-
-#pragma region Abs/Sign -----------------------------------------------------------------------------------------------
-
-// TODO2: [Nit Pick] absSlow is a bad name for ths function. It's not slow, it's just not branchless.
-template <typename T>
-constexpr T absSlow(T a) {
-    // can be done branchless, but it's not faster.
-    return a < 0 ? -a : a;
-}
-
-constexpr f32 abs(f32 a) {
-    IS_CONST_EVALUATED { return absSlow(a); }
-    else {
-        // NOTE: This is pretty fast branchless check. It's collapsed to a single instruction on x86 and ARM by most compilers.
-        i32* ip = reinterpret_cast<i32*>(&a);
-        *ip &= 0x7fffffff;
-        return a;
-    }
-}
-
-constexpr f64 abs(f64 a) {
-    IS_CONST_EVALUATED { return absSlow(a); }
-    else {
-        i64* ip = reinterpret_cast<i64*>(&a);
-        *ip &= 0x7fffffffffffffff;
-        return a;
-    }
-}
-
-constexpr i8  abs(i8 a)  { return a < i8(0) ? i8(-a) : i8(a); }
-constexpr i16 abs(i16 a) { return a < i16(0) ? i16(-a) : i16(a); }
-constexpr i32 abs(i32 a) { return a < i32(0) ? i32(-a) : i32(a); }
-constexpr i64 abs(i64 a) { return a < i64(0) ? i64(-a) : i64(a); }
 
 #pragma endregion
 

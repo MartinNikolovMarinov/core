@@ -6,10 +6,16 @@
 
 using namespace coretypes;
 
-// This code is quite complex, because it is zero allocation, but it does somthing very simple.
-// It iterates over a table of test cases, and executes the assertion function on each one.
-// The assertion function, the test case table, and the error message prefix are all passed in as arguments.
-// Every error message is pre-allocated on the stack, and the test case index is manipulated inside the char array.
+/**
+ * \brief This code is quite complex, because it does zero allocations, but it's purpose is quite simple. It iterates over
+ *        a table of test cases, and executes the assertion function on each one. The assertion function, the test case
+ *        table, and the error message prefix are all passed in as arguments. Every error message is pre-allocated on
+ *        the stack, and the test case index is manipulated inside the char array.
+ *
+ * \param errMsgPrefix The error message prefix.
+ * \param cases The test case table.
+ * \param assertionFn The assertion function.
+*/
 template <addr_size PLen, typename TCase, addr_size NCases, typename Afunc>
 constexpr void executeTestTable(const char (&errMsgPrefix)[PLen], const TCase (&cases)[NCases], Afunc assertionFn) {
     addr_size i = 0;
@@ -69,6 +75,11 @@ i32 runDeferTestsSuite();
 i32 runCptrConvTestsSuite();
 i32 runCptrTestsSuite();
 i32 runMemTestsSuite();
+i32 runHashTestsSuite();
+i32 runTupleTestsSuite();
+i32 runIntsTestsSuite();
+i32 runIntrinsicsTestsSuite();
+i32 runMathTestsSuite();
 
 inline i32 runAllTests() {
     coreInit();
@@ -79,6 +90,11 @@ inline i32 runAllTests() {
     RunTestSuite(runCptrConvTestsSuite);
     RunTestSuite(runCptrTestsSuite);
     RunTestSuite(runMemTestsSuite);
+    RunTestSuite(runHashTestsSuite);
+    RunTestSuite(runTupleTestsSuite);
+    RunTestSuite(runIntsTestsSuite);
+    RunTestSuite(runIntrinsicsTestsSuite);
+    RunTestSuite(runMathTestsSuite);
 
     std::cout << '\n';
     std::cout << ANSI_BOLD(ANSI_GREEN("Tests OK")) << std::endl;

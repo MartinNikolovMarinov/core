@@ -18,8 +18,8 @@ namespace detail {
 
 template<typename TInt>
 constexpr u32 leadingZeroCountCompiletimeImpl(TInt n) {
-    u32 leadingZeroes = sizeof(n) * 8;
-    for (i32 i = 0; i < i32(sizeof(n) * 8); i++) {
+    u32 leadingZeroes = sizeof(n) * core::CHAR_BIT;
+    for (i32 i = 0; i < i32(sizeof(n) * core::CHAR_BIT); i++) {
         leadingZeroes--;
         n = n >> 1;
         if (n == 0) break;
@@ -72,7 +72,7 @@ namespace detail {
 template<typename TUint>
 constexpr u32 numberOfSetBitsCompiletimeImpl(TUint n) {
     u32 setBits = 0;
-    for (i32 i = 0; i < i32(sizeof(n) * 8); i++) {
+    for (i32 i = 0; i < i32(sizeof(n) * core::CHAR_BIT); i++) {
         if (n & 1) setBits++;
         n = n >> 1;
     }
@@ -117,31 +117,35 @@ CORE_API_EXPORT u64 intrin_getCpuTicks();
 namespace detail {
 
 template<typename TUint>
-constexpr inline TUint intrin_rotl(TUint n, TUint c) {
-    // TODO2: Should I use x86 specific intrinsics for this? Does it matter for performance at all?
-    const unsigned int mask = (8*sizeof(n) - 1);
-    c &= mask;
-    return (n << c) | (n >> ((-c) & mask));
+constexpr inline TUint intrin_rotl(TUint x, i32 s) {
+    constexpr i32 N = sizeof(TUint) * core::CHAR_BIT;
+    auto r = s % N;
+    if (r == 0)     return x;
+    else if (r > 0) return (x << r) | (x >> (N - r));
+    else            return (x >> (-r)) | (x << (N + r));
 }
 
 }
 
-constexpr inline u32 intrin_rotl(u32 n, u32 c) { return detail::intrin_rotl(n, c); }
-constexpr inline u64 intrin_rotl(u64 n, u64 c) { return detail::intrin_rotl(n, c); }
+// Left circular shift.
+constexpr inline u32 intrin_rotl(u32 x, i32 s) { return detail::intrin_rotl(x, s); }
+constexpr inline u64 intrin_rotl(u64 x, i32 s) { return detail::intrin_rotl(x, s); }
 
 namespace detail {
 
 template<typename TUint>
-constexpr inline TUint intrin_rotr(TUint n, TUint c) {
-    // TODO2: Should I use x86 specific intrinsics for this? Does it matter for performance at all?
-    const unsigned int mask = (8*sizeof(n) - 1);
-    c &= mask;
-    return (n >> c) | (n << ((-c) & mask));
+constexpr inline TUint intrin_rotr(TUint x, i32 s) {
+    constexpr i32 N = sizeof(TUint) * core::CHAR_BIT;
+    auto r = s % N;
+    if (r == 0)     return x;
+    else if (r > 0) return (x >> r) | (x << (N - r));
+    else            return (x << (-r)) | (x >> (N + r));
 }
 
 }
 
-constexpr inline u32 intrin_rotr(u32 n, u32 c) { return detail::intrin_rotr(n, c); }
-constexpr inline u64 intrin_rotr(u64 n, u64 c) { return detail::intrin_rotr(n, c); }
+// Right circular shift.
+constexpr inline u32 intrin_rotr(u32 x, i32 s) { return detail::intrin_rotr(x, s); }
+constexpr inline u64 intrin_rotr(u64 x, i32 s) { return detail::intrin_rotr(x, s); }
 
 } // namespace core

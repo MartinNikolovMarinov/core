@@ -29,6 +29,8 @@ using addr_size = u64;
 using addr_off  = i64;
 using rune      = char32_t; // Runes represent a single UTF-32 encoded character.
 
+static constexpr i32 CHAR_BIT = 8;
+
 // Max unsigned integer constants
 static constexpr u64 MAX_U64 = static_cast<u64>(0xFFFFFFFFFFFFFFFF);           // 18446744073709551615
 static constexpr u32 MAX_U32 = static_cast<u32>(MAX_U64 >> (sizeof(u32) * 8)); // 4294967295

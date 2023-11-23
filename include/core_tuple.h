@@ -140,7 +140,7 @@ struct tuple<T1, T2, T3, T4> {
 };
 
 template <typename...TArgs>
-constexpr tuple<TArgs...> create_tuple(TArgs&&... args) {
+constexpr tuple<TArgs...> createTuple(TArgs&&... args) {
     constexpr i32 NArgs = sizeof...(TArgs);
     static_assert(1 < NArgs && NArgs <= 4, "tuples can only have 2, 3 or 4 elements");
     if constexpr (NArgs == 2) {

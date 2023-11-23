@@ -5,9 +5,9 @@
 #include <core_cptr.h>
 #include <core_cptr_conv.h>
 
-#include <stdlib.h>
 #include <execinfo.h>
 #include <cxxabi.h>
+#include <cstdlib>
 
 namespace core {
 

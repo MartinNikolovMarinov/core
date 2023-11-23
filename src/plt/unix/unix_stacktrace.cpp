@@ -30,16 +30,16 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten, int nStackFr
     void** callstack = reinterpret_cast<void**>(std::malloc(addr_size(nStackFrames + skipFrames) * sizeof(void*)));
     i32 framesCount = backtrace(callstack, nStackFrames + skipFrames - 1);
     if (framesCount == 0) {
-        bool ret = writeToBuf("  <empty, possibly corrupt>\n");
-        return ret;
+        writeToBuf("  <empty, possibly corrupt>\n");
+        return false;
     }
     defer { std::free(callstack); };
 
     // Get the symbols
     char** symbols = backtrace_symbols(callstack, framesCount);
     if (symbols == nullptr) {
-        bool ret = writeToBuf("  <failed to backtrace symbols>\n");
-        return ret;
+        writeToBuf("  <failed to backtrace symbols>\n");
+        return false;
     }
     defer { std::free(symbols); };
 

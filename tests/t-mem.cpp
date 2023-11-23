@@ -33,6 +33,7 @@ constexpr i32 alignTest() {
 PRAGMA_WARNING_PUSH
 
 DISABLE_GCC_AND_CLANG_WARNING(-Wconversion)
+DISABLE_MSVC_WARNING(4244)
 
 i32 swapBytesTest() {
     auto runTestCase = [](auto& a, auto& b, addr_size N) {

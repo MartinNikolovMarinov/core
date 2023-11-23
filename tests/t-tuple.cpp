@@ -33,6 +33,10 @@ constexpr i32 runTupleArgumentIncrement() {
     return 0;
 }
 
+PRAGMA_WARNING_PUSH
+
+DISABLE_MSVC_WARNING(4127) // Disable conditional expression is constant. This is intentional here.
+
 constexpr i32 runCreateTuplesOfDifferentSizes() {
     {
         auto t = core::createTuple(1, 2);
@@ -70,6 +74,8 @@ constexpr i32 runCreateTuplesOfDifferentSizes() {
 
     return 0;
 }
+
+PRAGMA_WARNING_POP
 
 i32 runTupleTestsSuite() {
     RunTest(runTupleArgumentIncrement);

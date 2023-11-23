@@ -2,6 +2,7 @@
 
 #include "core_ansi_escape_codes.h"
 #include "core_API.h"
+#include "core_compiler.h"
 #include "core_config.h"
 #include "core_cptr_conv.h"
 #include "core_cptr.h"

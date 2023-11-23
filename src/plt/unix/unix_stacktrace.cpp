@@ -11,12 +11,8 @@
 
 namespace core {
 
-void stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
-                i32 nStackFrames, i32 skipFrames) {
-
-    // TODO: print the thread I am on in the initial line next to the traceback.
-
-    auto writeToBuff = [&](const char* s) -> bool {
+bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten, int nStackFrames, int skipFrames) {
+    auto writeToBuf = [&](const char* s) -> bool {
         auto slen = core::cptrLen(s);
         if (bufWritten + slen >= bufMax) {
             return false;
@@ -26,41 +22,38 @@ void stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
         return true;
     };
 
-    // Storage array for stack trace address data:
-    void** addrList = reinterpret_cast<void**>(std::malloc(size_t(nStackFrames) * sizeof(void*)));
-    if (addrList == nullptr) {
-        writeToBuff("  <failed to allocate memory for stacktrace>\n");
-        return;
+    // TODO: Print current thread name.
+
+    bufWritten = 0;
+
+    // Capture the backtrace
+    void** callstack = reinterpret_cast<void**>(std::malloc(addr_size(nStackFrames + skipFrames) * sizeof(void*)));
+    i32 framesCount = backtrace(callstack, nStackFrames + skipFrames - 1);
+    if (framesCount == 0) {
+        bool ret = writeToBuf("  <empty, possibly corrupt>\n");
+        return ret;
     }
-    defer { std::free(addrList); };
+    defer { std::free(callstack); };
 
-    // Retrieve current stack addresses:
-    i32 addrLen = backtrace(addrList, nStackFrames);
-    if (addrLen == 0) {
-        writeToBuff("  <empty, possibly corrupt>\n");
-        return;
+    // Get the symbols
+    char** symbols = backtrace_symbols(callstack, framesCount);
+    if (symbols == nullptr) {
+        bool ret = writeToBuf("  <failed to backtrace symbols>\n");
+        return ret;
     }
+    defer { std::free(symbols); };
 
-    char** symbolList = backtrace_symbols(addrList, addrLen);
-    if (symbolList == nullptr) {
-        writeToBuff("  <failed to backtrace symbols>\n");
-        return;
-    }
-    defer { std::free(symbolList); };
+    for (i32 i = skipFrames; i < framesCount; i++) {
+        char* symbol = symbols[i];
 
-    constexpr u32 MAX_FUNCNAME_SIZE = 1024;
-    char funcName[MAX_FUNCNAME_SIZE];
+        char* beginName = nullptr;
+        char* beginOffset = nullptr;
+        char* endOffset = nullptr;
 
-    for (i32 i = skipFrames; i < addrLen; i++) {
-        char *beginMangledName = 0;
-        char *beginOffset = 0;
-        char *endOffset = 0; // ensure that parsing was successful
-
-        // find parentheses and +address offset surrounding the mangled name:
-        // ./module(function+0x15c) [0x8048a6d]
-        for (char *p = symbolList[i]; *p; ++p) {
+        // Find the parentheses and +address offset surrounding the mangled name
+        for (char* p = symbols[i]; *p; ++p) {
             if (*p == '(') {
-                beginMangledName = p;
+                beginName = p;
             }
             else if (*p == '+') {
                 beginOffset = p;
@@ -71,49 +64,54 @@ void stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
             }
         }
 
-        if (beginMangledName && beginOffset && endOffset && beginMangledName < beginOffset) {
-            *beginMangledName++ = core::term_char;
+        bool successfullyParsedLine = beginName && beginOffset && endOffset && beginName < beginOffset;
+
+        if (successfullyParsedLine) {
+            *beginName++ = core::term_char;
             *beginOffset++ = core::term_char;
             *endOffset = core::term_char;
 
-            i32 status;
-            unsigned long maxFuncNameSize = MAX_FUNCNAME_SIZE; // NOTE: unsigned long because of MAC ...
-            char* ret = abi::__cxa_demangle(beginMangledName, funcName, &maxFuncNameSize, &status);
-            if (status == 0) {
-                core::memcopy(funcName, ret, maxFuncNameSize);
-                writeToBuff("  ");
-                writeToBuff(symbolList[i]);
-                writeToBuff(" : ");
-                writeToBuff(funcName);
-                writeToBuff(" +");
-                writeToBuff(beginOffset);
-                writeToBuff("\n");
+            i32 status = 0;
+            char* demangled = abi::__cxa_demangle(beginName, nullptr, nullptr, &status);
+            defer { if (demangled) std::free(demangled); };
+
+            bool demangleSuccess = (status == 0);
+
+            if (demangleSuccess) {
+                if (!writeToBuf("  "))        return false;
+                if (!writeToBuf(symbol))      return false;
+                if (!writeToBuf(" : "))       return false;
+                if (!writeToBuf(demangled))   return false;
+                if (!writeToBuf(" +"))        return false;
+                if (!writeToBuf(beginOffset)) return false;
+                if (!writeToBuf("\n"))        return false;
             }
             else {
                 // Demangling failed. Output mangled function:
-                writeToBuff("  ");
-                writeToBuff(symbolList[i]);
-                writeToBuff(" : ");
-                writeToBuff(beginMangledName);
-                writeToBuff(" +");
-                writeToBuff(beginOffset);
-                writeToBuff(" <demangling failed: status = ");
+                if (!writeToBuf("  "))                             return false;
+                if (!writeToBuf(symbol))                           return false;
+                if (!writeToBuf(" : "))                            return false;
+                if (!writeToBuf(beginName))                        return false;
+                if (!writeToBuf(" +"))                             return false;
+                if (!writeToBuf(beginOffset))                      return false;
+                if (!writeToBuf(" <demangling failed: status = ")) return false;
                 {
-                    char strStatus[20];
+                    char strStatus[20] = {};
                     core::intToCptr(status, strStatus, 20);
-                    writeToBuff(strStatus);
+                    if (!writeToBuf(strStatus)) return false;
                 }
-                writeToBuff(">\n");
+                if (!writeToBuf(">\n")) return false;
             }
         }
         else {
-            // Couldn't parse the line, so print the whole line:
-            writeToBuff("  ");
-            writeToBuff(symbolList[i]);
-            writeToBuff(" <failed to parse line>\n");
-            writeToBuff("\n");
+            if (!writeToBuf("  "))                        return false;
+            if (!writeToBuf(symbol))                      return false;
+            if (!writeToBuf(" <failed to parse line>\n")) return false;
+            if (!writeToBuf("\n"))                        return false;
         }
     }
+
+    return true;
 }
 
 } // namespace core

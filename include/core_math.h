@@ -422,7 +422,7 @@ constexpr f64 sqrt(f64 x) { return detail::sqrt(x); }
 // libraries, unless it's implemented very carefully. That sounds annoying to do so I'm not going to bother.
 
 inline f32 pow(f32 x, f32 exp) { return ::powf(x, exp); }
-inline f64 pow(f64 x, f32 exp) { return ::pow(x, exp); }
+inline f64 pow(f64 x, f64 exp) { return ::pow(x, exp); }
 
 #pragma endregion
 

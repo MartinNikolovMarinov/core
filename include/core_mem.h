@@ -52,7 +52,7 @@ void memfill(void* dest, addr_size dstLen, const T& val) {
     u8* p = reinterpret_cast<u8*>(dest);
     const u8* vbytes = reinterpret_cast<const u8*>(&val);
     addr_size vsize = sizeof(val);
-    for (addr_size i = 0; i < dstLen; i+=vsize) {
+    for (addr_size i = 0; i < dstLen * vsize; i+=vsize) {
         core::memcopy(p + i, vbytes, vsize);
     }
 }

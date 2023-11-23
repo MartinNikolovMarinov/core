@@ -7,12 +7,46 @@ namespace core {
 
 using namespace coretypes;
 
-// The function's return addres is not advanced it remains the same as the input dest pointer!
-CORE_API_EXPORT void*  memcopy(void* dest, const void* src, addr_size len);
-// The function's return addres is not advanced it remains the same as the input dest pointer!
-CORE_API_EXPORT void* memset(void* dest, u8 c, addr_size n);
-CORE_API_EXPORT i32   memcmp(const void* s1, const void* s2, addr_size n);
+/**
+ * @brief Copies a memory region from src to dest. The function's return addres is not advanced it remains the same as
+ *        the input dest pointer!
+ *
+ * @param dest The destination memory region.
+ * @param src The source memory region.
+ * @param len The length of the memory region.
+ * @return The destination pointer.
+*/
+CORE_API_EXPORT void* memcopy(void* dest, const void* src, addr_size len);
 
+/**
+ * @brief Sets a memory region to the given value. The function's return addres is not advanced it remains the same as
+ *        the input dest pointer!
+ *
+ * @param dest The destination memory region.
+ * @param c The value to set the memory region to.
+ * @param n The length of the memory region.
+ * @return The destination pointer.
+*/
+CORE_API_EXPORT void* memset(void* dest, u8 c, addr_size n);
+
+/**
+ * @brief Compares two memory regions.
+ *
+ * @param s1 The first memory region.
+ * @param s2 The second memory region.
+ * @param n The length of the memory region.
+ * @return 0 if the memory regions are equal, a negative value if s1 is less than s2, a positive value if s1 is greater
+ *         than s2.
+*/
+CORE_API_EXPORT i32 memcmp(const void* s1, const void* s2, addr_size n);
+
+/**
+ * @brief Fills a memory region with the given value.
+ *
+ * @param dest The memory region to fill.
+ * @param dstLen The length of the memory region.
+ * @param val The value to fill the memory region with.
+*/
 template <typename T>
 void memfill(void* dest, addr_size dstLen, const T& val) {
     u8* p = reinterpret_cast<u8*>(dest);
@@ -48,13 +82,26 @@ constexpr T* append(T* dst, const T& val) {
     return dst + 1;
 }
 
-CORE_API_EXPORT void swapBytes(void* a, void* b, addr_size size);
-
+/**
+ * @brief Generic swap function that creates a temporary copy.
+ *
+ * @param a
+ * @param b
+*/
 template <typename T>
 constexpr void swap(T& a, T& b) {
     T tmp = a;
     a = b;
     b = tmp;
 }
+
+/**
+ * @brief Swaps all bytes in a and b until the given size is reached. Can't check for overflows.
+ *
+ * @param a
+ * @param b
+ * @param size
+*/
+CORE_API_EXPORT void swapBytes(void* a, void* b, addr_size size);
 
 } // namespace core

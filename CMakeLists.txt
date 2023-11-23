@@ -195,6 +195,7 @@ if(CORE_BUILD_TESTS)
         tests/t-defer.cpp
         tests/t-cptr_conv.cpp
         tests/t-cptr.cpp
+        tests/t-mem.cpp
     )
 
     # Link core

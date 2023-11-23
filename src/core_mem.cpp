@@ -35,29 +35,87 @@ void* memcopy(void* dest, const void* src, addr_size len) {
 }
 
 void* memset(void* dest, u8 c, addr_size n) {
-    u8* p = reinterpret_cast<u8*>(dest);
-    for (addr_size i = 0; i < n; ++i) {
-        p[i] = c;
+    u8* ddest = reinterpret_cast<u8*>(dest);
+    addr_size remain = n % 4;
+    for (addr_size i = 0; i < (n - remain); i+=4) {
+        ddest[i] = c;
+        ddest[i+1] = c;
+        ddest[i+2] = c;
+        ddest[i+3] = c;
     }
+
+    switch (remain) {
+    case 1:
+        ddest[n-1] = c;
+        break;
+    case 2:
+        ddest[n-1] = c;
+        ddest[n-2] = c;
+        break;
+    case 3:
+        ddest[n-1] = c;
+        ddest[n-2] = c;
+        ddest[n-3] = c;
+        break;
+    }
+
     return dest;
 }
 
 i32 memcmp(const void* s1, const void* s2, addr_size n) {
     const u8* p1 = reinterpret_cast<const u8*>(s1);
     const u8* p2 = reinterpret_cast<const u8*>(s2);
-    for (addr_size i = 0; i < n; ++i) {
+    addr_size remain = n % 4;
+    for (addr_size i = 0; i < (n - remain); i+=4) {
         if (p1[i] != p2[i]) return p1[i] - p2[i];
+        if (p1[i+1] != p2[i+1]) return p1[i+1] - p2[i+1];
+        if (p1[i+2] != p2[i+2]) return p1[i+2] - p2[i+2];
+        if (p1[i+3] != p2[i+3]) return p1[i+3] - p2[i+3];
     }
+
+    switch (remain) {
+    case 1:
+        if (p1[n-1] != p2[n-1]) return p1[n-1] - p2[n-1];
+        break;
+    case 2:
+        if (p1[n-1] != p2[n-1]) return p1[n-1] - p2[n-1];
+        if (p1[n-2] != p2[n-2]) return p1[n-2] - p2[n-2];
+        break;
+    case 3:
+        if (p1[n-1] != p2[n-1]) return p1[n-1] - p2[n-1];
+        if (p1[n-2] != p2[n-2]) return p1[n-2] - p2[n-2];
+        if (p1[n-3] != p2[n-3]) return p1[n-3] - p2[n-3];
+        break;
+    }
+
     return 0;
 }
 
 void swapBytes(void* a, void* b, addr_size size) {
-    u8* a_ = reinterpret_cast<u8*>(a);
-    u8* b_ = reinterpret_cast<u8*>(b);
-    for (addr_size i = 0; i < size; ++i) {
-        u8 tmp = a_[i];
-        a_[i] = b_[i];
-        b_[i] = tmp;
+    u8* p1 = reinterpret_cast<u8*>(a);
+    u8* p2 = reinterpret_cast<u8*>(b);
+    addr_size remain = size % 4;
+
+    for (addr_size i = 0; i < (size - remain); i+=4) {
+        swap(p1[i], p2[i]);
+        swap(p1[i+1], p2[i+1]);
+        swap(p1[i+2], p2[i+2]);
+        swap(p1[i+3], p2[i+3]);
+    }
+
+    switch (remain) {
+    case 1:
+        swap(p1[size-1], p2[size-1]);
+        break;
+    case 2:
+        swap(p1[size-1], p2[size-1]);
+        swap(p1[size-2], p2[size-2]);
+        break;
+    case 3:
+        swap(p1[size-1], p2[size-1]);
+        swap(p1[size-2], p2[size-2]);
+        swap(p1[size-3], p2[size-3]);
+        break;
     }
 }
 

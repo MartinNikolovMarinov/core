@@ -68,6 +68,7 @@ inline i32 g_testCount = 0;
 i32 runDeferTestsSuite();
 i32 runCptrConvTestsSuite();
 i32 runCptrTestsSuite();
+i32 runMemTestsSuite();
 
 inline i32 runAllTests() {
     coreInit();
@@ -77,6 +78,7 @@ inline i32 runAllTests() {
     RunTestSuite(runDeferTestsSuite);
     RunTestSuite(runCptrConvTestsSuite);
     RunTestSuite(runCptrTestsSuite);
+    RunTestSuite(runMemTestsSuite);
 
     std::cout << '\n';
     std::cout << ANSI_BOLD(ANSI_GREEN("Tests OK")) << std::endl;

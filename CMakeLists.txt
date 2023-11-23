@@ -201,6 +201,7 @@ if(CORE_BUILD_TESTS)
         tests/t-ints.cpp
         tests/t-intrinsics.cpp
         tests/t-math.cpp
+        tests/t-traits.cpp
     )
 
     # Link core

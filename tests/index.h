@@ -82,6 +82,8 @@ i32 runIntrinsicsTestsSuite();
 i32 runMathTestsSuite();
 i32 runTraitsTestsSuite();
 
+i32 runPltStacktraceTestsSuite();
+
 inline i32 runAllTests() {
     coreInit();
 
@@ -97,6 +99,8 @@ inline i32 runAllTests() {
     RunTestSuite(runIntrinsicsTestsSuite);
     RunTestSuite(runMathTestsSuite);
     RunTestSuite(runTraitsTestsSuite);
+
+    RunTestSuite(runPltStacktraceTestsSuite);
 
     std::cout << '\n';
     std::cout << ANSI_BOLD(ANSI_GREEN("Tests OK")) << std::endl;

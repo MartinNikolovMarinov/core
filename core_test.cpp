@@ -1,7 +1,8 @@
 #include "tests/index.h"
 
-i32 main(i32, const char **) {
+#include <iostream>
 
+int main() {
     std::cout << "[CORE VERSION] "
               << CORE_VERSION_MAJOR << "."
               << CORE_VERSION_MINOR << "."

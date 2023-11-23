@@ -184,6 +184,21 @@ i32 memcmpTests() {
 }
 
 i32 memfillTests() {
+    struct A {
+        i32 a;
+        u64 b;
+        u8 c;
+    };
+
+    A arr[10] = {};
+
+    core::memfill(arr, 10, A{ 1, 2, 3 });
+
+    for (auto& a : arr) {
+        Assert(a.a == 1);
+        Assert(a.b == 2);
+        Assert(a.c == 3);
+    }
 
     return 0;
 }

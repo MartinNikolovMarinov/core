@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.2)
 
 project(core VERSION 0.2.0)
 
@@ -157,7 +157,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
     set(mm_core_release_flags -O3)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(mm_core_common_flags
-        -std:c++17
+        -std:c++20
         -Wall -W4 -WX
         /w14254 # Warns if more than one operator conversion is applied to get from one type to another (useful for finding implicit conversions that might be unintended).
         /w14263 # Warns if a member function hides a base class virtual function (similar to -Woverloaded-virtual in GCC/Clang).
@@ -192,6 +192,7 @@ if(CORE_BUILD_TESTS)
     # Create executable
     add_executable(${TEST_EXECUTABLE}
         ${TEST_EXECUTABLE}.cpp
+
         tests/t-defer.cpp
         tests/t-cptr_conv.cpp
         tests/t-cptr.cpp
@@ -202,6 +203,8 @@ if(CORE_BUILD_TESTS)
         tests/t-intrinsics.cpp
         tests/t-math.cpp
         tests/t-traits.cpp
+
+        tests/plt/t-stacktrace.cpp
     )
 
     # Link core
@@ -217,7 +220,7 @@ if(CORE_BUILD_TESTS)
        CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
        CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
         set(mm_test_common_flags
-            -std=c++20 -g -ggdb -pthread
+            -std=c++20 -g -pthread
             -Wall -Wextra -Wfatal-errors -Wconversion
             -Wshadow -Wold-style-cast -Wdouble-promotion -Wswitch-enum -Wundef -Wcast-align -Wsign-conversion
             -Wmisleading-indentation -Woverloaded-virtual -Wnon-virtual-dtor
@@ -228,7 +231,7 @@ if(CORE_BUILD_TESTS)
         set(mm_test_release_flags -O3)
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         set(mm_test_common_flags
-            -std:c++17
+            -std:c++20
             -Wall -W4 -WX
             /w14254 # Warns if more than one operator conversion is applied to get from one type to another (useful for finding implicit conversions that might be unintended).
             /w14263 # Warns if a member function hides a base class virtual function (similar to -Woverloaded-virtual in GCC/Clang).
@@ -239,16 +242,14 @@ if(CORE_BUILD_TESTS)
             -nologo -FC
             /fastfail
         )
-        set(mm_test_debug_flags -Zi -Od)
-        set(mm_test_release_flags -O2)
     else()
         message(FATAL_ERROR "Unsupported compiler!")
     endif()
 
     if(CORE_DEBUG)
-        target_compile_options(${TEST_EXECUTABLE} PRIVATE ${mm_test_common_flags} ${mm_test_debug_flags})
+        target_compile_options(${TEST_EXECUTABLE} PUBLIC ${mm_test_common_flags} ${mm_test_debug_flags})
     else()
-        target_compile_options(${TEST_EXECUTABLE} PRIVATE ${mm_test_common_flags} ${mm_test_release_flags})
+        target_compile_options(${TEST_EXECUTABLE} PUBLIC ${mm_test_common_flags} ${mm_test_release_flags})
     endif()
 
     # Add the test

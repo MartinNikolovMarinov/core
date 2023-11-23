@@ -9,7 +9,6 @@
 // Include system defaults.
 #include <stdint.h>
 #include <stddef.h>
-#include <uchar.h>
 
 namespace coretypes {
 
@@ -27,7 +26,7 @@ using uchar     = unsigned char;
 using schar     = signed char;
 using addr_size = u64;
 using addr_off  = i64;
-using rune      = char32_t; // Runes represent a single UTF-32 encoded character.
+using rune      = u32; // Runes represent a single UTF-32 encoded character.
 
 static constexpr i32 CHAR_BIT = 8;
 

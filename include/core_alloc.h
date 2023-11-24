@@ -22,7 +22,7 @@ using namespace coretypes;
 using OOMCallback = void (*)(void* userData);
 
 static constexpr OOMCallback DEFAULT_OOM_CALLBACK = [](void*) {
-    Panic("Out of memory!");
+    Panic(false, "Out of memory!");
 };
 
 template <typename T>

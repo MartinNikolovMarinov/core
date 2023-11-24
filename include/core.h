@@ -15,10 +15,12 @@
 #include "core_ints.h"
 #include "core_math.h"
 #include "core_mem.h"
+#include "core_rnd.h"
 #include "core_system_checks.h"
 #include "core_traits.h"
 #include "core_tuple.h"
 #include "core_types.h"
+#include "core_utf.h"
 #include "core_utils.h"
 
 #include "plt/core_stacktrace.h"

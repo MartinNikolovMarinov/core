@@ -158,8 +158,10 @@ i32 runIntrinsicsTestsSuite();
 i32 runIntsTestsSuite();
 i32 runMathTestsSuite();
 i32 runMemTestsSuite();
+i32 runRndTestsSuite();
 i32 runTraitsTestsSuite();
 i32 runTupleTestsSuite();
+i32 runUtfTestsSuite();
 
 i32 runBumpAllocatorTestsSuite();
 i32 runStdAllocatorTestsSuite();
@@ -183,8 +185,10 @@ inline i32 runAllTests() {
     RunTestSuite(runIntsTestsSuite);
     RunTestSuite(runMathTestsSuite);
     RunTestSuite(runMemTestsSuite);
+    RunTestSuite(runRndTestsSuite);
     RunTestSuite(runTraitsTestsSuite);
     RunTestSuite(runTupleTestsSuite);
+    RunTestSuite(runUtfTestsSuite);
 
     RunTestSuite(runBumpAllocatorTestsSuite);
     RunTestSuite(runStdAllocatorTestsSuite);

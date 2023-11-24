@@ -76,6 +76,7 @@ set(src_files
     src/core_hash.cpp
     src/core_intrinsics.cpp
     src/core_mem.cpp
+    src/core_rnd.cpp
     src/core_utils.cpp
 
     src/allocators/core_alloc_bump.cpp
@@ -216,8 +217,10 @@ if(CORE_BUILD_TESTS)
         tests/t-ints.cpp
         tests/t-math.cpp
         tests/t-mem.cpp
+        tests/t-rnd.cpp
         tests/t-traits.cpp
         tests/t-tuple.cpp
+        tests/t-utf.cpp
 
         tests/allocators/t-alloc_bump.cpp
         tests/allocators/t-alloc_std_stats.cpp

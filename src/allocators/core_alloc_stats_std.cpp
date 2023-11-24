@@ -107,7 +107,7 @@ void* StdStatsAllocator::alloc(addr_size size) noexcept {
         return nullptr;
     }
 
-    if (trackMemory(addr, size)) {
+    if (!trackMemory(addr, size)) {
         // not enough memory to keep track of this allocation.
         std::free(addr); // give up on this memory
         return nullptr;
@@ -126,7 +126,7 @@ void* StdStatsAllocator::calloc(addr_size count, addr_size size) noexcept {
         return nullptr;
     }
 
-    if (trackMemory(addr, count * size)) {
+    if (!trackMemory(addr, count * size)) {
         // not enough memory to keep track of this allocation.
         std::free(addr); // give up on this memory
         return nullptr;

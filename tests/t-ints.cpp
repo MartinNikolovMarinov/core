@@ -2,12 +2,12 @@
 
 constexpr i32 digitCountTest() {
     {
-        struct testCase {
+        struct TestCase {
             i32 value;
             u32 expected;
         };
 
-        testCase cases[] = {
+        TestCase cases[] = {
             { 0,           1 },
             { 1,           1 },
             { 11,          2 },
@@ -37,12 +37,12 @@ constexpr i32 digitCountTest() {
         });
     }
     {
-        struct testCase {
+        struct TestCase {
             u32 value;
             u32 expected;
         };
 
-        testCase cases[] = {
+        TestCase cases[] = {
             { 0,           1 },
             { 1,           1 },
             { 11,          2 },
@@ -61,12 +61,12 @@ constexpr i32 digitCountTest() {
         });
     }
     {
-        struct testCase {
+        struct TestCase {
             i64 value;
             u32 expected;
         };
 
-        testCase cases[] = {
+        TestCase cases[] = {
             { 0,                    1 },
             { 1,                    1 },
             { 11,                   2 },
@@ -114,12 +114,12 @@ constexpr i32 digitCountTest() {
         });
     }
     {
-        struct testCase {
+        struct TestCase {
             u64 value;
             u32 expected;
         };
 
-        testCase cases[] = {
+        TestCase cases[] = {
             { 0,                    1 },
             { 1,                    1 },
             { 11,                   2 },

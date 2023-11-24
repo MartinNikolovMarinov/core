@@ -1,12 +1,12 @@
 #include "index.h"
 
 constexpr i32 charToIntTest() {
-    struct testCase {
+    struct TestCase {
         char in;
         i32 expected;
     };
 
-    constexpr testCase cases[] = {
+    constexpr TestCase cases[] = {
         { '0', 0 },
         { '1', 1 },
         { '2', 2 },
@@ -36,12 +36,12 @@ constexpr i32 charToIntTest() {
 }
 
 constexpr i32 digitToCharTest() {
-    struct testCase {
+    struct TestCase {
         i32 in;
         char expected;
     };
 
-    constexpr testCase cases[] = {
+    constexpr TestCase cases[] = {
         { 0, '0' },
         { 1, '1' },
         { 2, '2' },
@@ -70,13 +70,13 @@ constexpr i32 digitToCharTest() {
 
 constexpr i32 intToCptrTest() {
     {
-        struct testCase {
+        struct TestCase {
             i32 in;
             u32 digitCount;
             const char* expected;
         };
 
-        constexpr testCase cases[] = {
+        constexpr TestCase cases[] = {
             { 0, 1, "0" },
             { 1, 1, "1" },
             { -1, 1, "-1" },
@@ -96,13 +96,13 @@ constexpr i32 intToCptrTest() {
         });
     }
     {
-        struct testCase {
+        struct TestCase {
             i64 in;
             u32 digitCount;
             const char* expected;
         };
 
-        constexpr testCase cases[] = {
+        constexpr TestCase cases[] = {
             { 0, 1, "0" },
             { 1, 1, "1" },
             { -1, 1, "-1" },
@@ -127,13 +127,13 @@ constexpr i32 intToCptrTest() {
     }
 
     {
-        struct testCase {
+        struct TestCase {
             u32 in;
             u32 digitCount;
             const char* expected;
         };
 
-        constexpr testCase cases[] = {
+        constexpr TestCase cases[] = {
             { 0, 1, "0" },
             { 1, 1, "1" },
             { 123, 3, "123" },
@@ -152,13 +152,13 @@ constexpr i32 intToCptrTest() {
     }
 
     {
-        struct testCase {
+        struct TestCase {
             u64 in;
             u32 digitCount;
             const char* expected;
         };
 
-        constexpr testCase cases[] = {
+        constexpr TestCase cases[] = {
             { 0, 1, "0" },
             { 1, 1, "1" },
             { 123, 3, "123" },
@@ -183,13 +183,13 @@ constexpr i32 intToCptrTest() {
 
 constexpr i32 cptrToIntTest() {
     {
-        struct testCase {
+        struct TestCase {
             const char* input;
             i8 expected;
             bool skipAtCompileTime = false;
         };
 
-        constexpr testCase cases[] = {
+        constexpr TestCase cases[] = {
             { "", 0 },
             { nullptr, 0 },
             { "a123", 0 },
@@ -218,12 +218,12 @@ constexpr i32 cptrToIntTest() {
     }
 
     {
-        struct testCase {
+        struct TestCase {
             const char* input;
             u8 expected;
         };
 
-        constexpr testCase cases[] = {
+        constexpr TestCase cases[] = {
             { "", 0 },
             { nullptr, 0 },
             { "a123", 0 },
@@ -244,13 +244,13 @@ constexpr i32 cptrToIntTest() {
     }
 
     {
-        struct testCase {
+        struct TestCase {
             const char* input;
             i16 expected;
             bool skipAtCompileTime = false;
         };
 
-        constexpr testCase cases[] = {
+        constexpr TestCase cases[] = {
             { "", 0 },
             { nullptr, 0 },
             { "a123", 0 },
@@ -279,12 +279,12 @@ constexpr i32 cptrToIntTest() {
     }
 
     {
-        struct testCase {
+        struct TestCase {
             const char* input;
             u16 expected;
         };
 
-        constexpr testCase cases[] = {
+        constexpr TestCase cases[] = {
             { "", 0 },
             { nullptr, 0 },
             { "a123", 0 },
@@ -305,13 +305,13 @@ constexpr i32 cptrToIntTest() {
     }
 
     {
-        struct testCase {
+        struct TestCase {
             const char* input;
             i32 expected;
             bool skipAtCompileTime = false;
         };
 
-        constexpr testCase cases[] = {
+        constexpr TestCase cases[] = {
             { "", 0 },
             { nullptr, 0 },
             { "a123", 0 },
@@ -339,12 +339,12 @@ constexpr i32 cptrToIntTest() {
     }
 
     {
-        struct testCase {
+        struct TestCase {
             const char* input;
             u32 expected;
         };
 
-        constexpr testCase cases[] = {
+        constexpr TestCase cases[] = {
             { "", 0 },
             { nullptr, 0 },
             { "a123", 0 },
@@ -365,13 +365,13 @@ constexpr i32 cptrToIntTest() {
     }
 
     {
-        struct testCase {
+        struct TestCase {
             const char* input;
             i64 expected;
             bool skipAtCompileTime = false;
         };
 
-        constexpr testCase cases[] = {
+        constexpr TestCase cases[] = {
             { "", 0 },
             { nullptr, 0 },
             { "a123", 0 },
@@ -399,12 +399,12 @@ constexpr i32 cptrToIntTest() {
     }
 
     {
-        struct testCase {
+        struct TestCase {
             const char* input;
             u64 expected;
         };
 
-        constexpr testCase cases[] = {
+        constexpr TestCase cases[] = {
             { "", 0 },
             { nullptr, 0 },
             { "a123", 0 },
@@ -430,12 +430,12 @@ constexpr i32 cptrToIntTest() {
 constexpr i32 cptrToFloatTest() {
 
     {
-        struct testCase {
+        struct TestCase {
             const char* input;
             f32 expected;
         };
 
-        constexpr testCase cases[] = {
+        constexpr TestCase cases[] = {
             { "", 0.f },
             { nullptr, 0.f },
             { "aasdb", 0.f },
@@ -459,12 +459,12 @@ constexpr i32 cptrToFloatTest() {
     }
 
     {
-        struct testCase {
+        struct TestCase {
             const char* input;
             f64 expected;
         };
 
-        constexpr testCase cases[] = {
+        constexpr TestCase cases[] = {
             { "", 0. },
             { nullptr, 0. },
             { "aasdb", 0. },
@@ -494,8 +494,8 @@ constexpr i32 cptrToFloatTest() {
 
 constexpr i32 intHexTest() {
     {
-        struct testCase { i8 in; const char* expected; };
-        constexpr testCase cases[] = {
+        struct TestCase { i8 in; const char* expected; };
+        constexpr TestCase cases[] = {
             { core::MIN_I8, "80" },
             { i8(0), "00" },
             { i8(0xF), "0F" },
@@ -511,8 +511,8 @@ constexpr i32 intHexTest() {
     }
 
     {
-        struct testCase { i16 in; const char* expected; };
-        constexpr testCase cases[] = {
+        struct TestCase { i16 in; const char* expected; };
+        constexpr TestCase cases[] = {
             { core::MIN_I16, "8000" },
             { i16(0), "0000" },
             { i16(0xF), "000F" },
@@ -530,8 +530,8 @@ constexpr i32 intHexTest() {
     }
 
     {
-        struct testCase { i32 in; const char* expected; };
-        constexpr testCase cases[] = {
+        struct TestCase { i32 in; const char* expected; };
+        constexpr TestCase cases[] = {
             { core::MIN_I32, "80000000" },
             { i32(0), "00000000" },
             { i32(0xF), "0000000F" },
@@ -550,8 +550,8 @@ constexpr i32 intHexTest() {
     }
 
     {
-        struct testCase { i64 in; const char* expected; };
-        constexpr testCase cases[] = {
+        struct TestCase { i64 in; const char* expected; };
+        constexpr TestCase cases[] = {
             { core::MIN_I64, "8000000000000000" },
             { i64(0), "0000000000000000" },
             { i64(0xF), "000000000000000F" },
@@ -569,8 +569,8 @@ constexpr i32 intHexTest() {
     }
 
     {
-        struct testCase { u8 in; const char* expected; };
-        constexpr testCase cases[] = {
+        struct TestCase { u8 in; const char* expected; };
+        constexpr TestCase cases[] = {
             { u8(0), "00" },
             { u8(0xF), "0F" },
             { core::MAX_U8, "FF" },
@@ -583,8 +583,8 @@ constexpr i32 intHexTest() {
     }
 
     {
-        struct testCase { u16 in; const char* expected; };
-        constexpr testCase cases[] = {
+        struct TestCase { u16 in; const char* expected; };
+        constexpr TestCase cases[] = {
             { u16(0), "0000" },
             { u16(0xF), "000F" },
             { u16(0x1D49), "1D49" },
@@ -599,8 +599,8 @@ constexpr i32 intHexTest() {
     }
 
     {
-        struct testCase { u32 in; const char* expected; };
-        constexpr testCase cases[] = {
+        struct TestCase { u32 in; const char* expected; };
+        constexpr TestCase cases[] = {
             { u32(0), "00000000" },
             { u32(0xF), "0000000F" },
             { u32(0x1D49), "00001D49" },
@@ -616,8 +616,8 @@ constexpr i32 intHexTest() {
     }
 
     {
-        struct testCase { u64 in; const char* expected; };
-        constexpr testCase cases[] = {
+        struct TestCase { u64 in; const char* expected; };
+        constexpr TestCase cases[] = {
             { u64(0), "0000000000000000" },
             { u64(0xF), "000000000000000F" },
             { u64(0x1D49), "0000000000001D49" },

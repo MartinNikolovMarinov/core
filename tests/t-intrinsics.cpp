@@ -2,12 +2,12 @@
 
 constexpr i32 leadingZeroCountTest() {
     {
-        struct testCase {
+        struct TestCase {
             u32 in;
             u32 expected;
         };
 
-        testCase cases[] = {
+        TestCase cases[] = {
             { 0b0, 0 },
             { 0b1, 31 },
             { 0b10, 30 },
@@ -49,12 +49,12 @@ constexpr i32 leadingZeroCountTest() {
     }
 
     {
-        struct testCase {
+        struct TestCase {
             i32 in;
             u32 expected;
         };
 
-        testCase cases[] = {
+        TestCase cases[] = {
             { 0b0, 0 },
             { 0b1, 31 },
             { 0b10, 30 },
@@ -96,12 +96,12 @@ constexpr i32 leadingZeroCountTest() {
     }
 
     {
-        struct testCase {
+        struct TestCase {
             u64 in;
             u32 expected;
         };
 
-        testCase cases[] = {
+        TestCase cases[] = {
             { 0b0, 0 },
             { 0b1, 63 },
             { 0b10, 62 },
@@ -175,12 +175,12 @@ constexpr i32 leadingZeroCountTest() {
     }
 
     {
-        struct testCase {
+        struct TestCase {
             i64 in;
             u32 expected;
         };
 
-        testCase cases[] = {
+        TestCase cases[] = {
             { 0b0, 0 },
             { 0b1, 63 },
             { 0b10, 62 },
@@ -258,12 +258,12 @@ constexpr i32 leadingZeroCountTest() {
 
 constexpr i32 numberOfSetBitsTest() {
     {
-        struct testCase {
+        struct TestCase {
             u32 in;
             u32 expected;
         };
 
-        testCase cases[] = {
+        TestCase cases[] = {
             { 0b0, 0 },
             { 0b1, 1 },
             { 0b11, 2 },
@@ -293,12 +293,12 @@ constexpr i32 numberOfSetBitsTest() {
     }
 
     {
-        struct testCase {
+        struct TestCase {
             u64 in;
             u32 expected;
         };
 
-        testCase cases[] = {
+        TestCase cases[] = {
             { 0b0, 0 },
             { 0b1, 1 },
             { 0b11, 2 },
@@ -341,11 +341,11 @@ i32 getCPUTicksTest() {
 }
 
 constexpr i32 rotlTest() {
-    struct testCase {
+    struct TestCase {
         u32 in; i32 r; u32 expected;
     };
 
-    testCase cases[] = {
+    TestCase cases[] = {
         { 0b0, 0, 0b0 },
         { 0b1, 1, 0b10 },
         { 0b1, 2, 0b100 },
@@ -372,11 +372,11 @@ constexpr i32 rotlTest() {
 }
 
 constexpr i32 rotrTest() {
-    struct testCase {
+    struct TestCase {
         u32 in; i32 r; u32 expected;
     };
 
-    testCase cases[] = {
+    TestCase cases[] = {
         { 0b0, 0, 0b0 },
         { 0b10, 1, 0b1 },
         { 0b100, 2, 0b1 },

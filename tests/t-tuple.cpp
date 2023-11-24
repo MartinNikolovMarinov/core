@@ -10,7 +10,7 @@ struct A {
     constexpr bool operator!=(const A& other) const { return !(*this == other); }
 };
 
-constexpr i32 runTupleArgumentIncrement() {
+constexpr i32 runTupleArgumentIncrementTest() {
     auto t1 = core::createTuple(1, A{2, 3.0}, u64(6));
     auto t2 = t1;
 
@@ -37,7 +37,7 @@ PRAGMA_WARNING_PUSH
 
 DISABLE_MSVC_WARNING(4127) // Disable conditional expression is constant. This is intentional here.
 
-constexpr i32 runCreateTuplesOfDifferentSizes() {
+constexpr i32 runCreateTuplesOfDifferentSizesTest() {
     {
         auto t = core::createTuple(1, 2);
         Assert(t.len == 2);
@@ -78,13 +78,13 @@ constexpr i32 runCreateTuplesOfDifferentSizes() {
 PRAGMA_WARNING_POP
 
 i32 runTupleTestsSuite() {
-    RunTest(runTupleArgumentIncrement);
-    RunTest(runCreateTuplesOfDifferentSizes);
+    RunTest(runTupleArgumentIncrementTest);
+    RunTest(runCreateTuplesOfDifferentSizesTest);
     return 0;
 }
 
 constexpr i32 runCompiletimeTupleTestsSuite() {
-    RunTestCompileTime(runTupleArgumentIncrement);
-    RunTestCompileTime(runCreateTuplesOfDifferentSizes);
+    RunTestCompileTime(runTupleArgumentIncrementTest);
+    RunTestCompileTime(runCreateTuplesOfDifferentSizesTest);
     return 0;
 }

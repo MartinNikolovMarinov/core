@@ -1,6 +1,6 @@
 #include "index.h"
 
-constexpr i32 runTrueFalseTypeTraits() {
+constexpr i32 runTrueFalseTypeTraitsTest() {
     static_assert(core::true_type_v == true);
     static_assert(core::false_type_v == false);
     static_assert(core::always_false<f32> == false);
@@ -11,7 +11,7 @@ constexpr i32 runTrueFalseTypeTraits() {
     return 0;
 }
 
-constexpr i32 runTypeComparisonTraits() {
+constexpr i32 runTypeComparisonTraitsTest() {
 
     // Test cases for is_same
 
@@ -150,7 +150,7 @@ constexpr i32 runTypeComparisonTraits() {
     return 0;
 }
 
-constexpr i32 runTypeModificatorTraits() {
+constexpr i32 runTypeModificatorTraitsTest() {
     static_assert(core::is_same_v<core::remove_cv_t<const u8>, u8>);
     static_assert(core::is_same_v<core::remove_cv_t<volatile u8>, u8>);
     static_assert(core::is_same_v<core::remove_cv_t<const volatile u8>, u8>);
@@ -276,18 +276,18 @@ constexpr i32 runIsTriviallyDestructibleTest() {
 }
 
 i32 runTraitsTestsSuite() {
-    RunTest(runTrueFalseTypeTraits);
-    RunTest(runTypeComparisonTraits);
-    RunTest(runTypeModificatorTraits);
+    RunTest(runTrueFalseTypeTraitsTest);
+    RunTest(runTypeComparisonTraitsTest);
+    RunTest(runTypeModificatorTraitsTest);
     RunTest(runIsTriviallyDestructibleTest);
 
     return 0;
 }
 
 constexpr i32 runCompiletimeTraitsTestsSuite() {
-    RunTestCompileTime(runTrueFalseTypeTraits);
-    RunTestCompileTime(runTypeComparisonTraits);
-    RunTestCompileTime(runTypeModificatorTraits);
+    RunTestCompileTime(runTrueFalseTypeTraitsTest);
+    RunTestCompileTime(runTypeComparisonTraitsTest);
+    RunTestCompileTime(runTypeModificatorTraitsTest);
     RunTestCompileTime(runIsTriviallyDestructibleTest);
 
     return 0;

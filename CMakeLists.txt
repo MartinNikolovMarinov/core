@@ -218,8 +218,10 @@ if(CORE_BUILD_TESTS)
         tests/t-math.cpp
         tests/t-mem.cpp
         tests/t-rnd.cpp
+        tests/t-str_builder.cpp
         tests/t-traits.cpp
         tests/t-tuple.cpp
+        tests/t-unique_ptr.cpp
         tests/t-utf.cpp
 
         tests/allocators/t-alloc_bump.cpp

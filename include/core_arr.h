@@ -10,25 +10,26 @@ namespace core {
 using namespace coretypes;
 
 template<typename T, typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
-struct arr {
+struct Arr {
     using DataType      = T;
     using SizeType      = addr_size;
     using AllocatorType = TAllocator;
+    using ContainerType = Arr<T, TAllocator>;
 
     static_assert(core::AllocatorConcept<AllocatorType>, "The allocator template argument must satisfy the AllocatorConcept");
 
     static constexpr bool dataIsTrivial = core::is_trivial_v<DataType>;
     static constexpr bool dataHasTrivialDestructor = core::is_trivially_destructible_v<DataType>;
 
-    arr() : m_data(nullptr), m_cap(0), m_len(0) {}
-    arr(SizeType len) : m_data(nullptr), m_cap(len), m_len(len) {
+    Arr() : m_data(nullptr), m_cap(0), m_len(0) {}
+    Arr(SizeType len) : m_data(nullptr), m_cap(len), m_len(len) {
         if (m_cap > 0) {
             m_data = reinterpret_cast<DataType *>(AllocatorType::alloc(m_cap * sizeof(DataType)));
             Assert(m_data != nullptr);
             callDefaultCtorsIfTypeIsNonTrivial();
         }
     }
-    arr(SizeType len, SizeType cap) : m_data(nullptr), m_cap(cap), m_len(len) {
+    Arr(SizeType len, SizeType cap) : m_data(nullptr), m_cap(cap), m_len(len) {
         Assert(m_cap >= m_len);
         if (m_cap > 0) {
             m_data = reinterpret_cast<DataType *>(AllocatorType::alloc(m_cap * sizeof(DataType)));
@@ -36,18 +37,18 @@ struct arr {
             callDefaultCtorsIfTypeIsNonTrivial();
         }
     }
-    arr(const arr<T, AllocatorType>& other) = delete; // prevent copy ctor
-    arr(arr<T, AllocatorType>&& other) : m_data(other.m_data), m_cap(other.m_cap), m_len(other.m_len) {
+    Arr(const ContainerType& other) = delete; // prevent copy ctor
+    Arr(ContainerType&& other) : m_data(other.m_data), m_cap(other.m_cap), m_len(other.m_len) {
         if (this == &other) return;
         other.m_data = nullptr;
         other.m_cap = 0;
         other.m_len = 0;
     }
-    ~arr() { free(); }
+    ~Arr() { free(); }
 
-    arr<T, AllocatorType>& operator=(const arr<T, AllocatorType>& other) = delete; // prevent copy assignment
-    arr<T, AllocatorType>& operator=(SizeType) = delete; // prevent size assignment
-    arr<T, AllocatorType>& operator=(arr<T, AllocatorType>&& other) {
+    ContainerType& operator=(const ContainerType& other) = delete; // prevent copy assignment
+    ContainerType& operator=(SizeType) = delete; // prevent size assignment
+    ContainerType& operator=(ContainerType&& other) {
         if (this == &other) return *this;
         free(); // very important to free before assigning new data.
         m_data = other.m_data;
@@ -59,12 +60,12 @@ struct arr {
         return *this;
     }
 
-    SizeType   cap()     const { return m_cap; }
-    SizeType   byteCap() const { return m_cap * sizeof(DataType); }
-    SizeType   len()     const { return m_len; }
-    SizeType   byteLen() const { return m_len * sizeof(DataType); }
-    DataType*  data()    const { return m_data; }
-    bool       empty()   const { return m_len == 0; }
+    SizeType  cap()     const { return m_cap; }
+    SizeType  byteCap() const { return m_cap * sizeof(DataType); }
+    SizeType  len()     const { return m_len; }
+    SizeType  byteLen() const { return m_len * sizeof(DataType); }
+    DataType* data()    const { return m_data; }
+    bool      empty()   const { return m_len == 0; }
 
     void clear() {
         if constexpr (!dataHasTrivialDestructor) {
@@ -76,7 +77,7 @@ struct arr {
         m_len = 0;
     }
 
-    arr<T, AllocatorType> copy() {
+    ContainerType copy() {
         DataType* dataCopy = nullptr;
         if (m_cap > 0) {
             dataCopy = reinterpret_cast<DataType *>(AllocatorType::alloc(m_cap * sizeof(DataType)));
@@ -91,7 +92,7 @@ struct arr {
                 }
             }
         }
-        arr<T, AllocatorType> result;
+        ContainerType result;
         result.m_data = dataCopy;
         result.m_cap = m_cap;
         result.m_len = m_len;
@@ -116,7 +117,7 @@ struct arr {
     DataType& last()              { return at(m_len - 1); }
     const DataType& last()  const { return at(m_len - 1); }
 
-    arr<T, AllocatorType>& append(const DataType& val) {
+    ContainerType& append(const DataType& val) {
         if (m_len == m_cap) {
             reserve(m_cap == 0 ? 1 : m_cap * 2);
         }
@@ -125,7 +126,7 @@ struct arr {
         return *this;
     }
 
-    arr<T, AllocatorType>& append(DataType&& val) {
+    ContainerType& append(DataType&& val) {
         if (m_len == m_cap) {
             reserve(m_cap == 0 ? 1 : m_cap * 2);
         }
@@ -134,7 +135,7 @@ struct arr {
         return *this;
     }
 
-    arr<T, AllocatorType>& append(const DataType* val, SizeType len) {
+    ContainerType& append(const DataType* val, SizeType len) {
         if (m_len + len > m_cap) {
             reserve(m_cap <= len ? (m_cap*2 + len) : m_cap * 2);
         }
@@ -143,11 +144,11 @@ struct arr {
         return *this;
     }
 
-    arr<T, AllocatorType>& append(const arr<T, AllocatorType>& other) {
+    ContainerType& append(const ContainerType& other) {
         return append(other.m_data, other.m_len);
     }
 
-    arr<T, AllocatorType>& fill(const DataType& val) {
+    ContainerType& fill(const DataType& val) {
         if constexpr (dataIsTrivial) {
             core::memfill(m_data, m_len, val);
         }
@@ -232,6 +233,6 @@ private:
     }
 };
 
-static_assert(core::is_standard_layout_v<arr<i32>>, "arr<i32> must be standard layout");
+static_assert(core::is_standard_layout_v<Arr<i32>>, "Arr<i32> must be standard layout");
 
 } // namespace core

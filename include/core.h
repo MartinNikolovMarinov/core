@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core_alloc.h"
 #include "core_ansi_escape_codes.h"
 #include "core_API.h"
 #include "core_compiler.h"

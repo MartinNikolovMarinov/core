@@ -30,6 +30,8 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
         return writeToBuf(buf);
     };
 
+    // TODO: Print current thread name.
+
     bufWritten = 0;
 
     HANDLE process = GetCurrentProcess();

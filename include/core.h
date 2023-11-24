@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core_algorithms.h"
 #include "core_alloc.h"
 #include "core_ansi_escape_codes.h"
 #include "core_API.h"
@@ -16,6 +17,7 @@
 #include "core_math.h"
 #include "core_mem.h"
 #include "core_rnd.h"
+#include "core_sarr.h"
 #include "core_str_builder.h"
 #include "core_system_checks.h"
 #include "core_traits.h"

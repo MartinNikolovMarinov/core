@@ -147,6 +147,7 @@ inline i32 g_testCount = 0;
 
 // ##################### Test suites ###################################################################################
 
+i32 runAlgorithmsTestsSuite();
 i32 runArrTestsSuite();
 i32 runBitsTestsSuite();
 i32 runCptrConvTestsSuite();
@@ -159,6 +160,7 @@ i32 runIntsTestsSuite();
 i32 runMathTestsSuite();
 i32 runMemTestsSuite();
 i32 runRndTestsSuite();
+i32 runStaticArrTestsSuite();
 i32 runStrBuilderTestSuite();
 i32 runTraitsTestsSuite();
 i32 runTupleTestsSuite();
@@ -176,6 +178,7 @@ inline i32 runAllTests() {
 
     std::cout << "\n" << "RUNNING TESTS" << "\n\n";
 
+    RunTestSuite(runAlgorithmsTestsSuite);
     RunTestSuite(runArrTestsSuite);
     RunTestSuite(runBitsTestsSuite);
     RunTestSuite(runCptrConvTestsSuite);
@@ -188,6 +191,7 @@ inline i32 runAllTests() {
     RunTestSuite(runMathTestsSuite);
     RunTestSuite(runMemTestsSuite);
     RunTestSuite(runRndTestsSuite);
+    RunTestSuite(runStaticArrTestsSuite);
     RunTestSuite(runStrBuilderTestSuite);
     RunTestSuite(runTraitsTestsSuite);
     RunTestSuite(runTupleTestsSuite);

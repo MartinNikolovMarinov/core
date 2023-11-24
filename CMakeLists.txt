@@ -206,6 +206,7 @@ if(CORE_BUILD_TESTS)
     add_executable(${TEST_EXECUTABLE}
         ${TEST_EXECUTABLE}.cpp
 
+        tests/t-algorithms.cpp
         tests/t-arr.cpp
         tests/t-bits.cpp
         tests/t-cptr_conv.cpp
@@ -218,6 +219,7 @@ if(CORE_BUILD_TESTS)
         tests/t-math.cpp
         tests/t-mem.cpp
         tests/t-rnd.cpp
+        tests/t-sarr.cpp
         tests/t-str_builder.cpp
         tests/t-traits.cpp
         tests/t-tuple.cpp

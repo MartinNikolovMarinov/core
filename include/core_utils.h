@@ -63,6 +63,12 @@ CORE_API_EXPORT globalAssertHandlerPtr getGlobalAssertHandler();
     #define defer auto DEFER(__LINE__) = core::deferDummy{} *[&]()
 #endif
 
+// No copy macro:
+
+#define NO_COPY(T) \
+    T(const T&) = delete; \
+    T& operator=(const T&) = delete;
+
 // Move and forward implementations copied from the standard library:
 
 template<typename T>

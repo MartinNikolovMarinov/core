@@ -77,6 +77,10 @@ set(src_files
     src/core_mem.cpp
     src/core_utils.cpp
     src/core_intrinsics.cpp
+
+    src/allocators/core_alloc_std.cpp
+    src/allocators/core_alloc_stats_std.cpp
+    src/allocators/core_alloc_bump.cpp
 )
 
 if(OS STREQUAL "linux")

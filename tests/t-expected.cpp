@@ -1,5 +1,9 @@
 #include "index.h"
 
+PRAGMA_WARNING_PUSH
+
+DISABLE_MSVC_WARNING(4127) // Conditional expression is constant. I don't care here.
+
 i32 expectedBasicCase() {
     core::expected<i32, const char*> e1(10);
     Assert(e1.hasValue());
@@ -189,6 +193,8 @@ constexpr i32 staticExpectedUsedInAFunction() {
 
     return 0;
 }
+
+PRAGMA_WARNING_POP
 
 i32 runExpectedTestsSuite() {
     RunTest(expectedBasicCase);

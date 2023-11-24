@@ -8,95 +8,104 @@
 #include <new>
 
 namespace core {
-    using namespace coretypes;
 
-    using OOMCallback = void (*)(void* userData);
+using namespace coretypes;
 
-    static constexpr OOMCallback DEFAULT_OOM_CALLBACK = [](void*) {
-        Panic("Out of memory!");
-    };
+/**
+ * @brief This macro should be overriden by the user to specify the default allocator. If it is not overriden, the
+ *        DEFAULT template type for most data structures will fail to compile.
+*/
+#ifndef CORE_DEFAULT_ALLOCATOR
+    #define CORE_DEFAULT_ALLOCATOR() void
+#endif
 
-    template <typename T>
-    concept AllocatorConcept = requires {
-        { T::allocatorName() } noexcept -> core::same_as<const char*>;
-        { T::alloc(core::declval<addr_size>()) } noexcept -> core::same_as<void*>;
-        { T::calloc(core::declval<addr_size>(), core::declval<addr_size>()) } noexcept -> core::same_as<void*>;
-        { T::free(core::declval<void*>()) } noexcept;
-        { T::usedMem() } noexcept -> core::same_as<addr_size>;
-        { T::clear() } noexcept;
-        { T::isThredSafe() } noexcept -> core::same_as<bool>;
+using OOMCallback = void (*)(void* userData);
 
-        // should be able to construct and integer:
-        { T::template construct<i32>(core::declval<i32>()) } noexcept -> core::same_as<i32*>;
-    };
+static constexpr OOMCallback DEFAULT_OOM_CALLBACK = [](void*) {
+    Panic("Out of memory!");
+};
 
-    struct CORE_API_EXPORT StdAllocator {
-        static constexpr const char* allocatorName() noexcept { return "std_allocator"; }
+template <typename T>
+concept AllocatorConcept = requires {
+    { T::allocatorName() } noexcept -> core::same_as<const char*>;
+    { T::alloc(core::declval<addr_size>()) } noexcept -> core::same_as<void*>;
+    { T::calloc(core::declval<addr_size>(), core::declval<addr_size>()) } noexcept -> core::same_as<void*>;
+    { T::free(core::declval<void*>()) } noexcept;
+    { T::usedMem() } noexcept -> core::same_as<addr_size>;
+    { T::clear() } noexcept;
+    { T::isThredSafe() } noexcept -> core::same_as<bool>;
 
-        NO_COPY(StdAllocator);
+    // should be able to construct and integer:
+    { T::template construct<i32>(core::declval<i32>()) } noexcept -> core::same_as<i32*>;
+};
 
-        static void* alloc(addr_size size) noexcept;
-        static void* calloc(addr_size count, addr_size size) noexcept;
-        static void free(void* ptr) noexcept;
-        static void clear() noexcept; // does nothing
-        static addr_size usedMem() noexcept;
-        static bool isThredSafe() noexcept;
+struct CORE_API_EXPORT StdAllocator {
+    static constexpr const char* allocatorName() noexcept { return "std_allocator"; }
 
-        template <typename T, typename ...Args>
-        static T* construct(Args&&... args) noexcept {
-            void* p = StdAllocator::alloc(sizeof(T));
-            return new (p) T(core::forward<Args>(args)...);
-        }
+    NO_COPY(StdAllocator);
 
-        static void init(OOMCallback cb) noexcept;
-    };
+    static void* alloc(addr_size size) noexcept;
+    static void* calloc(addr_size count, addr_size size) noexcept;
+    static void free(void* ptr) noexcept;
+    static void clear() noexcept; // does nothing
+    static addr_size usedMem() noexcept; // does nothing
+    static bool isThredSafe() noexcept;
 
-    static_assert(AllocatorConcept<StdAllocator>, "StdAllocator does not satisfy AllocatorConcept");
+    template <typename T, typename ...Args>
+    static T* construct(Args&&... args) noexcept {
+        void* p = StdAllocator::alloc(sizeof(T));
+        return new (p) T(core::forward<Args>(args)...);
+    }
 
-    struct CORE_API_EXPORT StdStatsAllocator {
-        static constexpr const char* allocatorName() noexcept { return "std_stats_allocator"; }
+    static void init(OOMCallback cb) noexcept;
+};
 
-        NO_COPY(StdStatsAllocator);
+static_assert(AllocatorConcept<StdAllocator>, "StdAllocator does not satisfy AllocatorConcept");
 
-        static void* alloc(addr_size size) noexcept;
-        static void* calloc(addr_size count, addr_size size) noexcept;
-        static void free(void* ptr) noexcept;
-        static void clear() noexcept;
-        static addr_size usedMem() noexcept;
-        static bool isThredSafe() noexcept;
+struct CORE_API_EXPORT StdStatsAllocator {
+    static constexpr const char* allocatorName() noexcept { return "std_stats_allocator"; }
 
-        template <typename T, typename ...Args>
-        static T* construct(Args&&... args) noexcept {
-            void* p = StdStatsAllocator::alloc(sizeof(T));
-            return new (p) T(core::forward<Args>(args)...);
-        }
+    NO_COPY(StdStatsAllocator);
 
-        static void init(OOMCallback cb) noexcept;
-    };
+    static void* alloc(addr_size size) noexcept;
+    static void* calloc(addr_size count, addr_size size) noexcept;
+    static void free(void* ptr) noexcept;
+    static void clear() noexcept;
+    static addr_size usedMem() noexcept;
+    static bool isThredSafe() noexcept;
 
-    static_assert(AllocatorConcept<StdStatsAllocator>, "StdStatsAllocator does not satisfy AllocatorConcept");
+    template <typename T, typename ...Args>
+    static T* construct(Args&&... args) noexcept {
+        void* p = StdStatsAllocator::alloc(sizeof(T));
+        return new (p) T(core::forward<Args>(args)...);
+    }
 
-    struct CORE_API_EXPORT BumpAllocator {
-        static constexpr const char* allocatorName() noexcept { return "bump_allocator"; }
+    static void init(OOMCallback cb) noexcept;
+};
 
-        NO_COPY(BumpAllocator);
+static_assert(AllocatorConcept<StdStatsAllocator>, "StdStatsAllocator does not satisfy AllocatorConcept");
 
-        static void* alloc(addr_size size) noexcept;
-        static void* calloc(addr_size count, addr_size size) noexcept;
-        static void free(void* ptr) noexcept; // does nothing
-        static void clear() noexcept;
-        static addr_size usedMem() noexcept;
-        static bool isThredSafe() noexcept;
+struct CORE_API_EXPORT BumpAllocator {
+    static constexpr const char* allocatorName() noexcept { return "bump_allocator"; }
 
-        template <typename T, typename ...Args>
-        static T* construct(Args&&... args) noexcept {
-            void* p = BumpAllocator::alloc(sizeof(T));
-            return new (p) T(core::forward<Args>(args)...);
-        }
+    NO_COPY(BumpAllocator);
 
-        static void init(OOMCallback cb, void* container, addr_size max) noexcept;
-    };
+    static void* alloc(addr_size size) noexcept;
+    static void* calloc(addr_size count, addr_size size) noexcept;
+    static void free(void* ptr) noexcept; // does nothing
+    static void clear() noexcept;
+    static addr_size usedMem() noexcept;
+    static bool isThredSafe() noexcept;
 
-    static_assert(AllocatorConcept<BumpAllocator>, "BumpAllocator does not satisfy AllocatorConcept");
+    template <typename T, typename ...Args>
+    static T* construct(Args&&... args) noexcept {
+        void* p = BumpAllocator::alloc(sizeof(T));
+        return new (p) T(core::forward<Args>(args)...);
+    }
+
+    static void init(OOMCallback cb, void* container, addr_size max) noexcept;
+};
+
+static_assert(AllocatorConcept<BumpAllocator>, "BumpAllocator does not satisfy AllocatorConcept");
 
 } // namespace core

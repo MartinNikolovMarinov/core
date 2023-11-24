@@ -5,6 +5,8 @@
 #include <core_types.h>
 #include <core_utils.h>
 
+#include <new>
+
 namespace core {
     using namespace coretypes;
 
@@ -22,6 +24,10 @@ namespace core {
         { T::free(core::declval<void*>()) } noexcept;
         { T::usedMem() } noexcept -> core::same_as<addr_size>;
         { T::clear() } noexcept;
+        { T::isThredSafe() } noexcept -> core::same_as<bool>;
+
+        // should be able to construct and integer:
+        { T::template construct<i32>(core::declval<i32>()) } noexcept -> core::same_as<i32*>;
     };
 
     struct CORE_API_EXPORT StdAllocator {
@@ -35,6 +41,12 @@ namespace core {
         static void clear() noexcept; // does nothing
         static addr_size usedMem() noexcept;
         static bool isThredSafe() noexcept;
+
+        template <typename T, typename ...Args>
+        static T* construct(Args&&... args) noexcept {
+            void* p = StdAllocator::alloc(sizeof(T));
+            return new (p) T(core::forward<Args>(args)...);
+        }
 
         static void init(OOMCallback cb) noexcept;
     };
@@ -53,6 +65,12 @@ namespace core {
         static addr_size usedMem() noexcept;
         static bool isThredSafe() noexcept;
 
+        template <typename T, typename ...Args>
+        static T* construct(Args&&... args) noexcept {
+            void* p = StdStatsAllocator::alloc(sizeof(T));
+            return new (p) T(core::forward<Args>(args)...);
+        }
+
         static void init(OOMCallback cb) noexcept;
     };
 
@@ -69,6 +87,12 @@ namespace core {
         static void clear() noexcept;
         static addr_size usedMem() noexcept;
         static bool isThredSafe() noexcept;
+
+        template <typename T, typename ...Args>
+        static T* construct(Args&&... args) noexcept {
+            void* p = BumpAllocator::alloc(sizeof(T));
+            return new (p) T(core::forward<Args>(args)...);
+        }
 
         static void init(OOMCallback cb, void* container, addr_size max) noexcept;
     };

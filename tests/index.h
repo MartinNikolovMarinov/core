@@ -39,10 +39,9 @@ inline void coreInit() {
         addr_size traceLen = 0;
         core::stacktrace(trace, stackTraceBufferSize, traceLen, 200, stackFramesToSkip);
         std::cout << ANSI_RED_START() << ANSI_BOLD_START()
-                  << "[ASSERTION] [EXPR]: " << failedExpr
-                  << " [FILE]: " << file
-                  << " [LINE]: " << line
-                  << " [MSG]: " << errMsg
+                  << "[ASSERTION]:\n  [EXPR]: " << failedExpr
+                  << "\n  [FILE]: " << file << ":" << line
+                  << "\n  [MSG]: " << errMsg
                   << ANSI_RESET()
                   << std::endl;
         std::cout << ANSI_BOLD_START() << "[TRACE]:\n" << trace << ANSI_RESET() << std::endl;
@@ -82,6 +81,10 @@ i32 runIntrinsicsTestsSuite();
 i32 runMathTestsSuite();
 i32 runTraitsTestsSuite();
 
+i32 runBumpAllocatorTestsSuite();
+i32 runStdAllocatorTestsSuite();
+i32 runStdStatsAllocatorTestsSuite();
+
 i32 runPltStacktraceTestsSuite();
 
 inline i32 runAllTests() {
@@ -99,6 +102,10 @@ inline i32 runAllTests() {
     RunTestSuite(runIntrinsicsTestsSuite);
     RunTestSuite(runMathTestsSuite);
     RunTestSuite(runTraitsTestsSuite);
+
+    RunTestSuite(runBumpAllocatorTestsSuite);
+    RunTestSuite(runStdAllocatorTestsSuite);
+    RunTestSuite(runStdStatsAllocatorTestsSuite);
 
     #if defined(CORE_DEBUG) && CORE_DEBUG == 1
         // Stacktrace should only be expected to work in debug builds.

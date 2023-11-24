@@ -1,12 +1,12 @@
 #include "index.h"
 
 constexpr i32 alignTest() {
-    struct testCase {
+    struct TestCase {
         addr_size in;
         addr_size expected;
     };
 
-    constexpr testCase cases[] = {
+    constexpr TestCase cases[] = {
         { 0, 0 },
         { 1, 8 },
         { 2, 8 },
@@ -156,21 +156,21 @@ i32 memsetTests() {
 }
 
 i32 memcmpTests() {
-    struct testCase {
+    struct TestCase {
         const char* a;
         const char* b;
         addr_size n;
         enum { positive = 1, negative = -1, zero = 0 } expected;
     };
 
-    constexpr testCase cases[] = {
-        { "", "", 0, testCase::zero },
-        { "asdzxcasd", "", 0, testCase::zero },
-        { "abc", "abc", 3, testCase::zero },
-        { "abc", "abd", 3, testCase::negative },
-        { "abd", "abc", 3, testCase::positive },
-        { "abc123", "abc000", 3, testCase::zero },
-        { "abc123", "abc000", 4, testCase::positive },
+    constexpr TestCase cases[] = {
+        { "", "", 0, TestCase::zero },
+        { "asdzxcasd", "", 0, TestCase::zero },
+        { "abc", "abc", 3, TestCase::zero },
+        { "abc", "abd", 3, TestCase::negative },
+        { "abd", "abc", 3, TestCase::positive },
+        { "abc123", "abc000", 3, TestCase::zero },
+        { "abc123", "abc000", 4, TestCase::positive },
     };
 
     executeTestTable("memcmpTests failed at index: ", cases, [](auto& c, const char* cErr) {

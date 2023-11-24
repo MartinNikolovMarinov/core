@@ -1,12 +1,12 @@
 #include "index.h"
 
 constexpr i32 isDigitTest() {
-    struct testCase {
+    struct TestCase {
         char in;
         bool expected;
     };
 
-    testCase cases[] = {
+    TestCase cases[] = {
         { ' ', false },
         { '-', false },
         { '/', false },
@@ -31,12 +31,12 @@ constexpr i32 isDigitTest() {
 }
 
 constexpr i32 isWhiteSpaceTest() {
-    struct testCase {
+    struct TestCase {
         char in;
         bool expected;
     };
 
-    testCase cases[] = {
+    TestCase cases[] = {
         { ' ', true },
         { '\n', true },
         { '\t', true },
@@ -53,12 +53,12 @@ constexpr i32 isWhiteSpaceTest() {
 }
 
 constexpr i32 cptrLenTest() {
-    struct testCase {
+    struct TestCase {
         const char* in;
         addr_size expected;
     };
 
-    testCase cases[] = {
+    TestCase cases[] = {
         { "", 0 },
         { "a", 1 },
         { "abc", 3 },
@@ -83,25 +83,25 @@ constexpr i32 cptrLenTest() {
 }
 
 constexpr i32 cptrCmpTests() {
-    struct testCase {
+    struct TestCase {
         const char* a;
         const char* b;
         enum { positive = 1, negative = -1, zero = 0 } expected;
     };
 
-    testCase cases[] = {
-        { nullptr, nullptr, testCase::zero },
-        { nullptr, "",      testCase::negative},
-        { "",      nullptr, testCase::positive },
-        { "",      "",      testCase::zero },
-        { "a",     "",      testCase::positive },
-        { "",      "a",     testCase::negative },
-        { "a",     "a",     testCase::zero },
-        { "a",     "b",     testCase::negative },
-        { "b",     "a",     testCase::positive },
-        { "abc",   "abc",   testCase::zero },
-        { "abd",   "abc",   testCase::positive },
-        { "abb",   "abc",   testCase::negative },
+    TestCase cases[] = {
+        { nullptr, nullptr, TestCase::zero },
+        { nullptr, "",      TestCase::negative},
+        { "",      nullptr, TestCase::positive },
+        { "",      "",      TestCase::zero },
+        { "a",     "",      TestCase::positive },
+        { "",      "a",     TestCase::negative },
+        { "a",     "a",     TestCase::zero },
+        { "a",     "b",     TestCase::negative },
+        { "b",     "a",     TestCase::positive },
+        { "abc",   "abc",   TestCase::zero },
+        { "abd",   "abc",   TestCase::positive },
+        { "abb",   "abc",   TestCase::negative },
     };
 
     executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
@@ -116,14 +116,14 @@ constexpr i32 cptrCmpTests() {
 }
 
 constexpr i32 cptrEqTest() {
-    struct testCase {
+    struct TestCase {
         const char* a;
         const char* b;
         addr_size len;
         bool expected;
     };
 
-    testCase cases[] = {
+    TestCase cases[] = {
         { nullptr, nullptr, 0, true },
         { nullptr, "",      0, false },
         { "",      nullptr, 0, false },
@@ -176,13 +176,13 @@ constexpr i32 cptrCopyTest() {
 }
 
 constexpr i32 cptrIdxOfCharTest() {
-    struct testCase {
+    struct TestCase {
         const char* src;
         char val;
         addr_off idx;
     };
 
-    testCase cases[] = {
+    TestCase cases[] = {
         { "1234567890", '1', 0 },
         { "1234567890", '2', 1 },
         { "1234567890", '3', 2 },
@@ -205,13 +205,13 @@ constexpr i32 cptrIdxOfCharTest() {
 }
 
 constexpr i32 cptrIdxOfTest() {
-    struct testCase {
+    struct TestCase {
         const char* src;
         const char* val;
         addr_off idx;
     };
 
-    testCase cases[] = {
+    TestCase cases[] = {
         { "", "", 0 },
         { nullptr, "1", -1 },
         { nullptr, nullptr, -1 },
@@ -239,12 +239,12 @@ constexpr i32 cptrIdxOfTest() {
 }
 
 constexpr i32 cptrSkipWhiteSpaceTest() {
-    struct testCase {
+    struct TestCase {
         const char* src;
         const char* expected;
     };
 
-    testCase cases[] = {
+    TestCase cases[] = {
         { nullptr, nullptr },
         { "", "" },
         { " aa", "aa" },

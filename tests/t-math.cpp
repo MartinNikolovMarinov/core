@@ -1,12 +1,12 @@
 #include "index.h"
 
 constexpr i32 pow10Test() {
-    struct testCase {
+    struct TestCase {
         u32 in;
         u64 expected;
     };
 
-    constexpr testCase cases[] = {
+    constexpr TestCase cases[] = {
         { 0, 1ULL },
         { 1, 10ULL },
         { 2, 100ULL },
@@ -37,12 +37,12 @@ constexpr i32 pow10Test() {
 }
 
 constexpr i32 pow2Test() {
-    struct testCase {
+    struct TestCase {
         u32 in;
         u64 expected;
     };
 
-    constexpr testCase cases[] = {
+    constexpr TestCase cases[] = {
         { 0, 1ULL },
         { 1, 2ULL },
         { 2, 4ULL },
@@ -189,7 +189,7 @@ constexpr i32 isPositiveTest() {
 }
 
 constexpr i32 floatSafeEqTest() {
-    struct testCase {
+    struct TestCase {
         f32 startA;
         f32 startB;
         f32 step;
@@ -198,7 +198,7 @@ constexpr i32 floatSafeEqTest() {
         bool expected;
     };
 
-    testCase cases[] = {
+    TestCase cases[] = {
         { 0.1f, 0.1f, 0.1f,  0.01f,  10, true },
         { 0.1f, 0.1f, 0.2f,  0.01f,  10, true },
         { 0.1f, 0.1f, 0.01f, 0.01f, 100, true },
@@ -229,7 +229,7 @@ constexpr i32 floatSafeEqTest() {
 }
 
 i32 floatNearlyEqExtreamCasesTest() {
-    struct testCase {
+    struct TestCase {
         f32 a;
         f32 b;
         f32 epsilon;
@@ -237,7 +237,7 @@ i32 floatNearlyEqExtreamCasesTest() {
     };
 
     constexpr f32 defaultEpsilon = 0.00001f;
-    testCase cases[] = {
+    TestCase cases[] = {
         { MAX_F32, MAX_F32, defaultEpsilon, true },
         // { MAX_F32, -MAX_F32, defaultEpsilon, false }, // These 2 look like a bug, but I don't think I care.
         // { -MAX_F32, MAX_F32, defaultEpsilon, false },
@@ -266,7 +266,7 @@ i32 floatNearlyEqExtreamCasesTest() {
 }
 
 constexpr i32 floatNearlyEqTest() {
-    struct testCase {
+    struct TestCase {
         f32 a;
         f32 b;
         f32 epsilon;
@@ -275,7 +275,7 @@ constexpr i32 floatNearlyEqTest() {
 
     constexpr f32 defaultEpsilon = 0.00001f;
 
-    testCase cases[] = {
+    TestCase cases[] = {
         { 1000000.f, 1000001.f, defaultEpsilon, true },
         { 1000001.f, 1000000.f, defaultEpsilon, true },
         { 10000.f, 10001.f, defaultEpsilon, false },

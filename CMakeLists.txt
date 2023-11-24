@@ -74,13 +74,13 @@ message(STATUS "[CORE] Use CppCheck:      ${CORE_USE_CPPCHECK}")
 
 set(src_files
     src/core_hash.cpp
+    src/core_intrinsics.cpp
     src/core_mem.cpp
     src/core_utils.cpp
-    src/core_intrinsics.cpp
 
-    src/allocators/core_alloc_std.cpp
-    src/allocators/core_alloc_stats_std.cpp
     src/allocators/core_alloc_bump.cpp
+    src/allocators/core_alloc_stats_std.cpp
+    src/allocators/core_alloc_std.cpp
 )
 
 if(OS STREQUAL "linux")
@@ -205,16 +205,20 @@ if(CORE_BUILD_TESTS)
     add_executable(${TEST_EXECUTABLE}
         ${TEST_EXECUTABLE}.cpp
 
-        tests/t-defer.cpp
         tests/t-cptr_conv.cpp
         tests/t-cptr.cpp
-        tests/t-mem.cpp
+        tests/t-defer.cpp
         tests/t-hash.cpp
-        tests/t-tuple.cpp
-        tests/t-ints.cpp
         tests/t-intrinsics.cpp
+        tests/t-ints.cpp
         tests/t-math.cpp
+        tests/t-mem.cpp
         tests/t-traits.cpp
+        tests/t-tuple.cpp
+
+        tests/allocators/t-alloc_bump.cpp
+        tests/allocators/t-alloc_std_stats.cpp
+        tests/allocators/t-alloc_std.cpp
 
         tests/plt/t-stacktrace.cpp
     )

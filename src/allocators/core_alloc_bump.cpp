@@ -11,7 +11,6 @@ OOMCallback g_oomCb       = nullptr;
 void*       g_container   = nullptr;
 addr_size   g_usedMem     = 0;
 addr_size   g_maxUsedMem  = 0;
-bool        g_initialized = false;
 
 } // namespace
 
@@ -50,7 +49,6 @@ bool BumpAllocator::isThredSafe() noexcept {
 }
 
 void BumpAllocator::init(OOMCallback cb, void* container, addr_size max) noexcept {
-    Panic(!g_initialized, "Bump allocator already initialized");
     Panic(container != nullptr, "Bump allocator container cannot be null");
     Panic(max > 0, "Bump allocator max must be greater than 0");
 
@@ -58,7 +56,6 @@ void BumpAllocator::init(OOMCallback cb, void* container, addr_size max) noexcep
     g_container = container;
     g_usedMem = 0;
     g_maxUsedMem = max;
-    g_initialized = true;
 }
 
 } // namespace core

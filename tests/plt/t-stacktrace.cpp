@@ -1,6 +1,6 @@
 #include "../index.h"
 
-i32 callingStacktraceDoesNotCrash() {
+i32 callingStacktraceDoesNotCrashTest() {
     constexpr addr_size BUF_MAX = 4096;
     char buf[BUF_MAX] = {};
     addr_size bufWritten = 0;
@@ -15,7 +15,7 @@ i32 callingStacktraceDoesNotCrash() {
     return 0;
 }
 
-i32 stacktraceContainsThisFunction() {
+i32 stacktraceContainsThisFunctionTest() {
     constexpr addr_size BUF_MAX = 4096;
     char buf[BUF_MAX] = {};
     addr_size bufWritten = 0;
@@ -28,13 +28,13 @@ i32 stacktraceContainsThisFunction() {
     Assert(core::cptrLen(buf) == bufWritten);
 
     std::string traceStr(buf, bufWritten);
-    Assert(traceStr.find("stacktraceContainsThisFunction") != std::string::npos);
+    Assert(traceStr.find("stacktraceContainsThisFunctionTest") != std::string::npos);
     Assert(traceStr.find("runPltStacktraceTestsSuite") != std::string::npos);
 
     return 0;
 }
 
-inline i32 stacktraceOnInlined() {
+inline i32 stacktraceOnInlinedTest() {
     constexpr addr_size BUF_MAX = 4096;
     char buf[BUF_MAX] = {};
     addr_size bufWritten = 0;
@@ -53,9 +53,9 @@ inline i32 stacktraceOnInlined() {
 }
 
 i32 runPltStacktraceTestsSuite() {
-    RunTest(callingStacktraceDoesNotCrash);
-    RunTest(stacktraceContainsThisFunction);
-    RunTest(stacktraceOnInlined);
+    RunTest(callingStacktraceDoesNotCrashTest);
+    RunTest(stacktraceContainsThisFunctionTest);
+    RunTest(stacktraceOnInlinedTest);
 
     return 0;
 }

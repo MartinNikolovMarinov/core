@@ -191,11 +191,11 @@ i32 memfillTests() {
         u8 c;
     };
 
-    A arr[10] = {};
+    A Arr[10] = {};
 
-    core::memfill(arr, 10, A{ 1, 2, 3 });
+    core::memfill(Arr, 10, A{ 1, 2, 3 });
 
-    for (auto& a : arr) {
+    for (auto& a : Arr) {
         Assert(a.a == 1);
         Assert(a.b == 2);
         Assert(a.c == 3);

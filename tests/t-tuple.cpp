@@ -1,4 +1,4 @@
-#include "index.h"
+#include "t-index.h"
 
 struct A {
     i32 a;

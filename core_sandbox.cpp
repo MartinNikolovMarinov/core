@@ -1,4 +1,4 @@
-#include "tests/index.h"
+#include "tests/t-index.h"
 
 #include <iostream>
 

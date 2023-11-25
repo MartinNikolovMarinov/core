@@ -1,4 +1,4 @@
-#include "index.h"
+#include "t-index.h"
 
 template<typename TAllocator>
 constexpr i32 initalizeStrBuilder() {

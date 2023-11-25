@@ -1,4 +1,4 @@
-#include "index.h"
+#include "t-index.h"
 
 constexpr i32 leastSignificantNBits() {
     struct TestCase { u8 value; u8 bitSeq; u8 n; bool expected; };

@@ -206,6 +206,8 @@ if(CORE_BUILD_TESTS)
     add_executable(${TEST_EXECUTABLE}
         ${TEST_EXECUTABLE}.cpp
 
+        tests/t-index_core_init.cpp
+
         tests/t-algorithms.cpp
         tests/t-arr.cpp
         tests/t-bits.cpp
@@ -213,6 +215,7 @@ if(CORE_BUILD_TESTS)
         tests/t-cptr.cpp
         tests/t-defer.cpp
         tests/t-expected.cpp
+        tests/t-hash_map.cpp
         tests/t-hash.cpp
         tests/t-intrinsics.cpp
         tests/t-ints.cpp

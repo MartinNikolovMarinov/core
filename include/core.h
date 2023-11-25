@@ -12,6 +12,7 @@
 #include "core_cptr.h"
 #include "core_expected.h"
 #include "core_hash.h"
+#include "core_hash_map.h"
 #include "core_intrinsics.h"
 #include "core_ints.h"
 #include "core_math.h"

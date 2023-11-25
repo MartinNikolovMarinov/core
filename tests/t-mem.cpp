@@ -1,4 +1,4 @@
-#include "index.h"
+#include "t-index.h"
 
 constexpr i32 alignTest() {
     struct TestCase {

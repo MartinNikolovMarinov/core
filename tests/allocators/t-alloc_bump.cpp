@@ -1,4 +1,4 @@
-#include "../index.h"
+#include "../t-index.h"
 
 i32 basicBumpAllocatorTest() {
     Assert(core::cptrLen(core::BumpAllocator::allocatorName()) > 0);

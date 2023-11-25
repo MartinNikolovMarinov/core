@@ -1,4 +1,4 @@
-#include "index.h"
+#include "t-index.h"
 
 i32 rndSignedIntegers() {
     struct TestCase { i32 min; i32 max; i32 itterCount; };

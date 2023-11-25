@@ -27,8 +27,7 @@ struct UniquePtr {
     }
 
     // no copy
-    UniquePtr(const ContainerType&) = delete;
-    UniquePtr& operator=(const ContainerType&) = delete;
+    NO_COPY(UniquePtr);
 
     ~UniquePtr() { reset(); }
 

@@ -1,4 +1,4 @@
-#include "../index.h"
+#include "../t-index.h"
 
 i32 callingStacktraceDoesNotCrashTest() {
     constexpr addr_size BUF_MAX = 4096;

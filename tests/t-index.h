@@ -1,30 +1,25 @@
 #pragma once
 
+
+#include <iostream>
+
+// #################### CORE LIBRARY CONFIGURATIONS ####################################################################
+
 #define CORE_DEFAULT_ALLOCATOR() StdAllocator
 
 #include <core.h>
 
-#include <iostream>
-
 using namespace coretypes;
 
-inline void coreInit() {
-    core::setGlobalAssertHandler([](const char* failedExpr, const char* file, i32 line, const char* errMsg) {
-        constexpr u32 stackFramesToSkip = 3;
-        constexpr addr_size stackTraceBufferSize = 4096;
-        char trace[stackTraceBufferSize] = {};
-        addr_size traceLen = 0;
-        core::stacktrace(trace, stackTraceBufferSize, traceLen, 200, stackFramesToSkip);
-        std::cout << ANSI_RED_START() << ANSI_BOLD_START()
-                  << "[ASSERTION]:\n  [EXPR]: " << failedExpr
-                  << "\n  [FILE]: " << file << ":" << line
-                  << "\n  [MSG]: " << errMsg
-                  << ANSI_RESET()
-                  << std::endl;
-        std::cout << ANSI_BOLD_START() << "[TRACE]:\n" << trace << ANSI_RESET() << std::endl;
-        throw std::runtime_error("Assertion failed!");
-    });
-}
+void coreInit();
+
+template<> addr_size core::hash(const i32& key);
+template<> bool core::eq(const i32& a, const i32& b);
+
+template<> addr_size core::hash(const core::StrView& key);
+template<> bool core::eq(const core::StrView& a, const core::StrView& b);
+
+// ##################### Testing Helpers ###############################################################################
 
 struct ConstructorTester {
     static constexpr i32 defaultValue = 7;
@@ -97,8 +92,6 @@ struct StaticVariableDefaultCtorTester {
 
 using SVCT = StaticVariableDefaultCtorTester;
 
-// ##################### Helper functions for testing ##################################################################
-
 /**
  * \brief This code is quite complex, because it does zero allocations, but it's purpose is quite simple. It iterates over
  *        a table of test cases, and executes the assertion function on each one. The assertion function, the test case
@@ -154,6 +147,7 @@ i32 runCptrConvTestsSuite();
 i32 runCptrTestsSuite();
 i32 runDeferTestsSuite();
 i32 runExpectedTestsSuite();
+i32 runHashMapTestsSuite();
 i32 runHashTestsSuite();
 i32 runIntrinsicsTestsSuite();
 i32 runIntsTestsSuite();
@@ -173,48 +167,4 @@ i32 runStdStatsAllocatorTestsSuite();
 
 i32 runPltStacktraceTestsSuite();
 
-inline i32 runAllTests() {
-    coreInit();
-
-    std::cout << "\n" << "RUNNING TESTS" << "\n\n";
-
-    RunTestSuite(runAlgorithmsTestsSuite);
-    RunTestSuite(runArrTestsSuite);
-    RunTestSuite(runBitsTestsSuite);
-    RunTestSuite(runCptrConvTestsSuite);
-    RunTestSuite(runCptrTestsSuite);
-    RunTestSuite(runDeferTestsSuite);
-    RunTestSuite(runExpectedTestsSuite);
-    RunTestSuite(runHashTestsSuite);
-    RunTestSuite(runIntrinsicsTestsSuite);
-    RunTestSuite(runIntsTestsSuite);
-    RunTestSuite(runMathTestsSuite);
-    RunTestSuite(runMemTestsSuite);
-    RunTestSuite(runRndTestsSuite);
-    RunTestSuite(runStaticArrTestsSuite);
-    RunTestSuite(runStrBuilderTestSuite);
-    RunTestSuite(runTraitsTestsSuite);
-    RunTestSuite(runTupleTestsSuite);
-    RunTestSuite(runUniquePtrTestsSuite);
-    RunTestSuite(runUtfTestsSuite);
-
-    RunTestSuite(runBumpAllocatorTestsSuite);
-    RunTestSuite(runStdAllocatorTestsSuite);
-    RunTestSuite(runStdStatsAllocatorTestsSuite);
-
-    #if defined(CORE_DEBUG) && CORE_DEBUG == 1
-        // Stacktrace should only be expected to work in debug builds.
-        RunTestSuite(runPltStacktraceTestsSuite);
-    #endif
-
-    std::cout << '\n';
-    std::cout << ANSI_BOLD(ANSI_GREEN("Tests OK")) << std::endl;
-
-    if constexpr (CORE_RUN_COMPILETIME_TESTS != 1) {
-        std::cout << ANSI_YELLOW_START() << ANSI_BOLD_START()
-                  << "[WARN] DID NOT RUN COMPILETIME TESTS!"
-                  << ANSI_RESET() << std::endl;
-    }
-
-    return 0;
-}
+i32 runAllTests();

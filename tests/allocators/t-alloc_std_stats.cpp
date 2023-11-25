@@ -1,4 +1,4 @@
-#include "../index.h"
+#include "../t-index.h"
 
 i32 statsAllocatorBasicCaseTests() {
     core::StdStatsAllocator::init(nullptr);

@@ -48,6 +48,7 @@ i32 runAllTests() {
     RunTestSuite(runAlgorithmsTestsSuite);
     RunTestSuite(runArrTestsSuite);
     RunTestSuite(runBitsTestsSuite);
+    RunTestSuite(runCmdParserTestsSuite);
     RunTestSuite(runCptrConvTestsSuite);
     RunTestSuite(runCptrTestsSuite);
     RunTestSuite(runDeferTestsSuite);
@@ -60,7 +61,7 @@ i32 runAllTests() {
     RunTestSuite(runMemTestsSuite);
     RunTestSuite(runRndTestsSuite);
     RunTestSuite(runStaticArrTestsSuite);
-    RunTestSuite(runStrBuilderTestSuite);
+    RunTestSuite(runStrBuilderTestsSuite);
     RunTestSuite(runTraitsTestsSuite);
     RunTestSuite(runTupleTestsSuite);
     RunTestSuite(runUniquePtrTestsSuite);

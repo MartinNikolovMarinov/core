@@ -1,6 +1,6 @@
 #include "../t-index.h"
 
-i32 basicStdAllocatorCase() {
+i32 basicStdAllocatorCaseTest() {
     Assert(core::cptrLen(core::StdAllocator::allocatorName()) > 0);
 
     core::StdAllocator::init(nullptr);
@@ -40,7 +40,7 @@ i32 basicStdAllocatorCase() {
     return 0;
 }
 
-i32 onOomStdAllocator() {
+i32 onOomStdAllocatorTest() {
     static i32 testOOMCount = 0;
 
     core::StdAllocator::init([](void*) { testOOMCount++; });
@@ -53,8 +53,8 @@ i32 onOomStdAllocator() {
 }
 
 i32 runStdAllocatorTestsSuite() {
-    RunTest(basicStdAllocatorCase);
-    RunTest(onOomStdAllocator);
+    RunTest(basicStdAllocatorCaseTest);
+    RunTest(onOomStdAllocatorTest);
 
     return 0;
 }

@@ -112,7 +112,7 @@ i32 swapBytesTest() {
 
 PRAGMA_WARNING_POP
 
-i32 memcopyTests() {
+i32 memcopyTest() {
     constexpr i32 N = 20;
     u8 sequence[N] = {};
 
@@ -137,7 +137,7 @@ i32 memcopyTests() {
     return 0;
 }
 
-i32 memsetTests() {
+i32 memsetTest() {
     constexpr i32 N = 20;
     for (i32 i = 0; i < N; i++) {
         u8 buf[N] = {};
@@ -155,7 +155,7 @@ i32 memsetTests() {
     return 0;
 }
 
-i32 memcmpTests() {
+i32 memcmpTest() {
     struct TestCase {
         const char* a;
         const char* b;
@@ -173,7 +173,7 @@ i32 memcmpTests() {
         { "abc123", "abc000", 4, TestCase::positive },
     };
 
-    executeTestTable("memcmpTests failed at index: ", cases, [](auto& c, const char* cErr) {
+    executeTestTable("memcmpTest failed at index: ", cases, [](auto& c, const char* cErr) {
         switch (c.expected) {
             case 1:  Assert(core::memcmp(c.a, c.b, c.n) > 0, cErr);  break;
             case -1: Assert(core::memcmp(c.a, c.b, c.n) < 0, cErr);  break;
@@ -184,7 +184,7 @@ i32 memcmpTests() {
     return 0;
 }
 
-i32 memfillTests() {
+i32 memfillTest() {
     struct A {
         i32 a;
         u64 b;
@@ -207,10 +207,10 @@ i32 memfillTests() {
 i32 runMemTestsSuite() {
     RunTest(alignTest);
     RunTest(swapBytesTest);
-    RunTest(memcopyTests);
-    RunTest(memsetTests);
-    RunTest(memcmpTests);
-    RunTest(memfillTests)
+    RunTest(memcopyTest);
+    RunTest(memsetTest);
+    RunTest(memcmpTest);
+    RunTest(memfillTest)
 
     return 0;
 }

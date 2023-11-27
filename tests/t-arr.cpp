@@ -1,7 +1,7 @@
 #include "t-index.h"
 
 template <typename TAllocator>
-i32 initializeArr() {
+i32 initializeArrTest() {
     {
         core::Arr<i32, TAllocator> Arr;
         Assert(Arr.len() == 0);
@@ -78,7 +78,7 @@ i32 initializeArr() {
 }
 
 template <typename TAllocator>
-i32 moveAndCopyArr() {
+i32 moveAndCopyArrTest() {
     core::Arr<i32, TAllocator> Arr(10);
     Arr.fill(1);
     core::Arr<i32, TAllocator> arrCpy;
@@ -118,7 +118,7 @@ i32 moveAndCopyArr() {
 }
 
 template <typename TAllocator>
-i32 resizeArr() {
+i32 resizeArrTest() {
     {
         core::Arr<i32, TAllocator> Arr;
         Assert(Arr.len() == 0);
@@ -143,7 +143,7 @@ i32 resizeArr() {
 }
 
 template <typename TAllocator>
-i32 fillArr() {
+i32 fillArrTest() {
     {
         core::Arr<i32, TAllocator> Arr;
         Arr.fill(0); // should not crash
@@ -234,7 +234,7 @@ i32 fillArr() {
 }
 
 template <typename TAllocator>
-i32 appendArr() {
+i32 appendArrTest() {
     {
         core::Arr<i32, TAllocator> Arr;
 
@@ -390,7 +390,7 @@ i32 appendArr() {
 }
 
 template <typename TAllocator>
-i32 arrayOfArraysArr() {
+i32 arrayOfArraysArrTest() {
     {
         core::Arr<i32, TAllocator> Arr;
         core::Arr<i32, TAllocator> arr2;
@@ -479,44 +479,44 @@ i32 runArrTestsSuite() {
     };
 
     {
-        RunTest(initializeArr<core::StdAllocator>);
-        RunTest(initializeArr<core::StdStatsAllocator>);
-        RunTest(initializeArr<core::BumpAllocator>);
+        RunTest(initializeArrTest<core::StdAllocator>);
+        RunTest(initializeArrTest<core::StdStatsAllocator>);
+        RunTest(initializeArrTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(moveAndCopyArr<core::StdAllocator>);
-        RunTest(moveAndCopyArr<core::StdStatsAllocator>);
-        RunTest(moveAndCopyArr<core::BumpAllocator>);
+        RunTest(moveAndCopyArrTest<core::StdAllocator>);
+        RunTest(moveAndCopyArrTest<core::StdStatsAllocator>);
+        RunTest(moveAndCopyArrTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(resizeArr<core::StdAllocator>);
-        RunTest(resizeArr<core::StdStatsAllocator>);
-        RunTest(resizeArr<core::BumpAllocator>);
+        RunTest(resizeArrTest<core::StdAllocator>);
+        RunTest(resizeArrTest<core::StdStatsAllocator>);
+        RunTest(resizeArrTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(fillArr<core::StdAllocator>);
-        RunTest(fillArr<core::StdStatsAllocator>);
-        RunTest(fillArr<core::BumpAllocator>);
+        RunTest(fillArrTest<core::StdAllocator>);
+        RunTest(fillArrTest<core::StdStatsAllocator>);
+        RunTest(fillArrTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(appendArr<core::StdAllocator>);
-        RunTest(appendArr<core::StdStatsAllocator>);
-        RunTest(appendArr<core::BumpAllocator>);
+        RunTest(appendArrTest<core::StdAllocator>);
+        RunTest(appendArrTest<core::StdStatsAllocator>);
+        RunTest(appendArrTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(arrayOfArraysArr<core::StdAllocator>);
-        RunTest(arrayOfArraysArr<core::StdStatsAllocator>);
-        RunTest(arrayOfArraysArr<core::BumpAllocator>);
+        RunTest(arrayOfArraysArrTest<core::StdAllocator>);
+        RunTest(arrayOfArraysArrTest<core::StdStatsAllocator>);
+        RunTest(arrayOfArraysArrTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }

@@ -54,20 +54,76 @@
 //     }
 // };
 
-void anotherFunction() {
-    constexpr addr_size BUF_MAX = core::KILOBYTE * 4;
-    char buf[BUF_MAX] = {};
-    addr_size bufWritten = 0;
-
-    bool ok = core::stacktrace(buf, BUF_MAX, bufWritten, 20);
-    std::cout << buf << std::endl;
-}
-
-void someFunction() {
-    anotherFunction();
-}
-
 i32 main() {
-    someFunction();
+    {
+        // const char* input[] = {
+        //     "name_of_program",
+        //     "-bool-1 ", " t",
+        //     "-bool-2   ", "T",
+        //     "-bool-3  ", " true",
+        //     "  -bool-4", "  TRUE",
+        //     "--bool-5 ", "True  ",
+        //     "    -bool-6", "1",
+        //     "-bool-7", "false",
+        //     "-bool-8", "zxcasdasd",
+
+        //     " -int32", "0004",
+        //     "--int64  ", "  -13",
+        //     "\t-uint32", "19 ",
+        //     "   -uint64", "\t99asad",
+
+        //     "-string", "  banicata   fsa  ",
+
+        //     "-float32-1", "  1.2",
+        //     "-float32-2", "  .5. ",
+        //     "-float32-3", " 1. ",
+        //     "--float32-4", "  -1.2cvxc",
+        //     "-float64-5", " 1.2.",
+        //     "-float64-6", "7...  ",
+        //     "-float64-7", "-1.2",
+        //     "-float64-8", "00012.000005",
+        // };
+
+        const char* input[] = {
+            "name_of_program", "arg1", "arg2",
+            "-bool-1 ", " t",
+            "-int32-1  ", " -4",
+            "--option-1",
+            " -int32-2  ", "  -4 ",
+            "--option-2",
+            "-trailing"
+        };
+        const addr_size inputSize = sizeof(input) / sizeof(input[0]);
+
+        core::CmdFlagParser<> parser;
+
+        auto ret = parser.parse(inputSize, input);
+        Assert(!ret.hasErr());
+
+        auto& symbols = parser.parsedSymbols();
+        for (addr_size i = 0; i < symbols.len(); ++i) {
+            std::cout << "symbol[" << i32(symbols[i].type) << "] "
+                      << (symbols[i].value.view().data() ? symbols[i].value.view().data() : "null")
+                      << std::endl;
+        }
+
+        parser.arguments([](core::StrView arg, addr_size idx) -> bool {
+            std::cout << "arg[" << idx << "] " << arg.data() << std::endl;
+            return true;
+        });
+
+        parser.flags([](core::StrView flag, core::StrView value) -> bool {
+            std::cout << "flag[" << flag.data() << "] "
+                      << (value.data() ? value.data() : "null")
+                      << std::endl;
+            return true;
+        });
+
+        parser.options([](core::StrView option) -> bool {
+            std::cout << "option[" << option.data() << "]" << std::endl;
+            return true;
+        });
+    }
+
     return 0;
 }

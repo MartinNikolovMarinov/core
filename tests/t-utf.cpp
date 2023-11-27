@@ -2,7 +2,7 @@
 
 // TODO2: Test invalid input cases!
 
-constexpr i32 convertingUtf8SequenceToUtf32RuneOneBit() {
+constexpr i32 convertingUtf8SequenceToUtf32RuneOneBitTest() {
     uchar d[10] = {};
     for (u32 i = 0; i < 10; ++i) d[i] = 0;
     uchar d2[10] = {};
@@ -30,7 +30,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneOneBit() {
     return 0;
 }
 
-constexpr i32 convertingUtf8SequenceToUtf32RuneTwoBit() {
+constexpr i32 convertingUtf8SequenceToUtf32RuneTwoBitTest() {
     // NOTE: from 128 to 2047 use 2 bytes.
 
     uchar d[10] = {};
@@ -70,7 +70,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneTwoBit() {
     return 0;
 }
 
-constexpr i32 convertingUtf8SequenceToUtf32RuneThreeBit() {
+constexpr i32 convertingUtf8SequenceToUtf32RuneThreeBitTest() {
     // NOTE: from 2048 to 65535 use 3 bytes
 
     uchar d[10] = {};
@@ -103,7 +103,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneThreeBit() {
     return 0;
 }
 
-constexpr i32 convertingUtf8SequenceToUtf32RuneFourBit() {
+constexpr i32 convertingUtf8SequenceToUtf32RuneFourBitTest() {
     // NOTE: from 65535 to MAX use 4 bytes
 
     uchar d[10] = {};
@@ -150,19 +150,19 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneFourBit() {
 }
 
 i32 runUtfTestsSuite() {
-    RunTest(convertingUtf8SequenceToUtf32RuneOneBit);
-    RunTest(convertingUtf8SequenceToUtf32RuneTwoBit);
-    RunTest(convertingUtf8SequenceToUtf32RuneThreeBit);
-    RunTest(convertingUtf8SequenceToUtf32RuneFourBit);
+    RunTest(convertingUtf8SequenceToUtf32RuneOneBitTest);
+    RunTest(convertingUtf8SequenceToUtf32RuneTwoBitTest);
+    RunTest(convertingUtf8SequenceToUtf32RuneThreeBitTest);
+    RunTest(convertingUtf8SequenceToUtf32RuneFourBitTest);
 
     return 0;
 }
 
 constexpr i32 runCompiletimeUtfTestsSuite() {
-    RunTestCompileTime(convertingUtf8SequenceToUtf32RuneOneBit);
-    RunTestCompileTime(convertingUtf8SequenceToUtf32RuneTwoBit);
-    RunTestCompileTime(convertingUtf8SequenceToUtf32RuneThreeBit);
-    RunTestCompileTime(convertingUtf8SequenceToUtf32RuneFourBit);
+    RunTestCompileTime(convertingUtf8SequenceToUtf32RuneOneBitTest);
+    RunTestCompileTime(convertingUtf8SequenceToUtf32RuneTwoBitTest);
+    RunTestCompileTime(convertingUtf8SequenceToUtf32RuneThreeBitTest);
+    RunTestCompileTime(convertingUtf8SequenceToUtf32RuneFourBitTest);
 
     return 0;
 }

@@ -23,6 +23,10 @@ struct StrView {
 
     constexpr const DataType* data() const { return buff; }
     constexpr SizeType len() const { return length; }
+
+    constexpr operator bool() const { return buff != nullptr; }
+
+    constexpr const DataType& operator[](SizeType idx) const { return buff[idx]; }
 };
 
 constexpr StrView sv()                               { return {nullptr, 0}; }
@@ -102,6 +106,10 @@ struct StrBuilder {
 
     bool eq(const ContainerType& other) const {
         return view().eq(other.view());
+    }
+
+    bool eq(const StrView& other) const {
+        return view().eq(other);
     }
 
     void clear() { m_len = 0; }
@@ -210,6 +218,7 @@ private:
         m_data = reinterpret_cast<DataType*>(AllocatorType::alloc(m_cap * sizeof(DataType)));
         Assert(m_data != nullptr);
         core::cptrCopy(m_data, cptr, m_len);
+        m_data[m_cap] = core::term_char;
     }
 
     inline bool shouldResize(SizeType lenInc) {

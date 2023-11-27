@@ -213,50 +213,56 @@ struct HashMap {
     }
 
     template <typename TKeyCb>
-    const ContainerType& keys(const TKeyCb& cb) const {
+    inline const ContainerType& keys(const TKeyCb& cb) const {
         if (m_buckets == nullptr) return *this;
         for (SizeType i = 0; i < m_cap; ++i) {
             if (m_buckets[i].occupied) {
-                cb(m_buckets[i].key);
+                if(!cb(m_buckets[i].key)) {
+                    break;
+                }
             }
         }
         return *this;
     }
 
     template <typename TKeyCb>
-    ContainerType& keys(const TKeyCb& cb) {
+    inline  ContainerType& keys(const TKeyCb& cb) {
         return const_cast<ContainerType&>(static_cast<const ContainerType&>(*this).keys(cb));
     }
 
     template <typename TDataCb>
-    const ContainerType& values(const TDataCb& cb) const {
+    inline const ContainerType& values(const TDataCb& cb) const {
         if (m_buckets == nullptr) return *this;
         for (SizeType i = 0; i < m_cap; ++i) {
             if (m_buckets[i].occupied) {
-                cb(m_buckets[i].data);
+                if(!cb(m_buckets[i].data)) {
+                    break;
+                }
             }
         }
         return *this;
     }
 
     template <typename TDataCb>
-    ContainerType& values(const TDataCb& cb) {
+    inline ContainerType& values(const TDataCb& cb) {
         return const_cast<ContainerType&>(static_cast<const ContainerType&>(*this).values(cb));
     }
 
     template <typename TKVCb>
-    const ContainerType& kvs(const TKVCb& cb) const {
+    inline const ContainerType& kvs(const TKVCb& cb) const {
         if (m_buckets == nullptr) return *this;
         for (SizeType i = 0; i < m_cap; ++i) {
             if (m_buckets[i].occupied) {
-                cb(m_buckets[i].key, m_buckets[i].data);
+                if(!cb(m_buckets[i].key, m_buckets[i].data)) {
+                    break;
+                }
             }
         }
         return *this;
     }
 
     template <typename TKVCb>
-    ContainerType& kvs(const TKVCb& cb) {
+    inline ContainerType& kvs(const TKVCb& cb) {
         return const_cast<ContainerType&>(static_cast<const ContainerType&>(*this).kvs(cb));
     }
 
@@ -307,11 +313,18 @@ private:
     const Bucket* findBucket(const KeyType& key) const {
         auto h = hash(key);
         SizeType addr = SizeType(h) & (m_cap - 1);
+        SizeType startAddr = addr;
         while (addr < m_cap && m_buckets[addr].occupied) {
             if (eq(m_buckets[addr].key, key)) {
                 return &m_buckets[addr];
             }
             addr = (addr + 1) & (m_cap - 1);
+            if (addr == startAddr) {
+                // Full loop around the table.
+                // This happens when the table is filled to capacity and the loop goes forever.
+                // This is a problem only for small tables.
+                break;
+            }
         }
         return nullptr;
     }
@@ -444,18 +457,20 @@ struct HashSet {
     }
 
     template <typename TKeyCb>
-    const ContainerType& keys(const TKeyCb& cb) const {
+    inline const ContainerType& keys(const TKeyCb& cb) const {
         if (m_buckets == nullptr) return *this;
         for (SizeType i = 0; i < m_cap; ++i) {
             if (m_buckets[i].occupied) {
-                cb(m_buckets[i].key);
+                if(!cb(m_buckets[i].key)) {
+                    break;
+                }
             }
         }
         return *this;
     }
 
     template <typename TKeyCb>
-    ContainerType& keys(const TKeyCb& cb) {
+    inline ContainerType& keys(const TKeyCb& cb) {
         return const_cast<ContainerType&>(static_cast<const ContainerType&>(*this).keys(cb));
     }
 
@@ -482,11 +497,18 @@ private:
     const Bucket* findBucket(const KeyType& key) const {
         auto h = hash(key);
         SizeType addr = SizeType(h) & (m_cap - 1);
+        SizeType startAddr = addr;
         while (addr < m_cap && m_buckets[addr].occupied) {
             if (eq(m_buckets[addr].key, key)) {
                 return &m_buckets[addr];
             }
             addr = (addr + 1) & (m_cap - 1);
+            if (addr == startAddr) {
+                // Full loop around the table.
+                // This happens when the table is filled to capacity and the loop goes forever.
+                // This is a problem only for small tables.
+                break;
+            }
         }
         return nullptr;
     }

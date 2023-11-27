@@ -1,7 +1,7 @@
 #include "t-index.h"
 
 template<typename TAllocator>
-constexpr i32 initalizeStrBuilder() {
+constexpr i32 initializeStrBuilderTest() {
     using StrBuilder = core::StrBuilder<TAllocator>;
 
     {
@@ -115,7 +115,7 @@ constexpr i32 initalizeStrBuilder() {
 }
 
 template<typename TAllocator>
-constexpr i32 moveAndCopyStrBuilder() {
+constexpr i32 moveAndCopyStrBuilderTest() {
     using StrBuilder = core::StrBuilder<TAllocator>;
 
     {
@@ -207,7 +207,7 @@ constexpr i32 moveAndCopyStrBuilder() {
 }
 
 template<typename TAllocator>
-i32 resizeStrBuilder() {
+i32 resizeStrBuilderTest() {
     using StrBuilder = core::StrBuilder<TAllocator>;
 
     StrBuilder s;
@@ -232,7 +232,7 @@ i32 resizeStrBuilder() {
 }
 
 template<typename TAllocator>
-i32 fillStrBuilder() {
+i32 fillStrBuilderTest() {
     using StrBuilder = core::StrBuilder<TAllocator>;
 
     {
@@ -277,7 +277,7 @@ i32 fillStrBuilder() {
 }
 
 template<typename TAllocator>
-i32 appendStrBuilder() {
+i32 appendStrBuilderTest() {
     using StrBuilder = core::StrBuilder<TAllocator>;
 
     {
@@ -426,7 +426,7 @@ i32 appendStrBuilder() {
 }
 
 template<typename TAllocator>
-i32 takeAndStealStrBuilder() {
+i32 takeAndStealStrBuilderTest() {
     using StrBuilder = core::StrBuilder<TAllocator>;
 
     {
@@ -504,7 +504,7 @@ i32 takeAndStealStrBuilder() {
 }
 
 template<typename TAllocator>
-i32 specialCasesRelatedToNullTerminationStrBuilder() {
+i32 specialCasesRelatedToNullTerminationStrBuilderTest() {
     using StrBuilder = core::StrBuilder<TAllocator>;
 
     {
@@ -585,7 +585,7 @@ i32 specialCasesRelatedToNullTerminationStrBuilder() {
     return 0;
 }
 
-i32 runStrBuilderTestSuite() {
+i32 runStrBuilderTestsSuite() {
     constexpr addr_size BUFF_SIZE = core::KILOBYTE;
     char buf[BUFF_SIZE];
 
@@ -600,51 +600,51 @@ i32 runStrBuilderTestSuite() {
     };
 
     {
-        RunTest(initalizeStrBuilder<core::StdAllocator>);
-        RunTest(initalizeStrBuilder<core::StdStatsAllocator>);
-        RunTest(initalizeStrBuilder<core::BumpAllocator>);
+        RunTest(initializeStrBuilderTest<core::StdAllocator>);
+        RunTest(initializeStrBuilderTest<core::StdStatsAllocator>);
+        RunTest(initializeStrBuilderTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(moveAndCopyStrBuilder<core::StdAllocator>);
-        RunTest(moveAndCopyStrBuilder<core::StdStatsAllocator>);
-        RunTest(moveAndCopyStrBuilder<core::BumpAllocator>);
+        RunTest(moveAndCopyStrBuilderTest<core::StdAllocator>);
+        RunTest(moveAndCopyStrBuilderTest<core::StdStatsAllocator>);
+        RunTest(moveAndCopyStrBuilderTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(resizeStrBuilder<core::StdAllocator>);
-        RunTest(resizeStrBuilder<core::StdStatsAllocator>);
-        RunTest(resizeStrBuilder<core::BumpAllocator>);
+        RunTest(resizeStrBuilderTest<core::StdAllocator>);
+        RunTest(resizeStrBuilderTest<core::StdStatsAllocator>);
+        RunTest(resizeStrBuilderTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(fillStrBuilder<core::StdAllocator>);
-        RunTest(fillStrBuilder<core::StdStatsAllocator>);
-        RunTest(fillStrBuilder<core::BumpAllocator>);
+        RunTest(fillStrBuilderTest<core::StdAllocator>);
+        RunTest(fillStrBuilderTest<core::StdStatsAllocator>);
+        RunTest(fillStrBuilderTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(appendStrBuilder<core::StdAllocator>);
-        RunTest(appendStrBuilder<core::StdStatsAllocator>);
-        RunTest(appendStrBuilder<core::BumpAllocator>);
+        RunTest(appendStrBuilderTest<core::StdAllocator>);
+        RunTest(appendStrBuilderTest<core::StdStatsAllocator>);
+        RunTest(appendStrBuilderTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(takeAndStealStrBuilder<core::StdAllocator>);
-        RunTest(takeAndStealStrBuilder<core::StdStatsAllocator>);
-        RunTest(takeAndStealStrBuilder<core::BumpAllocator>);
+        RunTest(takeAndStealStrBuilderTest<core::StdAllocator>);
+        RunTest(takeAndStealStrBuilderTest<core::StdStatsAllocator>);
+        RunTest(takeAndStealStrBuilderTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(specialCasesRelatedToNullTerminationStrBuilder<core::StdAllocator>);
-        RunTest(specialCasesRelatedToNullTerminationStrBuilder<core::StdStatsAllocator>);
-        RunTest(specialCasesRelatedToNullTerminationStrBuilder<core::BumpAllocator>);
+        RunTest(specialCasesRelatedToNullTerminationStrBuilderTest<core::StdAllocator>);
+        RunTest(specialCasesRelatedToNullTerminationStrBuilderTest<core::StdStatsAllocator>);
+        RunTest(specialCasesRelatedToNullTerminationStrBuilderTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }

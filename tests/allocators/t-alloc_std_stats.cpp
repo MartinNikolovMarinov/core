@@ -1,6 +1,6 @@
 #include "../t-index.h"
 
-i32 statsAllocatorBasicCaseTests() {
+i32 statsAllocatorBasicCaseTest() {
     core::StdStatsAllocator::init(nullptr);
 
     {
@@ -45,7 +45,7 @@ i32 statsAllocatorBasicCaseTests() {
     return 0;
 }
 
-i32 statsAllocatorWithConstructTests() {
+i32 statsAllocatorWithConstructTest() {
     core::StdStatsAllocator::init(nullptr);
 
     struct TestStruct {
@@ -101,8 +101,8 @@ i32 statsAllocatorWithConstructTests() {
 }
 
 i32 runStdStatsAllocatorTestsSuite() {
-    RunTest(statsAllocatorBasicCaseTests);
-    RunTest(statsAllocatorWithConstructTests);
+    RunTest(statsAllocatorBasicCaseTest);
+    RunTest(statsAllocatorWithConstructTest);
 
     return 0;
 }

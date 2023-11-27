@@ -1,6 +1,6 @@
 #include "t-index.h"
 
-i32 rndSignedIntegers() {
+i32 rndSignedIntegersTest() {
     struct TestCase { i32 min; i32 max; i32 itterCount; };
 
     constexpr i32 testCount = 12;
@@ -30,7 +30,7 @@ i32 rndSignedIntegers() {
     return 0;
 }
 
-i32 rndRawStr() {
+i32 rndRawStrTest() {
     struct TestCase { addr_size size; i32 itterCount; };
 
     constexpr i32 testCount = 1;
@@ -52,8 +52,8 @@ i32 rndRawStr() {
 i32 runRndTestsSuite() {
     core::rndInit();
 
-    RunTest(rndSignedIntegers);
-    RunTest(rndRawStr);
+    RunTest(rndSignedIntegersTest);
+    RunTest(rndRawStrTest);
 
     return 0;
 }

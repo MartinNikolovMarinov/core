@@ -4,7 +4,7 @@ PRAGMA_WARNING_PUSH
 
 DISABLE_MSVC_WARNING(4127) // Conditional expression is constant. I don't care here.
 
-i32 expectedBasicCase() {
+i32 expectedBasicCaseTest() {
     core::expected<i32, const char*> e1(10);
     Assert(e1.hasValue());
     Assert(!e1.hasErr());
@@ -19,7 +19,7 @@ i32 expectedBasicCase() {
     return 0;
 }
 
-i32 expectedSizeof() {
+i32 expectedSizeofTest() {
     struct TestStruct {
         u64 a;
         u32 b;
@@ -40,7 +40,7 @@ i32 expectedSizeof() {
     return 0;
 }
 
-i32 expectedWithSameType() {
+i32 expectedWithSameTypeTest() {
     core::expected<i32, i32> e1(10);
     Assert(e1.hasValue());
     Assert(!e1.hasErr());
@@ -66,7 +66,7 @@ i32 expectedWithSameType() {
     return 0;
 }
 
-i32 expectedUsedInAFunction() {
+i32 expectedUsedInAFunctionTest() {
     constexpr const char* errMsg1 = "unexpected value less than 0";
     constexpr const char* errMsg2 = "unexpected value equals 0";
 
@@ -85,7 +85,7 @@ i32 expectedUsedInAFunction() {
     return 0;
 }
 
-i32 expectedWithDestructors() {
+i32 expectedWithDestructorsTest() {
     struct TestStruct {
         i32* counter;
         TestStruct(i32* _counter) : counter(_counter) {
@@ -113,7 +113,7 @@ i32 expectedWithDestructors() {
     return 0;
 }
 
-constexpr i32 staticExpectedBasicCase() {
+constexpr i32 staticExpectedBasicCaseTest() {
     core::sexpected<i32, const char*> e1(10);
     Assert(e1.hasValue());
     Assert(!e1.hasErr());
@@ -128,7 +128,7 @@ constexpr i32 staticExpectedBasicCase() {
     return 0;
 }
 
-constexpr i32 staticExpectedSizeof() {
+constexpr i32 staticExpectedSizeofTest() {
     struct TestStruct {
         u64 a;
         u32 b;
@@ -149,7 +149,7 @@ constexpr i32 staticExpectedSizeof() {
     return 0;
 }
 
-constexpr i32 staticExpectedWithSameType() {
+constexpr i32 staticExpectedWithSameTypeTest() {
     core::sexpected<i32, i32> e1(10);
     Assert(e1.hasValue());
     Assert(!e1.hasErr());
@@ -175,7 +175,7 @@ constexpr i32 staticExpectedWithSameType() {
     return 0;
 }
 
-constexpr i32 staticExpectedUsedInAFunction() {
+constexpr i32 staticExpectedUsedInAFunctionTest() {
     constexpr const char* errMsg1 = "unexpected value less than 0";
     constexpr const char* errMsg2 = "unexpected value equals 0";
 
@@ -197,20 +197,20 @@ constexpr i32 staticExpectedUsedInAFunction() {
 PRAGMA_WARNING_POP
 
 i32 runExpectedTestsSuite() {
-    RunTest(expectedBasicCase);
-    RunTest(expectedSizeof);
-    RunTest(expectedWithSameType);
-    RunTest(expectedUsedInAFunction);
-    RunTest(expectedWithDestructors);
+    RunTest(expectedBasicCaseTest);
+    RunTest(expectedSizeofTest);
+    RunTest(expectedWithSameTypeTest);
+    RunTest(expectedUsedInAFunctionTest);
+    RunTest(expectedWithDestructorsTest);
 
     return 0;
 }
 
 constexpr i32 runCompiletimeExpectedTestsSuite() {
-    RunTestCompileTime(staticExpectedBasicCase);
-    RunTestCompileTime(staticExpectedSizeof);
-    RunTestCompileTime(staticExpectedWithSameType);
-    RunTestCompileTime(staticExpectedUsedInAFunction);
+    RunTestCompileTime(staticExpectedBasicCaseTest);
+    RunTestCompileTime(staticExpectedSizeofTest);
+    RunTestCompileTime(staticExpectedWithSameTypeTest);
+    RunTestCompileTime(staticExpectedUsedInAFunctionTest);
 
     return 0;
 }

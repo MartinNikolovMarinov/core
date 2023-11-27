@@ -4,7 +4,7 @@ PRAGMA_WARNING_PUSH
 
 DISABLE_MSVC_WARNING(4127) // Conditional expression is constant. I don't care here.
 
-constexpr i32 fillStaticArrTests() {
+constexpr i32 fillStaticArrTest() {
     core::SArr<i32, 4> arr(3);
 
     Assert(arr.cap() == 4);
@@ -24,7 +24,7 @@ constexpr i32 fillStaticArrTests() {
     return 0;
 }
 
-constexpr i32 appendStaticArrTests() {
+constexpr i32 appendStaticArrTest() {
     core::SArr<i32, 4> arr;
 
     Assert(arr.cap() == 4);
@@ -71,7 +71,7 @@ constexpr i32 appendStaticArrTests() {
     return 0;
 }
 
-constexpr i32 copyStaticArrTests() {
+constexpr i32 copyStaticArrTest() {
     core::SArr<i32, 4> arr1;
     arr1.append(1);
     arr1.append(2);
@@ -115,17 +115,17 @@ constexpr i32 copyStaticArrTests() {
 }
 
 i32 runStaticArrTestsSuite() {
-    RunTest(fillStaticArrTests);
-    RunTest(appendStaticArrTests);
-    RunTest(copyStaticArrTests);
+    RunTest(fillStaticArrTest);
+    RunTest(appendStaticArrTest);
+    RunTest(copyStaticArrTest);
 
     return 0;
 }
 
 constexpr i32 runCompletimeStaticArrTestsSuite() {
-    RunTestCompileTime(fillStaticArrTests);
-    RunTestCompileTime(appendStaticArrTests);
-    RunTestCompileTime(copyStaticArrTests);
+    RunTestCompileTime(fillStaticArrTest);
+    RunTestCompileTime(appendStaticArrTest);
+    RunTestCompileTime(copyStaticArrTest);
 
     return 0;
 }

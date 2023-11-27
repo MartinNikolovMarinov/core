@@ -1,7 +1,7 @@
 #include "t-index.h"
 
 template <typename TAllocator>
-i32 initializeUniquePtr() {
+i32 initializeUniquePtrTest() {
     {
         core::UniquePtr<i32, TAllocator> p;
         Assert(p.get() == nullptr);
@@ -120,7 +120,7 @@ i32 initializeUniquePtr() {
 }
 
 template <typename TAllocator>
-i32 stealUniquePtr() {
+i32 stealUniquePtrTest() {
     core::UniquePtr<i32, TAllocator> p = core::makeUnique<i32, TAllocator>(42);
     i32* raw = p.steal();
     Assert(raw != nullptr);
@@ -131,7 +131,7 @@ i32 stealUniquePtr() {
 }
 
 template <typename TAllocator>
-i32 resetUniquePtr() {
+i32 resetUniquePtrTest() {
     core::UniquePtr<i32, TAllocator> p = core::makeUnique<i32, TAllocator>(42);
     Assert(p.get() != nullptr);
     Assert(*p.get() == 42);
@@ -142,7 +142,7 @@ i32 resetUniquePtr() {
 }
 
 template <typename TAllocator>
-i32 copyUniquePtr() {
+i32 copyUniquePtrTest() {
     core::UniquePtr<i32, TAllocator> p = core::makeUnique<i32, TAllocator>(42);
     Assert(p.get() != nullptr);
     Assert(*p.get() == 42);
@@ -156,7 +156,7 @@ i32 copyUniquePtr() {
 }
 
 template <typename TAllocator>
-i32 swapUniquePtr() {
+i32 swapUniquePtrTest() {
     core::UniquePtr<i32, TAllocator> p1 = core::makeUnique<i32, TAllocator>(42);
     core::UniquePtr<i32, TAllocator> p2 = core::makeUnique<i32, TAllocator>(24);
     Assert(p1.get() != nullptr);
@@ -192,37 +192,37 @@ i32 runUniquePtrTestsSuite() {
     };
 
     {
-        RunTest(initializeUniquePtr<core::StdAllocator>);
-        RunTest(initializeUniquePtr<core::StdStatsAllocator>);
-        RunTest(initializeUniquePtr<core::BumpAllocator>);
+        RunTest(initializeUniquePtrTest<core::StdAllocator>);
+        RunTest(initializeUniquePtrTest<core::StdStatsAllocator>);
+        RunTest(initializeUniquePtrTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(stealUniquePtr<core::StdAllocator>);
-        RunTest(stealUniquePtr<core::StdStatsAllocator>);
-        RunTest(stealUniquePtr<core::BumpAllocator>);
+        RunTest(stealUniquePtrTest<core::StdAllocator>);
+        RunTest(stealUniquePtrTest<core::StdStatsAllocator>);
+        RunTest(stealUniquePtrTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(resetUniquePtr<core::StdAllocator>);
-        RunTest(resetUniquePtr<core::StdStatsAllocator>);
-        RunTest(resetUniquePtr<core::BumpAllocator>);
+        RunTest(resetUniquePtrTest<core::StdAllocator>);
+        RunTest(resetUniquePtrTest<core::StdStatsAllocator>);
+        RunTest(resetUniquePtrTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(copyUniquePtr<core::StdAllocator>);
-        RunTest(copyUniquePtr<core::StdStatsAllocator>);
-        RunTest(copyUniquePtr<core::BumpAllocator>);
+        RunTest(copyUniquePtrTest<core::StdAllocator>);
+        RunTest(copyUniquePtrTest<core::StdStatsAllocator>);
+        RunTest(copyUniquePtrTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(swapUniquePtr<core::StdAllocator>);
-        RunTest(swapUniquePtr<core::StdStatsAllocator>);
-        RunTest(swapUniquePtr<core::BumpAllocator>);
+        RunTest(swapUniquePtrTest<core::StdAllocator>);
+        RunTest(swapUniquePtrTest<core::StdStatsAllocator>);
+        RunTest(swapUniquePtrTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }

@@ -211,6 +211,7 @@ if(CORE_BUILD_TESTS)
         tests/t-algorithms.cpp
         tests/t-arr.cpp
         tests/t-bits.cpp
+        tests/t-cmd_flag_parser.cpp
         tests/t-cptr_conv.cpp
         tests/t-cptr.cpp
         tests/t-defer.cpp

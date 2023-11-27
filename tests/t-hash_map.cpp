@@ -25,14 +25,16 @@ void __test_verifyKeyVal(const M& m, const __TestKv<K, V>& kv) {
     Assert(*a == val, "Value at key is incorrect");
 
     i32 found = 0;
-    m.keys([&](const auto& k) {
+    m.keys([&](const auto& k) -> bool {
         if (core::eq(k, key)) { found++; }
+        return true;
     });
     Assert(found == 1, "Key should be found exactly once");
 
     found = 0;
-    m.values([&](const auto& v) {
+    m.values([&](const auto& v) -> bool {
         if (v == val) { found++; }
+        return true;
     });
     Assert(found > 0, "Value should be found at least once");
 }
@@ -49,8 +51,9 @@ void __test_verifyKey(const M& m, const K& key) {
     Assert(a != nullptr, "Failed to get data for key");
 
     i32 found = 0;
-    m.keys([&](const auto& k) {
+    m.keys([&](const auto& k) -> bool {
         if (core::eq(k, key)) { found++; }
+        return true;
     });
     Assert(found == 1, "Key should be found exactly once");
 }
@@ -63,19 +66,19 @@ void __test_verifyKeys(const M& m, const K&... keys) {
 template <typename M>
 void __test_verifyNoKeys(const M& m) {
     bool noKeys = true;
-    m.keys([&](const auto&) { noKeys = false; });
+    m.keys([&](const auto&) -> bool { noKeys = false; return true; });
     Assert(noKeys, "Hash map should not have keys");
 }
 
 template <typename M>
 void __test_verifyNoValues(const M& m) {
     bool noValues = true;
-    m.values([&](const auto&) { noValues = false; });
+    m.values([&](const auto&) -> bool { noValues = false; return true; });
     Assert(noValues, "Hash map should not have values");
 }
 
 template <typename TAllocator>
-i32 initializeHashMap() {
+i32 initializeHashMapTest() {
     {
         I32HashMap<i32, TAllocator> m;
         Assert(m.len() == 0);
@@ -113,7 +116,7 @@ i32 initializeHashMap() {
 }
 
 template <typename TAllocator>
-i32 initializeHashSet() {
+i32 initializeHashSetTest() {
     {
         I32HashSet<TAllocator> m;
         Assert(m.len() == 0);
@@ -147,7 +150,7 @@ i32 initializeHashSet() {
 }
 
 template <typename TAllocator>
-i32 putMoveCopyHashMap() {
+i32 putMoveCopyHashMapTest() {
     using core::sv;
 
     {
@@ -341,7 +344,7 @@ i32 putMoveCopyHashMap() {
 }
 
 template <typename TAllocator>
-i32 putMoveCopyHashSet() {
+i32 putMoveCopyHashSetTest() {
     using core::sv;
 
     {
@@ -494,7 +497,45 @@ i32 putMoveCopyHashSet() {
 }
 
 template <typename TAllocator>
-i32 removeFromHashMap() {
+i32 getWhenHashMapIsFilledToCapacityTest() {
+    core::HashMap<i32, i32, TAllocator> m(2);
+
+    m.put(1, 1);
+    m.put(2, 1);
+
+    Assert(m.len() == 2);
+    Assert(m.cap() == 2); // I don't usually assume the cap but this is a special case.
+    Assert(!m.empty());
+
+    Assert(m.get(1) != nullptr);
+    Assert(m.get(2) != nullptr);
+    Assert(m.get(3) == nullptr); // Make sure these don't loop forever.
+    Assert(m.get(55) == nullptr);
+
+    return 0;
+}
+
+template <typename TAllocator>
+i32 getWhenHashSetIsFilledToCapacityTest() {
+    core::HashSet<i32, TAllocator> m(2);
+
+    m.put(1);
+    m.put(2);
+
+    Assert(m.len() == 2);
+    Assert(m.cap() == 2); // I don't usually assume the cap but this is a special case.
+    Assert(!m.empty());
+
+    Assert(m.get(1) != nullptr);
+    Assert(m.get(2) != nullptr);
+    Assert(m.get(3) == nullptr); // Make sure these don't loop forever.
+    Assert(m.get(55) == nullptr);
+
+    return 0;
+}
+
+template <typename TAllocator>
+i32 removeFromHashMapTest() {
     {
         I32HashMap<i32, TAllocator> m(2);
         m.put(1, 1);
@@ -555,7 +596,7 @@ i32 removeFromHashMap() {
 }
 
 template <typename TAllocator>
-i32 removeFromHashSet() {
+i32 removeFromHashSetTest() {
     {
         I32HashSet<TAllocator> m(2);
         m.put(1);
@@ -614,7 +655,7 @@ i32 removeFromHashSet() {
 }
 
 template <typename TAllocator>
-i32 complexTypesInHashMap() {
+i32 complexTypesInHashMapTest() {
     using core::sv;
 
     {
@@ -797,52 +838,59 @@ i32 runHashMapTestsSuite() {
     };
 
     {
-        RunTest(initializeHashMap<core::StdAllocator>);
-        RunTest(initializeHashMap<core::StdStatsAllocator>);
-        RunTest(initializeHashMap<core::BumpAllocator>);
+        RunTest(initializeHashMapTest<core::StdAllocator>);
+        RunTest(initializeHashMapTest<core::StdStatsAllocator>);
+        RunTest(initializeHashMapTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(putMoveCopyHashMap<core::StdAllocator>);
-        RunTest(putMoveCopyHashMap<core::StdStatsAllocator>);
-        RunTest(putMoveCopyHashMap<core::BumpAllocator>);
+        RunTest(putMoveCopyHashMapTest<core::StdAllocator>);
+        RunTest(putMoveCopyHashMapTest<core::StdStatsAllocator>);
+        RunTest(putMoveCopyHashMapTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(removeFromHashMap<core::StdAllocator>);
-        RunTest(removeFromHashMap<core::StdStatsAllocator>);
-        RunTest(removeFromHashMap<core::BumpAllocator>);
+        RunTest(removeFromHashMapTest<core::StdAllocator>);
+        RunTest(removeFromHashMapTest<core::StdStatsAllocator>);
+        RunTest(removeFromHashMapTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(complexTypesInHashMap<core::StdAllocator>);
-        RunTest(complexTypesInHashMap<core::StdStatsAllocator>);
-        RunTest(complexTypesInHashMap<core::BumpAllocator>);
+        RunTest(complexTypesInHashMapTest<core::StdAllocator>);
+        RunTest(complexTypesInHashMapTest<core::StdStatsAllocator>);
+        RunTest(complexTypesInHashMapTest<core::BumpAllocator>);
+        core::BumpAllocator::clear();
+        checkLeaks();
+    }
+    {
+        RunTest(getWhenHashMapIsFilledToCapacityTest<core::StdAllocator>);
+        RunTest(getWhenHashMapIsFilledToCapacityTest<core::StdStatsAllocator>);
+        RunTest(getWhenHashMapIsFilledToCapacityTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
 
     {
-        RunTest(initializeHashSet<core::StdAllocator>);
-        RunTest(initializeHashSet<core::StdStatsAllocator>);
-        RunTest(initializeHashSet<core::BumpAllocator>);
+        RunTest(initializeHashSetTest<core::StdAllocator>);
+        RunTest(initializeHashSetTest<core::StdStatsAllocator>);
+        RunTest(initializeHashSetTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(putMoveCopyHashSet<core::StdAllocator>);
-        RunTest(putMoveCopyHashSet<core::StdStatsAllocator>);
-        RunTest(putMoveCopyHashSet<core::BumpAllocator>);
+        RunTest(putMoveCopyHashSetTest<core::StdAllocator>);
+        RunTest(putMoveCopyHashSetTest<core::StdStatsAllocator>);
+        RunTest(putMoveCopyHashSetTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(removeFromHashSet<core::StdAllocator>);
-        RunTest(removeFromHashSet<core::StdStatsAllocator>);
-        RunTest(removeFromHashSet<core::BumpAllocator>);
+        RunTest(removeFromHashSetTest<core::StdAllocator>);
+        RunTest(removeFromHashSetTest<core::StdStatsAllocator>);
+        RunTest(removeFromHashSetTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }

@@ -1,6 +1,6 @@
 #include "t-index.h"
 
-constexpr i32 leastSignificantNBits() {
+constexpr i32 leastSignificantNBitsTest() {
     struct TestCase { u8 value; u8 bitSeq; u8 n; bool expected; };
 
     TestCase cases[] = {
@@ -37,7 +37,7 @@ constexpr i32 leastSignificantNBits() {
     return 0;
 }
 
-constexpr i32 mostSignificantNBists() {
+constexpr i32 mostSignificantNBistsTest() {
     struct TestCase { u8 value; u8 bitSeq; u8 n; bool expected; };
 
     TestCase cases[] = {
@@ -115,14 +115,15 @@ constexpr i32 mostSignificantNBists() {
 }
 
 i32 runBitsTestsSuite() {
-    RunTest(leastSignificantNBits);
-    RunTest(mostSignificantNBists);
+    RunTest(leastSignificantNBitsTest);
+    RunTest(mostSignificantNBistsTest);
 
     return 0;
 }
 
 constexpr i32 runCompiletimeBitsTestsSuite() {
-    RunTestCompileTime(leastSignificantNBits);
-    RunTestCompileTime(mostSignificantNBists);
+    RunTestCompileTime(leastSignificantNBitsTest);
+    RunTestCompileTime(mostSignificantNBistsTest);
+
     return 0;
 }

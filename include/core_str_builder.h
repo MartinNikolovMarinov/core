@@ -218,7 +218,7 @@ private:
         m_data = reinterpret_cast<DataType*>(AllocatorType::alloc(m_cap * sizeof(DataType)));
         Assert(m_data != nullptr);
         core::cptrCopy(m_data, cptr, m_len);
-        m_data[m_cap] = core::term_char;
+        m_data[m_cap - 1] = core::term_char;
     }
 
     inline bool shouldResize(SizeType lenInc) {

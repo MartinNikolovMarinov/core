@@ -37,4 +37,6 @@
 #include "math/core_transforms.h"
 #include "math/core_vec.h"
 
+#include "plt/core_plt_error.h"
 #include "plt/core_stacktrace.h"
+#include "plt/core_threading.h"

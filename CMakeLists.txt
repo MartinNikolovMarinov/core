@@ -89,14 +89,17 @@ set(src_files
 if(OS STREQUAL "linux")
     set(src_files ${src_files}
         src/plt/unix/unix_stacktrace.cpp
+        src/plt/unix/unix_threading.cpp
     )
 elseif(OS STREQUAL "darwin")
     set(src_files ${src_files}
         src/plt/unix/unix_stacktrace.cpp
+        src/plt/unix/unix_threading.cpp
     )
 elseif(OS STREQUAL "windows")
     set(src_files ${src_files}
         src/plt/win/win_stacktrace.cpp
+        src/plt/win/win_threading.cpp
     )
 endif()
 
@@ -241,6 +244,7 @@ if(CORE_BUILD_TESTS)
         tests/math/t-vec.cpp
 
         tests/plt/t-stacktrace.cpp
+        tests/plt/t-threading.cpp
     )
 
     # Link core

@@ -153,6 +153,7 @@ i32 runHashTestsSuite();
 i32 runIntrinsicsTestsSuite();
 i32 runIntsTestsSuite();
 i32 runMathTestsSuite();
+i32 runMatrixTestsSuite();
 i32 runMemTestsSuite();
 i32 runRndTestsSuite();
 i32 runStaticArrTestsSuite();
@@ -161,6 +162,8 @@ i32 runTraitsTestsSuite();
 i32 runTupleTestsSuite();
 i32 runUniquePtrTestsSuite();
 i32 runUtfTestsSuite();
+i32 runVecTestsSuite();
+i32 runTransformsTestsSuite();
 
 i32 runBumpAllocatorTestsSuite();
 i32 runStdAllocatorTestsSuite();

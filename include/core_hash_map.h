@@ -1,10 +1,10 @@
 #pragma once
 
 #include <core_alloc.h>
-#include <core_math.h>
 #include <core_mem.h>
 #include <core_traits.h>
 #include <core_types.h>
+#include <math/core_math.h>
 
 namespace core {
 

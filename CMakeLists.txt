@@ -82,6 +82,8 @@ set(src_files
     src/allocators/core_alloc_bump.cpp
     src/allocators/core_alloc_stats_std.cpp
     src/allocators/core_alloc_std.cpp
+
+    src/math/core_projections.cpp
 )
 
 if(OS STREQUAL "linux")
@@ -220,7 +222,6 @@ if(CORE_BUILD_TESTS)
         tests/t-hash.cpp
         tests/t-intrinsics.cpp
         tests/t-ints.cpp
-        tests/t-math.cpp
         tests/t-mem.cpp
         tests/t-rnd.cpp
         tests/t-sarr.cpp
@@ -233,6 +234,11 @@ if(CORE_BUILD_TESTS)
         tests/allocators/t-alloc_bump.cpp
         tests/allocators/t-alloc_std_stats.cpp
         tests/allocators/t-alloc_std.cpp
+
+        tests/math/t-math.cpp
+        tests/math/t-matrix.cpp
+        tests/math/t-transforms.cpp
+        tests/math/t-vec.cpp
 
         tests/plt/t-stacktrace.cpp
     )

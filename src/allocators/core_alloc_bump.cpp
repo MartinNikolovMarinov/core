@@ -1,7 +1,7 @@
 #include <core_alloc.h>
 
-#include <core_math.h>
 #include <core_mem.h>
+#include <math/core_math.h>
 
 namespace core {
 

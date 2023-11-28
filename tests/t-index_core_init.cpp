@@ -58,14 +58,17 @@ i32 runAllTests() {
     RunTestSuite(runIntrinsicsTestsSuite);
     RunTestSuite(runIntsTestsSuite);
     RunTestSuite(runMathTestsSuite);
+    RunTestSuite(runMatrixTestsSuite);
     RunTestSuite(runMemTestsSuite);
     RunTestSuite(runRndTestsSuite);
     RunTestSuite(runStaticArrTestsSuite);
     RunTestSuite(runStrBuilderTestsSuite);
     RunTestSuite(runTraitsTestsSuite);
+    RunTestSuite(runTransformsTestsSuite);
     RunTestSuite(runTupleTestsSuite);
     RunTestSuite(runUniquePtrTestsSuite);
     RunTestSuite(runUtfTestsSuite);
+    RunTestSuite(runVecTestsSuite);
 
     RunTestSuite(runBumpAllocatorTestsSuite);
     RunTestSuite(runStdAllocatorTestsSuite);

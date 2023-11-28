@@ -1,11 +1,11 @@
 #pragma once
 
-#include <core_types.h>
 #include <core_cptr.h>
 #include <core_ints.h>
 #include <core_traits.h>
+#include <core_types.h>
 #include <core_utils.h>
-#include <core_math.h>
+#include <math/core_math.h>
 
 // TODO2: [PERFORMACE] Everything in this file can be much faster.
 

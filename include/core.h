@@ -16,7 +16,6 @@
 #include "core_hash.h"
 #include "core_intrinsics.h"
 #include "core_ints.h"
-#include "core_math.h"
 #include "core_mem.h"
 #include "core_rnd.h"
 #include "core_sarr.h"
@@ -29,5 +28,13 @@
 #include "core_unique_ptr.h"
 #include "core_utf.h"
 #include "core_utils.h"
+
+#include "math/core_bbox.h"
+#include "math/core_lines.h"
+#include "math/core_math.h"
+#include "math/core_matrix.h"
+#include "math/core_projections.h"
+#include "math/core_transforms.h"
+#include "math/core_vec.h"
 
 #include "plt/core_stacktrace.h"

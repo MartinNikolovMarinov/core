@@ -7,7 +7,11 @@
 namespace core {
 
 struct Mutex {
-    CRITICAL_SECTION cs;
+    CRITICAL_SECTION handle;
+};
+
+struct CondVariable {
+    CONDITION_VARIABLE handle;
 };
 
 struct Thread {

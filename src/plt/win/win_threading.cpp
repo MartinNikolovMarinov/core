@@ -12,22 +12,22 @@ namespace core {
 
 expected<PltErrCode> mutexInit(Mutex& out, MutexType) noexcept {
     // There is only one type of mutex in Windows.
-    InitializeCriticalSection(&out.cs);
+    InitializeCriticalSection(&out.handle);
     return {};
 }
 
 expected<PltErrCode> mutexDestroy(Mutex& m) noexcept {
-    DeleteCriticalSection(&m.cs);
+    DeleteCriticalSection(&m.handle);
     return {};
 }
 
 expected<PltErrCode> mutexLock(Mutex& m) noexcept {
-    EnterCriticalSection(&m.cs);
+    EnterCriticalSection(&m.handle);
     return {};
 }
 
 expected<PltErrCode> mutexTrylock(Mutex& m) noexcept {
-    BOOL ret = TryEnterCriticalSection(&m.cs);
+    BOOL ret = TryEnterCriticalSection(&m.handle);
     if (!ret) {
         return core::unexpected(ERR_MUTEX_TRYLOCK_FAILED);
     }
@@ -35,7 +35,7 @@ expected<PltErrCode> mutexTrylock(Mutex& m) noexcept {
 }
 
 expected<PltErrCode> mutexUnlock(Mutex& m) noexcept {
-    LeaveCriticalSection(&m.cs);
+    LeaveCriticalSection(&m.handle);
     return {};
 }
 
@@ -215,6 +215,37 @@ expected<PltErrCode> threadDetach(Thread& t) noexcept {
     Expect(mutexUnlock(t.mu));
     Expect(mutexDestroy(t.mu));
 
+    return {};
+}
+
+// Condition Variable Implementation
+
+expected<PltErrCode> condVarInit(CondVariable& out) noexcept {
+    InitializeConditionVariable(&out.handle);
+    return {};
+}
+
+expected<PltErrCode> condVarDestroy(CondVariable&) noexcept {
+    // Windows does not require explicit destruction of CONDITION_VARIABLE
+    // The function is kept for API consistency
+    return {};
+}
+
+expected<PltErrCode> condVarWaitTimed(CondVariable& cv, Mutex& m, u64 ms) noexcept {
+    BOOL res = SleepConditionVariableCS(&cv.handle, &m.handle, static_cast<DWORD>(ms));
+    if (!res) {
+        return core::unexpected(PltErrCode(GetLastError()));
+    }
+    return {};
+}
+
+expected<PltErrCode> condVarSignal(CondVariable& cv) noexcept {
+    WakeConditionVariable(&cv.handle);
+    return {};
+}
+
+expected<PltErrCode> condVarBroadcast(CondVariable& cv) noexcept {
+    WakeAllConditionVariable(&cv.handle);
     return {};
 }
 

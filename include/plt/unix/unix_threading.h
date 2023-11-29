@@ -10,6 +10,10 @@ struct Mutex {
     pthread_mutex_t handle;
 };
 
+struct CondVariable {
+    pthread_cond_t handle;
+};
+
 struct Thread {
     pthread_t handle;
     bool isRunning;

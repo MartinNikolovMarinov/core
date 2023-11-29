@@ -233,6 +233,38 @@ i32 arrayOfMutexesAndThreadsTest() {
     return 0;
 }
 
+template <typename TAlloc>
+i32 condVarSignalThreadToContinueWorkTest() {
+    core::Thread t;
+    core::CondVariable cv;
+
+    Expect(core::threadInit(t));
+    Expect(core::condVarInit(cv));
+    defer { Expect(core::condVarDestroy(cv)); };
+
+    core::threadStart<TAlloc>(t, &cv, [](void* arg) {
+        core::CondVariable* cvar = reinterpret_cast<core::CondVariable*>(arg);
+        core::Mutex mu;
+
+        Expect(core::mutexInit(mu));
+        defer { Expect(core::mutexDestroy(mu)); };
+
+        Expect(core::mutexLock(mu));
+        defer { Expect(core::mutexUnlock(mu)); };
+
+        // Wait for signal
+        Expect(core::condVarWaitTimed(*cvar, mu, 1000)); // 1 second
+    });
+
+    Expect(core::threadingSleep(50));
+
+    Expect(core::condVarSignal(cv));
+
+    Expect(core::threadJoin(t));
+
+    return 0;
+}
+
 i32 runPltThreadingTestsSuite() {
     constexpr addr_size BUFF_SIZE = core::KILOBYTE;
     char buf[BUFF_SIZE];
@@ -252,6 +284,7 @@ i32 runPltThreadingTestsSuite() {
     RunTest(start2ThreadsAndJoinThemTest<core::StdAllocator>);
     RunTest(mutexPreventsRaceConditionsTest<core::StdAllocator>);
     RunTest(arrayOfMutexesAndThreadsTest<core::StdAllocator>);
+    RunTest(condVarSignalThreadToContinueWorkTest<core::StdAllocator>);
 
     return 0;
 }

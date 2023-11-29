@@ -105,10 +105,19 @@ expected<PltErrCode> threadingGetCurrent(Thread& out) noexcept {
     return {};
 }
 
-expected<PltErrCode> threadingSleep(u64 ms) noexcept {
+namespace {
+
+timespec timespecFromMiliseconds(u64 ms) noexcept {
     timespec ts;
-    ts.tv_sec = time_t(ms / u64(1000));
-    ts.tv_nsec = time_t((ms % u64(1000)) * u64(1000000));
+    ts.tv_sec = time_t(ms / u64(1000)); // ms to seconds
+    ts.tv_nsec = time_t((ms % u64(1000)) * u64(1000000)); // takes the ms remainder and converts it to ns
+    return ts;
+}
+
+} // namespace
+
+expected<PltErrCode> threadingSleep(u64 ms) noexcept {
+    timespec ts = timespecFromMiliseconds(ms);
     auto ret = nanosleep(&ts, nullptr);
     if (ret != 0) {
         return core::unexpected(PltErrCode(errno));
@@ -237,6 +246,69 @@ expected<PltErrCode> threadDetach(Thread& t) noexcept {
     Expect(mutexUnlock(t.mu));
     Expect(mutexDestroy(t.mu));
 
+    return {};
+}
+
+// Condition Variable Implementation
+
+expected<PltErrCode> condVarInit(CondVariable& out) noexcept {
+    i32 res = pthread_cond_init(&out.handle, nullptr);
+    if (res != 0) {
+        return core::unexpected(PltErrCode(res));
+    }
+    return {};
+}
+
+expected<PltErrCode> condVarDestroy(CondVariable& cv) noexcept {
+    i32 res = pthread_cond_destroy(&cv.handle);
+    if (res != 0) {
+        return core::unexpected(PltErrCode(res));
+    }
+    return {};
+}
+
+expected<PltErrCode> condVarWaitTimed(CondVariable& cv, Mutex& m, u64 ms) noexcept {
+    // TODO: [TIME] I really need to make an abstraction for time. I would like to use a monotonic clock here, but
+    //       there is some inconsistency between MAC and Linux, so I will have to let cond variables use real time.
+
+    // Get the current time:
+    timespec absolute;
+    if (i32 res = clock_gettime(CLOCK_REALTIME, &absolute); res != 0) {
+        return core::unexpected(PltErrCode(res));
+    }
+
+    // Convert the relative miliseconds to a timespec:
+    timespec relative = timespecFromMiliseconds(ms);
+
+    // Add the relative time interval:
+    absolute.tv_sec += relative.tv_sec;
+    absolute.tv_nsec += relative.tv_nsec;
+
+    // tv_nsec can be at most 999999999 anything above that is overflow.
+    // This is handled by adding the overflow in tv_nsec to tv_sec.
+    absolute.tv_sec += absolute.tv_nsec / 1000000000;
+    absolute.tv_nsec %= 1000000000; // remove the overflow from tv_nsec
+
+    if (i32 res = pthread_cond_timedwait(&cv.handle, &m.handle, &absolute); res != 0) {
+        return core::unexpected(PltErrCode(res));
+    }
+
+    return {};
+}
+
+expected<PltErrCode> condVarSignal(CondVariable& cv) noexcept {
+    i32 res = pthread_cond_signal(&cv.handle);
+    if (res != 0) {
+        return core::unexpected(PltErrCode(res));
+    }
+    return {};
+}
+
+expected<PltErrCode> condVarBroadcast(CondVariable& cv) noexcept {
+    i32 res = pthread_cond_broadcast(&cv.handle);
+    if (res != 0) {
+        return core::unexpected(PltErrCode(res));
+    }
     return {};
 }
 

@@ -10,7 +10,7 @@ using namespace coretypes;
 
 /**
  * Initializes the global state needed for pseudo-random number generation.
- * By default the initial seed is based on system clock time.
+ * By default the initial seed is based on cpu ticks since last restart.
  *
  * The algorithm/s chosen will prioritize speed above security, therefore:
  * - These functions should not be used for applications that need a

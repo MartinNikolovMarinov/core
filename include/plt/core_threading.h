@@ -120,6 +120,6 @@ CORE_API_EXPORT expected<PltErrCode> mutexUnlock(Mutex& m) noexcept;
     #include <plt/win/win_threading.h>
 #elif defined(OS_LINUX) && OS_LINUX == 1
     #include <plt/unix/unix_threading.h>
-#elif defined(OS_MACOS) && OS_MACOS == 1
+#elif defined(OS_MAC) && OS_MAC == 1
     #include <plt/unix/unix_threading.h>
 #endif

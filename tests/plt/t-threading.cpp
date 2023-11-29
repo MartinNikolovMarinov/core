@@ -167,8 +167,8 @@ i32 mutexPreventsRaceConditionsTest() {
             for (i32 i = 0; i < 100000; ++i) {
                 Expect(core::mutexLock(mu));
 
-                i32& counter = *args->counter;
-                ++counter;
+                i32& c = *args->counter;
+                ++c;
 
                 Expect(core::mutexUnlock(mu));
             }
@@ -182,8 +182,8 @@ i32 mutexPreventsRaceConditionsTest() {
             for (i32 i = 0; i < 100000; ++i) {
                 Expect(core::mutexLock(mu));
 
-                i32& counter = *args->counter;
-                ++counter;
+                i32& c = *args->counter;
+                ++c;
 
                 Expect(core::mutexUnlock(mu));
             }

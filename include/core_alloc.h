@@ -4,6 +4,7 @@
 #include <core_traits.h>
 #include <core_types.h>
 #include <core_utils.h>
+#include <core_compiler.h>
 
 #include <new>
 

@@ -8,12 +8,12 @@ namespace core {
 
 struct Thread {
     pthread_t handle;
-    bool isJoinable;
+    bool isRunning;
     // FIXME: add a mutex to protect the handle.
 
     NO_COPY(Thread);
 
-    Thread() noexcept : handle(pthread_t()), isJoinable(false) {}
+    Thread() noexcept : handle(pthread_t()), isRunning(false) {}
 
     // only move
     Thread(Thread&& other) noexcept : handle(other.handle) {

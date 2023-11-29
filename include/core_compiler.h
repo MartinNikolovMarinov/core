@@ -6,7 +6,7 @@
     #define PRAGMA_WARNING_PUSH __pragma(warning(push))
     #define PRAGMA_WARNING_POP __pragma(warning(pop))
     #define DISABLE_MSVC_WARNING(w) __pragma(warning(disable : w))
-    #define PRAGMA_COMPILER_WARNING(x) __pragma(message(#x))
+    #define PRAGMA_COMPILER_MESSAGE(x) __pragma(message(#x))
 #endif
 
 #if defined(COMPILER_GCC) && COMPILER_GCC == 1
@@ -15,7 +15,7 @@
     #define _QUOTED_PRAGMA(x) _Pragma (#x)
     #define DISABLE_GCC_AND_CLANG_WARNING(w) _QUOTED_PRAGMA(GCC diagnostic ignored #w)
     #define DISABLE_GCC_WARNING(w) _QUOTED_PRAGMA(GCC diagnostic ignored #w)
-    #define PRAGMA_COMPILER_WARNING(x) _QUOTED_PRAGMA(message #x)
+    #define PRAGMA_COMPILER_MESSAGE(x) _QUOTED_PRAGMA(message #x)
 #endif
 
 #if defined(COMPILER_CLANG) && COMPILER_CLANG == 1
@@ -24,7 +24,7 @@
     #define _QUOTED_PRAGMA(x) _Pragma (#x)
     #define DISABLE_GCC_AND_CLANG_WARNING(w) _QUOTED_PRAGMA(clang diagnostic ignored #w)
     #define DISABLE_CLANG_WARNING(w) _QUOTED_PRAGMA(clang diagnostic ignored #w)
-    #define PRAGMA_COMPILER_WARNING(x) _QUOTED_PRAGMA(message #x)
+    #define PRAGMA_COMPILER_MESSAGE(x) _QUOTED_PRAGMA(message #x)
 #endif
 
 #ifndef PRAGMA_WARNING_PUSH
@@ -45,6 +45,6 @@
 #ifndef DISABLE_CLANG_WARNING
     #define DISABLE_CLANG_WARNING(...)
 #endif
-#ifndef PRAGMA_COMPILER_WARNING
-    #define PRAGMA_COMPILER_WARNING(...)
+#ifndef PRAGMA_COMPILER_MESSAGE
+    #define PRAGMA_COMPILER_MESSAGE(...)
 #endif

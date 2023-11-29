@@ -156,7 +156,7 @@ addr_size StdStatsAllocator::usedMem() noexcept {
 }
 
 bool StdStatsAllocator::isThredSafe() noexcept {
-    // NOTE: The only fishable way to make this thread safe is to use a mutex.
+    // NOTE: The only feasible way to make this thread safe is to use a mutex.
     return false;
 }
 

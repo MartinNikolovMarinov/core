@@ -21,12 +21,8 @@ expected<i32, PltErrCode> threadingGetNumCores() {
 expected<PltErrCode> threadingGetCurrent(Thread& out) {
     // FIXME: Mutex Lock Needed here.
     out.handle = pthread_self();
-    out.isJoinable = false;
+    out.isRunning = false;
     return {};
-}
-
-void threadingExit(i32 exitCode) {
-    pthread_exit(reinterpret_cast<void*>(exitCode));
 }
 
 expected<PltErrCode> threadingSleep(u64 ms) {
@@ -102,7 +98,7 @@ expected<PltErrCode> threadStart(Thread& out, void* arg, ThreadRoutine routine) 
         return core::unexpected(PltErrCode(res));
     }
 
-    out.isJoinable = true;
+    out.isRunning = true;
     return {};
 }
 
@@ -114,7 +110,7 @@ expected<bool, PltErrCode> threadEq(const Thread& t1, const Thread& t2) {
 expected<PltErrCode> threadJoin(Thread& t) {
     // FIXME: Mutex Lock Needed here.
 
-    if (!t.isJoinable) {
+    if (!t.isRunning) {
         return core::unexpected(ERR_THREAD_IS_NOT_JOINABLE);
     }
 
@@ -124,7 +120,7 @@ expected<PltErrCode> threadJoin(Thread& t) {
     }
 
     t.handle = pthread_t();
-    t.isJoinable = false;
+    t.isRunning = false;
     // FIXME: Free the mutex here.
     return {};
 }
@@ -138,7 +134,7 @@ expected<PltErrCode> threadDetach(Thread& t) {
     }
 
     t.handle = pthread_t();
-    t.isJoinable = false;
+    t.isRunning = false;
     // FIXME: Free the mutex here.
     return {};
 }

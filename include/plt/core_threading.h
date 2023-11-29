@@ -114,6 +114,14 @@ CORE_API_EXPORT expected<PltErrCode> mutexLock(Mutex& m) noexcept;
 CORE_API_EXPORT expected<PltErrCode> mutexTrylock(Mutex& m) noexcept;
 CORE_API_EXPORT expected<PltErrCode> mutexUnlock(Mutex& m) noexcept;
 
+struct CondVariable;
+
+CORE_API_EXPORT expected<PltErrCode> condVarInit(CondVariable& out) noexcept;
+CORE_API_EXPORT expected<PltErrCode> condVarDestroy(CondVariable& cv) noexcept;
+CORE_API_EXPORT expected<PltErrCode> condVarWaitTimed(CondVariable& cv, Mutex& m, u64 ms) noexcept;
+CORE_API_EXPORT expected<PltErrCode> condVarSignal(CondVariable& cv) noexcept;
+CORE_API_EXPORT expected<PltErrCode> condVarBroadcast(CondVariable& cv) noexcept;
+
 } // namespace core
 
 #if defined(OS_WIN) && OS_WIN == 1

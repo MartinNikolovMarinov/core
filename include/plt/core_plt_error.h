@@ -10,16 +10,21 @@ using PltErrCode = i64;
 
 namespace detail {
 
-constexpr PltErrCode ERR_START_OF_CUSTOM_ERRORS = PltErrCode(0xffffffff00000000);
+constexpr PltErrCode ERR_START_OF_CUSTOM_ERRORS = PltErrCode(0xffffffff00000000LL);
 
-constexpr PltErrCode ERR_OS_CUSTOM_ERROR_START = detail::ERR_START_OF_CUSTOM_ERRORS;
+constexpr PltErrCode ERR_MISC_CUSTOM_ERROR_START = detail::ERR_START_OF_CUSTOM_ERRORS + 0;
+constexpr PltErrCode ERR_OS_CUSTOM_ERROR_START = detail::ERR_START_OF_CUSTOM_ERRORS + 100;
 constexpr PltErrCode ERR_THREAD_CUSTOM_ERROR_START = detail::ERR_START_OF_CUSTOM_ERRORS + 200;
 
 } // namespace detail
 
+constexpr PltErrCode ERR_ALLOCATOR_DEFAULT_NO_MEMORY = detail::ERR_MISC_CUSTOM_ERROR_START + 0;
+
 constexpr PltErrCode ERR_THREADING_INVALID_THREAD_NAME = detail::ERR_THREAD_CUSTOM_ERROR_START + 0;
 constexpr PltErrCode ERR_THREADING_STARTING_AN_ALREADY_RUNNING_THREAD = detail::ERR_THREAD_CUSTOM_ERROR_START + 1;
-constexpr PltErrCode ERR_THREAD_IS_NOT_JOINABLE = detail::ERR_THREAD_CUSTOM_ERROR_START + 2;
+constexpr PltErrCode ERR_THREAD_IS_NOT_JOINABLE_OR_DETACHABLE = detail::ERR_THREAD_CUSTOM_ERROR_START + 2;
+constexpr PltErrCode ERR_THREAD_IS_NOT_INITIALIZED = detail::ERR_THREAD_CUSTOM_ERROR_START + 3;
+constexpr PltErrCode ERR_MUTEX_TRYLOCK_FAILED = detail::ERR_THREAD_CUSTOM_ERROR_START + 4;
 
 // Custom library errors start from this value.
 
@@ -29,9 +34,13 @@ constexpr char const* customPltErrCodeToCptr(PltErrCode err) {
     }
 
     switch (err) {
+        case ERR_ALLOCATOR_DEFAULT_NO_MEMORY:                  return "Default allocator ran out of memory";
+
         case ERR_THREADING_INVALID_THREAD_NAME:                return "Invalid thread name";
         case ERR_THREADING_STARTING_AN_ALREADY_RUNNING_THREAD: return "Starting an already running thread";
-        case ERR_THREAD_IS_NOT_JOINABLE:                       return "Thread is not joinable";
+        case ERR_THREAD_IS_NOT_JOINABLE_OR_DETACHABLE:         return "Thread is not joinable or detachable";
+        case ERR_THREAD_IS_NOT_INITIALIZED:                    return "Thread is not initialized";
+        case ERR_MUTEX_TRYLOCK_FAILED:                         return "Mutex trylock failed";
     }
 
     return "Unknown error";

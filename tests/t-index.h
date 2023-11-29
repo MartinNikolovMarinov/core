@@ -5,7 +5,7 @@
 
 // #################### CORE LIBRARY CONFIGURATIONS ####################################################################
 
-#define CORE_DEFAULT_ALLOCATOR() StdAllocator
+#define CORE_DEFAULT_ALLOCATOR() core::StdAllocator
 
 #include <core.h>
 

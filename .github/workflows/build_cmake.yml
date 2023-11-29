@@ -214,7 +214,7 @@ jobs:
 
         # Run build
         execute_process(
-          COMMAND cmake --build build ${{ matrix.config.cmake_build_config }}
+          COMMAND cmake --build build ${{ matrix.config.cmake_build_config }} --parallel
           RESULT_VARIABLE result
           OUTPUT_VARIABLE output
           ERROR_VARIABLE output

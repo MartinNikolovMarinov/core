@@ -1,11 +1,47 @@
 #include <plt/core_threading.h>
 #include <plt/win/win_threading.h>
 
+#include <core_cptr.h>
+#include <core_alloc.h>
+
 #include <windows.h>
 
 namespace core {
 
-expected<i32, PltErrCode> threadingGetNumCores() {
+// Mutex Implementation
+
+expected<PltErrCode> mutexInit(Mutex& out, MutexType) noexcept {
+    // There is only one type of mutex in Windows.
+    InitializeCriticalSection(&out.cs);
+    return {};
+}
+
+expected<PltErrCode> mutexDestroy(Mutex& m) noexcept {
+    DeleteCriticalSection(&m.cs);
+    return {};
+}
+
+expected<PltErrCode> mutexLock(Mutex& m) noexcept {
+    EnterCriticalSection(&m.cs);
+    return {};
+}
+
+expected<PltErrCode> mutexTrylock(Mutex& m) noexcept {
+    BOOL ret = TryEnterCriticalSection(&m.cs);
+    if (!ret) {
+        return core::unexpected(ERR_MUTEX_TRYLOCK_FAILED);
+    }
+    return {};
+}
+
+expected<PltErrCode> mutexUnlock(Mutex& m) noexcept {
+    LeaveCriticalSection(&m.cs);
+    return {};
+}
+
+// Thread Implementation
+
+expected<i32, PltErrCode> threadingGetNumCores() noexcept {
     SYSTEM_INFO sysInfo;
     GetSystemInfo(&sysInfo);
 
@@ -18,9 +54,18 @@ expected<i32, PltErrCode> threadingGetNumCores() {
     return n;
 }
 
-expected<PltErrCode> threadingGetCurrent(Thread& out) {
+expected<PltErrCode> threadingGetCurrent(Thread& out) noexcept {
     // For Windows, the GetCurrentThread() returns a pseudo handle to the current thread and not an actual handle.
     // To convert this pseudo handle into a real handle, DuplicateHandle() is used.
+
+    if (out.isRunning) {
+        return core::unexpected(ERR_THREADING_STARTING_AN_ALREADY_RUNNING_THREAD);
+    }
+
+    if (auto res = core::threadInit(out); res.hasErr()) {
+        return core::unexpected(res.err());
+    }
+
     HANDLE pseudoHandle = GetCurrentThread();
     bool ret = DuplicateHandle(GetCurrentProcess(), pseudoHandle, GetCurrentProcess(), &out.handle, 0, FALSE, DUPLICATE_SAME_ACCESS);
     if (!ret) {
@@ -30,17 +75,13 @@ expected<PltErrCode> threadingGetCurrent(Thread& out) {
     return {};
 }
 
-void threadingExit(i32 exitCode) {
-    ExitThread(DWORD(exitCode));
-}
-
-expected<PltErrCode> threadingSleep(u64 ms) {
-    Panic(ms <= u64(DWORD_MAX) && "Sleep time is too large");
+expected<PltErrCode> threadingSleep(u64 ms) noexcept {
+    Panic(ms <= u64(core::MAX_I32) && "Sleep time is too large");
     Sleep(DWORD(ms));
     return {};
 }
 
-expected<PltErrCode> threadingSetName(const char* name) {
+expected<PltErrCode> threadingSetName(const char* name) noexcept {
     if (name == nullptr) {
         return core::unexpected(ERR_THREADING_INVALID_THREAD_NAME);
     }
@@ -64,7 +105,7 @@ expected<PltErrCode> threadingSetName(const char* name) {
     return {};
 }
 
-expected<PltErrCode> threadingGetName(char out[MAX_THREAD_NAME_LENGTH]) {
+expected<PltErrCode> threadingGetName(char out[MAX_THREAD_NAME_LENGTH]) noexcept {
     PWSTR wname = nullptr;
     HRESULT hr = GetThreadDescription(GetCurrentThread(), &wname);
     if (FAILED(hr)) {
@@ -83,13 +124,25 @@ expected<PltErrCode> threadingGetName(char out[MAX_THREAD_NAME_LENGTH]) {
     return {};
 }
 
-core::expected<PltErrCode> threadInit(Thread&) {
-    // FIXME: Initialize the mutex here.
+expected<PltErrCode> threadInit(Thread& t) noexcept {
+    if (t.canLock.load(std::memory_order_acquire)) {
+        return {};
+    }
+    auto ret = mutexInit(t.mu);
+    if (ret.hasErr()) {
+        return core::unexpected(ret.err());
+    }
+    t.canLock.store(true);
     return {};
 }
 
-bool threadIsRunning(const Thread& t) {
-    // FIXME: Mutex Lock Needed here.
+bool threadIsRunning(const Thread& t) noexcept {
+    if (!t.canLock.load(std::memory_order_acquire)) {
+        return false;
+    }
+
+    Expect(mutexLock(t.mu));
+    defer { Expect(mutexUnlock(t.mu)); };
 
     if (t.handle == nullptr) {
         return false;
@@ -98,60 +151,70 @@ bool threadIsRunning(const Thread& t) {
     if (GetExitCodeThread(t.handle, &exitCode)) {
         return (exitCode == STILL_ACTIVE);
     }
+
     return false; // If GetExitCodeThread fails, assume the thread is not running.
 }
 
-expected<PltErrCode> threadStart(Thread& out, void* arg, ThreadRoutine routine) {
-    // FIXME: Mutex Lock Needed here.
-
-    if (threadIsRunning(out)) {
-        return core::unexpected(ERR_THREADING_STARTING_AN_ALREADY_RUNNING_THREAD);
-    }
-
-    out.handle = CreateThread(nullptr, 0, routine, arg, 0, nullptr);
-    if (out.handle == nullptr) {
-        return core::unexpected(PltErrCode(GetLastError()));
-    }
-
-    out.isJoinable = true;
-    return {};
-}
-
-expected<bool, PltErrCode> threadEq(const Thread& t1, const Thread& t2) {
-    // FIXME: Mutex Lock Needed here.
+expected<bool, PltErrCode> threadEq(const Thread& t1, const Thread& t2) noexcept {
     bool ret = (t1.handle == t2.handle);
     return ret;
 }
 
-expected<PltErrCode> threadJoin(Thread& t) {
-    // FIXME: Mutex Lock Needed here.
+expected<PltErrCode> threadJoin(Thread& t) noexcept {
+    if (!t.canLock.load(std::memory_order_acquire)) {
+        return core::unexpected(ERR_THREAD_IS_NOT_INITIALIZED);
+    }
 
-    if (!t.isJoinable) {
-        return core::unexpected(ERR_THREAD_IS_NOT_JOINABLE);
+    Expect(mutexLock(t.mu));
+
+    if (!t.isRunning) {
+        Expect(mutexUnlock(t.mu));
+        return core::unexpected(ERR_THREAD_IS_NOT_JOINABLE_OR_DETACHABLE);
     }
 
     DWORD res = WaitForSingleObject(t.handle, INFINITE);
     if (res == WAIT_FAILED) {
+        Expect(mutexUnlock(t.mu));
         return core::unexpected(PltErrCode(GetLastError()));
     }
 
     CloseHandle(t.handle);
     t.handle = nullptr;
-    t.isJoinable = false;
-    // FIXME: Free the mutex here.
+    t.isRunning = false;
+
+    t.canLock.store(false);
+
+    Expect(mutexUnlock(t.mu));
+    Expect(mutexDestroy(t.mu));
+
     return {};
 }
 
-expected<PltErrCode> threadDetach(Thread& t) {
-    // FIXME: Mutex Lock Needed here.
+expected<PltErrCode> threadDetach(Thread& t) noexcept {
+    if (!t.canLock.load(std::memory_order_acquire)) {
+        return core::unexpected(ERR_THREAD_IS_NOT_INITIALIZED);
+    }
+
+    Expect(mutexLock(t.mu));
+
+    if (!t.isRunning) {
+        Expect(mutexUnlock(t.mu));
+        return core::unexpected(ERR_THREAD_IS_NOT_JOINABLE_OR_DETACHABLE);
+    }
 
     if (!CloseHandle(t.handle)) {
+        Expect(mutexUnlock(t.mu));
         return core::unexpected(PltErrCode(GetLastError()));
     }
 
     t.handle = nullptr;
-    t.isJoinable = false;
-    // FIXME: Free the mutex here.
+    t.isRunning = false;
+
+    t.canLock.store(false);
+
+    Expect(mutexUnlock(t.mu));
+    Expect(mutexDestroy(t.mu));
+
     return {};
 }
 

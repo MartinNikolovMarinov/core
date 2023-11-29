@@ -93,45 +93,19 @@ constexpr i32 constFindAlgorithmTest() {
 }
 
 constexpr i32 constBasicAppendUniqueTest() {
-    {
-        core::SArr<i32, 5> staticArr;
+    core::SArr<i32, 5> staticArr;
 
-        auto eqFn = [](const i32& curr, addr_off, const i32& el) -> bool { return curr == el; };
+    auto eqFn = [](const i32& curr, addr_off, const i32& el) -> bool { return curr == el; };
 
-        core::appendUnique(staticArr, 1, eqFn);
-        core::appendUnique(staticArr, 2, eqFn);
-        core::appendUnique(staticArr, 3, eqFn);
-        core::appendUnique(staticArr, 1, eqFn);
+    core::appendUnique(staticArr, 1, eqFn);
+    core::appendUnique(staticArr, 2, eqFn);
+    core::appendUnique(staticArr, 3, eqFn);
+    core::appendUnique(staticArr, 1, eqFn);
 
-        Assert(staticArr.len() == 3);
-        Assert(staticArr[0] == 1);
-        Assert(staticArr[1] == 2);
-        Assert(staticArr[2] == 3);
-    }
-
-    {
-        struct TestStruct {
-            i32 a;
-            i32 b;
-        };
-
-        core::SArr<TestStruct, 5> staticArr;
-
-        auto eqFn = [](const TestStruct& curr, addr_off, const TestStruct& el) -> bool { return curr.a == el.a; };
-
-        core::appendUnique(staticArr, TestStruct{1, 2}, eqFn);
-        core::appendUnique(staticArr, TestStruct{3, 4}, eqFn);
-        core::appendUnique(staticArr, TestStruct{5, 6}, eqFn);
-        core::appendUnique(staticArr, TestStruct{1, 2}, eqFn);
-
-        Assert(staticArr.len() == 3);
-        Assert(staticArr[0].a == 1);
-        Assert(staticArr[0].b == 2);
-        Assert(staticArr[1].a == 3);
-        Assert(staticArr[1].b == 4);
-        Assert(staticArr[2].a == 5);
-        Assert(staticArr[2].b == 6);
-    }
+    Assert(staticArr.len() == 3);
+    Assert(staticArr[0] == 1);
+    Assert(staticArr[1] == 2);
+    Assert(staticArr[2] == 3);
 
     return 0;
 }

@@ -124,6 +124,10 @@ expected<PltErrCode> threadingGetName(char out[MAX_THREAD_NAME_LENGTH]) noexcept
     return {};
 }
 
+void threadingExit(i32 code) noexcept {
+    ExitThread(DWORD(code));
+}
+
 expected<PltErrCode> threadInit(Thread& t) noexcept {
     if (t.canLock.load(std::memory_order_acquire)) {
         return {};

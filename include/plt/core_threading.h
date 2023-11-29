@@ -32,6 +32,7 @@ CORE_API_EXPORT expected<PltErrCode>      threadingGetCurrent(Thread& out) noexc
 CORE_API_EXPORT expected<PltErrCode>      threadingSleep(u64 ms) noexcept;
 CORE_API_EXPORT expected<PltErrCode>      threadingSetName(const char* name) noexcept;
 CORE_API_EXPORT expected<PltErrCode>      threadingGetName(char out[MAX_THREAD_NAME_LENGTH]) noexcept;
+CORE_API_EXPORT void                      threadingExit(i32 exitCode) noexcept;
 
 /**
  * @brief Starts a thread.

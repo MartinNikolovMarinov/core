@@ -8,6 +8,7 @@
 #define CORE_DEFAULT_ALLOCATOR() core::StdAllocator
 
 #include <core.h>
+#include <core.h> // If pragma once is omitted somewhere in the core library, this will catch it.
 
 using namespace coretypes;
 
@@ -174,5 +175,6 @@ i32 runPltThreadingTestsSuite();
 i32 runPltTimeTestsSuite();
 i32 runPltErrorTestsSuite();
 i32 runPltPagesTestsSuite();
+i32 runPltFileSystemTestsSuite();
 
 i32 runAllTests();

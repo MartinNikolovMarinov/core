@@ -1,5 +1,3 @@
-#pragma once
-
 #include "core_algorithms.h"
 #include "core_alloc.h"
 #include "core_ansi_escape_codes.h"
@@ -37,6 +35,7 @@
 #include "math/core_transforms.h"
 #include "math/core_vec.h"
 
+#include "plt/core_fs.h"
 #include "plt/core_pages.h"
 #include "plt/core_plt_error.h"
 #include "plt/core_stacktrace.h"

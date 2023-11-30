@@ -93,6 +93,7 @@ if(OS STREQUAL "linux")
         src/plt/unix/unix_time.cpp
         src/plt/unix/unix_plt_error.cpp
         src/plt/unix/unix_pages.cpp
+        src/plt/unix/unix_fs.cpp
     )
 elseif(OS STREQUAL "darwin")
     set(src_files ${src_files}
@@ -101,6 +102,7 @@ elseif(OS STREQUAL "darwin")
         src/plt/unix/unix_time.cpp
         src/plt/unix/unix_plt_error.cpp
         src/plt/unix/unix_pages.cpp
+        src/plt/unix/unix_fs.cpp
     )
 elseif(OS STREQUAL "windows")
     set(src_files ${src_files}
@@ -109,6 +111,7 @@ elseif(OS STREQUAL "windows")
         src/plt/win/win_time.cpp
         src/plt/win/win_plt_error.cpp
         src/plt/win/win_pages.cpp
+        src/plt/win/win_fs.cpp
     )
 endif()
 
@@ -257,6 +260,7 @@ if(CORE_BUILD_TESTS)
         tests/plt/t-stacktrace.cpp
         tests/plt/t-threading.cpp
         tests/plt/t-time.cpp
+        tests/plt/t-fs.cpp
     )
 
     # Link core
@@ -264,7 +268,7 @@ if(CORE_BUILD_TESTS)
 
     # Definitions
     target_compile_definitions(${TEST_EXECUTABLE} PRIVATE
-        -DPATH_TO_TEST_DATA="${CMAKE_CURRENT_SOURCE_DIR}/test/data"
+        -DPATH_TO_TEST_DATA="${CMAKE_CURRENT_BINARY_DIR}"
     )
 
     # Compile options

@@ -13,50 +13,50 @@ namespace core {
 
 using namespace coretypes;
 
-// struct CORE_API_EXPORT FileDesc {
-//     void* handle;
+struct CORE_API_EXPORT FileDesc {
+    void* handle;
 
-//     NO_COPY(FileDesc);
+    NO_COPY(FileDesc);
 
-//     FileDesc();
-//     FileDesc(void* handle);
+    FileDesc();
+    FileDesc(void* handle);
 
-//     FileDesc(FileDesc&& other);
-//     FileDesc& operator=(FileDesc&& other);
-// };
+    FileDesc(FileDesc&& other);
+    FileDesc& operator=(FileDesc&& other);
+};
 
-// enum struct CORE_API_EXPORT FileType {
-//     None,
+enum struct CORE_API_EXPORT FileType {
+    None,
 
-//     Regular,
-//     Directory,
-//     Symlink,
-//     Other,
+    Regular,
+    Directory,
+    Symlink,
+    Other,
 
-//     SENTINEL
-// };
+    SENTINEL
+};
 
-// constexpr const char* fileTypeToCptr(FileType type) {
-//     switch (type) {
-//         case FileType::None:      return "None";
-//         case FileType::Regular:   return "Regular";
-//         case FileType::Directory: return "Directory";
-//         case FileType::Symlink:   return "Symlink";
-//         case FileType::Other:     return "Other";
-//         case FileType::SENTINEL:  return "SENTINEL";
-//     }
+constexpr const char* fileTypeToCptr(FileType type) {
+    switch (type) {
+        case FileType::None:      return "None";
+        case FileType::Regular:   return "Regular";
+        case FileType::Directory: return "Directory";
+        case FileType::Symlink:   return "Symlink";
+        case FileType::Other:     return "Other";
+        case FileType::SENTINEL:  return "SENTINEL";
+    }
 
-//     Assert(false, "Invalid FileType");
-//     return "None";
-// }
+    Assert(false, "Invalid FileType");
+    return "None";
+}
 
 /**
  * The file system api should implement functions to:
  *
- * * Open a file
- * * Close a file
- * * Create a file
- * * Remove a file
+ * * Open a file (done)
+ * * Close a file (done)
+ * * Create a file (done)
+ * * Remove a file (done)
  *
  * * Read from a file
  * * Write to a file
@@ -70,13 +70,11 @@ using namespace coretypes;
  * * Get last modified time of a file
  * * Get creation time of a file
  *
- * * Open a directory
- * * Close a directory
- * * Create a directory
- * * Remove a directory
- *
  * * List the contents of a directory
- * * Rename a directory
+ * * Close a directory
+ * * Create a directory (done)
+ * * Remove a directory (done)
+ * * Rename a directory (done)
  *
  * * Open the current working directory
  * * Change current working directory
@@ -97,6 +95,7 @@ using namespace coretypes;
  *      CORE_SIGTERM,  // Termination request
  *      CORE_SIGKILL,  // Kill the process
  *      CORE_SIGSTOP,  // Stop the process
+ *   Do these work per thread ? I am not sure exactly. Need a bit more research before starting the implementation.
  *
  **/
 

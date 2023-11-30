@@ -90,11 +90,13 @@ if(OS STREQUAL "linux")
     set(src_files ${src_files}
         src/plt/unix/unix_stacktrace.cpp
         src/plt/unix/unix_threading.cpp
+        src/plt/unix/unix_time.cpp
     )
 elseif(OS STREQUAL "darwin")
     set(src_files ${src_files}
         src/plt/unix/unix_stacktrace.cpp
         src/plt/unix/unix_threading.cpp
+        src/plt/unix/unix_time.cpp
     )
 elseif(OS STREQUAL "windows")
     set(src_files ${src_files}
@@ -245,6 +247,7 @@ if(CORE_BUILD_TESTS)
 
         tests/plt/t-stacktrace.cpp
         tests/plt/t-threading.cpp
+        tests/plt/t-time.cpp
     )
 
     # Link core

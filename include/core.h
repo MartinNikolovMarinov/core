@@ -38,5 +38,7 @@
 #include "math/core_vec.h"
 
 #include "plt/core_plt_error.h"
+#include "plt/core_plt_misc.h"
 #include "plt/core_stacktrace.h"
 #include "plt/core_threading.h"
+#include "plt/core_time.h"

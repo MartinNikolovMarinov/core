@@ -172,5 +172,6 @@ i32 runStdStatsAllocatorTestsSuite();
 i32 runPltStacktraceTestsSuite();
 i32 runPltThreadingTestsSuite();
 i32 runPltTimeTestsSuite();
+i32 runPltErrorTestsSuite();
 
 i32 runAllTests();

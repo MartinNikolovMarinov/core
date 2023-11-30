@@ -1,5 +1,6 @@
 #pragma once
 
+#include <core_API.h>
 #include <core_types.h>
 
 namespace core {
@@ -10,6 +11,7 @@ using PltErrCode = i64;
 
 namespace detail {
 
+// Custom library errors start from this value.
 constexpr PltErrCode ERR_START_OF_CUSTOM_ERRORS = PltErrCode(0xffffffff00000000LL);
 
 constexpr PltErrCode ERR_MISC_CUSTOM_ERROR_START = detail::ERR_START_OF_CUSTOM_ERRORS + 0;
@@ -26,9 +28,7 @@ constexpr PltErrCode ERR_THREAD_IS_NOT_JOINABLE_OR_DETACHABLE = detail::ERR_THRE
 constexpr PltErrCode ERR_THREAD_IS_NOT_INITIALIZED = detail::ERR_THREAD_CUSTOM_ERROR_START + 3;
 constexpr PltErrCode ERR_MUTEX_TRYLOCK_FAILED = detail::ERR_THREAD_CUSTOM_ERROR_START + 4;
 
-// Custom library errors start from this value.
-
-constexpr char const* customPltErrCodeToCptr(PltErrCode err) {
+constexpr char const* customPltErrorDescribe(PltErrCode err) {
     if (err < detail::ERR_START_OF_CUSTOM_ERRORS) {
         return "Not a custom user error";
     }
@@ -45,5 +45,9 @@ constexpr char const* customPltErrCodeToCptr(PltErrCode err) {
 
     return "Unknown error";
 }
+
+// Error descriptions provided by the OS.
+constexpr addr_size MAX_SYSTEM_ERR_MSG_SIZE = 512;
+CORE_API_EXPORT bool pltErrorDescribe(PltErrCode err, char out[MAX_SYSTEM_ERR_MSG_SIZE]);
 
 } // namespace core

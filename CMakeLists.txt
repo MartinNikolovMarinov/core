@@ -92,6 +92,7 @@ if(OS STREQUAL "linux")
         src/plt/unix/unix_threading.cpp
         src/plt/unix/unix_time.cpp
         src/plt/unix/unix_plt_error.cpp
+        src/plt/unix/unix_pages.cpp
     )
 elseif(OS STREQUAL "darwin")
     set(src_files ${src_files}
@@ -99,6 +100,7 @@ elseif(OS STREQUAL "darwin")
         src/plt/unix/unix_threading.cpp
         src/plt/unix/unix_time.cpp
         src/plt/unix/unix_plt_error.cpp
+        src/plt/unix/unix_pages.cpp
     )
 elseif(OS STREQUAL "windows")
     set(src_files ${src_files}
@@ -106,6 +108,7 @@ elseif(OS STREQUAL "windows")
         src/plt/win/win_threading.cpp
         src/plt/win/win_time.cpp
         src/plt/win/win_plt_error.cpp
+        src/plt/win/win_pages.cpp
     )
 endif()
 
@@ -249,6 +252,7 @@ if(CORE_BUILD_TESTS)
         tests/math/t-transforms.cpp
         tests/math/t-vec.cpp
 
+        tests/plt/t-pages.cpp
         tests/plt/t-plt_err.cpp
         tests/plt/t-stacktrace.cpp
         tests/plt/t-threading.cpp

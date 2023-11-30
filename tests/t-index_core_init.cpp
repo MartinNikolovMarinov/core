@@ -82,6 +82,7 @@ i32 runAllTests() {
     #endif
     RunTestSuite(runPltThreadingTestsSuite);
     RunTestSuite(runPltTimeTestsSuite);
+    RunTestSuite(runPltErrorTestsSuite);
 
     std::cout << '\n';
     std::cout << ANSI_BOLD(ANSI_GREEN("Tests OK")) << std::endl;

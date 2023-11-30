@@ -1,3 +1,5 @@
+```c++
+
 #pragma once
 
 #include <core_API.h>
@@ -11,49 +13,42 @@ namespace core {
 
 using namespace coretypes;
 
-CORE_API_EXPORT const char* osErrorDescribe(PltErrCode err);
+// struct CORE_API_EXPORT FileDesc {
+//     void* handle;
 
-CORE_API_EXPORT expected<void*, PltErrCode> osAllocPages(size_t count);
-CORE_API_EXPORT expected<PltErrCode> osFreePages(void* addr, size_t count);
+//     NO_COPY(FileDesc);
 
-CORE_API_EXPORT expected<u64, PltErrCode> osUnixTimestampInMs();
+//     FileDesc();
+//     FileDesc(void* handle);
 
-struct CORE_API_EXPORT FileDesc {
-    void* handle;
+//     FileDesc(FileDesc&& other);
+//     FileDesc& operator=(FileDesc&& other);
+// };
 
-    NO_COPY(FileDesc);
+// enum struct CORE_API_EXPORT FileType {
+//     None,
 
-    FileDesc();
-    FileDesc(void* handle);
+//     Regular,
+//     Directory,
+//     Symlink,
+//     Other,
 
-    FileDesc(FileDesc&& other);
-    FileDesc& operator=(FileDesc&& other);
-};
+//     SENTINEL
+// };
 
-enum struct CORE_API_EXPORT FileType {
-    None,
+// constexpr const char* fileTypeToCptr(FileType type) {
+//     switch (type) {
+//         case FileType::None:      return "None";
+//         case FileType::Regular:   return "Regular";
+//         case FileType::Directory: return "Directory";
+//         case FileType::Symlink:   return "Symlink";
+//         case FileType::Other:     return "Other";
+//         case FileType::SENTINEL:  return "SENTINEL";
+//     }
 
-    Regular,
-    Directory,
-    Symlink,
-    Other,
-
-    SENTINEL
-};
-
-constexpr const char* fileTypeToCptr(FileType type) {
-    switch (type) {
-        case FileType::None:      return "None";
-        case FileType::Regular:   return "Regular";
-        case FileType::Directory: return "Directory";
-        case FileType::Symlink:   return "Symlink";
-        case FileType::Other:     return "Other";
-        case FileType::SENTINEL:  return "SENTINEL";
-    }
-
-    Assert(false, "Invalid FileType");
-    return "None";
-}
+//     Assert(false, "Invalid FileType");
+//     return "None";
+// }
 
 /**
  * The file system api should implement functions to:
@@ -107,3 +102,4 @@ constexpr const char* fileTypeToCptr(FileType type) {
 
 } // namespace core
 
+```

@@ -3,35 +3,45 @@
 constexpr const char* testDirectory = PATH_TO_TEST_DATA;
 
 constexpr const char* testNamesTable[] = {
-    { "File Name With Spaces.txt" },
-    { "VeryVeryLongFileNameThatExceedsNormalLengthsAndKeepsGoingAndGoingAndGoingSeeIfThisWorks.txt" },
+    "File Name With Spaces.txt",
+    "VeryVeryLongFileNameThatExceedsNormalLengthsAndKeepsGoingAndGoingAndGoingSeeIfThisWorks.txt",
 
-    { "测试文件.txt" },                        // (Chinese characters)
-    { "テストファイル.txt" },                   // (Japanese characters)
-    { "테스트파일.txt" },                       // (Korean characters)
-    { "ПримеренФайл.txt" },                  // (Cyrillic characters - Bulgarian)
-    { "ΔοκιμαστικόΑρχείο.txt" },             // (Greek characters)
-    { "Prüfungdatei.txt" },                  // (German Umlaut)
-    { "FichierÉpreuve.txt" },                // (French accented characters)
-    { "ArquivoDeTeste.txt" },                // (Portuguese characters)
-    { "ArchivoDePrueba.txt" },               // (Spanish characters)
-    { "टेस्टफाइल.txt" },                        // (Hindi characters)
-    { "קובץבדיקה.txt" },                       // (Hebrew characters)
-    { "ملفالاختبار.txt" },                    // (Arabic characters)
-    { "🚀Rocket🌟Star.txt" },                // (Emojis)
-    { "File&Name@Special#Char$.txt" },       // (Special characters)
-    { "🎵MusicNote♫.txt" },                  // (Musical symbols)
-    { "🧪💡ExperimentLightBulb.txt" },       // (Multiple emojis)
-    { "🐱‍👓HackerCat.txt" },                 // (Compound emoji)
-    { "ƒîlèNäméŵîthŠpecîålČhåråčterš.txt" }, // (Mixed accented characters)
+    "测试文件.txt",                        // (Chinese characters)
+    "テストファイル.txt",                   // (Japanese characters)
+    "테스트파일.txt",                       // (Korean characters)
+    "ПримеренФайл.txt",                  // (Cyrillic characters - Bulgarian)
+    "ΔοκιμαστικόΑρχείο.txt",             // (Greek characters)
+    "Prüfungdatei.txt",                  // (German Umlaut)
+    "FichierÉpreuve.txt",                // (French accented characters)
+    "ArquivoDeTeste.txt",                // (Portuguese characters)
+    "ArchivoDePrueba.txt",               // (Spanish characters)
+    "टेस्टफाइल.txt",                        // (Hindi characters)
+    "קובץבדיקה.txt",                       // (Hebrew characters)
+    "ملفالاختبار.txt",                    // (Arabic characters)
+    "🚀Rocket🌟Star.txt",                // (Emojis)
+    "File&Name@Special#Char$.txt",       // (Special characters)
+    "🎵MusicNote♫.txt",                  // (Musical symbols)
+    "🧪💡ExperimentLightBulb.txt",       // (Multiple emojis)
+    "🐱‍👓HackerCat.txt",                 // (Compound emoji)
+    "ƒîlèNäméŵîthŠpecîålČhåråčterš.txt", // (Mixed accented characters)
 };
 
+void closeAndDeleteFile(core::FileDesc&& fd, const char* path) {
+    {
+        auto res = core::fileClose(fd);
+        Assert(!res.hasErr(), "File closing failed");
+    }
+    {
+        auto res = core::fileDelete(path);
+        Assert(!res.hasErr(), "File deletion failed");
+    }
+}
 
 struct TestPathBuilder {
     char buff[256];
     addr_size dirPathLen;
 
-    TestPathBuilder() : buff({}), dirPathLen(0) {}
+    TestPathBuilder() : buff{}, dirPathLen(0) {}
 
     void setDirPath(const char* dirPath) {
         dirPathLen = core::cptrLen(dirPath);
@@ -69,33 +79,6 @@ struct TestPathBuilder {
     }
 };
 
-i32 createAndDeleteFileTest() {
-    core::FileDesc f;
-    TestPathBuilder pb;
-
-    core::memset(pb.buff, 1, 256);
-
-    pb.setDirPath(testDirectory);
-    pb.setFilePart("/test.txt");
-
-    {
-        auto res = core::fileOpen(pb.path(), core::OpenMode::Create);
-        Assert(!res.hasErr(), "File creation failed");
-        f = core::move(res.value());
-    }
-
-    {
-        auto res = core::fileClose(f);
-        Assert(!res.hasErr(), "File closing failed");
-    }
-
-    {
-        auto res = core::fileDelete(pb.path());
-        Assert(!res.hasErr(), "File deletion failed");
-    }
-
-    return 0;
-}
 
 void tryOpenFileWithMostCommonModeCombinations(const char* path) {
     //  With Default Mode:
@@ -243,6 +226,28 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
     }
 };
 
+// ############################### Tests start from here ###############################################################
+
+i32 createAndDeleteFileTest() {
+    core::FileDesc f;
+    TestPathBuilder pb;
+
+    core::memset(pb.buff, 1, 256);
+
+    pb.setDirPath(testDirectory);
+    pb.setFilePart("/test.txt");
+
+    {
+        auto res = core::fileOpen(pb.path(), core::OpenMode::Create);
+        Assert(!res.hasErr(), "File creation failed");
+        f = core::move(res.value());
+    }
+
+    closeAndDeleteFile(core::move(f), pb.path());
+
+    return 0;
+}
+
 i32 createFilesAndAssertTheyExistTest() {
     TestPathBuilder pb;
     pb.setDirPath(testDirectory);
@@ -302,7 +307,46 @@ i32 commonOpenErrorsTest() {
     return 0;
 }
 
-i32 dirCreateectoriesRenameThemAndDeleteThemTest() {
+i32 edgeErrorCasesTest() {
+    TestPathBuilder pb;
+    pb.setDirPath(testDirectory);
+    pb.setFileName("test.txt");
+
+    // Files opened for reading should fail to write
+    {
+        core::FileDesc f;
+        {
+            auto res = core::fileOpen(pb.path(), core::OpenMode::Read | core::OpenMode::Create);
+            Assert(!res.hasErr());
+            f = core::move(res.value());
+        }
+        {
+            auto res = core::fileWrite(f, "should fail", core::cptrLen("should fail"));
+            Assert(res.hasErr());
+        }
+        closeAndDeleteFile(core::move(f), pb.path());
+    }
+
+    // Files oppned for writing should fail to read
+    {
+        core::FileDesc f;
+        {
+            auto res = core::fileOpen(pb.path(), core::OpenMode::Write | core::OpenMode::Create);
+            Assert(!res.hasErr());
+            f = core::move(res.value());
+        }
+        {
+            char buff[256] = {};
+            auto res = core::fileRead(f, buff, 256);
+            Assert(res.hasErr());
+        }
+        closeAndDeleteFile(core::move(f), pb.path());
+    }
+
+    return 0;
+}
+
+i32 directoriesCreateRenameAndDeleteTest() {
     TestPathBuilder pb;
     pb.setDirPath(testDirectory);
 
@@ -329,18 +373,63 @@ i32 dirCreateectoriesRenameThemAndDeleteThemTest() {
         }
     });
 
+    return 0;
+}
+
+i32 mostBasicReadAndWriteTest() {
+    TestPathBuilder pb;
+    pb.setDirPath(testDirectory);
+    pb.setFileName("test.txt");
+
+    core::FileDesc f;
+    {
+        auto res = core::fileOpen(pb.path(), core::OpenMode::Write | core::OpenMode::Read | core::OpenMode::Create);
+        Assert(!res.hasErr());
+        f = core::move(res.value());
+    }
+
+    // Write "hello"
+    {
+        auto res = core::fileWrite(f, "hello", 5);
+        Assert(!res.hasErr());
+        Assert(res.value() == 5);
+    }
+
+    // Seek to beginning
+    {
+        auto res = core::fileSeek(f, 0, core::SeekMode::Begin);
+        Assert(!res.hasErr());
+        Assert(res.value() == 0, "Offset should be 0 after seeking to beginning");
+    }
+
+    // Read "hello"
+    {
+        char buff[6] = {};
+        auto res = core::fileRead(f, buff, 5);
+        Assert(!res.hasErr());
+        Assert(res.value() == 5);
+        Assert(core::cptrEq(buff, "hello", 5));
+    }
+
+    closeAndDeleteFile(core::move(f), pb.path());
 
     return 0;
 }
 
+// FIXME: Create a table test for fileReadEntire and fileWriteEntire with stat and size checks.
+//        This will make sure that the API works on a basic level.
+
 i32 runPltFileSystemTestsSuite() {
     // TODO: At some point I should create a test folder and check if it is empty after every one of these tests.
     //       Somthing like the memory leak tests I do elsewhere.
+    //       Also on starting the test suite this directory should be cleaned.
 
     RunTest(createAndDeleteFileTest);
     RunTest(createFilesAndAssertTheyExistTest);
     RunTest(commonOpenErrorsTest);
-    RunTest(dirCreateectoriesRenameThemAndDeleteThemTest);
+    RunTest(edgeErrorCasesTest);
+    RunTest(directoriesCreateRenameAndDeleteTest);
+    RunTest(mostBasicReadAndWriteTest);
 
     return 0;
 }

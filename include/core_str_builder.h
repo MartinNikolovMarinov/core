@@ -35,7 +35,8 @@ constexpr StrView sv(const char* str, addr_size len) { return {str, len}; }
 
 static_assert(core::is_pod_v<StrView>, "StrView must be pod type");
 
-// TODO2: [Performance] Might want to do some small string optimization.
+// TODO2: [PERFORMANCE] Might want to do some small string optimization.
+//        Also, the JIT null termination seems a bit stupid now.
 
 template <typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
 struct StrBuilder {
@@ -43,6 +44,8 @@ struct StrBuilder {
     using SizeType      = addr_size;
     using AllocatorType = TAllocator;
     using ContainerType = StrBuilder<AllocatorType>;
+
+    static_assert(core::AllocatorConcept<AllocatorType>, "The allocator template argument must satisfy the AllocatorConcept");
 
     StrBuilder() : m_data(nullptr), m_cap(0), m_len(0) {}
     StrBuilder(const ContainerType&) = delete; // prevent copy ctor
@@ -158,7 +161,7 @@ struct StrBuilder {
 
     ContainerType& append(const DataType& val) {
         if (shouldResize(1)) {
-            reserve(m_cap == 0 ? 2 : m_cap * 2);
+            adjustCap(m_cap == 0 ? 2 : m_cap * 2);
         }
         m_data[m_len] = val;
         m_len++;
@@ -168,7 +171,7 @@ struct StrBuilder {
     ContainerType& append(const DataType* cptr, SizeType len) {
         if (len == 0) return *this;
         if (shouldResize(len)) {
-            reserve(m_cap <= len ? (m_cap*2 + len + 1) : m_cap * 2);
+            adjustCap(m_cap <= len ? (m_cap*2 + len + 1) : m_cap * 2);
         }
         core::cptrCopy(m_data + m_len, cptr, len);
         m_len += len;
@@ -188,7 +191,7 @@ struct StrBuilder {
         return *this;
     }
 
-    void reserve(SizeType newCap) {
+    void adjustCap(SizeType newCap) {
         if (newCap <= m_cap) {
             // shrink
             m_len = m_len > newCap ? newCap - 1 : m_len;

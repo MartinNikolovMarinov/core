@@ -125,9 +125,9 @@ expected<PltErrCode> threadingSleep(u64 ms) noexcept {
     return {};
 }
 
-// TODO: Relying on _np functions is dangerous. I should detect if these are supported on the current platform.
-//       This is tedious, but a good staring point is written here in the SRT project:
-//       https://github.com/Haivision/srt/blob/4a8067cf38656926494ae6b150cf7d148213c024/scripts/FindPThreadGetSetName.cmake#L59
+// TODO: [SYMBOL SUPPORT COMPILATION CHECK] Relying on _np functions is dangerous. I should detect if these are
+//       supported on the current platform. This is tedious, but a good staring point is written here in the SRT
+//       project: https://github.com/Haivision/srt/blob/4a8067cf38656926494ae6b150cf7d148213c024/scripts/FindPThreadGetSetName.cmake#L59
 
 expected<PltErrCode> threadingSetName(const char* name) noexcept {
     if (name == nullptr) {
@@ -272,8 +272,8 @@ expected<PltErrCode> condVarDestroy(CondVariable& cv) noexcept {
 }
 
 expected<PltErrCode> condVarWaitTimed(CondVariable& cv, Mutex& m, u64 ms) noexcept {
-    // TODO: [TIME] I really need to make an abstraction for time. I would like to use a monotonic clock here, but
-    //       there is some inconsistency between MAC and Linux, so I will have to let cond variables use real time.
+    // I would like to use a monotonic clock here, but there are some inconsistency between MAC and Linux. MAC does not
+    // support pthread_condattr_setclock, so realtime is the only cross-platform option.
 
     // Get the current time:
     timespec absolute;

@@ -216,13 +216,13 @@ i32 resizeStrBuilderTest() {
     Assert(s.view().buff == nullptr);
     Assert(s.empty());
 
-    s.reserve(10);
+    s.adjustCap(10);
     Assert(s.len() == 0);
     Assert(s.cap() == 10);
     Assert(s.view().buff != nullptr);
     Assert(s.empty());
 
-    s.reserve(0);
+    s.adjustCap(0);
     Assert(s.len() == 0);
     Assert(s.cap() == 0);
     Assert(s.view().buff != nullptr);

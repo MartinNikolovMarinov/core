@@ -9,7 +9,7 @@ bool pltErrorDescribe(PltErrCode err, char out[MAX_SYSTEM_ERR_MSG_SIZE]) {
     wchar_t wbuf[MAX_SYSTEM_ERR_MSG_SIZE];
 
     auto res = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                              NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                              NULL, DWORD(err), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                               wbuf, (sizeof(wbuf) / sizeof(wchar_t)), NULL);
 
     if (res == 0) {

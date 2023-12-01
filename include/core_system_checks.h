@@ -48,10 +48,8 @@
     #define CPU_ARCH "x86_64"
     #define CPU_ARCH_X86_64 1
 #elif defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
-    // TODO2: Support for 32 bit systems of any kind is not planned for now. Might be considered in a distant future.
     #define CPU_ARCH "x86_32"
 #elif defined(__aarch64__) || defined(_M_ARM64)
-    // TODO2: [ARM64 SUPPORT] Will be supported.
     #define CPU_ARCH "ARM64"
     #define CPU_ARCH_ARM64 1
 #elif defined(__arm__)

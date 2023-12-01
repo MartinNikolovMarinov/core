@@ -182,6 +182,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(mm_core_common_flags
         -std:c++20
+        /MP
         -Wall -W4 -WX
         -nologo -FC
         /fastfail
@@ -288,6 +289,7 @@ if(CORE_BUILD_TESTS)
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         set(mm_test_common_flags
             -std:c++20
+            /MP
             -Wall -W4 -WX
             /w14254 # Warns if more than one operator conversion is applied to get from one type to another (useful for finding implicit conversions that might be unintended).
             /w14263 # Warns if a member function hides a base class virtual function (similar to -Woverloaded-virtual in GCC/Clang).

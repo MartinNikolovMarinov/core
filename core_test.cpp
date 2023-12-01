@@ -21,6 +21,9 @@ int main() {
     if constexpr (OS_MAC == 1)     { std::cout << "[OS] OS_MAC" << std::endl; }
     if constexpr (OS_UNKNOWN == 1) { std::cout << "[OS] OS_UNKNOWN" << std::endl; }
 
+    // Print CPU architecture
+    std::cout << "[CPU ARCH] " << CPU_ARCH << std::endl;
+
     i32 exitCode = runAllTests();
 
     return exitCode;

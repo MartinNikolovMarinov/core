@@ -126,13 +126,13 @@ i32 resizeArrTest() {
         Assert(Arr.data() == nullptr);
         Assert(Arr.empty());
 
-        Arr.reserve(10);
+        Arr.adjustCap(10);
         Assert(Arr.len() == 0);
         Assert(Arr.cap() == 10);
         Assert(Arr.data() != nullptr);
         Assert(Arr.empty());
 
-        Arr.reserve(0);
+        Arr.adjustCap(0);
         Assert(Arr.len() == 0);
         Assert(Arr.cap() == 0);
         Assert(Arr.data() != nullptr);
@@ -272,7 +272,7 @@ i32 appendArrTest() {
             Assert(Arr.at(i) == i32(i + 1));
         }
 
-        Arr.reserve(2);
+        Arr.adjustCap(2);
 
         Arr.append(3);
         Assert(Arr.len() == 3);
@@ -329,10 +329,10 @@ i32 appendArrTest() {
         Assert(CT::dtorsCalled() == 3);
         CT::resetAll();
 
-        // Testing a combination of append and reserve.
+        // Testing a combination of append and adjustCap.
         {
             core::Arr<CT, TAllocator> Arr;
-            Arr.reserve(1);
+            Arr.adjustCap(1);
             Assert(Arr.len() == 0);
             Assert(Arr.cap() == 1);
             Assert(CT::noCtorsCalled());
@@ -344,7 +344,7 @@ i32 appendArrTest() {
             }
             Assert(Arr.len() == 2);
             Assert(Arr.cap() == 2);
-            Arr.reserve(0); // This reserve should call the destructors.
+            Arr.adjustCap(0); // This adjustCap should call the destructors.
             Assert(Arr.len() == 0);
             Assert(Arr.cap() == 0);
             Assert(CT::dtorsCalled() == 3);

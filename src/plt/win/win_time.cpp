@@ -27,3 +27,5 @@ expected<u64, PltErrCode> getCurrentUnixTimestampMs() {
 
     return timeNowMs;
 }
+
+}

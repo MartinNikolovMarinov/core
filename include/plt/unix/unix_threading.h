@@ -18,7 +18,7 @@ struct Thread {
     pthread_t handle;
     bool isRunning;
     mutable Mutex mu;
-    AtomicBool canLock; // FIXME: The way I use this does not guarnatee a 100% thread safe behavior.
+    AtomicBool canLock; // FIXME: The way I use this does not guarantee a 100% thread safe behavior.
 
     NO_COPY(Thread);
 

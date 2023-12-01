@@ -2,6 +2,11 @@
 
 #include <windows.h>
 
+// TODO2: It's important to note that this API does not support Unicode paths!
+//       This is because a unicode compliant implementations must use the wide character versions of the Windows API.
+//       This would require a conversion from char* to wchar_t* which is too expensive and is not necessary for 99% of
+//       use cases. I should, however, support a setting that allows unicode support.
+
 namespace core {
 
 FileDesc::FileDesc() : handle(nullptr) {}
@@ -36,6 +41,10 @@ DWORD toDesiredAccess(OpenMode mode) {
     if (i32(mode) & i32(OpenMode::Write)) {
         dwDesiredAccess |= GENERIC_WRITE;
     }
+    if (i32(mode) & i32(OpenMode::Truncate)) {
+        // Truncate implies write.
+        dwDesiredAccess |= GENERIC_WRITE;
+    }
 
     if (i32(mode) & i32(OpenMode::Append)) {
         // Append implies read and write, so just overwrite dwDesiredAccess value.
@@ -63,6 +72,11 @@ DWORD toCreationDisposition(OpenMode mode) {
     return dwDisposition;
 }
 
+void convertCharPtrToWCharPtr(const char* src, wchar_t* dst, size_t size) {
+    [[maybe_unused]] size_t ignored = 0;
+    mbstowcs_s(&ignored, dst, size, src, size);
+}
+
 } // namespace
 
 core::expected<FileDesc, PltErrCode> fileOpen(const char* path, OpenMode mode) {
@@ -81,7 +95,7 @@ core::expected<FileDesc, PltErrCode> fileOpen(const char* path, OpenMode mode) {
 
     FileDesc fd;
     fd.handle = reinterpret_cast<void*>(handle);
-    return {};
+    return fd;
 }
 
 core::expected<PltErrCode> fileClose(FileDesc& file) {
@@ -99,8 +113,83 @@ core::expected<PltErrCode> fileDelete(const char* path) {
     return {};
 }
 
+core::expected<PltErrCode> fileRename(const char* path, const char* newPath) {
+    if (!MoveFile(path, newPath)) {
+        return core::unexpected(PltErrCode(GetLastError()));
+    }
+    return {};
+}
+
+core::expected<addr_size, PltErrCode> fileWrite(FileDesc& file, const void* in, addr_size size) {
+    DWORD bytesWritten = 0;
+    if (!WriteFile(reinterpret_cast<HANDLE>(file.handle), in, DWORD(size), &bytesWritten, nullptr)) {
+        return core::unexpected(PltErrCode(GetLastError()));
+    }
+    return addr_size(bytesWritten);
+}
+
+core::expected<addr_size, PltErrCode> fileRead(FileDesc& file, void* out, addr_size size) {
+    DWORD bytesRead = 0;
+    if (!ReadFile(reinterpret_cast<HANDLE>(file.handle), out, DWORD(size), &bytesRead, nullptr)) {
+        return core::unexpected(PltErrCode(GetLastError()));
+    }
+    return addr_size(bytesRead);
+}
+
+core::expected<addr_off, PltErrCode> fileSeek(FileDesc& file, addr_off offset, SeekMode mode) {
+    DWORD dwMoveMethod = 0;
+    switch (mode) {
+        case SeekMode::Begin:   dwMoveMethod = FILE_BEGIN;   break;
+        case SeekMode::Current: dwMoveMethod = FILE_CURRENT; break;
+        case SeekMode::End:     dwMoveMethod = FILE_END;     break;
+    }
+
+    LARGE_INTEGER liDistanceToMove;
+    liDistanceToMove.QuadPart = offset;
+
+    LARGE_INTEGER liNewFilePointer;
+    if (!SetFilePointerEx(reinterpret_cast<HANDLE>(file.handle), liDistanceToMove, &liNewFilePointer, dwMoveMethod)) {
+        return core::unexpected(PltErrCode(GetLastError()));
+    }
+
+    return addr_off(liNewFilePointer.QuadPart);
+}
+
+core::expected<PltErrCode> fileStat(const char* path, FileStat& out) {
+    WIN32_FILE_ATTRIBUTE_DATA data;
+    if (!GetFileAttributesEx(path, GetFileExInfoStandard, &data)) {
+        return core::unexpected(PltErrCode(GetLastError()));
+    }
+
+    out.size = (u64(data.nFileSizeHigh) << 32) | data.nFileSizeLow;
+
+    if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+        out.type = FileType::Directory;
+    }
+    else if (data.dwFileAttributes & FILE_ATTRIBUTE_NORMAL) {
+        out.type = FileType::Regular;
+    }
+    else if (data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
+        out.type = FileType::Symlink;
+    }
+    else {
+        out.type = FileType::Other;
+    }
+
+    return {};
+}
+
+core::expected<addr_size, PltErrCode> fileSize(FileDesc& file) {
+    LARGE_INTEGER liFileSize;
+    if (!GetFileSizeEx(reinterpret_cast<HANDLE>(file.handle), &liFileSize)) {
+        return core::unexpected(PltErrCode(GetLastError()));
+    }
+    addr_size res = addr_size(liFileSize.QuadPart);
+    return res;
+}
+
 core::expected<PltErrCode> dirCreate(const char* path) {
-    if (!dirCreateectory(path, nullptr)) {
+    if (!CreateDirectory(path, nullptr)) {
         return core::unexpected(PltErrCode(GetLastError()));
     }
     return {};

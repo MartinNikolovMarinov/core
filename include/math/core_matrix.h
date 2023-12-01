@@ -8,11 +8,6 @@ namespace core {
 
 using namespace coretypes;
 
-// TODO: Need to implement at least the following:
-//       Implement here:
-//       - lookat ( look at matrix )
-//       - matrix division
-
 using namespace coretypes;
 
 template<i32 NCol, i32 NRow, typename T> struct mat;

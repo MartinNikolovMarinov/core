@@ -16,8 +16,6 @@ struct Arr {
     using AllocatorType = TAllocator;
     using ContainerType = Arr<T, TAllocator>;
 
-    static_assert(core::AllocatorConcept<AllocatorType>, "The allocator template argument must satisfy the AllocatorConcept");
-
     static constexpr bool dataIsTrivial = core::is_trivial_v<DataType>;
     static constexpr bool dataHasTrivialDestructor = core::is_trivially_destructible_v<DataType>;
 
@@ -119,7 +117,7 @@ struct Arr {
 
     ContainerType& append(const DataType& val) {
         if (m_len == m_cap) {
-            reserve(m_cap == 0 ? 1 : m_cap * 2);
+            adjustCap(m_cap == 0 ? 1 : m_cap * 2);
         }
         copyDataAt(val, m_len);
         m_len++;
@@ -128,7 +126,7 @@ struct Arr {
 
     ContainerType& append(DataType&& val) {
         if (m_len == m_cap) {
-            reserve(m_cap == 0 ? 1 : m_cap * 2);
+            adjustCap(m_cap == 0 ? 1 : m_cap * 2);
         }
         stealDataAt(core::move(val), m_len);
         m_len++;
@@ -137,7 +135,7 @@ struct Arr {
 
     ContainerType& append(const DataType* val, SizeType len) {
         if (m_len + len > m_cap) {
-            reserve(m_cap <= len ? (m_cap*2 + len) : m_cap * 2);
+            adjustCap(m_cap <= len ? (m_cap*2 + len) : m_cap * 2);
         }
         copyDataAt(val, m_len, len);
         m_len += len;
@@ -160,7 +158,7 @@ struct Arr {
         return *this;
     }
 
-    void reserve(SizeType newCap) {
+    void adjustCap(SizeType newCap) {
         if (newCap <= m_cap) {
             if constexpr (dataIsTrivial) {
                 m_len = m_len > newCap ? newCap : m_len;

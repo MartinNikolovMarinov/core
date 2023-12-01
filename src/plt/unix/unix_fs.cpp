@@ -84,7 +84,7 @@ core::expected<FileDesc, PltErrCode> fileOpen(const char* path, OpenMode openMod
     mode_t mode = DEFAULT_FILE_MODE;
 
     i32 res = open(path, flags, mode);
-    if (res == -1) {
+    if (res < 0) {
         return core::unexpected(PltErrCode(errno));
     }
 
@@ -95,7 +95,7 @@ core::expected<FileDesc, PltErrCode> fileOpen(const char* path, OpenMode openMod
 
 core::expected<PltErrCode> fileClose(FileDesc& file) {
     i32 res = close(fromHandle(file.handle));
-    if (res == -1) {
+    if (res < 0) {
         return core::unexpected(PltErrCode(errno));
     }
 
@@ -105,18 +105,96 @@ core::expected<PltErrCode> fileClose(FileDesc& file) {
 
 core::expected<PltErrCode> fileDelete(const char* path) {
     i32 res = unlink(path);
-    if (res == -1) {
+    if (res < 0) {
         return core::unexpected(PltErrCode(errno));
     }
 
     return {};
 }
 
+core::expected<PltErrCode> fileRename(const char* path, const char* newPath) {
+    i32 res = rename(path, newPath);
+    if (res < 0) {
+        return core::unexpected(PltErrCode(errno));
+    }
+
+    return {};
+}
+
+core::expected<addr_size, PltErrCode> fileWrite(FileDesc& file, const void* in, addr_size size) {
+    auto res = write(fromHandle(file.handle), in, size);
+    if (res < 0) {
+        return core::unexpected(PltErrCode(errno));
+    }
+
+    return addr_size(res);
+}
+
+core::expected<addr_size, PltErrCode> fileRead(FileDesc& file, void* out, addr_size size) {
+    auto res = read(fromHandle(file.handle), out, size);
+    if (res < 0) {
+        return core::unexpected(PltErrCode(errno));
+    }
+
+    return addr_size(res);
+}
+
+core::expected<addr_off, PltErrCode> fileSeek(FileDesc& file, addr_off offset, SeekMode mode) {
+    i32 whence = 0;
+    switch (mode) {
+        case SeekMode::Begin:   whence = SEEK_SET; break;
+        case SeekMode::Current: whence = SEEK_CUR; break;
+        case SeekMode::End:     whence = SEEK_END; break;
+    }
+
+    auto res = lseek(fromHandle(file.handle), offset, whence);
+    if (res < 0) {
+        return core::unexpected(PltErrCode(errno));
+    }
+
+    return addr_off(res);
+}
+
+core::expected<PltErrCode> fileStat(const char* path, FileStat& out) {
+    struct stat statbuf;
+    i32 res = stat(path, &statbuf);
+    if (res < 0) {
+        return core::unexpected(PltErrCode(errno));
+    }
+
+    out.size = addr_size(statbuf.st_size);
+
+    if (S_ISDIR(statbuf.st_mode)) {
+        out.type = FileType::Directory;
+    }
+    else if (S_ISREG(statbuf.st_mode)) {
+        out.type = FileType::Regular;
+    }
+    else if (S_ISLNK(statbuf.st_mode)) {
+        out.type = FileType::Symlink;
+    }
+    else {
+        out.type = FileType::Other;
+    }
+
+    return {};
+}
+
+core::expected<addr_size, PltErrCode> fileSize(FileDesc& file) {
+    struct stat statbuf;
+    i32 res = fstat(fromHandle(file.handle), &statbuf);
+    if (res < 0) {
+        return core::unexpected(PltErrCode(errno));
+    }
+
+    return addr_size(statbuf.st_size);
+}
+
 core::expected<PltErrCode> dirCreate(const char* path) {
     mode_t mode = DEFAULT_DIR_MODE;
 
     i32 res = mkdir(path, mode);
-    if (res == -1) {
+    if (res < 0) {
         return core::unexpected(PltErrCode(errno));
     }
 
@@ -125,7 +203,7 @@ core::expected<PltErrCode> dirCreate(const char* path) {
 
 core::expected<PltErrCode> dirDelete(const char* path) {
     i32 res = rmdir(path);
-    if (res == -1) {
+    if (res < 0) {
         return core::unexpected(PltErrCode(errno));
     }
 
@@ -134,7 +212,7 @@ core::expected<PltErrCode> dirDelete(const char* path) {
 
 core::expected<PltErrCode> dirRename(const char* path, const char* newPath) {
     i32 res = rename(path, newPath);
-    if (res == -1) {
+    if (res < 0) {
         return core::unexpected(PltErrCode(errno));
     }
 

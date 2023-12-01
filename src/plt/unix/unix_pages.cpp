@@ -6,7 +6,7 @@
 
 namespace core {
 
-expected<void*, PltErrCode> allocPages(size_t count) {
+expected<void*, PltErrCode> allocPages(addr_size count) {
      // flags - memory is private copy-on-write and is not backed by a file, i.e. anonymous
     i32 flags = ( MAP_PRIVATE | MAP_ANONYMOUS );
     // port - memory is mapped for reading and for writing.
@@ -20,7 +20,7 @@ expected<void*, PltErrCode> allocPages(size_t count) {
     return addr;
 }
 
-expected<PltErrCode> freePages(void* addr, size_t count) {
+expected<PltErrCode> freePages(void* addr, addr_size count) {
     if (addr == nullptr) {
         return core::unexpected(PltErrCode(EINVAL));
     }

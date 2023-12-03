@@ -4,7 +4,6 @@
 #include <core_cptr.h>
 #include <core_cptr_conv.h>
 
-#include <cstdlib>
 #include <windows.h>
 #include <DbgHelp.h>
 
@@ -12,8 +11,11 @@ namespace core {
 
 #if defined(CORE_DEBUG) && CORE_DEBUG == 1
 
+template <typename TAlloc>
 bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
                 i32 nStackFrames, i32 skipFrames) {
+
+    static_assert(AllocatorConcept<TAlloc>, "TAlloc must satisfy the AllocatorConcept");
 
     auto writeToBuf = [&](const char* s) -> bool {
         auto slen = core::cptrLen(s);
@@ -42,8 +44,8 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
     }
     defer { SymCleanup(process); };
 
-    void** stack = reinterpret_cast<void**>(std::malloc((nStackFrames + skipFrames) * sizeof(void*)));
-    defer { std::free(stack); };
+    void** stack = reinterpret_cast<void**>(TAlloc::alloc((nStackFrames + skipFrames) * sizeof(void*)));
+    defer { TAlloc::free(stack); };
 
     USHORT framesCount = CaptureStackBackTrace(skipFrames, nStackFrames, stack, NULL);
     if (framesCount == 0) {
@@ -51,10 +53,10 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
         return false;
     }
 
-    SYMBOL_INFO* symbol = (SYMBOL_INFO*)std::calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
+    SYMBOL_INFO* symbol = (SYMBOL_INFO*)TAlloc::calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
     symbol->MaxNameLen = 255;
     symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-    defer { std::free(symbol); };
+    defer { TAlloc::free(symbol); };
 
     for (int i = 0; i < framesCount; ++i) {
         if (!SymFromAddr(process, reinterpret_cast<DWORD64>(stack[i]), 0, symbol)) {
@@ -92,6 +94,7 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
 
 #else
 
+template <typename TAlloc>
 bool stacktrace(char*, addr_size, addr_size&, i32, i32) { return false; }
 
 #endif

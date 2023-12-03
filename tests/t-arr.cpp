@@ -464,7 +464,6 @@ i32 clearArrayShouldCallDtorsTest() {
 }
 
 i32 runArrTestsSuite() {
-
     constexpr addr_size BUFF_SIZE = core::KILOBYTE;
     char buf[BUFF_SIZE];
 

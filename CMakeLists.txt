@@ -88,7 +88,6 @@ set(src_files
 
 if(OS STREQUAL "linux")
     set(src_files ${src_files}
-        src/plt/unix/unix_stacktrace.cpp
         src/plt/unix/unix_threading.cpp
         src/plt/unix/unix_time.cpp
         src/plt/unix/unix_plt_error.cpp
@@ -97,7 +96,6 @@ if(OS STREQUAL "linux")
     )
 elseif(OS STREQUAL "darwin")
     set(src_files ${src_files}
-        src/plt/unix/unix_stacktrace.cpp
         src/plt/unix/unix_threading.cpp
         src/plt/unix/unix_time.cpp
         src/plt/unix/unix_plt_error.cpp
@@ -106,7 +104,6 @@ elseif(OS STREQUAL "darwin")
     )
 elseif(OS STREQUAL "windows")
     set(src_files ${src_files}
-        src/plt/win/win_stacktrace.cpp
         src/plt/win/win_threading.cpp
         src/plt/win/win_time.cpp
         src/plt/win/win_plt_error.cpp

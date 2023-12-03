@@ -1,3 +1,5 @@
+#pragma once
+
 #include <plt/core_stacktrace.h>
 
 #include <core_cptr_conv.h>

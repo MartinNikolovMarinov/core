@@ -1,10 +1,11 @@
 #pragma once
 
 #include "core_API.h"
-#include "core_types.h"
-#include "core_expected.h"
-#include "core_utils.h"
 #include "core_arr.h"
+#include "core_expected.h"
+#include "core_traits.h"
+#include "core_types.h"
+#include "core_utils.h"
 #include "plt/core_plt_error.h"
 
 // TODO: A few more functions that will be necessary:
@@ -13,6 +14,9 @@
 //       - getCurrWorkingDir
 //       - changeCurrWorkingDir
 //       - flush a file descriptor to disc (if possible)
+
+// FIXME: A concreate type for path is needed to address differences in path representation on different platforms.
+// FIXME: Implement recursive directory delete.
 
 namespace core {
 
@@ -161,4 +165,20 @@ CORE_API_EXPORT core::expected<PltErrCode> fileWriteEntire(const char* path, con
     return {};
 }
 
+struct DirEntry {
+    FileType type;
+    const char* name;
+};
+
+template <typename TCallback>
+core::expected<PltErrCode> dirWalk(const char* path, TCallback cb);
+
 } // namespace core
+
+#if defined(OS_WIN) && OS_WIN == 1
+    #include <plt/win/win_fs.h>
+#elif defined(OS_LINUX) && OS_LINUX == 1
+    #include <plt/unix/unix_fs.h>
+#elif defined(OS_MAC) && OS_MAC == 1
+    #include <plt/unix/unix_fs.h>
+#endif

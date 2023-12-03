@@ -38,6 +38,13 @@ void closeAndDeleteFile(core::FileDesc&& fd, const char* path) {
 }
 
 struct TestPathBuilder {
+
+#if defined(OS_WIN) && OS_WIN == 1
+    static constexpr char FILE_SEPARATOR = '\\';
+#else
+    static constexpr char FILE_SEPARATOR = '/';
+#endif
+
     char buff[256];
     addr_size dirPathLen;
 
@@ -46,6 +53,14 @@ struct TestPathBuilder {
     void setDirPath(const char* dirPath) {
         dirPathLen = core::cptrLen(dirPath);
         core::memcopy(buff, dirPath, dirPathLen);
+    }
+
+    void appendToDirPath(const char* dirPath) {
+        buff[dirPathLen] = FILE_SEPARATOR;
+        dirPathLen += 1;
+        addr_size len = core::cptrLen(dirPath);
+        core::memcopy(buff + dirPathLen, dirPath, len);
+        dirPathLen += len;
     }
 
     const char* fileName() const { return buff + dirPathLen + 1; }
@@ -63,7 +78,7 @@ struct TestPathBuilder {
     }
 
     void setFileName(const char* fname) {
-        filePart()[0] = '/';
+        filePart()[0] = FILE_SEPARATOR;
         addr_size len = core::cptrLen(fname);
         core::memcopy(filePart() + 1, fname, len);
         filePart()[len + 1] = '\0';
@@ -235,7 +250,7 @@ i32 createAndDeleteFileTest() {
     core::memset(pb.buff, 1, 256);
 
     pb.setDirPath(testDirectory);
-    pb.setFilePart("/test.txt");
+    pb.setFileName("test.txt");
 
     {
         auto res = core::fileOpen(pb.path(), core::OpenMode::Create);
@@ -416,6 +431,120 @@ i32 mostBasicReadAndWriteTest() {
     return 0;
 }
 
+i32 basicListDirectoryContentsTest() {
+    TestPathBuilder pb;
+
+    pb.setDirPath(testDirectory);
+    pb.appendToDirPath("test_directory");
+
+    const char* basicFileNames[] = {
+        "test0.txt",
+        "test1.txt",
+        "test2.txt",
+    };
+    constexpr addr_size basicFileNamesLen = sizeof(basicFileNames) / sizeof(basicFileNames[0]);
+
+    const char* basicDirNames[] = {
+        "test_sub_directory_0",
+        "test_sub_directory_1",
+    };
+    constexpr addr_size basicDirNamesLen = sizeof(basicDirNames) / sizeof(basicDirNames[0]);
+
+    // Create directory
+    {
+        auto res = core::dirCreate(pb.path());
+        Assert(!res.hasErr());
+    }
+
+    // Create the test files inside the directory
+    {
+        for (addr_size i = 0; i < basicFileNamesLen; ++i) {
+            pb.resetFilePart();
+            pb.setFileName(basicFileNames[i]);
+
+            core::FileDesc f;
+            {
+                auto res = core::fileOpen(pb.path(), core::OpenMode::Create);
+                Assert(!res.hasErr());
+                f = core::move(res.value());
+            }
+            {
+                auto res = core::fileClose(f);
+                Assert(!res.hasErr());
+            }
+        }
+
+        for (addr_size i = 0; i < basicDirNamesLen; ++i) {
+            pb.resetFilePart();
+            pb.setFileName(basicDirNames[i]);
+
+            auto res = core::dirCreate(pb.path());
+            Assert(!res.hasErr());
+        }
+
+        pb.resetFilePart();
+    }
+
+    // List directory contents
+    {
+        addr_size fileCount = 0;
+        addr_size dirCount = 0;
+        auto res = core::dirWalk(pb.path(), [&](const core::DirEntry& de, addr_size) -> bool {
+            const char* got = de.name;
+
+            if (de.type == core::FileType::Regular) {
+                addr_off foundIdx = core::find(basicFileNames, basicFileNamesLen,
+                    [&] (const char* elem, addr_off) -> bool { return core::cptrEq(elem, got, core::cptrLen(elem)); });
+                Assert(foundIdx != -1, "File not found");
+                fileCount++;
+            }
+            else if (de.type == core::FileType::Directory) {
+                addr_off foundIdx = core::find(basicDirNames, basicDirNamesLen,
+                    [&] (const char* elem, addr_off) -> bool { return core::cptrEq(elem, got, core::cptrLen(elem)); });
+                Assert(foundIdx != -1, "Directory not found");
+                dirCount++;
+            }
+            else {
+                Assert(false, "Unknown file type");
+            }
+
+            return true;
+        });
+
+        Assert(!res.hasErr());
+        Assert(fileCount == basicFileNamesLen);
+        Assert(dirCount == basicDirNamesLen);
+    }
+
+    // Delete directory
+    {
+        // FIXME: Remove this once dirDelete is recursive!
+        // Delete the test files inside the directory
+        {
+            for (addr_size i = 0; i < basicFileNamesLen; ++i) {
+                pb.resetFilePart();
+                pb.setFileName(basicFileNames[i]);
+                auto res = core::fileDelete(pb.path());
+                Assert(!res.hasErr());
+            }
+
+            for (addr_size i = 0; i < basicDirNamesLen; ++i) {
+                pb.resetFilePart();
+                pb.setFileName(basicDirNames[i]);
+                auto res = core::dirDelete(pb.path());
+                Assert(!res.hasErr());
+            }
+
+            pb.resetFilePart();
+        }
+
+        auto res = core::dirDelete(pb.path());
+        Assert(!res.hasErr());
+    }
+
+    return 0;
+}
+
 // FIXME: Create a table test for fileReadEntire and fileWriteEntire with stat and size checks.
 //        This will make sure that the API works on a basic level.
 
@@ -430,6 +559,7 @@ i32 runPltFileSystemTestsSuite() {
     RunTest(edgeErrorCasesTest);
     RunTest(directoriesCreateRenameAndDeleteTest);
     RunTest(mostBasicReadAndWriteTest);
+    RunTest(basicListDirectoryContentsTest);
 
     return 0;
 }

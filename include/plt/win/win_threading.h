@@ -18,7 +18,7 @@ struct Thread {
     HANDLE handle;
     bool isRunning;
     mutable Mutex mu;
-    AtomicBool canLock; // FIXME: The way I use this does not guarantee a 100% thread safe behavior.
+    AtomicBool canLock;
 
     NO_COPY(Thread)
 
@@ -68,7 +68,7 @@ expected<PltErrCode> threadStart(Thread& out, void* arg, ThreadRoutine routine) 
     using namespace detail;
 
     if (!out.canLock.load(std::memory_order_acquire)) {
-        return core::unexpected(ERR_THREAD_IS_NOT_INITIALIZED);
+        return core::unexpected(ERR_THREAD_FAILED_TO_ACQUIRE_LOCK);
     }
 
     if (threadIsRunning(out)) {

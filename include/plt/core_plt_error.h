@@ -25,7 +25,7 @@ constexpr PltErrCode ERR_ALLOCATOR_DEFAULT_NO_MEMORY = detail::ERR_MISC_CUSTOM_E
 constexpr PltErrCode ERR_THREADING_INVALID_THREAD_NAME = detail::ERR_THREAD_CUSTOM_ERROR_START + 0;
 constexpr PltErrCode ERR_THREADING_STARTING_AN_ALREADY_RUNNING_THREAD = detail::ERR_THREAD_CUSTOM_ERROR_START + 1;
 constexpr PltErrCode ERR_THREAD_IS_NOT_JOINABLE_OR_DETACHABLE = detail::ERR_THREAD_CUSTOM_ERROR_START + 2;
-constexpr PltErrCode ERR_THREAD_IS_NOT_INITIALIZED = detail::ERR_THREAD_CUSTOM_ERROR_START + 3;
+constexpr PltErrCode ERR_THREAD_FAILED_TO_ACQUIRE_LOCK = detail::ERR_THREAD_CUSTOM_ERROR_START + 3;
 constexpr PltErrCode ERR_MUTEX_TRYLOCK_FAILED = detail::ERR_THREAD_CUSTOM_ERROR_START + 4;
 
 constexpr char const* customPltErrorDescribe(PltErrCode err) {
@@ -39,7 +39,7 @@ constexpr char const* customPltErrorDescribe(PltErrCode err) {
         case ERR_THREADING_INVALID_THREAD_NAME:                return "Invalid thread name";
         case ERR_THREADING_STARTING_AN_ALREADY_RUNNING_THREAD: return "Starting an already running thread";
         case ERR_THREAD_IS_NOT_JOINABLE_OR_DETACHABLE:         return "Thread is not joinable or detachable";
-        case ERR_THREAD_IS_NOT_INITIALIZED:                    return "Thread is not initialized";
+        case ERR_THREAD_FAILED_TO_ACQUIRE_LOCK:                return "Thread failed to acquire lock.";
         case ERR_MUTEX_TRYLOCK_FAILED:                         return "Mutex trylock failed";
     }
 

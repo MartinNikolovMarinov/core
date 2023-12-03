@@ -51,7 +51,7 @@ i32 threadDetachDoesNotBreak() {
     {
         auto res = core::threadDetach(t);
         Assert(res.hasErr(), "Detaching a thread that is not initialized should fail.");
-        Assert(res.err() == core::ERR_THREAD_IS_NOT_INITIALIZED, "Invalid error code.");
+        Assert(res.err() == core::ERR_THREAD_FAILED_TO_ACQUIRE_LOCK, "Invalid error code.");
     }
 
     Expect(core::threadInit(t));
@@ -91,7 +91,7 @@ i32 start2ThreadsAndJoinThemTest() {
     {
         auto res = core::threadStart(t1, nullptr, [](void*) {});
         Assert(res.hasErr(), "Starting a thread that is not initialized should fail.");
-        Assert(res.err() == core::ERR_THREAD_IS_NOT_INITIALIZED, "Invalid error code.");
+        Assert(res.err() == core::ERR_THREAD_FAILED_TO_ACQUIRE_LOCK, "Invalid error code.");
     }
 
     Expect(core::threadInit(t1));

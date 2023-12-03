@@ -166,7 +166,7 @@ expected<bool, PltErrCode> threadEq(const Thread& t1, const Thread& t2) noexcept
 
 expected<PltErrCode> threadJoin(Thread& t) noexcept {
     if (!t.canLock.load(std::memory_order_acquire)) {
-        return core::unexpected(ERR_THREAD_IS_NOT_INITIALIZED);
+        return core::unexpected(ERR_THREAD_FAILED_TO_ACQUIRE_LOCK);
     }
 
     Expect(mutexLock(t.mu));
@@ -196,7 +196,7 @@ expected<PltErrCode> threadJoin(Thread& t) noexcept {
 
 expected<PltErrCode> threadDetach(Thread& t) noexcept {
     if (!t.canLock.load(std::memory_order_acquire)) {
-        return core::unexpected(ERR_THREAD_IS_NOT_INITIALIZED);
+        return core::unexpected(ERR_THREAD_FAILED_TO_ACQUIRE_LOCK);
     }
 
     Expect(mutexLock(t.mu));

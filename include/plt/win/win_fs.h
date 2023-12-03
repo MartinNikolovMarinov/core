@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core_cptr.h>
+#include <core_str_builder.h>
 #include <plt/core_fs.h>
 
 #include <windows.h>
@@ -9,7 +10,7 @@ namespace core {
 
 namespace detail {
 
-DirEntry toDirEntry(WIN32_FIND_DATAA& findData) {
+inline DirEntry toDirEntry(const WIN32_FIND_DATAA& findData) {
     DirEntry de = {};
     de.name = findData.cFileName;
     switch (findData.dwFileAttributes) {
@@ -50,8 +51,15 @@ DirEntry toDirEntry(WIN32_FIND_DATAA& findData) {
 
 template <typename TCallback>
 core::expected<PltErrCode> dirWalk(const char* path, TCallback cb) {
+    core::StrBuilder<> pathSb(path);
+    if (pathSb.empty()) {
+        return core::unexpected(PltErrCode(EINVAL));
+    }
+
+    pathSb.append("/*");
+
     WIN32_FIND_DATAA findData;
-    HANDLE findHandle = FindFirstFileA(path, &findData);
+    HANDLE findHandle = FindFirstFileA(pathSb.view().data(), &findData);
     if (findHandle == INVALID_HANDLE_VALUE) {
         return core::unexpected(PltErrCode(GetLastError()));
     }
@@ -60,17 +68,6 @@ core::expected<PltErrCode> dirWalk(const char* path, TCallback cb) {
     addr_size i = 0;
 
     while (true) {
-        DirEntry de = detail::toDirEntry(findData);
-
-        bool shouldSkip = core::cptrEqual(de.name, ".") || core::cptrEqual(de.name, "..");
-
-        if (!shouldSkip) {
-            if (!cb(de, i)) {
-                break;
-            }
-            i++;
-        }
-
         if (!FindNextFileA(findHandle, &findData)) {
             if (GetLastError() != ERROR_NO_MORE_FILES) {
                 errCode = PltErrCode(GetLastError());
@@ -78,6 +75,15 @@ core::expected<PltErrCode> dirWalk(const char* path, TCallback cb) {
 
             break;
         }
+
+        bool shouldSkip = core::cptrEq(findData.cFileName, ".", 1) || core::cptrEq(findData.cFileName, "..", 2);
+        if (shouldSkip) {
+            continue;
+        }
+
+        DirEntry de = detail::toDirEntry(findData);
+        if (!cb(de, i)) break;
+        i++;
     }
 
     if (FindClose(findHandle) <= 0) {

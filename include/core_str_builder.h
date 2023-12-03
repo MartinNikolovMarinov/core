@@ -45,8 +45,6 @@ struct StrBuilder {
     using AllocatorType = TAllocator;
     using ContainerType = StrBuilder<AllocatorType>;
 
-    static_assert(core::AllocatorConcept<AllocatorType>, "The allocator template argument must satisfy the AllocatorConcept");
-
     StrBuilder() : m_data(nullptr), m_cap(0), m_len(0) {}
     StrBuilder(const ContainerType&) = delete; // prevent copy ctor
     StrBuilder(ContainerType&& other) : m_data(other.m_data), m_cap(other.m_cap), m_len(other.m_len) {

@@ -6,8 +6,12 @@
 #include <core_cptr.h>
 #include <core_cptr_conv.h>
 
+#if defined(CORE_DEBUG) && CORE_DEBUG == 1
+
 #include <windows.h>
 #include <DbgHelp.h>
+
+#endif
 
 namespace core {
 

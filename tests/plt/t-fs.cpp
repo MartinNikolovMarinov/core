@@ -38,12 +38,7 @@ void closeAndDeleteFile(core::FileDesc&& fd, const char* path) {
 }
 
 struct TestPathBuilder {
-
-#if defined(OS_WIN) && OS_WIN == 1
-    static constexpr char FILE_SEPARATOR = '\\';
-#else
     static constexpr char FILE_SEPARATOR = '/';
-#endif
 
     char buff[256];
     addr_size dirPathLen;

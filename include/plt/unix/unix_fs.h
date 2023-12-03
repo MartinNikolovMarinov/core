@@ -40,6 +40,10 @@ inline DirEntry toDirEntry(const dirent& d) {
 
 template <typename TCallback>
 core::expected<PltErrCode> dirWalk(const char* path, TCallback cb) {
+    if (path == nullptr) {
+        return core::unexpected(PltErrCode(EINVAL));
+    }
+
     DIR* dir = opendir(path);
     if (!dir) {
         return core::unexpected(PltErrCode(errno));

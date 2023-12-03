@@ -196,7 +196,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     if (CORE_DEBUG)
         # DbgHelp.lib is required for stacktrace.
         target_link_options(${PROJECT_NAME} PRIVATE /INCREMENTAL:NO /OPT:REF)
-        target_link_libraries(${PROJECT_NAME} PRIVATE DbgHelp.lib)
+        target_link_libraries(${PROJECT_NAME} PUBLIC DbgHelp.lib)
     endif()
 else()
     message(FATAL_ERROR "Unsupported compiler")

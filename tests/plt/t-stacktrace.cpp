@@ -70,23 +70,23 @@ i32 runPltStacktraceTestsSuite() {
     };
 
     {
-        RunTest(callingStacktraceDoesNotCrashTest<core::StdAllocator>);
-        RunTest(callingStacktraceDoesNotCrashTest<core::StdStatsAllocator>);
-        RunTest(callingStacktraceDoesNotCrashTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(callingStacktraceDoesNotCrashTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(callingStacktraceDoesNotCrashTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(callingStacktraceDoesNotCrashTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(stacktraceContainsThisFunctionTest<core::StdAllocator>);
-        RunTest(stacktraceContainsThisFunctionTest<core::StdStatsAllocator>);
-        RunTest(stacktraceContainsThisFunctionTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(stacktraceContainsThisFunctionTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(stacktraceContainsThisFunctionTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(stacktraceContainsThisFunctionTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(stacktraceOnInlinedTest<core::StdAllocator>);
-        RunTest(stacktraceOnInlinedTest<core::StdStatsAllocator>);
-        RunTest(stacktraceOnInlinedTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(stacktraceOnInlinedTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(stacktraceOnInlinedTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(stacktraceOnInlinedTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }

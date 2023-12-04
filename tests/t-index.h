@@ -126,6 +126,17 @@ inline i32 g_testCount = 0;
     { [[maybe_unused]] auto __notused__ = test(__VA_ARGS__); }                                  \
     std::cout << "\t[TEST " << "№ " << g_testCount << ANSI_BOLD(ANSI_GREEN(" PASSED")) << "] " << ANSI_BOLD(#test) << std::endl;
 
+#define RunTest_DisplayMemAllocs(test, allocator, ...)                                                                  \
+    {                                                                                                                   \
+        auto __a_before = allocator::totalAllocatedMem();                                                               \
+        g_testCount++;                                                                                                  \
+        std::cout << "\t[TEST " << "№ " << g_testCount << " RUNNING] " << ANSI_BOLD(#test) << '\n';                     \
+        [[maybe_unused]] auto __notused__ = test(__VA_ARGS__);                                                          \
+        std::cout << "\t[TEST " << "№ " << g_testCount << ANSI_BOLD(ANSI_GREEN(" PASSED")) << "] " << ANSI_BOLD(#test); \
+        auto __a_after = allocator::totalAllocatedMem();                                                                \
+        std::cout << " [TOTAL REQUESTED MEMORY]: " << (__a_after - __a_before) << " bytes" << std::endl;                \
+    }
+
 #if defined(CORE_RUN_COMPILETIME_TESTS) && CORE_RUN_COMPILETIME_TESTS == 1
     #define RunTestCompileTime(test, ...) \
         { [[maybe_unused]] constexpr auto __notused__ = core::force_consteval<test(__VA_ARGS__)>; }

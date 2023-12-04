@@ -33,7 +33,7 @@ concept AllocatorConcept = requires {
     { T::calloc(core::declval<addr_size>(), core::declval<addr_size>()) } noexcept -> core::same_as<void*>;
     { T::free(core::declval<void*>()) } noexcept;
     { T::usedMem() } noexcept -> core::same_as<addr_size>;
-    { T::clear() } noexcept;
+    { T::totalAllocatedMem() } noexcept -> core::same_as<addr_size>;
     { T::isThredSafe() } noexcept -> core::same_as<bool>;
 
     // should be able to construct and integer:
@@ -50,6 +50,7 @@ struct CORE_API_EXPORT StdAllocator {
     static void free(void* ptr) noexcept;
     static void clear() noexcept; // does nothing
     static addr_size usedMem() noexcept; // does nothing
+    static addr_size totalAllocatedMem() noexcept;
     static bool isThredSafe() noexcept;
 
     template <typename T, typename ...Args>
@@ -73,6 +74,7 @@ struct CORE_API_EXPORT StdStatsAllocator {
     static void free(void* ptr) noexcept;
     static void clear() noexcept;
     static addr_size usedMem() noexcept;
+    static addr_size totalAllocatedMem() noexcept;
     static bool isThredSafe() noexcept;
 
     template <typename T, typename ...Args>
@@ -96,6 +98,7 @@ struct CORE_API_EXPORT BumpAllocator {
     static void free(void* ptr) noexcept; // does nothing
     static void clear() noexcept;
     static addr_size usedMem() noexcept;
+    static addr_size totalAllocatedMem() noexcept;
     static bool isThredSafe() noexcept;
 
     template <typename T, typename ...Args>

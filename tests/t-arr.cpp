@@ -620,58 +620,58 @@ i32 runArrTestsSuite() {
     };
 
     {
-        RunTest(initializeArrTest<core::StdAllocator>);
-        RunTest(initializeArrTest<core::StdStatsAllocator>);
-        RunTest(initializeArrTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(initializeArrTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(initializeArrTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(initializeArrTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(moveAndCopyArrTest<core::StdAllocator>);
-        RunTest(moveAndCopyArrTest<core::StdStatsAllocator>);
-        RunTest(moveAndCopyArrTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(moveAndCopyArrTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(moveAndCopyArrTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(moveAndCopyArrTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(resizeArrTest<core::StdAllocator>);
-        RunTest(resizeArrTest<core::StdStatsAllocator>);
-        RunTest(resizeArrTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(resizeArrTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(resizeArrTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(resizeArrTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(fillArrTest<core::StdAllocator>);
-        RunTest(fillArrTest<core::StdStatsAllocator>);
-        RunTest(fillArrTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(fillArrTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(fillArrTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(fillArrTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(appendArrTest<core::StdAllocator>);
-        RunTest(appendArrTest<core::StdStatsAllocator>);
-        RunTest(appendArrTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(appendArrTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(appendArrTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(appendArrTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(arrayOfArraysArrTest<core::StdAllocator>);
-        RunTest(arrayOfArraysArrTest<core::StdStatsAllocator>);
-        RunTest(arrayOfArraysArrTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(arrayOfArraysArrTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(arrayOfArraysArrTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(arrayOfArraysArrTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(clearArrayShouldCallDtorsTest<core::StdAllocator>);
-        RunTest(clearArrayShouldCallDtorsTest<core::StdStatsAllocator>);
-        RunTest(clearArrayShouldCallDtorsTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(clearArrayShouldCallDtorsTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(clearArrayShouldCallDtorsTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(clearArrayShouldCallDtorsTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(removeFromArrayTest<core::StdAllocator>);
-        RunTest(removeFromArrayTest<core::StdStatsAllocator>);
-        RunTest(removeFromArrayTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(removeFromArrayTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(removeFromArrayTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(removeFromArrayTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }

@@ -838,59 +838,59 @@ i32 runHashMapTestsSuite() {
     };
 
     {
-        RunTest(initializeHashMapTest<core::StdAllocator>);
-        RunTest(initializeHashMapTest<core::StdStatsAllocator>);
-        RunTest(initializeHashMapTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(initializeHashMapTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(initializeHashMapTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(initializeHashMapTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(putMoveCopyHashMapTest<core::StdAllocator>);
-        RunTest(putMoveCopyHashMapTest<core::StdStatsAllocator>);
-        RunTest(putMoveCopyHashMapTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(putMoveCopyHashMapTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(putMoveCopyHashMapTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(putMoveCopyHashMapTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(removeFromHashMapTest<core::StdAllocator>);
-        RunTest(removeFromHashMapTest<core::StdStatsAllocator>);
-        RunTest(removeFromHashMapTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(removeFromHashMapTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(removeFromHashMapTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(removeFromHashMapTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(complexTypesInHashMapTest<core::StdAllocator>);
-        RunTest(complexTypesInHashMapTest<core::StdStatsAllocator>);
-        RunTest(complexTypesInHashMapTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(complexTypesInHashMapTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(complexTypesInHashMapTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(complexTypesInHashMapTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(getWhenHashMapIsFilledToCapacityTest<core::StdAllocator>);
-        RunTest(getWhenHashMapIsFilledToCapacityTest<core::StdStatsAllocator>);
-        RunTest(getWhenHashMapIsFilledToCapacityTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(getWhenHashMapIsFilledToCapacityTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(getWhenHashMapIsFilledToCapacityTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(getWhenHashMapIsFilledToCapacityTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
 
     {
-        RunTest(initializeHashSetTest<core::StdAllocator>);
-        RunTest(initializeHashSetTest<core::StdStatsAllocator>);
-        RunTest(initializeHashSetTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(initializeHashSetTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(initializeHashSetTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(initializeHashSetTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(putMoveCopyHashSetTest<core::StdAllocator>);
-        RunTest(putMoveCopyHashSetTest<core::StdStatsAllocator>);
-        RunTest(putMoveCopyHashSetTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(putMoveCopyHashSetTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(putMoveCopyHashSetTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(putMoveCopyHashSetTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(removeFromHashSetTest<core::StdAllocator>);
-        RunTest(removeFromHashSetTest<core::StdStatsAllocator>);
-        RunTest(removeFromHashSetTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(removeFromHashSetTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(removeFromHashSetTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(removeFromHashSetTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }

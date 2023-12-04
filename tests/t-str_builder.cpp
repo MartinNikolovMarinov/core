@@ -628,58 +628,58 @@ i32 runStrBuilderTestsSuite() {
     };
 
     {
-        RunTest(initializeStrBuilderTest<core::StdAllocator>);
-        RunTest(initializeStrBuilderTest<core::StdStatsAllocator>);
-        RunTest(initializeStrBuilderTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(initializeStrBuilderTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(initializeStrBuilderTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(initializeStrBuilderTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(moveAndCopyStrBuilderTest<core::StdAllocator>);
-        RunTest(moveAndCopyStrBuilderTest<core::StdStatsAllocator>);
-        RunTest(moveAndCopyStrBuilderTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(moveAndCopyStrBuilderTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(moveAndCopyStrBuilderTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(moveAndCopyStrBuilderTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(resizeStrBuilderTest<core::StdAllocator>);
-        RunTest(resizeStrBuilderTest<core::StdStatsAllocator>);
-        RunTest(resizeStrBuilderTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(resizeStrBuilderTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(resizeStrBuilderTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(resizeStrBuilderTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(fillStrBuilderTest<core::StdAllocator>);
-        RunTest(fillStrBuilderTest<core::StdStatsAllocator>);
-        RunTest(fillStrBuilderTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(fillStrBuilderTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(fillStrBuilderTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(fillStrBuilderTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(appendStrBuilderTest<core::StdAllocator>);
-        RunTest(appendStrBuilderTest<core::StdStatsAllocator>);
-        RunTest(appendStrBuilderTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(appendStrBuilderTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(appendStrBuilderTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(appendStrBuilderTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(takeAndStealStrBuilderTest<core::StdAllocator>);
-        RunTest(takeAndStealStrBuilderTest<core::StdStatsAllocator>);
-        RunTest(takeAndStealStrBuilderTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(takeAndStealStrBuilderTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(takeAndStealStrBuilderTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(takeAndStealStrBuilderTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(specialCasesRelatedToNullTerminationStrBuilderTest<core::StdAllocator>);
-        RunTest(specialCasesRelatedToNullTerminationStrBuilderTest<core::StdStatsAllocator>);
-        RunTest(specialCasesRelatedToNullTerminationStrBuilderTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(specialCasesRelatedToNullTerminationStrBuilderTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(specialCasesRelatedToNullTerminationStrBuilderTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(specialCasesRelatedToNullTerminationStrBuilderTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(runStrBuilderInArrayAppendRValueBUGTest<core::StdAllocator>);
-        RunTest(runStrBuilderInArrayAppendRValueBUGTest<core::StdStatsAllocator>);
-        RunTest(runStrBuilderInArrayAppendRValueBUGTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(runStrBuilderInArrayAppendRValueBUGTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(runStrBuilderInArrayAppendRValueBUGTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(runStrBuilderInArrayAppendRValueBUGTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }

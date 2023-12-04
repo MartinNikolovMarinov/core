@@ -81,6 +81,7 @@ private:
 
 OOMCallback g_oomCb = nullptr;
 AllocatedBlockList g_allocatedBlocks;
+addr_size g_totalAllocatedMem = 0;
 
 AllocatedBlock* trackMemory(void* addr, addr_size size) {
     auto block = static_cast<AllocatedBlock*>(std::malloc(sizeof(AllocatedBlock)));
@@ -92,6 +93,7 @@ AllocatedBlock* trackMemory(void* addr, addr_size size) {
     block->addr = addr;
     block->size = size;
     g_allocatedBlocks.addBlock(block);
+    g_totalAllocatedMem += size;
     return block;
 }
 
@@ -153,6 +155,10 @@ void StdStatsAllocator::clear() noexcept {
 
 addr_size StdStatsAllocator::usedMem() noexcept {
     return g_allocatedBlocks.used();
+}
+
+addr_size StdStatsAllocator::totalAllocatedMem() noexcept {
+    return g_totalAllocatedMem;
 }
 
 bool StdStatsAllocator::isThredSafe() noexcept {

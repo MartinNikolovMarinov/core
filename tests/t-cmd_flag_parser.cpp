@@ -583,7 +583,7 @@ i32 cmdFlagParserMatchingEdgecasesTest() {
 }
 
 template <typename TAllocator>
-i32 runCmdParserValidationRulesTest() {
+i32 cmdParserValidationRulesTest() {
     using CmdFlagParser = core::CmdFlagParser<TAllocator>;
     using core::sv;
 
@@ -647,7 +647,7 @@ i32 runCmdParserValidationRulesTest() {
 }
 
 template <typename TAllocator>
-i32 runCmdParserAliasTest() {
+i32 cmdParserAliasTest() {
     using CmdFlagParser = core::CmdFlagParser<TAllocator>;
     using core::sv;
 
@@ -707,58 +707,58 @@ i32 runCmdParserTestsSuite() {
     };
 
     {
-        RunTest(cmdFlagParserSymbolParsingTest<core::StdAllocator>);
-        RunTest(cmdFlagParserSymbolParsingTest<core::StdStatsAllocator>);
-        RunTest(cmdFlagParserSymbolParsingTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(cmdFlagParserSymbolParsingTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(cmdFlagParserSymbolParsingTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(cmdFlagParserSymbolParsingTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(cmdFlagParserSymbolParsingLongerTest<core::StdAllocator>);
-        RunTest(cmdFlagParserSymbolParsingLongerTest<core::StdStatsAllocator>);
-        RunTest(cmdFlagParserSymbolParsingLongerTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(cmdFlagParserSymbolParsingLongerTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(cmdFlagParserSymbolParsingLongerTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(cmdFlagParserSymbolParsingLongerTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(cmdFlagParserBasicErrorsTest<core::StdAllocator>);
-        RunTest(cmdFlagParserBasicErrorsTest<core::StdStatsAllocator>);
-        RunTest(cmdFlagParserBasicErrorsTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(cmdFlagParserBasicErrorsTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(cmdFlagParserBasicErrorsTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(cmdFlagParserBasicErrorsTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(cmdFlagParserDoubleParsingTest<core::StdAllocator>);
-        RunTest(cmdFlagParserDoubleParsingTest<core::StdStatsAllocator>);
-        RunTest(cmdFlagParserDoubleParsingTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(cmdFlagParserDoubleParsingTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(cmdFlagParserDoubleParsingTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(cmdFlagParserDoubleParsingTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(cmdFlagParserFriendlyInputMatchingTest<core::StdAllocator>);
-        RunTest(cmdFlagParserFriendlyInputMatchingTest<core::StdStatsAllocator>);
-        RunTest(cmdFlagParserFriendlyInputMatchingTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(cmdFlagParserFriendlyInputMatchingTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(cmdFlagParserFriendlyInputMatchingTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(cmdFlagParserFriendlyInputMatchingTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(cmdFlagParserMatchingEdgecasesTest<core::StdAllocator>);
-        RunTest(cmdFlagParserMatchingEdgecasesTest<core::StdStatsAllocator>);
-        RunTest(cmdFlagParserMatchingEdgecasesTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(cmdFlagParserMatchingEdgecasesTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(cmdFlagParserMatchingEdgecasesTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(cmdFlagParserMatchingEdgecasesTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(runCmdParserValidationRulesTest<core::StdAllocator>);
-        RunTest(runCmdParserValidationRulesTest<core::StdStatsAllocator>);
-        RunTest(runCmdParserValidationRulesTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(cmdParserValidationRulesTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(cmdParserValidationRulesTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(cmdParserValidationRulesTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(runCmdParserAliasTest<core::StdAllocator>);
-        RunTest(runCmdParserAliasTest<core::StdStatsAllocator>);
-        RunTest(runCmdParserAliasTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(cmdParserAliasTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(cmdParserAliasTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(cmdParserAliasTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }

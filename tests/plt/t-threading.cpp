@@ -281,10 +281,10 @@ i32 runPltThreadingTestsSuite() {
 
     // NOTE: The custom allocators are not thread safe, so the only possible test is with the std allocator.
 
-    RunTest(start2ThreadsAndJoinThemTest<core::StdAllocator>);
-    RunTest(mutexPreventsRaceConditionsTest<core::StdAllocator>);
-    RunTest(arrayOfMutexesAndThreadsTest<core::StdAllocator>);
-    RunTest(condVarSignalThreadToContinueWorkTest<core::StdAllocator>);
+    RunTest_DisplayMemAllocs(start2ThreadsAndJoinThemTest<core::StdAllocator>, core::StdAllocator);
+    RunTest_DisplayMemAllocs(mutexPreventsRaceConditionsTest<core::StdAllocator>, core::StdAllocator);
+    RunTest_DisplayMemAllocs(arrayOfMutexesAndThreadsTest<core::StdAllocator>, core::StdAllocator);
+    RunTest_DisplayMemAllocs(condVarSignalThreadToContinueWorkTest<core::StdAllocator>, core::StdAllocator);
 
     return 0;
 }

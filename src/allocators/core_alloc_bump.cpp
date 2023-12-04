@@ -11,6 +11,7 @@ OOMCallback g_oomCb       = nullptr;
 void*       g_container   = nullptr;
 addr_size   g_usedMem     = 0;
 addr_size   g_maxUsedMem  = 0;
+addr_size   g_totalAllocatedMem = 0;
 
 } // namespace
 
@@ -22,6 +23,7 @@ void* BumpAllocator::alloc(addr_size size) noexcept {
     }
     void* ptr = reinterpret_cast<void*>(reinterpret_cast<char*>(g_container) + g_usedMem);
     g_usedMem += size;
+    g_totalAllocatedMem += size;
     return ptr;
 }
 
@@ -41,6 +43,10 @@ void BumpAllocator::clear() noexcept {
 
 addr_size BumpAllocator::usedMem() noexcept {
     return g_usedMem;
+}
+
+addr_size BumpAllocator::totalAllocatedMem() noexcept {
+    return g_totalAllocatedMem;
 }
 
 bool BumpAllocator::isThredSafe() noexcept {

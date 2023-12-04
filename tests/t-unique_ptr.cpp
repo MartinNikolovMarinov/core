@@ -192,37 +192,37 @@ i32 runUniquePtrTestsSuite() {
     };
 
     {
-        RunTest(initializeUniquePtrTest<core::StdAllocator>);
-        RunTest(initializeUniquePtrTest<core::StdStatsAllocator>);
-        RunTest(initializeUniquePtrTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(initializeUniquePtrTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(initializeUniquePtrTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(initializeUniquePtrTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(stealUniquePtrTest<core::StdAllocator>);
-        RunTest(stealUniquePtrTest<core::StdStatsAllocator>);
-        RunTest(stealUniquePtrTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(stealUniquePtrTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(stealUniquePtrTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(stealUniquePtrTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(resetUniquePtrTest<core::StdAllocator>);
-        RunTest(resetUniquePtrTest<core::StdStatsAllocator>);
-        RunTest(resetUniquePtrTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(resetUniquePtrTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(resetUniquePtrTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(resetUniquePtrTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(copyUniquePtrTest<core::StdAllocator>);
-        RunTest(copyUniquePtrTest<core::StdStatsAllocator>);
-        RunTest(copyUniquePtrTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(copyUniquePtrTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(copyUniquePtrTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(copyUniquePtrTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }
     {
-        RunTest(swapUniquePtrTest<core::StdAllocator>);
-        RunTest(swapUniquePtrTest<core::StdStatsAllocator>);
-        RunTest(swapUniquePtrTest<core::BumpAllocator>);
+        RunTest_DisplayMemAllocs(swapUniquePtrTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(swapUniquePtrTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(swapUniquePtrTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }

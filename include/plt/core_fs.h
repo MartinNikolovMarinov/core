@@ -1,13 +1,13 @@
 #pragma once
 
-#include "core_API.h"
 #include "core_alloc.h"
+#include "core_API.h"
 #include "core_arr.h"
 #include "core_expected.h"
 #include "core_str_builder.h"
 #include "core_traits.h"
 #include "core_types.h"
-#include "core_utils.h"
+#include "plt/core_path.h"
 #include "plt/core_plt_error.h"
 
 // TODO: A few more functions that will be necessary:
@@ -16,9 +16,6 @@
 //       - getCurrWorkingDir
 //       - changeCurrWorkingDir
 //       - flush a file descriptor to disc (if possible)
-
-// FIXME: A concreate type for path is needed to address differences in path representation on different platforms.
-// FIXME: Implement recursive directory delete.
 
 namespace core {
 
@@ -111,7 +108,7 @@ CORE_API_EXPORT core::expected<PltErrCode> dirRename(const char* path, const cha
 //        read/write operations.
 
 template <typename TAlloc>
-CORE_API_EXPORT core::expected<PltErrCode> fileReadEntire(const char* path, core::Arr<u8, TAlloc>& out) {
+core::expected<PltErrCode> fileReadEntire(const char* path, core::Arr<u8, TAlloc>& out) {
     FileDesc file;
     {
         auto res = fileOpen(path, OpenMode::Read);
@@ -147,7 +144,7 @@ CORE_API_EXPORT core::expected<PltErrCode> fileReadEntire(const char* path, core
 }
 
 template <typename TAlloc>
-CORE_API_EXPORT core::expected<PltErrCode> fileWriteEntire(const char* path, const core::Arr<u8, TAlloc>& in) {
+core::expected<PltErrCode> fileWriteEntire(const char* path, const core::Arr<u8, TAlloc>& in) {
     FileDesc file;
     {
         auto res = fileOpen(path, OpenMode::Write | OpenMode::Create | OpenMode::Truncate);
@@ -174,6 +171,72 @@ struct DirEntry {
 
 template <typename TCallback>
 core::expected<PltErrCode> dirWalk(const char* path, TCallback cb);
+
+template <typename TAlloc>
+core::expected<PltErrCode> dirDeleteRec(const char* path) {
+    // TODO: [File/Directory Lock] When deleting a directory it is not a bad idea to lock it first,
+    //       or a quick rename of the top level directory before deletion starts to prevent other
+    //       processes from accessing it.
+
+    using Sb = core::StrBuilder<TAlloc>;
+    using DirectoryNames = core::Arr<Sb, TAlloc>;
+
+    Sb fileNameTmpSb;
+    DirectoryNames dirNames;
+    dirNames.append(Sb(path));
+    addr_size workIdx = 0;
+
+    // Delete all files in the directory tree.
+    while (workIdx < dirNames.len()) {
+        PltErrCode fileDelErrCode = ERR_PLT_NONE;
+
+        // NOTE: Using dirNames[workIdx] instead of a reference to it, because the array might be reallocated inside the
+        //       walk callback.
+        auto res = dirWalk(dirNames[workIdx].view().data(), [&](const DirEntry& entry, addr_size) {
+            const auto& curr = dirNames[workIdx];
+
+            if (entry.type == FileType::Directory) {
+                Sb newDirName = curr.copy();
+                newDirName.append(PATH_SEPARATOR);
+                newDirName.append(entry.name);
+                dirNames.append(core::move(newDirName));
+            }
+            else {
+                fileNameTmpSb.clear();
+                fileNameTmpSb.append(curr.view());
+                fileNameTmpSb.append(PATH_SEPARATOR);
+                fileNameTmpSb.append(entry.name);
+                const char* fullFilePath = fileNameTmpSb.view().data();
+                if (auto dres = fileDelete(fullFilePath); dres.hasErr()) {
+                    fileDelErrCode = core::move(dres.err());
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        if (res.hasErr()) {
+            return core::unexpected(res.err());
+        }
+
+        if (fileDelErrCode != ERR_PLT_NONE) {
+            return core::unexpected(fileDelErrCode);
+        }
+
+        workIdx++;
+    }
+
+    // All directories should be empty by now, and thus deletable.
+    for (addr_size i = dirNames.len(); i > 0; i--) {
+        const char* dirPath = dirNames[i - 1].view().data();
+        if (auto dres = dirDelete(dirPath); dres.hasErr()) {
+            return core::unexpected(dres.err());
+        }
+    }
+
+    return {};
+}
 
 } // namespace core
 

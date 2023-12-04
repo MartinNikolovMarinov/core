@@ -37,6 +37,7 @@
 
 #include "plt/core_fs.h"
 #include "plt/core_pages.h"
+#include "plt/core_path.h"
 #include "plt/core_plt_error.h"
 #include "plt/core_stacktrace.h"
 #include "plt/core_threading.h"

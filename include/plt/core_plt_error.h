@@ -20,6 +20,8 @@ constexpr PltErrCode ERR_THREAD_CUSTOM_ERROR_START = detail::ERR_START_OF_CUSTOM
 
 } // namespace detail
 
+constexpr PltErrCode ERR_PLT_NONE = 0;
+
 constexpr PltErrCode ERR_ALLOCATOR_DEFAULT_NO_MEMORY = detail::ERR_MISC_CUSTOM_ERROR_START + 0;
 
 constexpr PltErrCode ERR_THREADING_INVALID_THREAD_NAME = detail::ERR_THREAD_CUSTOM_ERROR_START + 0;

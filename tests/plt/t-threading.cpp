@@ -279,7 +279,7 @@ i32 runPltThreadingTestsSuite() {
     RunTest(threadDetachDoesNotBreak);
     RunTest(getCurrentThreadTest);
 
-    // FIXME: The custom allocators are not thread safe, so the only possible test is with the std allocator.
+    // NOTE: The custom allocators are not thread safe, so the only possible test is with the std allocator.
 
     RunTest(start2ThreadsAndJoinThemTest<core::StdAllocator>);
     RunTest(mutexPreventsRaceConditionsTest<core::StdAllocator>);

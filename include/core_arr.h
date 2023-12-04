@@ -146,15 +146,47 @@ struct Arr {
         return append(other.m_data, other.m_len);
     }
 
-    ContainerType& fill(const DataType& val) {
+    ContainerType& fill(const DataType& val, addr_size from, addr_size to) {
+        if (from >= to) return *this;
+
+        if (to > m_len) {
+            adjustCap(to);
+            m_len = to;
+        }
+
+        addr_size count = to - from;
+
         if constexpr (dataIsTrivial) {
-            core::memfill(m_data, m_len, val);
+            core::memfill(m_data + from, count, val);
         }
         else {
-            for (SizeType i = 0; i < m_len; ++i) {
+            if constexpr (!dataHasTrivialDestructor) {
+                // For elements that are not trivially destructible call destructors manually:
+                for (SizeType i = from; i < count; ++i) {
+                    m_data[i].~T();
+                }
+            }
+
+            for (SizeType i = from; i < count; ++i) {
                 copyDataAt(val, i);
             }
         }
+
+        return *this;
+    }
+
+    ContainerType& remove(SizeType idx) {
+        Assert(idx < m_len);
+        if constexpr (!dataHasTrivialDestructor) {
+            // For elements that are not trivially destructible, call destructors manually:
+            m_data[idx].~T();
+        }
+        if (idx < m_len - 1) {
+            for (SizeType i = idx; i < m_len - 1; ++i) {
+                m_data[i] = m_data[i + 1];
+            }
+        }
+        m_len--;
         return *this;
     }
 

@@ -5,21 +5,60 @@ PRAGMA_WARNING_PUSH
 DISABLE_MSVC_WARNING(4127) // Conditional expression is constant. I don't care here.
 
 constexpr i32 fillStaticArrTest() {
-    core::SArr<i32, 4> arr(3);
+    {
+        core::SArr<i32, 4> arr(3);
 
-    Assert(arr.cap() == 4);
-    Assert(arr.len() == 3);
-    Assert(arr[0] == 0);
-    Assert(arr[1] == 0);
-    Assert(arr[2] == 0);
+        Assert(arr.cap() == 4);
+        Assert(arr.len() == 3);
+        Assert(arr[0] == 0);
+        Assert(arr[1] == 0);
+        Assert(arr[2] == 0);
 
-    arr.fill(1);
+        arr.fill(1, 0, 3);
 
-    Assert(arr.cap() == 4);
-    Assert(arr.len() == 3);
-    Assert(arr[0] == 1);
-    Assert(arr[1] == 1);
-    Assert(arr[2] == 1);
+        Assert(arr.cap() == 4);
+        Assert(arr.len() == 3);
+        Assert(arr[0] == 1);
+        Assert(arr[1] == 1);
+        Assert(arr[2] == 1);
+    }
+
+    {
+        core::SArr<i32, 4> arr(3);
+
+        arr.fill(1, 1, arr.len());
+
+        Assert(arr.cap() == 4);
+        Assert(arr.len() == 3);
+        Assert(arr[0] == 0);
+        Assert(arr[1] == 1);
+        Assert(arr[2] == 1);
+    }
+
+    {
+        core::SArr<i32, 4> arr(3);
+
+        arr.fill(1, 1, 50);
+
+        Assert(arr.cap() == 4);
+        Assert(arr.len() == 4);
+        Assert(arr[0] == 0);
+        Assert(arr[1] == 1);
+        Assert(arr[2] == 1);
+        Assert(arr[3] == 1);
+    }
+
+    {
+        core::SArr<i32, 4> arr(3);
+
+        arr.fill(1, 1, 2);
+
+        Assert(arr.cap() == 4);
+        Assert(arr.len() == 3);
+        Assert(arr[0] == 0);
+        Assert(arr[1] == 1);
+        Assert(arr[2] == 0);
+    }
 
     return 0;
 }
@@ -114,10 +153,49 @@ constexpr i32 copyStaticArrTest() {
     return 0;
 }
 
+constexpr i32 runStaticArrRemoveTest() {
+    core::SArr<i32, 4> arr;
+    arr.append(1);
+    arr.append(2);
+    arr.append(3);
+    arr.append(4);
+
+    Assert(arr.len() == 4);
+    Assert(arr[0] == 1);
+    Assert(arr[1] == 2);
+    Assert(arr[2] == 3);
+    Assert(arr[3] == 4);
+
+    arr.remove(arr.len() - 1);
+
+    Assert(arr.len() == 3);
+    Assert(arr[0] == 1);
+    Assert(arr[1] == 2);
+    Assert(arr[2] == 3);
+
+    arr.remove(1);
+
+    Assert(arr.len() == 2);
+    Assert(arr[0] == 1);
+    Assert(arr[1] == 3);
+
+    arr.remove(0);
+
+    Assert(arr.len() == 1);
+    Assert(arr[0] == 3);
+
+    arr.remove(0);
+
+    Assert(arr.len() == 0);
+
+    return 0;
+}
+
 i32 runStaticArrTestsSuite() {
     RunTest(fillStaticArrTest);
     RunTest(appendStaticArrTest);
     RunTest(copyStaticArrTest);
+    RunTest(runStaticArrRemoveTest);
 
     return 0;
 }
@@ -126,6 +204,7 @@ constexpr i32 runCompletimeStaticArrTestsSuite() {
     RunTestCompileTime(fillStaticArrTest);
     RunTestCompileTime(appendStaticArrTest);
     RunTestCompileTime(copyStaticArrTest);
+    RunTestCompileTime(runStaticArrRemoveTest);
 
     return 0;
 }

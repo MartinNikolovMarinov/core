@@ -20,7 +20,7 @@ struct SArr {
     // trivial copy constructor, trivial copy assignment operator
 
     constexpr SArr() : m_data(), m_len(0) {}
-    constexpr SArr(SizeType len) : m_data(), m_len(len) { fill(DataType()); Assert(m_len <= N); }
+    constexpr SArr(SizeType len) : m_data(), m_len(len) { fill(DataType(), 0, m_len); Assert(m_len <= N); }
     constexpr SArr(const ContainerType& other) = delete; // prevent copy ctor
     constexpr SArr(ContainerType&& other) = default;
 
@@ -68,8 +68,20 @@ struct SArr {
         return *this;
     }
 
-    constexpr ContainerType& fill(const DataType& val) {
-        for (SizeType i = 0; i < m_len; ++i) m_data[i] = val;
+    constexpr ContainerType& fill(const DataType& val, SizeType from, SizeType to) {
+        if (from >= m_len) return *this;
+        if (to > N) to = N;
+        if (to > m_len) m_len = to;
+        for (SizeType i = from; i < to; ++i) m_data[i] = val;
+        return *this;
+    }
+
+    constexpr ContainerType& remove(SizeType idx) {
+        Assert(idx < m_len);
+        for (SizeType i = idx; i < m_len - 1; ++i) {
+            m_data[i] = m_data[i + 1];
+        }
+        m_len--;
         return *this;
     }
 

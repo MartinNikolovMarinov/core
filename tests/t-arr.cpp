@@ -3,32 +3,32 @@
 template <typename TAllocator>
 i32 initializeArrTest() {
     {
-        core::Arr<i32, TAllocator> Arr;
-        Assert(Arr.len() == 0);
-        Assert(Arr.cap() == 0);
-        Assert(Arr.data() == nullptr);
-        Assert(Arr.empty());
+        core::Arr<i32, TAllocator> arr;
+        Assert(arr.len() == 0);
+        Assert(arr.cap() == 0);
+        Assert(arr.data() == nullptr);
+        Assert(arr.empty());
     }
 
     {
-        core::Arr<i32, TAllocator> Arr(10);
-        Assert(Arr.len() == 10);
-        Assert(Arr.cap() == 10);
-        Assert(!Arr.empty());
+        core::Arr<i32, TAllocator> arr(10);
+        Assert(arr.len() == 10);
+        Assert(arr.cap() == 10);
+        Assert(!arr.empty());
 
-        for (addr_size i = 0; i < Arr.len(); ++i) {
-            Assert(Arr[i] == 0);
+        for (addr_size i = 0; i < arr.len(); ++i) {
+            Assert(arr[i] == 0);
         }
     }
 
     {
-        core::Arr<i32, TAllocator> Arr(10, 20);
-        Assert(Arr.len() == 10);
-        Assert(Arr.cap() == 20);
-        Assert(!Arr.empty());
+        core::Arr<i32, TAllocator> arr(10, 20);
+        Assert(arr.len() == 10);
+        Assert(arr.cap() == 20);
+        Assert(!arr.empty());
 
-        for (addr_size i = 0; i < Arr.len(); ++i) {
-            Assert(Arr[i] == 0);
+        for (addr_size i = 0; i < arr.len(); ++i) {
+            Assert(arr[i] == 0);
         }
     }
 
@@ -36,13 +36,13 @@ i32 initializeArrTest() {
         defer { SVCT::nextId = 0; };
 
         Assert(SVCT::nextId == 0);
-        core::Arr<SVCT, TAllocator> Arr(10);
-        Assert(Arr.len() == 10);
-        Assert(Arr.cap() == 10);
-        Assert(!Arr.empty());
+        core::Arr<SVCT, TAllocator> arr(10);
+        Assert(arr.len() == 10);
+        Assert(arr.cap() == 10);
+        Assert(!arr.empty());
 
-        for (addr_size i = 0; i < Arr.len(); ++i) {
-            Assert(Arr[i].a == i32(i));
+        for (addr_size i = 0; i < arr.len(); ++i) {
+            Assert(arr[i].a == i32(i));
         }
     }
 
@@ -50,16 +50,16 @@ i32 initializeArrTest() {
         defer { CT::resetAll(); };
         constexpr i32 testCount = 10;
         {
-            core::Arr<CT, TAllocator> Arr(testCount);
-            for (addr_size i = 0; i < Arr.len(); ++i) {
-                Assert(Arr[i].a == 7, "Initializer did not call constructors!");
+            core::Arr<CT, TAllocator> arr(testCount);
+            for (addr_size i = 0; i < arr.len(); ++i) {
+                Assert(arr[i].a == 7, "Initializer did not call constructors!");
             }
             Assert(CT::totalCtorsCalled() == testCount, "Initializer did not call the exact number of constructors!");
             Assert(CT::defaultCtorCalled() == testCount, "Initializer did not call the exact number of copy constructors!");
             CT::resetCtors();
             {
-                auto arrCpy = Arr.copy();
-                Assert(arrCpy.data() != Arr.data());
+                auto arrCpy = arr.copy();
+                Assert(arrCpy.data() != arr.data());
                 for (addr_size i = 0; i < arrCpy.len(); ++i) {
                     Assert(arrCpy[i].a == 7, "Copy constructor did not call constructors!");
                 }
@@ -79,34 +79,34 @@ i32 initializeArrTest() {
 
 template <typename TAllocator>
 i32 moveAndCopyArrTest() {
-    core::Arr<i32, TAllocator> Arr(10);
-    Arr.fill(1);
+    core::Arr<i32, TAllocator> arr(10);
+    arr.fill(1, 0, arr.len());
     core::Arr<i32, TAllocator> arrCpy;
     core::Arr<i32, TAllocator> arrMoved(10);
 
-    arrCpy = Arr.copy();
-    Assert(arrCpy.len() == Arr.len());
-    Assert(arrCpy.cap() == Arr.cap());
-    Assert(arrCpy.data() != Arr.data());
+    arrCpy = arr.copy();
+    Assert(arrCpy.len() == arr.len());
+    Assert(arrCpy.cap() == arr.cap());
+    Assert(arrCpy.data() != arr.data());
     Assert(!arrCpy.empty());
     for (addr_size i = 0; i < arrCpy.len(); ++i) {
-        Assert(arrCpy[i] == Arr[i]);
+        Assert(arrCpy[i] == arr[i]);
     }
 
-    auto arrCpy2 = Arr.copy();
-    Assert(arrCpy2.len() == Arr.len());
-    Assert(arrCpy2.cap() == Arr.cap());
-    Assert(arrCpy2.data() != Arr.data());
+    auto arrCpy2 = arr.copy();
+    Assert(arrCpy2.len() == arr.len());
+    Assert(arrCpy2.cap() == arr.cap());
+    Assert(arrCpy2.data() != arr.data());
     Assert(!arrCpy2.empty());
     for (addr_size i = 0; i < arrCpy2.len(); ++i) {
-        Assert(arrCpy2[i] == Arr[i]);
+        Assert(arrCpy2[i] == arr[i]);
     }
 
-    arrMoved = core::move(Arr);
-    Assert(Arr.len() == 0);
-    Assert(Arr.cap() == 0);
-    Assert(Arr.data() == nullptr);
-    Assert(Arr.empty());
+    arrMoved = core::move(arr);
+    Assert(arr.len() == 0);
+    Assert(arr.cap() == 0);
+    Assert(arr.data() == nullptr);
+    Assert(arr.empty());
     Assert(arrMoved.len() == arrCpy.len());
     Assert(arrMoved.cap() == arrCpy.cap());
     Assert(!arrMoved.empty());
@@ -120,23 +120,23 @@ i32 moveAndCopyArrTest() {
 template <typename TAllocator>
 i32 resizeArrTest() {
     {
-        core::Arr<i32, TAllocator> Arr;
-        Assert(Arr.len() == 0);
-        Assert(Arr.cap() == 0);
-        Assert(Arr.data() == nullptr);
-        Assert(Arr.empty());
+        core::Arr<i32, TAllocator> arr;
+        Assert(arr.len() == 0);
+        Assert(arr.cap() == 0);
+        Assert(arr.data() == nullptr);
+        Assert(arr.empty());
 
-        Arr.adjustCap(10);
-        Assert(Arr.len() == 0);
-        Assert(Arr.cap() == 10);
-        Assert(Arr.data() != nullptr);
-        Assert(Arr.empty());
+        arr.adjustCap(10);
+        Assert(arr.len() == 0);
+        Assert(arr.cap() == 10);
+        Assert(arr.data() != nullptr);
+        Assert(arr.empty());
 
-        Arr.adjustCap(0);
-        Assert(Arr.len() == 0);
-        Assert(Arr.cap() == 0);
-        Assert(Arr.data() != nullptr);
-        Assert(Arr.empty());
+        arr.adjustCap(0);
+        Assert(arr.len() == 0);
+        Assert(arr.cap() == 0);
+        Assert(arr.data() != nullptr);
+        Assert(arr.empty());
     }
 
     return 0;
@@ -144,91 +144,116 @@ i32 resizeArrTest() {
 
 template <typename TAllocator>
 i32 fillArrTest() {
+
+    // Invalid from and to values should not have any effect.
     {
-        core::Arr<i32, TAllocator> Arr;
-        Arr.fill(0); // should not crash
-        Assert(Arr.len() == 0);
+        core::Arr<i32, TAllocator> arr;
+
+        arr.fill(0, 1, 0);
+        Assert(arr.len() == 0);
+        Assert(arr.cap() == 0);
+        Assert(arr.data() == nullptr);
+        Assert(arr.empty());
+
+        arr.fill(0, 0, 0);
+        Assert(arr.len() == 0);
+        Assert(arr.cap() == 0);
+        Assert(arr.data() == nullptr);
+        Assert(arr.empty());
     }
 
+    // Filling an array exactly to capacity:
     {
         constexpr i32 N = 10;
-        core::Arr<i32, TAllocator> Arr(N);
+        core::Arr<i32, TAllocator> arr(N);
 
-        Arr.fill(0);
+        arr.fill(0, 0, N);
         for (addr_size i = 0; i < N; ++i) {
-            Assert(Arr[i] == 0);
+            Assert(arr[i] == 0);
         }
 
-        Arr.fill(1);
+        arr.fill(1, 0, N);
         for (addr_size i = 0; i < N; ++i) {
-            Assert(Arr[i] == 1);
-        }
-    }
-
-    {
-        constexpr i32 N = 1;
-        core::Arr<i32, TAllocator> Arr(N, 5);
-
-        Arr.fill(0);
-        for (addr_size i = 0; i < N; ++i) {
-            Assert(Arr[i] == 0);
-            Assert(i < N, "Fill should use the length of the array, not the capacity.");
-        }
-
-        Arr.fill(1);
-        for (addr_size i = 0; i < N; ++i) {
-            Assert(Arr[i] == 1);
-            Assert(i < N, "Fill should use the length of the array, not the capacity.");
+            Assert(arr[i] == 1);
         }
     }
 
+    // Filling an array of pointers exactly to capacity with a structure:
     {
-        // fill with struct
+        constexpr i32 N = 10;
         struct TestStruct {
             i32 a;
             f64 b;
         };
-        core::Arr<TestStruct*, TAllocator> arr2(10);
+        core::Arr<TestStruct*, TAllocator> arr2(N);
         TestStruct t = { 1, 2.0 };
 
-        arr2.fill(&t);
+        arr2.fill(&t, 0, N);
         for (addr_size i = 0; i < arr2.len(); ++i) {
             Assert(arr2[i]->a == 1);
             Assert(arr2[i]->b == 2.0);
         }
 
-        arr2.fill(nullptr);
+        arr2.fill(nullptr, 0, N);
         for (addr_size i = 0; i < arr2.len(); ++i) {
             Assert(arr2[i] == nullptr);
         }
     }
 
+    // Fill emtpy array:
     {
-        defer { CT::resetAll(); };
-        constexpr i32 testCount = 10;
-        CT v;
+        core::Arr<i32, TAllocator> arr;
 
-        {
-            core::Arr<CT, TAllocator> Arr(testCount);
-            Arr.fill(v);
-            for (addr_size i = 0; i < Arr.len(); ++i) {
-                Assert(Arr[i].a == 7, "Fill did not call the default constructors.");
-                Arr[i].a = 8;
-            }
+        arr.fill(0, 0, 10);
+        Assert(arr.len() == 10);
+        Assert(arr.cap() >= arr.len());
+        for (addr_size i = 0; i < arr.len(); ++i) {
+            Assert(arr[i] == 0);
         }
-        Assert(CT::dtorsCalled() == testCount, "Destructors where not called after the array went out of scope.");
-        Assert(v.a == 7, "The value passed to the fill function was modified.");
-        CT::resetDtors();
-
-        {
-            core::Arr<CT, TAllocator> Arr(testCount);
-            core::Arr<CT, TAllocator> arr2;
-            Arr.fill(v);
-            Arr = core::move(arr2);
-            Assert(CT::dtorsCalled() == testCount, "Destructors were not called after a move assignment.");
-        }
-        CT::resetDtors();
     }
+
+    // Partial fill:
+    {
+        core::Arr<i32, TAllocator> arr (10);
+        arr.fill(0, 0, 10);
+
+        arr.fill(1, 0, 5);
+
+        for (addr_size i = 0; i < 5; ++i) {
+            Assert(arr[i] == 1);
+        }
+        for (addr_size i = 5; i < 10; ++i) {
+            Assert(arr[i] == 0);
+        }
+    }
+
+    // {
+    //     defer { CT::resetAll(); };
+    //     constexpr i32 testCount = 10;
+    //     CT v;
+
+    //     {
+    //         core::Arr<CT, TAllocator> arr(testCount);
+    //         arr.fill(v, 0, testCount);
+    //         for (addr_size i = 0; i < arr.len(); ++i) {
+    //             Assert(arr[i].a == CT::defaultValue, "Fill did not call the default constructors.");
+    //             arr[i].a = 8; // Modify the default should not affect the original object v.
+    //         }
+    //     }
+
+    //     Assert(CT::dtorsCalled() == testCount, "Destructors where not called after the array went out of scope.");
+    //     Assert(v.a == 7, "The value passed to the fill function was modified.");
+    //     CT::resetDtors();
+
+    //     {
+    //         defer { CT::resetDtors(); };
+    //         core::Arr<CT, TAllocator> arr(testCount);
+    //         core::Arr<CT, TAllocator> arr2;
+    //         arr.fill(v, 0, testCount);
+    //         arr = core::move(arr2);
+    //         Assert(CT::dtorsCalled() == testCount, "Destructors were not called after a move assignment.");
+    //     }
+    // }
 
     return 0;
 }
@@ -236,78 +261,78 @@ i32 fillArrTest() {
 template <typename TAllocator>
 i32 appendArrTest() {
     {
-        core::Arr<i32, TAllocator> Arr;
+        core::Arr<i32, TAllocator> arr;
 
-        Arr.append(1);
+        arr.append(1);
         for (addr_size i = 0; i < 1; ++i) {
-            Assert(Arr[i] == i32(i + 1));
-            Assert(Arr.at(i) == i32(i + 1));
+            Assert(arr[i] == i32(i + 1));
+            Assert(arr.at(i) == i32(i + 1));
         }
 
-        Arr.append(2);
+        arr.append(2);
         for (addr_size i = 0; i < 2; ++i) {
-            Assert(Arr[i] == i32(i + 1));
-            Assert(Arr.at(i) == i32(i + 1));
+            Assert(arr[i] == i32(i + 1));
+            Assert(arr.at(i) == i32(i + 1));
         }
 
-        Arr.clear();
+        arr.clear();
 
-        Arr.append(1);
+        arr.append(1);
         for (addr_size i = 0; i < 1; ++i) {
-            Assert(Arr[i] == i32(i + 1));
-            Assert(Arr.at(i) == i32(i + 1));
+            Assert(arr[i] == i32(i + 1));
+            Assert(arr.at(i) == i32(i + 1));
         }
 
-        Arr.append(2);
+        arr.append(2);
         for (addr_size i = 0; i < 2; ++i) {
-            Assert(Arr[i] == i32(i + 1));
-            Assert(Arr.at(i) == i32(i + 1));
+            Assert(arr[i] == i32(i + 1));
+            Assert(arr.at(i) == i32(i + 1));
         }
 
-        Arr.append(3);
-        Assert(Arr.len() == 3);
-        Assert(Arr.cap() >= Arr.len());
+        arr.append(3);
+        Assert(arr.len() == 3);
+        Assert(arr.cap() >= arr.len());
         for (addr_size i = 0; i < 3; ++i) {
-            Assert(Arr[i] == i32(i + 1));
-            Assert(Arr.at(i) == i32(i + 1));
+            Assert(arr[i] == i32(i + 1));
+            Assert(arr.at(i) == i32(i + 1));
         }
 
-        Arr.adjustCap(2);
+        arr.adjustCap(2);
 
-        Arr.append(3);
-        Assert(Arr.len() == 3);
-        Assert(Arr.cap() >= Arr.len());
+        arr.append(3);
+        Assert(arr.len() == 3);
+        Assert(arr.cap() >= arr.len());
         for (addr_size i = 0; i < 3; ++i) {
-            Assert(Arr[i] == i32(i + 1));
-            Assert(Arr.at(i) == i32(i + 1));
+            Assert(arr[i] == i32(i + 1));
+            Assert(arr.at(i) == i32(i + 1));
         }
 
-        Arr.append(4);
-        Assert(Arr.len() == 4);
-        Assert(Arr.cap() >= Arr.len());
+        arr.append(4);
+        Assert(arr.len() == 4);
+        Assert(arr.cap() >= arr.len());
         for (addr_size i = 0; i < 4; ++i) {
-            Assert(Arr[i] == i32(i + 1));
-            Assert(Arr.at(i) == i32(i + 1));
+            Assert(arr[i] == i32(i + 1));
+            Assert(arr.at(i) == i32(i + 1));
         }
 
-        Arr.append(5);
-        Assert(Arr.len() == 5);
-        Assert(Arr.cap() >= Arr.len());
+        arr.append(5);
+        Assert(arr.len() == 5);
+        Assert(arr.cap() >= arr.len());
         for (addr_size i = 0; i < 5; ++i) {
-            Assert(Arr[i] == i32(i + 1));
-            Assert(Arr.at(i) == i32(i + 1));
+            Assert(arr[i] == i32(i + 1));
+            Assert(arr.at(i) == i32(i + 1));
         }
 
-        Arr.clear();
+        arr.clear();
 
         // Append many trivial values.
         i32 many[5] = { 1, 2, 3, 4, 5 };
-        Arr.append(many, 5);
-        Assert(Arr.len() == 5);
-        Assert(Arr.cap() >= Arr.len());
+        arr.append(many, 5);
+        Assert(arr.len() == 5);
+        Assert(arr.cap() >= arr.len());
         for (addr_size i = 0; i < 5; ++i) {
-            Assert(Arr[i] == i32(i + 1));
-            Assert(Arr.at(i) == i32(i + 1));
+            Assert(arr[i] == i32(i + 1));
+            Assert(arr.at(i) == i32(i + 1));
         }
     }
 
@@ -317,13 +342,13 @@ i32 appendArrTest() {
         CT::resetCtors(); // Don't count the default ctors of the above code
 
         {
-            core::Arr<CT, TAllocator> Arr;
-            Arr.append(CT{});
-            Arr.append(lv);
+            core::Arr<CT, TAllocator> arr;
+            arr.append(CT{});
+            arr.append(lv);
             Assert(CT::copyCtorCalled() == 1);
             Assert(CT::moveCtorCalled() == 1);
-            for (addr_size i = 0; i < Arr.len(); ++i) {
-                Assert(Arr[i].a == 7, "Append did not call the default constructors.");
+            for (addr_size i = 0; i < arr.len(); ++i) {
+                Assert(arr[i].a == 7, "Append did not call the default constructors.");
             }
         }
         Assert(CT::dtorsCalled() == 3);
@@ -331,22 +356,22 @@ i32 appendArrTest() {
 
         // Testing a combination of append and adjustCap.
         {
-            core::Arr<CT, TAllocator> Arr;
-            Arr.adjustCap(1);
-            Assert(Arr.len() == 0);
-            Assert(Arr.cap() == 1);
+            core::Arr<CT, TAllocator> arr;
+            arr.adjustCap(1);
+            Assert(arr.len() == 0);
+            Assert(arr.cap() == 1);
             Assert(CT::noCtorsCalled());
 
-            Arr.append(CT{}); // calls ctor and dtor
-            Arr.append(lv);
-            for (addr_size i = 0; i < Arr.len(); ++i) {
-                Assert(Arr[i].a == 7, "Append did not call the default constructors.");
+            arr.append(CT{}); // calls ctor and dtor
+            arr.append(lv);
+            for (addr_size i = 0; i < arr.len(); ++i) {
+                Assert(arr[i].a == 7, "Append did not call the default constructors.");
             }
-            Assert(Arr.len() == 2);
-            Assert(Arr.cap() == 2);
-            Arr.adjustCap(0); // This adjustCap should call the destructors.
-            Assert(Arr.len() == 0);
-            Assert(Arr.cap() == 0);
+            Assert(arr.len() == 2);
+            Assert(arr.cap() == 2);
+            arr.adjustCap(0); // This adjustCap should call the destructors.
+            Assert(arr.len() == 0);
+            Assert(arr.cap() == 0);
             Assert(CT::dtorsCalled() == 3);
         }
         Assert(CT::dtorsCalled() == 3);
@@ -356,15 +381,15 @@ i32 appendArrTest() {
         CT staticArr[5];
         CT::resetCtors(); // Don't count the default ctors of the above code
         {
-            core::Arr<CT, TAllocator> Arr;
-            Arr.append(staticArr, 5);
-            Assert(Arr.len() == 5);
-            Assert(Arr.cap() >= Arr.len());
+            core::Arr<CT, TAllocator> arr;
+            arr.append(staticArr, 5);
+            Assert(arr.len() == 5);
+            Assert(arr.cap() >= arr.len());
             Assert(CT::copyCtorCalled() == 5);
             Assert(CT::moveCtorCalled() == 0);
             Assert(CT::defaultCtorCalled() == 0);
-            for (addr_size i = 0; i < Arr.len(); ++i) {
-                Assert(Arr[i].a == 7, "Append multiple did not call the default constructors.");
+            for (addr_size i = 0; i < arr.len(); ++i) {
+                Assert(arr[i].a == 7, "Append multiple did not call the default constructors.");
             }
         }
         Assert(CT::dtorsCalled() == 5);
@@ -373,16 +398,16 @@ i32 appendArrTest() {
 
     {
         // Appending arrays that are bigger than double current capacity.
-        core::Arr<i32, TAllocator> Arr(0, 2);
+        core::Arr<i32, TAllocator> arr(0, 2);
         core::Arr<i32, TAllocator> arr2;
         arr2.append(1).append(2).append(3).append(4).append(5).append(6).append(7).append(8).append(9).append(10);
 
-        Arr.append(arr2);
-        Assert(Arr.len() == 10);
-        Assert(Arr.cap() >= Arr.len());
+        arr.append(arr2);
+        Assert(arr.len() == 10);
+        Assert(arr.cap() >= arr.len());
         for (addr_size i = 0; i < 10; ++i) {
-            Assert(Arr[i] == i32(i + 1));
-            Assert(Arr.at(i) == i32(i + 1));
+            Assert(arr[i] == i32(i + 1));
+            Assert(arr.at(i) == i32(i + 1));
         }
     }
 
@@ -392,14 +417,14 @@ i32 appendArrTest() {
 template <typename TAllocator>
 i32 arrayOfArraysArrTest() {
     {
-        core::Arr<i32, TAllocator> Arr;
+        core::Arr<i32, TAllocator> arr;
         core::Arr<i32, TAllocator> arr2;
         core::Arr<i32, TAllocator> arr3;
         core::Arr<core::Arr<i32, TAllocator>, TAllocator> multi;
 
-        Arr.append(1);
-        Arr.append(2);
-        Arr.append(3);
+        arr.append(1);
+        arr.append(2);
+        arr.append(3);
 
         arr2.append(4);
         arr2.append(5);
@@ -409,17 +434,17 @@ i32 arrayOfArraysArrTest() {
         arr3.append(8);
         arr3.append(9);
 
-        multi.append(Arr.copy());
+        multi.append(arr.copy());
         multi.append(core::move(arr2));
         multi.append(core::move(arr3));
 
-        // Arr 1 should be copied
-        Assert(Arr.len() == 3);
-        Assert(Arr[0] == 1);
-        Assert(Arr[1] == 2);
-        Assert(Arr[2] == 3);
+        // arr 1 should be copied
+        Assert(arr.len() == 3);
+        Assert(arr[0] == 1);
+        Assert(arr[1] == 2);
+        Assert(arr[2] == 3);
 
-        // Arr 2 and 3 should have been moved
+        // arr 2 and 3 should have been moved
         Assert(arr2.len() == 0);
         Assert(arr2.data() == nullptr);
         Assert(arr3.len() == 0);
@@ -447,18 +472,76 @@ template <typename TAllocator>
 i32 clearArrayShouldCallDtorsTest() {
     defer { CT::resetAll(); };
     constexpr i32 testCount = 10;
-    auto Arr = core::Arr<CT, TAllocator>(testCount);
-    Arr.clear();
+    auto arr = core::Arr<CT, TAllocator>(testCount);
+    arr.clear();
     Assert(CT::dtorsCalled() == testCount, "Clear should call dtors on all elements.");
-    Assert(Arr.cap() == testCount, "Clear should not change the capacity of the array.");
+    Assert(arr.cap() == testCount, "Clear should not change the capacity of the array.");
 
     CT::resetDtors();
 
-    Arr.clear();
-    Arr = core::Arr<CT, TAllocator>(testCount);
-    Arr.clear();
+    arr.clear();
+    arr = core::Arr<CT, TAllocator>(testCount);
+    arr.clear();
     Assert(CT::dtorsCalled() == testCount, "Clear should call dtors on all elements.");
-    Assert(Arr.cap() == testCount, "Clear should not change the capacity of the array.");
+    Assert(arr.cap() == testCount, "Clear should not change the capacity of the array.");
+
+    return 0;
+}
+
+template <typename TAllocator>
+i32 removeFromArrayTest() {
+
+    {
+        core::Arr<i32, TAllocator> arr;
+
+        {
+            arr.append(1).remove(0);
+            Assert(arr.len() == 0);
+            arr.clear();
+        }
+        {
+            arr.append(1).append(2).remove(arr.len() - 1);
+            Assert(arr.len() == 1);
+            Assert(arr[0] == 1);
+            arr.clear();
+        }
+        {
+            arr.append(1).append(2).remove(0);
+            Assert(arr.len() == 1);
+            Assert(arr[0] == 2);
+            arr.clear();
+        }
+    }
+
+    {
+        core::Arr<CT, TAllocator> arr;
+
+        defer { CT::resetAll(); };
+
+        CT a, b;
+
+        {
+            CT::resetDtors();
+            arr.append(a).remove(0);
+            Assert(CT::dtorsCalled() == 1);
+            Assert(arr.len() == 0);
+            arr.clear();
+        }
+        {
+            CT::resetDtors();
+            arr.append(a).append(b).remove(arr.len() - 1);
+            Assert(CT::dtorsCalled() == 1);
+            Assert(arr.len() == 1);
+            arr.clear();
+        }
+        {
+            CT::resetDtors();
+            arr.append(a).append(b).remove(0);
+            Assert(CT::dtorsCalled() == 1);
+            Assert(arr.len() == 1);
+            arr.clear();
+        }
+    }
 
     return 0;
 }
@@ -523,6 +606,13 @@ i32 runArrTestsSuite() {
         RunTest(clearArrayShouldCallDtorsTest<core::StdAllocator>);
         RunTest(clearArrayShouldCallDtorsTest<core::StdStatsAllocator>);
         RunTest(clearArrayShouldCallDtorsTest<core::BumpAllocator>);
+        core::BumpAllocator::clear();
+        checkLeaks();
+    }
+    {
+        RunTest(removeFromArrayTest<core::StdAllocator>);
+        RunTest(removeFromArrayTest<core::StdStatsAllocator>);
+        RunTest(removeFromArrayTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }

@@ -513,27 +513,10 @@ i32 basicListDirectoryContentsTest() {
 
     // Delete directory
     {
-        // FIXME: Remove this once dirDelete is recursive!
-        // Delete the test files inside the directory
-        {
-            for (addr_size i = 0; i < basicFileNamesLen; ++i) {
-                pb.resetFilePart();
-                pb.setFileName(basicFileNames[i]);
-                auto res = core::fileDelete(pb.path());
-                Assert(!res.hasErr());
-            }
-
-            for (addr_size i = 0; i < basicDirNamesLen; ++i) {
-                pb.resetFilePart();
-                pb.setFileName(basicDirNames[i]);
-                auto res = core::dirDelete(pb.path());
-                Assert(!res.hasErr());
-            }
-
-            pb.resetFilePart();
-        }
-
-        auto res = core::dirDelete(pb.path());
+        constexpr addr_size BUF_SIZE = core::KILOBYTE;
+        char buff[BUF_SIZE];
+        core::BumpAllocator::init(nullptr, buff, BUF_SIZE);
+        auto res = core::dirDeleteRec<core::BumpAllocator>(pb.path());
         Assert(!res.hasErr());
     }
 

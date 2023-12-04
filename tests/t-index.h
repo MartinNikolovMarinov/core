@@ -160,21 +160,22 @@ i32 runRndTestsSuite();
 i32 runStaticArrTestsSuite();
 i32 runStrBuilderTestsSuite();
 i32 runTraitsTestsSuite();
+i32 runTransformsTestsSuite();
 i32 runTupleTestsSuite();
 i32 runUniquePtrTestsSuite();
 i32 runUtfTestsSuite();
 i32 runVecTestsSuite();
-i32 runTransformsTestsSuite();
 
 i32 runBumpAllocatorTestsSuite();
 i32 runStdAllocatorTestsSuite();
 i32 runStdStatsAllocatorTestsSuite();
 
+i32 runPltErrorTestsSuite();
+i32 runPltFileSystemTestsSuite();
+i32 runPltPagesTestsSuite();
+i32 runPltPathTestsSuite();
 i32 runPltStacktraceTestsSuite();
 i32 runPltThreadingTestsSuite();
 i32 runPltTimeTestsSuite();
-i32 runPltErrorTestsSuite();
-i32 runPltPagesTestsSuite();
-i32 runPltFileSystemTestsSuite();
 
 i32 runAllTests();

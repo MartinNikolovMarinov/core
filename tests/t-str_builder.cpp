@@ -585,6 +585,34 @@ i32 specialCasesRelatedToNullTerminationStrBuilderTest() {
     return 0;
 }
 
+template <typename TAllocator>
+i32 runStrBuilderInArrayAppendRValueBUGTest() {
+    using Sb = core::StrBuilder<TAllocator>;
+    using SbArr = core::Arr<Sb, TAllocator>;
+
+    SbArr arr;
+
+    arr.append(Sb("hello"));
+
+    Sb& rFromArr = arr[0];
+    Sb newValue = rFromArr.copy();
+    newValue.append(" world!");
+    newValue[0] = 'H';
+
+    arr.append(core::move(newValue));
+
+    // NOTE: Remember that after this append the array will be reallocated and the rFromArr reference will become invalid.
+
+    Assert(arr.len() == 2);
+    Assert(arr[0].len() == 5);
+    Assert(arr[1].len() == 12);
+
+    Assert(core::cptrEq(arr[0].view().buff, "hello", 5));
+    Assert(core::cptrEq(arr[1].view().buff, "Hello world!", 12));
+
+    return 0;
+}
+
 i32 runStrBuilderTestsSuite() {
     constexpr addr_size BUFF_SIZE = core::KILOBYTE;
     char buf[BUFF_SIZE];
@@ -645,6 +673,13 @@ i32 runStrBuilderTestsSuite() {
         RunTest(specialCasesRelatedToNullTerminationStrBuilderTest<core::StdAllocator>);
         RunTest(specialCasesRelatedToNullTerminationStrBuilderTest<core::StdStatsAllocator>);
         RunTest(specialCasesRelatedToNullTerminationStrBuilderTest<core::BumpAllocator>);
+        core::BumpAllocator::clear();
+        checkLeaks();
+    }
+    {
+        RunTest(runStrBuilderInArrayAppendRValueBUGTest<core::StdAllocator>);
+        RunTest(runStrBuilderInArrayAppendRValueBUGTest<core::StdStatsAllocator>);
+        RunTest(runStrBuilderInArrayAppendRValueBUGTest<core::BumpAllocator>);
         core::BumpAllocator::clear();
         checkLeaks();
     }

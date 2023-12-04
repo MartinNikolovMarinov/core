@@ -21,8 +21,6 @@ template <typename TAlloc>
 bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
                 i32 nStackFrames, i32 skipFrames) {
 
-    static_assert(AllocatorConcept<TAlloc>, "TAlloc must satisfy the AllocatorConcept");
-
     auto writeToBuf = [&](const char* s) -> bool {
         auto slen = core::cptrLen(s);
         if (bufWritten + slen >= bufMax) {

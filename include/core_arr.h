@@ -23,16 +23,12 @@ struct Arr {
     Arr() : m_data(nullptr), m_cap(0), m_len(0) {}
     Arr(SizeType len) : m_data(nullptr), m_cap(len), m_len(len) {
         if (m_cap > 0) {
-            m_data = reinterpret_cast<DataType *>(AllocatorType::alloc(m_cap * sizeof(DataType)));
-            Assert(m_data != nullptr);
             callDefaultCtorsIfTypeIsNonTrivial();
         }
     }
     Arr(SizeType len, SizeType cap) : m_data(nullptr), m_cap(cap), m_len(len) {
         Assert(m_cap >= m_len);
         if (m_cap > 0) {
-            m_data = reinterpret_cast<DataType *>(AllocatorType::alloc(m_cap * sizeof(DataType)));
-            Assert(m_data != nullptr);
             callDefaultCtorsIfTypeIsNonTrivial();
         }
     }
@@ -59,12 +55,13 @@ struct Arr {
         return *this;
     }
 
-    SizeType  cap()     const { return m_cap; }
-    SizeType  byteCap() const { return m_cap * sizeof(DataType); }
-    SizeType  len()     const { return m_len; }
-    SizeType  byteLen() const { return m_len * sizeof(DataType); }
-    DataType* data()    const { return m_data; }
-    bool      empty()   const { return m_len == 0; }
+    SizeType        cap()     const { return m_cap; }
+    SizeType        byteCap() const { return m_cap * sizeof(DataType); }
+    SizeType        len()     const { return m_len; }
+    SizeType        byteLen() const { return m_len * sizeof(DataType); }
+    DataType*       data()          { return m_data; }
+    const DataType* data()    const { return m_data; }
+    bool            empty()   const { return m_len == 0; }
 
     void clear() {
         if constexpr (!dataHasTrivialDestructor) {
@@ -255,12 +252,15 @@ private:
     inline void callDefaultCtorsIfTypeIsNonTrivial() {
         // This is exactly the same as calling fill(T()) but it has slightly less overhead.
         if constexpr (!dataIsTrivial) {
+            m_data = reinterpret_cast<DataType *>(AllocatorType::alloc(m_cap * sizeof(DataType)));
+            Assert(m_data != nullptr);
             for (SizeType i = 0; i < m_len; ++i) {
                 new (&m_data[i]) DataType();
             }
         }
         else {
-            core::memfill(m_data, m_len, 0);
+            m_data = reinterpret_cast<DataType *>(AllocatorType::calloc(m_cap, sizeof(DataType)));
+            Assert(m_data != nullptr);
         }
     }
 };

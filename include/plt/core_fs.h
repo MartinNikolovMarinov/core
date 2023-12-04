@@ -118,8 +118,6 @@ core::expected<PltErrCode> fileReadEntire(const char* path, core::Arr<u8, TAlloc
         file = core::move(res.value());
     }
 
-    out.clear();
-
     addr_size size = 0;
     {
         auto res = fileSize(file);
@@ -129,13 +127,16 @@ core::expected<PltErrCode> fileReadEntire(const char* path, core::Arr<u8, TAlloc
         size = res.value();
     }
 
-    if (out.cap() < size) {
-        out.adjustCap(size);
+    if (out.len() < size) {
+        out = core::Arr<u8, TAlloc>(size, size);
+    }
+    else {
+        out.clear();
     }
 
     {
-        auto res = fileRead(file, out.data(), out.size());
-        if (!res) {
+        auto res = fileRead(file, out.data(), out.len());
+        if (res.hasErr()) {
             return core::unexpected(res.err());
         }
     }
@@ -155,7 +156,7 @@ core::expected<PltErrCode> fileWriteEntire(const char* path, const core::Arr<u8,
     }
 
     {
-        auto res = fileWrite(file, in.data(), in.size());
+        auto res = fileWrite(file, in.data(), in.len());
         if (res.hasErr()) {
             return core::unexpected(res.err());
         }

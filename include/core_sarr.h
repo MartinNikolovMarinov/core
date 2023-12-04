@@ -33,13 +33,14 @@ struct SArr {
         return ret;
     }
 
-    constexpr SizeType cap()     const { return N; }
-    constexpr SizeType byteCap() const { return N * sizeof(DataType); }
-    constexpr SizeType len()     const { return m_len; }
-    constexpr SizeType byteLen() const { return m_len * sizeof(DataType); }
-    constexpr DataType* data()   const { return m_data; }
-    constexpr bool empty()       const { return m_len == 0; }
-    constexpr void clear()             { m_len = 0; }
+    constexpr SizeType        cap()     const { return N; }
+    constexpr SizeType        byteCap() const { return N * sizeof(DataType); }
+    constexpr SizeType        len()     const { return m_len; }
+    constexpr SizeType        byteLen() const { return m_len * sizeof(DataType); }
+    constexpr DataType*       data()          { return m_data; }
+    constexpr const DataType* data()    const { return m_data; }
+    constexpr bool            empty()   const { return m_len == 0; }
+    constexpr void            clear()         { m_len = 0; }
 
     constexpr DataType& at(SizeType idx)                     { return m_data[idx]; }
     constexpr const DataType& at(SizeType idx)         const { return m_data[idx]; }

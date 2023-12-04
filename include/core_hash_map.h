@@ -213,7 +213,7 @@ struct HashMap {
     }
 
     template <typename TKeyCb>
-    inline const ContainerType& keys(const TKeyCb& cb) const {
+    inline const ContainerType& keys(TKeyCb cb) const {
         if (m_buckets == nullptr) return *this;
         for (SizeType i = 0; i < m_cap; ++i) {
             if (m_buckets[i].occupied) {
@@ -226,12 +226,12 @@ struct HashMap {
     }
 
     template <typename TKeyCb>
-    inline  ContainerType& keys(const TKeyCb& cb) {
+    inline  ContainerType& keys(TKeyCb cb) {
         return const_cast<ContainerType&>(static_cast<const ContainerType&>(*this).keys(cb));
     }
 
     template <typename TDataCb>
-    inline const ContainerType& values(const TDataCb& cb) const {
+    inline const ContainerType& values(TDataCb cb) const {
         if (m_buckets == nullptr) return *this;
         for (SizeType i = 0; i < m_cap; ++i) {
             if (m_buckets[i].occupied) {
@@ -244,12 +244,12 @@ struct HashMap {
     }
 
     template <typename TDataCb>
-    inline ContainerType& values(const TDataCb& cb) {
+    inline ContainerType& values(TDataCb cb) {
         return const_cast<ContainerType&>(static_cast<const ContainerType&>(*this).values(cb));
     }
 
     template <typename TKVCb>
-    inline const ContainerType& kvs(const TKVCb& cb) const {
+    inline const ContainerType& kvs(TKVCb cb) const {
         if (m_buckets == nullptr) return *this;
         for (SizeType i = 0; i < m_cap; ++i) {
             if (m_buckets[i].occupied) {
@@ -262,7 +262,7 @@ struct HashMap {
     }
 
     template <typename TKVCb>
-    inline ContainerType& kvs(const TKVCb& cb) {
+    inline ContainerType& kvs(TKVCb cb) {
         return const_cast<ContainerType&>(static_cast<const ContainerType&>(*this).kvs(cb));
     }
 
@@ -457,7 +457,7 @@ struct HashSet {
     }
 
     template <typename TKeyCb>
-    inline const ContainerType& keys(const TKeyCb& cb) const {
+    inline const ContainerType& keys(TKeyCb cb) const {
         if (m_buckets == nullptr) return *this;
         for (SizeType i = 0; i < m_cap; ++i) {
             if (m_buckets[i].occupied) {
@@ -470,7 +470,7 @@ struct HashSet {
     }
 
     template <typename TKeyCb>
-    inline ContainerType& keys(const TKeyCb& cb) {
+    inline ContainerType& keys(TKeyCb cb) {
         return const_cast<ContainerType&>(static_cast<const ContainerType&>(*this).keys(cb));
     }
 

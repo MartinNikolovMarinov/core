@@ -523,7 +523,7 @@ i32 basicListDirectoryContentsTest() {
     return 0;
 }
 
-// FIXME: Create a table test for fileReadEntire and fileWriteEntire with stat and size checks.
+// TODO: Create a table test for fileReadEntire and fileWriteEntire with stat and size checks.
 //        This will make sure that the API works on a basic level.
 
 i32 runPltFileSystemTestsSuite() {

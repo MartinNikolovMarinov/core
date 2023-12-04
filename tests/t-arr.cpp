@@ -227,33 +227,92 @@ i32 fillArrTest() {
         }
     }
 
-    // {
-    //     defer { CT::resetAll(); };
-    //     constexpr i32 testCount = 10;
-    //     CT v;
+    // Assure proper object destructors are called:
+    {
+        CT::resetAll();
+        defer { CT::resetAll(); };
+        constexpr i32 testCount = 10;
+        CT v;
 
-    //     {
-    //         core::Arr<CT, TAllocator> arr(testCount);
-    //         arr.fill(v, 0, testCount);
-    //         for (addr_size i = 0; i < arr.len(); ++i) {
-    //             Assert(arr[i].a == CT::defaultValue, "Fill did not call the default constructors.");
-    //             arr[i].a = 8; // Modify the default should not affect the original object v.
-    //         }
-    //     }
+        {
+            core::Arr<CT, TAllocator> arr;
+            arr.fill(v, 0, testCount);
+            for (addr_size i = 0; i < arr.len(); ++i) {
+                Assert(arr[i].a == CT::defaultValue, "Fill did not call the default constructors.");
+                arr[i].a = 8; // Modify the default should not affect the original object v.
+            }
+            Assert(CT::dtorsCalled() == 0, "No destructors should be called by fill in this case.");
+            Assert(v.a == 7, "The value passed to the fill function was modified.");
+        }
+        Assert(CT::dtorsCalled() == testCount, "Destructors where not called after the array went out of scope.");
+        CT::resetAll();
 
-    //     Assert(CT::dtorsCalled() == testCount, "Destructors where not called after the array went out of scope.");
-    //     Assert(v.a == 7, "The value passed to the fill function was modified.");
-    //     CT::resetDtors();
+        {
+            v.a = 9; // Fill must use this value!
 
-    //     {
-    //         defer { CT::resetDtors(); };
-    //         core::Arr<CT, TAllocator> arr(testCount);
-    //         core::Arr<CT, TAllocator> arr2;
-    //         arr.fill(v, 0, testCount);
-    //         arr = core::move(arr2);
-    //         Assert(CT::dtorsCalled() == testCount, "Destructors were not called after a move assignment.");
-    //     }
-    // }
+            core::Arr<CT, TAllocator> arr(testCount); // Initially all elements are default constructed.
+
+            arr.fill(v, 0, testCount / 2); // Filling half to assert that the ones that are overwritten are freed.
+
+            for (addr_size i = 0; i < testCount / 2; ++i) {
+                Assert(arr[i].a == 9, "Fill did not work.");
+            }
+            for (addr_size i = testCount / 2; i < arr.len(); ++i) {
+                Assert(arr[i].a == CT::defaultValue, "Fill overwrote elements that it should not have.");
+            }
+            Assert(CT::dtorsCalled() == testCount / 2, "Exactly half of the destructors should have been called by fill.");
+
+            arr.fill(v, testCount / 2, testCount); // Filling the rest of the array should call the remaining destructors.
+
+            for (addr_size i = 0; i < arr.len(); ++i) {
+                Assert(arr[i].a == 9, "Fill did not work.");
+            }
+            Assert(CT::dtorsCalled() == testCount, "All destructors should have been called by fill.");
+
+            CT::resetDtors();
+        }
+        Assert(CT::dtorsCalled() == testCount, "Destructors where not called after the array went out of scope.");
+        CT::resetAll();
+
+        {
+            v.a = 7; // Fill must use this value!
+
+            core::Arr<CT, TAllocator> arr(testCount / 2); // Initially half of the elements are default constructed.
+
+            arr.fill(v, 0, testCount); // Filling the whole array should call only half of the destructors.
+
+            for (addr_size i = 0; i < arr.len(); ++i) {
+                Assert(arr[i].a == 7, "Fill did not work.");
+            }
+            Assert(CT::dtorsCalled() == testCount / 2, "Exactly half of the destructors should have been called by fill.");
+
+            CT::resetDtors();
+        }
+        Assert(CT::dtorsCalled() == testCount, "Destructors where not called after the array went out of scope.");
+        CT::resetAll();
+
+        {
+            v.a = 200; // Fill must use this value!
+
+            core::Arr<CT, TAllocator> arr(testCount); // Initially all elements are default constructed.
+
+            arr.fill(v, 2, 5); // Filling a range of the array should call only the destructors of the overwritten elements.
+
+            for (addr_size i = 0; i < arr.len(); ++i) {
+                if (i >= 2 && i < 5) {
+                    Assert(arr[i].a == 200, "Fill did not work.");
+                }
+                else {
+                    Assert(arr[i].a == CT::defaultValue, "Fill overwrote elements that it should not have.");
+                }
+            }
+            Assert(CT::dtorsCalled() == 3, "Exactly 3 destructors should have been called by fill.");
+
+            CT::resetDtors();
+        }
+        Assert(CT::dtorsCalled() == testCount, "Destructors where not called after the array went out of scope.");
+        CT::resetAll();
+    }
 
     return 0;
 }

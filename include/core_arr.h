@@ -1,9 +1,10 @@
 #pragma once
 
-#include <core_types.h>
 #include <core_alloc.h>
 #include <core_mem.h>
 #include <core_traits.h>
+#include <core_types.h>
+#include <math/core_math.h>
 
 namespace core {
 
@@ -149,6 +150,7 @@ struct Arr {
     ContainerType& fill(const DataType& val, addr_size from, addr_size to) {
         if (from >= to) return *this;
 
+        [[maybe_unused]] addr_size overwriteIdx = core::min(to, m_len);
         if (to > m_len) {
             adjustCap(to);
             m_len = to;
@@ -161,13 +163,13 @@ struct Arr {
         }
         else {
             if constexpr (!dataHasTrivialDestructor) {
-                // For elements that are not trivially destructible call destructors manually:
-                for (SizeType i = from; i < count; ++i) {
+                // Destroy only the elements that are being overwritten:
+                for (SizeType i = from; i < overwriteIdx; ++i) {
                     m_data[i].~T();
                 }
             }
 
-            for (SizeType i = from; i < count; ++i) {
+            for (SizeType i = from; i < from + count; ++i) {
                 copyDataAt(val, i);
             }
         }

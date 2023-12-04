@@ -4,7 +4,7 @@
 #
 # Credit and appreciation goes to the original author, Cristian Adam, for sharing the knowledge.
 
-name: CMake All Build Matrix
+name: CMake MAC Build Matrix
 
 on: [ workflow_dispatch ] # Trigger manually only
 
@@ -19,78 +19,6 @@ jobs:
       fail-fast: false
       matrix:
         config:
-        - {
-            name: "Ubuntu with GCC Debug static", os: ubuntu-latest,
-            cc: "gcc", cxx: "g++",
-            cmake_preset: "debug test static"
-          }
-        - {
-            name: "Ubuntu with GCC Debug shared", os: ubuntu-latest,
-            cc: "gcc", cxx: "g++",
-            cmake_preset: "debug test shared"
-          }
-        - {
-            name: "Ubuntu with GCC Release static", os: ubuntu-latest,
-            cc: "gcc", cxx: "g++",
-            cmake_preset: "release test static"
-          }
-        - {
-            name: "Ubuntu with GCC Release shared", os: ubuntu-latest,
-            cc: "gcc", cxx: "g++",
-            cmake_preset: "release test shared"
-          }
-        - {
-            name: "Ubuntu with Clang Debug static", os: ubuntu-latest,
-            cc: "clang", cxx: "clang++",
-            cmake_preset: "debug test static"
-          }
-        - {
-            name: "Ubuntu with Clang Debug shared", os: ubuntu-latest,
-            cc: "clang", cxx: "clang++",
-            cmake_preset: "debug test shared"
-          }
-        - {
-            name: "Ubuntu with Clang Release static", os: ubuntu-latest,
-            cc: "clang", cxx: "clang++",
-            cmake_preset: "release test static"
-          }
-        - {
-            name: "Ubuntu with Clang Release shared", os: ubuntu-latest,
-            cc: "clang", cxx: "clang++",
-            cmake_preset: "release test shared"
-          }
-        - {
-            name: "Windows with MSVC Debug static", os: windows-latest,
-            cc: "cl", cxx: "cl",
-            environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
-            cmake_preset: "debug test static",
-            cmake_build_config: "--config Debug",
-            ctest_config: "-C Debug",
-          }
-        - {
-            name: "Windows with MSVC Debug shared", os: windows-latest,
-            cc: "cl", cxx: "cl",
-            environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
-            cmake_preset: "debug test shared",
-            cmake_build_config: "--config Debug",
-            ctest_config: "-C Debug",
-          }
-        - {
-            name: "Windows with MSVC Release static", os: windows-latest,
-            cc: "cl", cxx: "cl",
-            environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
-            cmake_preset: "release test static",
-            cmake_build_config: "--config Release",
-            ctest_config: "-C Release",
-          }
-        - {
-            name: "Windows with MSVC Release shared", os: windows-latest,
-            cc: "cl", cxx: "cl",
-            environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
-            cmake_preset: "release test shared",
-            cmake_build_config: "--config Release",
-            ctest_config: "-C Release",
-          }
         - {
             name: "MacOS with Clang Debug static", os: macos-latest,
             cc: "clang", cxx: "clang++",

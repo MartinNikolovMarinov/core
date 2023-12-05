@@ -605,6 +605,25 @@ i32 removeFromArrayTest() {
     return 0;
 }
 
+template <typename TAllocator>
+i32 resetArrayTest() {
+    auto unmanaged = reinterpret_cast<u8*>(TAllocator::alloc(256));
+    core::memset(unmanaged, 5, 256);
+
+    core::Arr<u8, TAllocator> arr;
+    arr.reset(unmanaged, 256); // arr becomes the owner and thus must free the memory when it goes out of scope.
+
+    Assert(arr.len() == 256);
+    Assert(arr.cap() == 256);
+    Assert(arr.data() == unmanaged);
+
+    for (addr_size i = 0; i < arr.len(); ++i) {
+        Assert(arr[i] == 5);
+    }
+
+    return 0;
+}
+
 i32 runArrTestsSuite() {
     constexpr addr_size BUFF_SIZE = core::KILOBYTE;
     char buf[BUFF_SIZE];
@@ -672,6 +691,13 @@ i32 runArrTestsSuite() {
         RunTest_DisplayMemAllocs(removeFromArrayTest<core::StdAllocator>, core::StdAllocator);
         RunTest_DisplayMemAllocs(removeFromArrayTest<core::StdStatsAllocator>, core::StdStatsAllocator);
         RunTest_DisplayMemAllocs(removeFromArrayTest<core::BumpAllocator>, core::BumpAllocator);
+        core::BumpAllocator::clear();
+        checkLeaks();
+    }
+    {
+        RunTest_DisplayMemAllocs(resetArrayTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(resetArrayTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(resetArrayTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }

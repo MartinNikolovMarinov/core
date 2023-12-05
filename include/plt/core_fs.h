@@ -109,6 +109,8 @@ CORE_API_EXPORT core::expected<PltErrCode> dirRename(const char* path, const cha
 
 template <typename TAlloc>
 core::expected<PltErrCode> fileReadEntire(const char* path, core::Arr<u8, TAlloc>& out) {
+    using DataTypePtr = core::Arr<u8, TAlloc>::DataType*;
+
     FileDesc file;
     {
         auto res = fileOpen(path, OpenMode::Read);
@@ -127,8 +129,12 @@ core::expected<PltErrCode> fileReadEntire(const char* path, core::Arr<u8, TAlloc
         size = res.value();
     }
 
+    if (size == 0) return {};
+
     if (out.len() < size) {
-        out = core::Arr<u8, TAlloc>(size, size);
+        // Deliberately avoiding zeroing out memory here!
+        auto data = reinterpret_cast<DataTypePtr>(TAlloc::alloc(size * sizeof(u8)));
+        out.reset(data, size);
     }
     else {
         out.clear();
@@ -146,6 +152,8 @@ core::expected<PltErrCode> fileReadEntire(const char* path, core::Arr<u8, TAlloc
 
 template <typename TAlloc>
 core::expected<PltErrCode> fileWriteEntire(const char* path, const core::Arr<u8, TAlloc>& in) {
+    if (in.len() == 0) return {};
+
     FileDesc file;
     {
         auto res = fileOpen(path, OpenMode::Write | OpenMode::Create | OpenMode::Truncate);

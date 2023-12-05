@@ -189,6 +189,15 @@ struct Arr {
         return *this;
     }
 
+    // This is the "I know what I am doing" method. Gives ownership of data to the array. The array's destructor will
+    // free it, so if a different allocator was used to allocate the data the results are undefined.
+    void reset(DataType* data, SizeType len) {
+        free();
+        m_data = data;
+        m_cap = len;
+        m_len = len;
+    }
+
     void adjustCap(SizeType newCap) {
         if (newCap <= m_cap) {
             if constexpr (dataIsTrivial) {

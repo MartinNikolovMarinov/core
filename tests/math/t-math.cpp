@@ -117,11 +117,11 @@ constexpr i32 pow2Test() {
 }
 
 constexpr i32 degreesTest() {
-    Assert(core::degToRad(0.0f) == 0.0f);
-    Assert(core::degToRad(90.0f) == core::PI / 2.0f);
-    Assert(core::degToRad(180.0f) == core::PI);
-    Assert(core::degToRad(270.0f) == core::PI * 1.5f);
-    Assert(core::degToRad(360.0f) == core::PI * 2.0f);
+    Assert(core::degToRad(0.0f).value == 0.0f);
+    Assert(core::degToRad(90.0f).value == core::PI / 2.0f);
+    Assert(core::degToRad(180.0f).value == core::PI);
+    Assert(core::degToRad(270.0f).value == core::PI * 1.5f);
+    Assert(core::degToRad(360.0f).value == core::PI * 2.0f);
 
     Assert(core::radToDeg(core::radians(0.0f)) == 0.0f);
     Assert(core::radToDeg(core::radians(core::PI / 2.0f)) == 90.0f);

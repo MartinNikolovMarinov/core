@@ -77,7 +77,7 @@ inline vec2<TFloat> rotate(const vec2<TFloat>& v, const vec2<TFloat>& origin, co
 template<typename TFloat>
 inline vec2<TFloat> rotateRight(const vec2<TFloat>& v, const vec2<TFloat>& origin, core::radians angle) {
     angle.value = -angle.value;
-    return rotate(v, origin, f32(angle));
+    return rotate(v, origin, angle);
 }
 
 // Rotate 3D
@@ -140,7 +140,7 @@ inline mat4<TFloat> rotateX(const mat4<TFloat>& m, core::radians angle) {
 template<typename TFloat>
 inline mat4<TFloat> rotateXRight(const mat4<TFloat>& m, core::radians angle) {
     angle.value = -angle.value;
-    return rotateX(m, f32(angle));
+    return rotateX(m, angle);
 }
 
 template<typename TFloat>
@@ -164,7 +164,7 @@ inline mat4<TFloat> rotateY(const mat4<TFloat>& m, core::radians angle) {
 template<typename TFloat>
 inline mat4<TFloat> rotateYRight(const mat4<TFloat>& m, core::radians angle) {
     angle.value = -angle.value;
-    return rotateY(m, f32(angle));
+    return rotateY(m, angle);
 }
 
 template<typename TFloat>
@@ -188,7 +188,7 @@ inline mat4<TFloat> rotateZ(const mat4<TFloat>& m, core::radians angle) {
 template<typename TFloat>
 inline mat4<TFloat> rotateZRight(const mat4<TFloat>& m, core::radians angle) {
     angle.value = -angle.value;
-    return rotateZ(m, f32(angle));
+    return rotateZ(m, angle);
 }
 
 }

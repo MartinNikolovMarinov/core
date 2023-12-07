@@ -542,7 +542,7 @@ struct radians {
     radians(const radians&) = default;
     radians(radians&&) = default;
     constexpr explicit radians(f32 v) : value(v) {}
-    constexpr operator f32() const { return value; }
+    constexpr explicit operator f32() const { return value; }
 };
 
 // Should be obvious to the compiler that this struct is a very simple wrapper over a single f32.

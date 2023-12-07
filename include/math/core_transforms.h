@@ -66,8 +66,8 @@ template<typename TFloat>
 inline vec2<TFloat> rotate(const vec2<TFloat>& v, const vec2<TFloat>& origin, core::radians angle) {
     static_assert(core::is_float_v<TFloat>, "type must be floating point");
     vec2<TFloat> ret = v;
-    TFloat c = core::cos(angle);
-    TFloat s = core::sin(angle);
+    TFloat c = core::cos(f32(angle));
+    TFloat s = core::sin(f32(angle));
     ret -= origin;
     ret = core::v<TFloat>(ret.x() * c - ret.y() * s, ret.x() * s + ret.y() * c);
     ret += origin;
@@ -77,21 +77,17 @@ inline vec2<TFloat> rotate(const vec2<TFloat>& v, const vec2<TFloat>& origin, co
 template<typename TFloat>
 inline vec2<TFloat> rotateRight(const vec2<TFloat>& v, const vec2<TFloat>& origin, core::radians angle) {
     angle.value = -angle.value;
-    return rotate(v, origin, angle);
+    return rotate(v, origin, f32(angle));
 }
 
 // Rotate 3D
-
-constexpr static vec3f X_AXIS = core::v(1.f, 0.f, 0.f);
-constexpr static vec3f Y_AXIS = core::v(0.f, 1.f, 0.f);
-constexpr static vec3f Z_AXIS = core::v(0.f, 0.f, 1.f);
 
 template<typename TFloat>
 inline mat4<TFloat> rotate(const mat4<TFloat>& m, const vec3<TFloat>& a, core::radians angle) {
     static_assert(core::is_float_v<TFloat>, "type must be floating point");
 
-    TFloat c = core::cos(angle);
-    TFloat s = core::sin(angle);
+    TFloat c = core::cos(f32(angle));
+    TFloat s = core::sin(f32(angle));
     TFloat t = TFloat(1) - c;
 
     vec3<TFloat> axis = a.norm(); // I could assume that the axis is always normalized to avoid this call.
@@ -127,8 +123,8 @@ template<typename TFloat>
 inline mat4<TFloat> rotateX(const mat4<TFloat>& m, core::radians angle) {
     static_assert(core::is_float_v<TFloat>, "type must be floating point");
 
-    TFloat c = core::cos(angle);
-    TFloat s = core::sin(angle);
+    TFloat c = core::cos(f32(angle));
+    TFloat s = core::sin(f32(angle));
 
     mat4<TFloat> r (
         1, 0, 0, 0,
@@ -144,15 +140,15 @@ inline mat4<TFloat> rotateX(const mat4<TFloat>& m, core::radians angle) {
 template<typename TFloat>
 inline mat4<TFloat> rotateXRight(const mat4<TFloat>& m, core::radians angle) {
     angle.value = -angle.value;
-    return rotateX(m, angle);
+    return rotateX(m, f32(angle));
 }
 
 template<typename TFloat>
 inline mat4<TFloat> rotateY(const mat4<TFloat>& m, core::radians angle) {
     static_assert(core::is_float_v<TFloat>, "type must be floating point");
 
-    TFloat c = core::cos(angle);
-    TFloat s = core::sin(angle);
+    TFloat c = core::cos(f32(angle));
+    TFloat s = core::sin(f32(angle));
 
     mat4<TFloat> r (
         c, 0,-s, 0,
@@ -168,15 +164,15 @@ inline mat4<TFloat> rotateY(const mat4<TFloat>& m, core::radians angle) {
 template<typename TFloat>
 inline mat4<TFloat> rotateYRight(const mat4<TFloat>& m, core::radians angle) {
     angle.value = -angle.value;
-    return rotateY(m, angle);
+    return rotateY(m, f32(angle));
 }
 
 template<typename TFloat>
 inline mat4<TFloat> rotateZ(const mat4<TFloat>& m, core::radians angle) {
     static_assert(core::is_float_v<TFloat>, "type must be floating point");
 
-    TFloat c = core::cos(angle);
-    TFloat s = core::sin(angle);
+    TFloat c = core::cos(f32(angle));
+    TFloat s = core::sin(f32(angle));
 
     mat4<TFloat> r (
         c, s, 0, 0,
@@ -192,7 +188,7 @@ inline mat4<TFloat> rotateZ(const mat4<TFloat>& m, core::radians angle) {
 template<typename TFloat>
 inline mat4<TFloat> rotateZRight(const mat4<TFloat>& m, core::radians angle) {
     angle.value = -angle.value;
-    return rotateZ(m, angle);
+    return rotateZ(m, f32(angle));
 }
 
 }

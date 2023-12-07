@@ -109,7 +109,7 @@ CORE_API_EXPORT core::expected<PltErrCode> dirRename(const char* path, const cha
 
 template <typename TAlloc>
 core::expected<PltErrCode> fileReadEntire(const char* path, core::Arr<u8, TAlloc>& out) {
-    using DataTypePtr = core::Arr<u8, TAlloc>::DataType*;
+    using DataTypePtr = typename core::Arr<u8, TAlloc>::DataType*;
 
     FileDesc file;
     {

@@ -49,7 +49,7 @@ CORE_API_EXPORT globalAssertHandlerPtr getGlobalAssertHandler();
     #if defined(CORE_ASSERT_ENABLED) && CORE_ASSERT_ENABLED
         #define Panic(...) Assert(__VA_ARGS__)
     #else
-        #define Panic(...) *(volatile coretypes::i32 *)0 = 0;
+        #define Panic(...) *reinterpret_cast<volatile coretypes::i32 *>(0) = 0;
     #endif
 #endif
 

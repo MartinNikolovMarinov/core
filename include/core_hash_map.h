@@ -89,7 +89,7 @@ concept HashableConcept = requires {
 
 template<typename TKey, typename TValue, typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
 struct HashMap {
-    static_assert(core::is_pod_v<TKey>, "TKey must be pod type");
+    static_assert(core::is_trivially_destructible_v<TKey>, "TKey must be trivially destructible");
     static_assert(HashableConcept<TKey>, "TKey must be hashable");
 
     using DataType       = TValue;
@@ -105,7 +105,6 @@ struct HashMap {
     };
 
     static constexpr SizeType DEFAULT_CAP = 16;
-    static constexpr bool dataIsTrivial = core::is_trivial_v<DataType>;
     static constexpr bool dataHasTrivialDestructor = core::is_trivially_destructible_v<DataType>;
 
     HashMap() : m_buckets(nullptr), m_cap(0), m_len(0) {};
@@ -142,7 +141,7 @@ struct HashMap {
     bool     empty()   const { return m_len == 0; }
 
     void clear() {
-        if constexpr (!dataIsTrivial) {
+        if constexpr (!dataHasTrivialDestructor) {
             for (SizeType i = 0; i < m_cap; ++i) {
                 if (m_buckets[i].occupied) {
                     m_buckets[i].data.~DataType();
@@ -340,7 +339,7 @@ private:
 
 template<typename TKey, typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
 struct HashSet {
-    static_assert(core::is_pod_v<TKey>, "TKey must be pod type");
+    static_assert(core::is_trivially_destructible_v<TKey>, "TKey must be trivially destructible");
     static_assert(HashableConcept<TKey>, "TKey must be hashable");
 
     using KeyType       = TKey;

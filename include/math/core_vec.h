@@ -61,14 +61,12 @@ constexpr void vmul(vec<Dim, T>& dst, typename vec<Dim, T>::DataType val) {
 template<addr_size Dim, typename TDst, typename TSrc>
 constexpr void vdiv(vec<Dim, TDst>& dst, const vec<Dim, TSrc>& src) {
     for (addr_size i = 0; i < dst.dimensions(); ++i) {
-        Assert(static_cast<TDst>(src[i]) != 0, "Division by zero");
         dst[i] /= static_cast<TDst>(src[i]);
     }
 }
 template<addr_size Dim, typename T>
 constexpr void vdiv(vec<Dim, T>& dst, typename vec<Dim, T>::DataType val) {
     for (addr_size i = 0; i < dst.dimensions(); ++i) {
-        Assert(static_cast<T>(val) != 0, "Division by zero");
         dst[i] /= static_cast<T>(val);
     }
 }
@@ -294,14 +292,8 @@ struct vec {
     template<addr_size D = Dim, typename core::enable_if<(D > 3), addr_size>::type = 0> constexpr const DataType& w() const { return data[3]; }
     template<addr_size D = Dim, typename core::enable_if<(D > 3), addr_size>::type = 0> constexpr const DataType& a() const { return data[3]; }
 
-    constexpr DataType& operator[](addr_size i) {
-        Assert(i >= 0 && i < Dim, "Index out of bounds");
-        return data[i];
-    }
-    constexpr const DataType& operator[](addr_size i) const {
-        Assert(i >= 0 && i < Dim, "Index out of bounds");
-        return data[i];
-    }
+    constexpr DataType& operator[](addr_size i) { return data[i]; }
+    constexpr const DataType& operator[](addr_size i) const { return data[i]; }
 
     constexpr bool equals(const vec<Dim, DataType>& other) const                   { return vequals(*this, other); }
     constexpr bool equals(const vec<Dim, DataType>& other, DataType epsilon) const { return vsafeequals(*this, other, epsilon); }

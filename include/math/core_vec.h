@@ -7,67 +7,67 @@ namespace core {
 
 using namespace coretypes;
 
-template<i32 Dim, typename T> struct vec;
+template<addr_size Dim, typename T> struct vec;
 
 #pragma region Static Vector Operations
 
 // Add
 
-template<i32 Dim, typename TDst, typename TSrc>
+template<addr_size Dim, typename TDst, typename TSrc>
 constexpr void vadd(vec<Dim, TDst>& dst, const vec<Dim, TSrc>& src) {
-    for (i32 i = 0; i < dst.dimensions(); ++i) {
+    for (addr_size i = 0; i < dst.dimensions(); ++i) {
         dst[i] += static_cast<TDst>(src[i]);
     }
 }
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr void vadd(vec<Dim, T>& dst, typename vec<Dim, T>::DataType val) {
-    for (i32 i = 0; i < dst.dimensions(); ++i) {
+    for (addr_size i = 0; i < dst.dimensions(); ++i) {
         dst[i] += val;
     }
 }
 
 // Subtract
 
-template<i32 Dim, typename TDst, typename TSrc>
+template<addr_size Dim, typename TDst, typename TSrc>
 constexpr void vsub(vec<Dim, TDst>& dst, const vec<Dim, TSrc>& src) {
-    for (i32 i = 0; i < dst.dimensions(); ++i) {
+    for (addr_size i = 0; i < dst.dimensions(); ++i) {
         dst[i] -= static_cast<TDst>(src[i]);
     }
 }
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr void vsub(vec<Dim, T>& dst, typename vec<Dim, T>::DataType val) {
-    for (i32 i = 0; i < dst.dimensions(); ++i) {
+    for (addr_size i = 0; i < dst.dimensions(); ++i) {
         dst[i] -= val;
     }
 }
 
 // Multiplication
 
-template<i32 Dim, typename TDst, typename TSrc>
+template<addr_size Dim, typename TDst, typename TSrc>
 constexpr void vmul(vec<Dim, TDst>& dst, const vec<Dim, TSrc>& src) {
-    for (i32 i = 0; i < dst.dimensions(); ++i) {
+    for (addr_size i = 0; i < dst.dimensions(); ++i) {
         dst[i] *= static_cast<TDst>(src[i]);
     }
 }
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr void vmul(vec<Dim, T>& dst, typename vec<Dim, T>::DataType val) {
-    for (i32 i = 0; i < dst.dimensions(); ++i) {
+    for (addr_size i = 0; i < dst.dimensions(); ++i) {
         dst[i] *= val;
     }
 }
 
 // Division
 
-template<i32 Dim, typename TDst, typename TSrc>
+template<addr_size Dim, typename TDst, typename TSrc>
 constexpr void vdiv(vec<Dim, TDst>& dst, const vec<Dim, TSrc>& src) {
-    for (i32 i = 0; i < dst.dimensions(); ++i) {
+    for (addr_size i = 0; i < dst.dimensions(); ++i) {
         Assert(static_cast<TDst>(src[i]) != 0, "Division by zero");
         dst[i] /= static_cast<TDst>(src[i]);
     }
 }
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr void vdiv(vec<Dim, T>& dst, typename vec<Dim, T>::DataType val) {
-    for (i32 i = 0; i < dst.dimensions(); ++i) {
+    for (addr_size i = 0; i < dst.dimensions(); ++i) {
         Assert(static_cast<T>(val) != 0, "Division by zero");
         dst[i] /= static_cast<T>(val);
     }
@@ -75,16 +75,16 @@ constexpr void vdiv(vec<Dim, T>& dst, typename vec<Dim, T>::DataType val) {
 
 // Length
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr f64 vlengthsq(const vec<Dim, T>& v) {
     f64 ret = 0;
-    for (i32 i = 0; i < v.dimensions(); ++i) {
+    for (addr_size i = 0; i < v.dimensions(); ++i) {
         ret += static_cast<f64>(v[i]) * static_cast<f64>(v[i]);
     }
     return ret;
 }
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr f64 vlength(const vec<Dim, T>& v) {
     f64 ret = vlengthsq(v);
     ret = core::sqrt(ret);
@@ -93,19 +93,19 @@ constexpr f64 vlength(const vec<Dim, T>& v) {
 
 // Negation
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr void vnegate(vec<Dim, T>& v) {
-    for (i32 i = 0; i < v.dimensions(); ++i) {
+    for (addr_size i = 0; i < v.dimensions(); ++i) {
         v[i] = -v[i];
     }
 }
 
 // Dot Product
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr f64 vdot(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
     f64 ret = 0;
-    for (i32 i = 0; i < v1.dimensions(); ++i) {
+    for (addr_size i = 0; i < v1.dimensions(); ++i) {
         ret += f64(v1[i]) * f64(v2[i]);
     }
     return ret;
@@ -113,7 +113,7 @@ constexpr f64 vdot(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
 
 // Cross Product
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> vcross(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
     vec<Dim, T> ret;
 
@@ -125,7 +125,7 @@ constexpr vec<Dim, T> vcross(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
         return ret;
     }
     else { // else here prevents unreachable code warnings
-        for (i32 i = 0; i < v1.dimensions(); ++i) {
+        for (addr_size i = 0; i < v1.dimensions(); ++i) {
             ret[i] = v1[(i + 1) % v1.dimensions()] * v2[(i + 2) % v1.dimensions()] -
                     v1[(i + 2) % v1.dimensions()] * v2[(i + 1) % v1.dimensions()];
         }
@@ -135,16 +135,16 @@ constexpr vec<Dim, T> vcross(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
 
 // Equality
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr bool vequals(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
-    for (i32 i = 0; i < v1.dimensions(); ++i) {
+    for (addr_size i = 0; i < v1.dimensions(); ++i) {
         if (v1[i] != v2[i]) return false;
     }
     return true;
 }
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr bool vsafeequals(const vec<Dim, T>& v1, const vec<Dim, T>& v2, T epsilon) {
-    for (i32 i = 0; i < v1.dimensions(); ++i) {
+    for (addr_size i = 0; i < v1.dimensions(); ++i) {
         if (!core::safeEq(v1[i], v2[i], epsilon)) return false;
     }
     return true;
@@ -152,10 +152,10 @@ constexpr bool vsafeequals(const vec<Dim, T>& v1, const vec<Dim, T>& v2, T epsil
 
 // Uniform
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 static constexpr vec<Dim, T> vuniform(typename vec<Dim, T>::DataType val) {
     vec<Dim, T> ret;
-    for (i32 i = 0; i < Dim; ++i) {
+    for (addr_size i = 0; i < Dim; ++i) {
         ret[i] = val;
     }
     return ret;
@@ -163,10 +163,10 @@ static constexpr vec<Dim, T> vuniform(typename vec<Dim, T>::DataType val) {
 
 // Zero Vector
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> vzero() {
     vec<Dim, T> ret;
-    for (i32 i = 0; i < Dim; ++i) {
+    for (addr_size i = 0; i < Dim; ++i) {
         ret[i] = 0;
     }
     return ret;
@@ -174,10 +174,10 @@ constexpr vec<Dim, T> vzero() {
 
 // One Vector
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> vone() {
     vec<Dim, T> ret;
-    for (i32 i = 0; i < Dim; ++i) {
+    for (addr_size i = 0; i < Dim; ++i) {
         ret[i] = 1;
     }
     return ret;
@@ -185,12 +185,12 @@ constexpr vec<Dim, T> vone() {
 
 // Normalization
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> vnorm(const vec<Dim, T>& v) {
     f64 len = vlength(v);
     if (len == 0) return vzero<Dim, T>();
     vec<Dim, T> ret = v;
-    for (i32 i = 0; i < v.dimensions(); ++i) {
+    for (addr_size i = 0; i < v.dimensions(); ++i) {
         ret[i] /= static_cast<T>(len);
     }
     return ret;
@@ -198,20 +198,20 @@ constexpr vec<Dim, T> vnorm(const vec<Dim, T>& v) {
 
 // Absolute Value
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> vabs(const vec<Dim, T>& v) {
     vec<Dim, T> ret;
-    for (i32 i = 0; i < v.dimensions(); ++i) {
+    for (addr_size i = 0; i < v.dimensions(); ++i) {
         ret[i] = core::abs(v[i]);
     }
     return ret;
 }
 
 // Round Value
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> vround(const vec<Dim, T>& v) {
     vec<Dim, T> ret;
-    for (i32 i = 0; i < v.dimensions(); ++i) {
+    for (addr_size i = 0; i < v.dimensions(); ++i) {
         ret[i] = core::round(v[i]);
     }
     return ret;
@@ -219,10 +219,10 @@ constexpr vec<Dim, T> vround(const vec<Dim, T>& v) {
 
 // Max Value
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> vmax(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
     vec<Dim, T> ret;
-    for (i32 i = 0; i < v1.dimensions(); ++i) {
+    for (addr_size i = 0; i < v1.dimensions(); ++i) {
         ret[i] = core::max(v1[i], v2[i]);
     }
     return ret;
@@ -230,10 +230,10 @@ constexpr vec<Dim, T> vmax(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
 
 // Min Value
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> vmin(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
     vec<Dim, T> ret;
-    for (i32 i = 0; i < v1.dimensions(); ++i) {
+    for (addr_size i = 0; i < v1.dimensions(); ++i) {
         ret[i] = core::min(v1[i], v2[i]);
     }
     return ret;
@@ -241,10 +241,10 @@ constexpr vec<Dim, T> vmin(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
 
 // Ceiling
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> vceil(const vec<Dim, T>& v) {
     vec<Dim, T> ret;
-    for (i32 i = 0; i < v.dimensions(); ++i) {
+    for (addr_size i = 0; i < v.dimensions(); ++i) {
         ret[i] = core::ceil(v[i]);
     }
     return ret;
@@ -252,10 +252,10 @@ constexpr vec<Dim, T> vceil(const vec<Dim, T>& v) {
 
 // Floor
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> vfloor(const vec<Dim, T>& v) {
     vec<Dim, T> ret;
-    for (i32 i = 0; i < v.dimensions(); ++i) {
+    for (addr_size i = 0; i < v.dimensions(); ++i) {
         ret[i] = core::floor(v[i]);
     }
     return ret;
@@ -263,42 +263,42 @@ constexpr vec<Dim, T> vfloor(const vec<Dim, T>& v) {
 
 #pragma endregion
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 struct vec {
     using DataType = T;
     static_assert(core::is_trivial_v<DataType>, "DataType must be trivial");
     static_assert(core::is_arithmetic_v<DataType>, "DataType must be arithmetic Type");
     static_assert(Dim > 0, "Dim must be greater than 0");
 
-    static constexpr i32 dimensions() { return Dim; }
+    static constexpr addr_size dimensions() { return Dim; }
 
-    DataType data[addr_size(Dim)] = {}; // initializing to zero allows use in constexpr.
+    DataType data[addr_size(Dim)]; // initializing to zero allows use in constexpr.
 
-    constexpr vec() = default;
+    vec() = default;
 
-    template<i32 D = Dim, typename core::enable_if<(D > 0), i32>::type = 0> constexpr DataType& x() { return data[0]; }
-    template<i32 D = Dim, typename core::enable_if<(D > 0), i32>::type = 0> constexpr DataType& r() { return data[0]; }
-    template<i32 D = Dim, typename core::enable_if<(D > 1), i32>::type = 0> constexpr DataType& y() { return data[1]; }
-    template<i32 D = Dim, typename core::enable_if<(D > 1), i32>::type = 0> constexpr DataType& g() { return data[1]; }
-    template<i32 D = Dim, typename core::enable_if<(D > 2), i32>::type = 0> constexpr DataType& z() { return data[2]; }
-    template<i32 D = Dim, typename core::enable_if<(D > 2), i32>::type = 0> constexpr DataType& b() { return data[2]; }
-    template<i32 D = Dim, typename core::enable_if<(D > 3), i32>::type = 0> constexpr DataType& w() { return data[3]; }
-    template<i32 D = Dim, typename core::enable_if<(D > 3), i32>::type = 0> constexpr DataType& a() { return data[3]; }
+    template<addr_size D = Dim, typename core::enable_if<(D > 0), addr_size>::type = 0> constexpr DataType& x() { return data[0]; }
+    template<addr_size D = Dim, typename core::enable_if<(D > 0), addr_size>::type = 0> constexpr DataType& r() { return data[0]; }
+    template<addr_size D = Dim, typename core::enable_if<(D > 1), addr_size>::type = 0> constexpr DataType& y() { return data[1]; }
+    template<addr_size D = Dim, typename core::enable_if<(D > 1), addr_size>::type = 0> constexpr DataType& g() { return data[1]; }
+    template<addr_size D = Dim, typename core::enable_if<(D > 2), addr_size>::type = 0> constexpr DataType& z() { return data[2]; }
+    template<addr_size D = Dim, typename core::enable_if<(D > 2), addr_size>::type = 0> constexpr DataType& b() { return data[2]; }
+    template<addr_size D = Dim, typename core::enable_if<(D > 3), addr_size>::type = 0> constexpr DataType& w() { return data[3]; }
+    template<addr_size D = Dim, typename core::enable_if<(D > 3), addr_size>::type = 0> constexpr DataType& a() { return data[3]; }
 
-    template<i32 D = Dim, typename core::enable_if<(D > 0), i32>::type = 0> constexpr const DataType& x() const { return data[0]; }
-    template<i32 D = Dim, typename core::enable_if<(D > 0), i32>::type = 0> constexpr const DataType& r() const { return data[0]; }
-    template<i32 D = Dim, typename core::enable_if<(D > 1), i32>::type = 0> constexpr const DataType& y() const { return data[1]; }
-    template<i32 D = Dim, typename core::enable_if<(D > 1), i32>::type = 0> constexpr const DataType& g() const { return data[1]; }
-    template<i32 D = Dim, typename core::enable_if<(D > 2), i32>::type = 0> constexpr const DataType& z() const { return data[2]; }
-    template<i32 D = Dim, typename core::enable_if<(D > 2), i32>::type = 0> constexpr const DataType& b() const { return data[2]; }
-    template<i32 D = Dim, typename core::enable_if<(D > 3), i32>::type = 0> constexpr const DataType& w() const { return data[3]; }
-    template<i32 D = Dim, typename core::enable_if<(D > 3), i32>::type = 0> constexpr const DataType& a() const { return data[3]; }
+    template<addr_size D = Dim, typename core::enable_if<(D > 0), addr_size>::type = 0> constexpr const DataType& x() const { return data[0]; }
+    template<addr_size D = Dim, typename core::enable_if<(D > 0), addr_size>::type = 0> constexpr const DataType& r() const { return data[0]; }
+    template<addr_size D = Dim, typename core::enable_if<(D > 1), addr_size>::type = 0> constexpr const DataType& y() const { return data[1]; }
+    template<addr_size D = Dim, typename core::enable_if<(D > 1), addr_size>::type = 0> constexpr const DataType& g() const { return data[1]; }
+    template<addr_size D = Dim, typename core::enable_if<(D > 2), addr_size>::type = 0> constexpr const DataType& z() const { return data[2]; }
+    template<addr_size D = Dim, typename core::enable_if<(D > 2), addr_size>::type = 0> constexpr const DataType& b() const { return data[2]; }
+    template<addr_size D = Dim, typename core::enable_if<(D > 3), addr_size>::type = 0> constexpr const DataType& w() const { return data[3]; }
+    template<addr_size D = Dim, typename core::enable_if<(D > 3), addr_size>::type = 0> constexpr const DataType& a() const { return data[3]; }
 
-    constexpr DataType& operator[](i32 i) {
+    constexpr DataType& operator[](addr_size i) {
         Assert(i >= 0 && i < Dim, "Index out of bounds");
         return data[i];
     }
-    constexpr const DataType& operator[](i32 i) const {
+    constexpr const DataType& operator[](addr_size i) const {
         Assert(i >= 0 && i < Dim, "Index out of bounds");
         return data[i];
     }
@@ -359,19 +359,19 @@ struct vec {
 
 #pragma region overloads "+"
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> operator+(const vec<Dim, T>& lhs, const vec<Dim, T>& rhs) {
     vec<Dim, T> ret = lhs;
     ret.add(rhs);
     return ret;
 }
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> operator+(const vec<Dim, T>& lhs, typename vec<Dim, T>::DataType rhs) {
     vec<Dim, T> ret = lhs;
     ret.add(rhs);
     return ret;
 }
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> operator+(typename vec<Dim, T>::DataType lhs, const vec<Dim, T>& rhs) {
     vec<Dim, T> ret = rhs;
     ret.add(lhs);
@@ -382,22 +382,22 @@ constexpr vec<Dim, T> operator+(typename vec<Dim, T>::DataType lhs, const vec<Di
 
 #pragma region overloads "-"
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> operator-(const vec<Dim, T>& lhs, const vec<Dim, T>& rhs) {
     vec<Dim, T> ret = lhs;
     ret.sub(rhs);
     return ret;
 }
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> operator-(const vec<Dim, T>& lhs, typename vec<Dim, T>::DataType rhs) {
     vec<Dim, T> ret = lhs;
     ret.sub(rhs);
     return ret;
 }
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> operator-(typename vec<Dim, T>::DataType lhs, const vec<Dim, T>& rhs) {
     vec<Dim, T> ret = rhs;
-    for (i32 i = 0; i < ret.dimensions(); ++i) {
+    for (addr_size i = 0; i < ret.dimensions(); ++i) {
         ret[i] = -(ret[i] - static_cast<T>(lhs));
     }
     return ret;
@@ -407,19 +407,19 @@ constexpr vec<Dim, T> operator-(typename vec<Dim, T>::DataType lhs, const vec<Di
 
 #pragma region overloads "*"
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> operator*(const vec<Dim, T>& lhs, const vec<Dim, T>& rhs) {
     vec<Dim, T> ret = lhs;
     ret.mul(rhs);
     return ret;
 }
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> operator*(const vec<Dim, T>& lhs, typename vec<Dim, T>::DataType rhs) {
     vec<Dim, T> ret = lhs;
     ret.mul(rhs);
     return ret;
 }
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> operator*(typename vec<Dim, T>::DataType lhs, const vec<Dim, T>& rhs) {
     vec<Dim, T> ret = rhs;
     ret.mul(lhs);
@@ -430,22 +430,22 @@ constexpr vec<Dim, T> operator*(typename vec<Dim, T>::DataType lhs, const vec<Di
 
 #pragma region overloads "/"
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> operator/(const vec<Dim, T>& lhs, const vec<Dim, T>& rhs) {
     vec<Dim, T> ret = lhs;
     ret.div(rhs);
     return ret;
 }
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> operator/(const vec<Dim, T>& lhs, typename vec<Dim, T>::DataType rhs) {
     vec<Dim, T> ret = lhs;
     ret.div(rhs);
     return ret;
 }
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> operator/(typename vec<Dim, T>::DataType lhs, const vec<Dim, T>& rhs) {
     vec<Dim, T> ret = rhs;
-    for (i32 i = 0; i < ret.dimensions(); ++i) {
+    for (addr_size i = 0; i < ret.dimensions(); ++i) {
         ret[i] = static_cast<T>(lhs) / ret[i];
     }
     return ret;
@@ -472,7 +472,7 @@ constexpr auto v(Args... args) {
 template<typename TVec, typename TVec2>
 constexpr TVec v_conv(const TVec2& v) {
     TVec ret;
-    for (i32 i = 0; i < TVec2::dimensions(); i++) {
+    for (addr_size i = 0; i < TVec2::dimensions(); i++) {
         ret[i] = static_cast<typename TVec2::DataType>(v[i]);
     }
     return ret;
@@ -484,11 +484,6 @@ template<typename T> using vec1 = vec<1, T>;
 template<typename T> using vec2 = vec<2, T>;
 template<typename T> using vec3 = vec<3, T>;
 template<typename T> using vec4 = vec<4, T>;
-
-using vec1b = vec1<bool>;
-using vec2b = vec2<bool>;
-using vec3b = vec3<bool>;
-using vec4b = vec4<bool>;
 
 using vec1i = vec1<i32>;
 using vec2i = vec2<i32>;
@@ -509,5 +504,26 @@ using vec1d = vec1<f64>;
 using vec2d = vec2<f64>;
 using vec3d = vec3<f64>;
 using vec4d = vec4<f64>;
+
+static_assert(core::is_pod_v<vec1i>);
+static_assert(core::is_pod_v<vec2i>);
+static_assert(core::is_pod_v<vec3i>);
+static_assert(core::is_pod_v<vec4i>);
+
+static_assert(core::is_pod_v<vec1u>);
+static_assert(core::is_pod_v<vec2u>);
+static_assert(core::is_pod_v<vec3u>);
+static_assert(core::is_pod_v<vec4u>);
+
+static_assert(core::is_pod_v<vec1f>);
+static_assert(core::is_pod_v<vec2f>);
+static_assert(core::is_pod_v<vec3f>);
+static_assert(core::is_pod_v<vec4f>);
+
+static_assert(core::is_pod_v<vec1d>);
+static_assert(core::is_pod_v<vec2d>);
+static_assert(core::is_pod_v<vec3d>);
+static_assert(core::is_pod_v<vec4d>);
+
 
 } // namespace core

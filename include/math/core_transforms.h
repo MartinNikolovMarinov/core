@@ -13,10 +13,10 @@ using namespace coretypes;
 
 // Translate
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> translate(const vec<Dim, T>& v, const vec<Dim, T>& t) {
     vec<Dim, T> ret;
-    for (i32 i = 0; i < v.dimensions(); ++i) {
+    for (addr_size i = 0; i < v.dimensions(); ++i) {
         ret[i] = v[i] + t[i];
     }
     return ret;
@@ -33,19 +33,19 @@ constexpr mat4<T> translate(const mat4<T>& m, const vec3<T>& t) {
 
 // Scale
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& s) {
     vec<Dim, T> ret;
-    for (i32 i = 0; i < v.dimensions(); ++i) {
+    for (addr_size i = 0; i < v.dimensions(); ++i) {
         ret[i] = v[i] * s[i];
     }
     return ret;
 }
 
-template<i32 Dim, typename T>
+template<addr_size Dim, typename T>
 constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& axis, const vec<Dim, T>& s) {
     vec<Dim, T> ret;
-    for (i32 i = 0; i < v.dimensions(); ++i) {
+    for (addr_size i = 0; i < v.dimensions(); ++i) {
         ret[i] = axis[i] + (v[i] - axis[i]) * s[i];
     }
     return ret;

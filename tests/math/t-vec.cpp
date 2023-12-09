@@ -235,6 +235,8 @@ constexpr i32 VectorCrossProductTest() {
         Assert(c.cross(b).dot(a) == a.cross(c).dot(b));
     }
 
+    core::vcross(core::v(1, 2, 3), core::v(3, 4, 5));
+
     return 0;
 }
 

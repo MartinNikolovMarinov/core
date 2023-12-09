@@ -293,16 +293,16 @@ constexpr i32 mat4xNConstructorsTest() {
 constexpr i32 matAddTest() {
     auto testCase = [](auto&& m1, auto&& m2) {
         i32 n = 0;
-        for (i32 i = 0; i < m1.NCol; ++i) {
-            for (i32 j = 0; j < m1.NRow; ++j) {
+        for (addr_size i = 0; i < m1.NCol; ++i) {
+            for (addr_size j = 0; j < m1.NRow; ++j) {
                 m1[i][j] = n++;
                 m2[i][j] = n++;
             }
         }
 
         auto res = m1 + m2;
-        for (i32 i = 0; i < m1.NCol; ++i) {
-            for (i32 j = 0; j < m1.NRow; ++j) {
+        for (addr_size i = 0; i < m1.NCol; ++i) {
+            for (addr_size j = 0; j < m1.NRow; ++j) {
                 Assert(res[i][j] == m1[i][j] + m2[i][j])
             }
         }
@@ -324,16 +324,16 @@ constexpr i32 matAddTest() {
 constexpr i32 matSubTest() {
     auto testCase = [](auto&& m1, auto&& m2) {
         i32 n = 0;
-        for (i32 i = 0; i < m1.NCol; ++i) {
-            for (i32 j = 0; j < m1.NRow; ++j) {
+        for (addr_size i = 0; i < m1.NCol; ++i) {
+            for (addr_size j = 0; j < m1.NRow; ++j) {
                 m1[i][j] = n++;
                 m2[i][j] = n++;
             }
         }
 
         auto res = m1 - m2;
-        for (i32 i = 0; i < m1.NCol; ++i) {
-            for (i32 j = 0; j < m1.NRow; ++j) {
+        for (addr_size i = 0; i < m1.NCol; ++i) {
+            for (addr_size j = 0; j < m1.NRow; ++j) {
                 Assert(res[i][j] == m1[i][j] - m2[i][j])
             }
         }

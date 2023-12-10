@@ -48,6 +48,8 @@ if(CORE_USE_CPPCHECK)
                 "--check-level=exhaustive"
                 "--output-file=${CMAKE_BINARY_DIR}/cppcheck.out.txt"
                 "--suppressions-list=${CMAKE_SOURCE_DIR}/CppCheckSuppressions.txt")
+    else()
+        message(WARNING "[CORE] cppcheck not found!")
     endif()
 endif()
 
@@ -162,45 +164,76 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 
 # BEGIN Compile Options
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
-   CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
-   CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-    # Use -Werror if you want to treat warnings as errors. For large code refactor that might be prefereable.
-    set(mm_core_common_flags
-        -std=c++20 -pthread
-        -Wall -Wextra -Wfatal-errors -Wconversion -Werror
-        -Wshadow -Wold-style-cast -Wdouble-promotion -Wswitch-enum -Wundef -Wcast-align -Wsign-conversion
-        -Wmisleading-indentation -Woverloaded-virtual -Wnon-virtual-dtor
-        -Wdisabled-optimization # warn if the compailer disables requestd level of optimization
-        -Wno-unknown-pragmas -Wno-unused-function -Wno-variadic-macros
-    )
-    set(mm_core_debug_flags -O0 -g -ggdb -Wnull-dereference)
-    set(mm_core_release_flags -O3)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    set(mm_core_common_flags
-        -std:c++20
-        /MP
-        -Wall -W4 -WX
-        -nologo -FC
-        /fastfail
-        /w14254 # Warns if more than one operator conversion is applied to get from one type to another (useful for finding implicit conversions that might be unintended).
-        /w14263 # Warns if a member function hides a base class virtual function (similar to -Woverloaded-virtual in GCC/Clang).
-        /w14265 # Warns if a class is derived from two or more classes that are not interfaces.
-        /w14287 # Warns for 'unsigned' char, short, int or long types in a conditional expression, which can lead to unexpected behaviors.
-        /w14296 # Warns if a constructor is declared without specifying either 'explicit' or 'implicit'.
-        /w14311 # Warns if a catch block has been written to catch C++ exceptions by value rather than by reference.
-    )
-    set(mm_core_debug_flags -Zi -Od)
-    set(mm_core_release_flags -O2)
+function(configure_compiler_settings
+         target
+         common_flags_varname common_flags
+         debug_flags_varname debug_flags
+         release_flags_varname release_flags)
 
-    if (CORE_DEBUG)
-        # DbgHelp.lib is required for stacktrace.
-        target_link_options(${PROJECT_NAME} PRIVATE /INCREMENTAL:NO /OPT:REF)
-        target_link_libraries(${PROJECT_NAME} PUBLIC DbgHelp.lib)
+    set(local_common_flags "${common_flags}")
+    set(local_debug_flags "${debug_flags}")
+    set(local_release_flags "${release_flags}")
+
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
+       CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
+       CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+
+        set(local_common_flags ${local_common_flags}
+            -std=c++20 -pthread
+            -Wall -Wextra -Wfatal-errors -Wconversion -Werror
+            -Wshadow -Wold-style-cast -Wdouble-promotion -Wswitch-enum -Wundef -Wcast-align -Wsign-conversion
+            -Wmisleading-indentation -Woverloaded-virtual -Wnon-virtual-dtor
+            -Wdisabled-optimization # warn if the compailer disables requestd level of optimization
+            -Wno-unknown-pragmas -Wno-unused-function -Wno-variadic-macros
+        )
+        set(local_debug_flags ${local_debug_flags} -g -O0 -Wnull-dereference)
+        set(local_release_flags ${local_release_flags} -O3)
+
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+
+        set(local_common_flags ${local_common_flags}
+            -std:c++20
+            /MP
+            -Wall -W4 -WX
+            -nologo -FC
+            /fastfail
+            /w14254 # Warns if more than one operator conversion is applied to get from one type to another (useful for finding implicit conversions that might be unintended).
+            /w14263 # Warns if a member function hides a base class virtual function (similar to -Woverloaded-virtual in GCC/Clang).
+            /w14265 # Warns if a class is derived from two or more classes that are not interfaces.
+            /w14287 # Warns for 'unsigned' char, short, int or long types in a conditional expression, which can lead to unexpected behaviors.
+            /w14296 # Warns if a constructor is declared without specifying either 'explicit' or 'implicit'.
+            /w14311 # Warns if a catch block has been written to catch C++ exceptions by value rather than by reference.
+        )
+        set(local_debug_flags ${local_debug_flags} -Zi -Od)
+        set(local_release_flags ${local_release_flags} -O2)
+
+        if (CORE_DEBUG)
+            # DbgHelp.lib is required for stacktrace.
+            target_link_options(${target} PRIVATE /INCREMENTAL:NO /OPT:REF)
+            target_link_libraries(${target} PUBLIC DbgHelp.lib)
+        endif()
+
+    else()
+        message(FATAL_ERROR "Unsupported compiler")
+        return()
     endif()
-else()
-    message(FATAL_ERROR "Unsupported compiler")
-endif()
+
+    set(${common_flags_varname} ${local_common_flags} PARENT_SCOPE)
+    set(${debug_flags_varname} ${local_debug_flags} PARENT_SCOPE)
+    set(${release_flags_varname} ${local_release_flags} PARENT_SCOPE)
+
+endfunction()
+
+set(mm_core_common_flags "")
+set(mm_core_debug_flags "")
+set(mm_core_release_flags "")
+
+configure_compiler_settings(
+    ${PROJECT_NAME}
+    mm_core_common_flags "${mm_core_common_flags}"
+    mm_core_debug_flags "${mm_core_debug_flags}"
+    mm_core_release_flags "${mm_core_release_flags}"
+)
 
 if(CORE_DEBUG)
     target_compile_options(${PROJECT_NAME} PRIVATE ${mm_core_common_flags} ${mm_core_debug_flags})
@@ -270,36 +303,17 @@ if(CORE_BUILD_TESTS)
     )
 
     # Compile options
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
-       CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
-       CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-        set(mm_test_common_flags
-            -std=c++20 -g -pthread
-            -Wall -Wextra -Wfatal-errors -Wconversion -Werror
-            -Wshadow -Wold-style-cast -Wdouble-promotion -Wswitch-enum -Wundef -Wcast-align -Wsign-conversion
-            -Wmisleading-indentation -Woverloaded-virtual -Wnon-virtual-dtor
-            -Wdisabled-optimization # warn if the compailer disables requestd level of optimization
-            -Wno-unknown-pragmas -Wno-unused-function -Wno-variadic-macros
-        )
-        set(mm_test_debug_flags -O0 -Wnull-dereference)
-        set(mm_test_release_flags -O3)
-    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-        set(mm_test_common_flags
-            -std:c++20
-            /MP
-            -Wall -W4 -WX
-            /w14254 # Warns if more than one operator conversion is applied to get from one type to another (useful for finding implicit conversions that might be unintended).
-            /w14263 # Warns if a member function hides a base class virtual function (similar to -Woverloaded-virtual in GCC/Clang).
-            /w14265 # Warns if a class is derived from two or more classes that are not interfaces.
-            /w14287 # Warns for 'unsigned' char, short, int or long types in a conditional expression, which can lead to unexpected behaviors.
-            /w14296 # Warns if a constructor is declared without specifying either 'explicit' or 'implicit'.
-            /w14311 # Warns if a catch block has been written to catch C++ exceptions by value rather than by reference.
-            -nologo -FC
-            /fastfail
-        )
-    else()
-        message(FATAL_ERROR "Unsupported compiler!")
-    endif()
+
+    set(mm_test_common_flags "")
+    set(mm_test_debug_flags "")
+    set(mm_test_release_flags "")
+
+    configure_compiler_settings(
+        ${PROJECT_NAME}
+        mm_test_common_flags "${mm_test_common_flags}"
+        mm_test_debug_flags "${mm_test_debug_flags}"
+        mm_test_release_flags "${mm_test_release_flags}"
+    )
 
     if(CORE_DEBUG)
         target_compile_options(${TEST_EXECUTABLE} PUBLIC ${mm_test_common_flags} ${mm_test_debug_flags})

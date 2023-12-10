@@ -15,7 +15,7 @@ using namespace coretypes;
 
 template<addr_size Dim, typename T>
 constexpr vec<Dim, T> translate(const vec<Dim, T>& v, const vec<Dim, T>& t) {
-    vec<Dim, T> ret;
+    vec<Dim, T> ret = {};
     for (addr_size i = 0; i < v.dimensions(); ++i) {
         ret[i] = v[i] + t[i];
     }
@@ -35,7 +35,7 @@ constexpr mat4<T> translate(const mat4<T>& m, const vec3<T>& t) {
 
 template<addr_size Dim, typename T>
 constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& s) {
-    vec<Dim, T> ret;
+    vec<Dim, T> ret = {};
     for (addr_size i = 0; i < v.dimensions(); ++i) {
         ret[i] = v[i] * s[i];
     }
@@ -44,7 +44,7 @@ constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& s) {
 
 template<addr_size Dim, typename T>
 constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& axis, const vec<Dim, T>& s) {
-    vec<Dim, T> ret;
+    vec<Dim, T> ret = {};
     for (addr_size i = 0; i < v.dimensions(); ++i) {
         ret[i] = axis[i] + (v[i] - axis[i]) * s[i];
     }

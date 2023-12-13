@@ -83,6 +83,24 @@ constexpr T* append(T* dst, const T& val) {
 }
 
 /**
+ * @brief Removes a value from a pointer at a given index and shifts all values after it.
+ *        Does NOT check for overflows!
+ *
+ * @param dst The pointer to remove from.
+ * @param idx The index to remove at.
+ * @param len The length of the pointer.
+*/
+template <typename T>
+constexpr T* removeAt(T* dst, addr_size idx, addr_size len) {
+    if (idx >= len) return dst;
+    if (idx == len - 1) return dst + len - 1;
+    for (addr_size i = idx; i < len - 1; ++i) {
+        dst[i] = dst[i + 1];
+    }
+    return dst;
+}
+
+/**
  * @brief Generic swap function that creates a temporary copy.
  *
  * @param a

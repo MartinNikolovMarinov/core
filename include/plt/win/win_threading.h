@@ -20,7 +20,7 @@ struct Thread {
     mutable Mutex mu;
     AtomicBool canLock;
 
-    NO_COPY(Thread)
+    NO_COPY(Thread);
 
     Thread() noexcept : handle(nullptr), isRunning(false), mu(), canLock(false) {}
 

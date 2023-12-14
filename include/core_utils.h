@@ -67,13 +67,13 @@ CORE_API_EXPORT globalAssertHandlerPtr getGlobalAssertHandler();
 
 #define NO_COPY(T) \
     T(const T&) = delete; \
-    T& operator=(const T&) = delete;
+    T& operator=(const T&) = delete
 
 // No move macro:
 
 #define NO_MOVE(T) \
     T(T&&) = delete; \
-    T& operator=(T&&) = delete;
+    T& operator=(T&&) = delete
 
 // Move and forward implementations copied from the standard library:
 

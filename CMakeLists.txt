@@ -180,7 +180,7 @@ function(configure_compiler_settings
 
         set(local_common_flags ${local_common_flags}
             -std=c++20 -pthread
-            -Wall -Wextra -Wfatal-errors -Wconversion -Werror
+            -Wall -Wextra -Wfatal-errors -Wconversion -Wpedantic -Werror
             -Wshadow -Wold-style-cast -Wdouble-promotion -Wswitch-enum -Wundef -Wcast-align -Wsign-conversion
             -Wmisleading-indentation -Woverloaded-virtual -Wnon-virtual-dtor
             -Wdisabled-optimization # warn if the compailer disables requestd level of optimization

@@ -75,6 +75,10 @@ CORE_API_EXPORT globalAssertHandlerPtr getGlobalAssertHandler();
     T(T&&) = delete; \
     T& operator=(T&&) = delete
 
+// Disable mangling for a function:
+
+#define NO_MANGLE extern "C"
+
 // Move and forward implementations copied from the standard library:
 
 template<typename T>

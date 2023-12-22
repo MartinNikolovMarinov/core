@@ -20,7 +20,7 @@ using namespace coretypes;
 #define C_VFUNC(func, ...) __OVERLOAD_MACRO(func, __COUNT_ARGS_MAX10(__VA_ARGS__)) (__VA_ARGS__)
 
 // Customizeble global assert handler:
-using globalAssertHandlerPtr = void (*)(const char* failedExpr, const char* file, i32 line, const char* errMsg);
+using globalAssertHandlerPtr = void (*)(const char* failedExpr, const char* file, i32 line, const char* funcName, const char* errMsg);
 CORE_API_EXPORT void setGlobalAssertHandler(globalAssertHandlerPtr handler);
 CORE_API_EXPORT globalAssertHandlerPtr getGlobalAssertHandler();
 
@@ -31,14 +31,14 @@ CORE_API_EXPORT globalAssertHandlerPtr getGlobalAssertHandler();
         // or exists the program in some other way.
         #define Assert(...) C_VFUNC(Assert, __VA_ARGS__)
         #define Assert1(expr) Assert2(expr, "")
-        #define Assert2(expr, msg)                                                  \
-            if (!(expr)) {                                                          \
-                if (core::getGlobalAssertHandler()) {                               \
-                    core::getGlobalAssertHandler()(#expr, __FILE__, __LINE__, msg); \
-                } else {                                                            \
-                    i32* __forceCrash = nullptr;                                    \
-                    [[maybe_unused]] i32 __ignored = *__forceCrash;                 \
-                }                                                                   \
+        #define Assert2(expr, msg)                                                            \
+            if (!(expr)) {                                                                    \
+                if (core::getGlobalAssertHandler()) {                                         \
+                    core::getGlobalAssertHandler()(#expr, __FILE__, __LINE__, __func__, msg); \
+                } else {                                                                      \
+                    i32* __forceCrash = nullptr;                                              \
+                    [[maybe_unused]] i32 __ignored = *__forceCrash;                           \
+                }                                                                             \
             }
     #endif
 #else

@@ -1,7 +1,7 @@
 #include "t-index.h"
 
 void coreInit() {
-    core::setGlobalAssertHandler([](const char* failedExpr, const char* file, i32 line, const char* errMsg) {
+    core::setGlobalAssertHandler([](const char* failedExpr, const char* file, i32 line, const char* funcName, const char* errMsg) {
         constexpr u32 stackFramesToSkip = 3;
         constexpr addr_size stackTraceBufferSize = 4096;
         char trace[stackTraceBufferSize] = {};
@@ -9,6 +9,7 @@ void coreInit() {
         core::stacktrace(trace, stackTraceBufferSize, traceLen, 200, stackFramesToSkip);
         std::cout << ANSI_RED_START() << ANSI_BOLD_START()
                   << "[ASSERTION]:\n  [EXPR]: " << failedExpr
+                  << "\n  [FUNC]: " << funcName
                   << "\n  [FILE]: " << file << ":" << line
                   << "\n  [MSG]: " << errMsg
                   << ANSI_RESET()

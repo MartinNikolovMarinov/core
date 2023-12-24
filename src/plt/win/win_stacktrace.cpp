@@ -2,12 +2,13 @@
 
 #include <plt/core_stacktrace.h>
 
+#if defined(CORE_DEBUG) && CORE_DEBUG == 1
+
 #include <core_utils.h>
 #include <core_cptr.h>
 #include <core_cptr_conv.h>
 
-#if defined(CORE_DEBUG) && CORE_DEBUG == 1
-
+#include <cstdlib>
 #include <windows.h>
 #include <DbgHelp.h>
 
@@ -47,8 +48,8 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
     }
     defer { SymCleanup(process); };
 
-    void** stack = reinterpret_cast<void**>(TAlloc::alloc((nStackFrames + skipFrames) * sizeof(void*)));
-    defer { TAlloc::free(stack); };
+    void** stack = reinterpret_cast<void**>(std::malloc((nStackFrames + skipFrames) * sizeof(void*)));
+    defer { std::free(stack); };
 
     USHORT framesCount = CaptureStackBackTrace(skipFrames, nStackFrames, stack, NULL);
     if (framesCount == 0) {
@@ -56,10 +57,10 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
         return false;
     }
 
-    SYMBOL_INFO* symbol = (SYMBOL_INFO*)TAlloc::calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
+    SYMBOL_INFO* symbol = reinterpret_cast<SYMBOL_INFO*>(std::calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1));
     symbol->MaxNameLen = 255;
     symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-    defer { TAlloc::free(symbol); };
+    defer { std::free(symbol); };
 
     for (int i = 0; i < framesCount; ++i) {
         if (!SymFromAddr(process, reinterpret_cast<DWORD64>(stack[i]), 0, symbol)) {

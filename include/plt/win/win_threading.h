@@ -83,7 +83,7 @@ expected<PltErrCode> threadStart(Thread& out, void* arg, ThreadRoutine routine) 
     tinfo->arg = arg;
     tinfo->destroy = [] (void* ptr) {
         ThreadInfo* info = reinterpret_cast<ThreadInfo*>(ptr);
-        TAlloc::free(info);
+        TAlloc::free(info, sizeof(ThreadInfo));
     };
     if (tinfo == nullptr) {
         return core::unexpected(ERR_ALLOCATOR_DEFAULT_NO_MEMORY);
@@ -91,7 +91,7 @@ expected<PltErrCode> threadStart(Thread& out, void* arg, ThreadRoutine routine) 
 
     out.handle = CreateThread(nullptr, 0, proxy, reinterpret_cast<void*>(tinfo), 0, nullptr);
     if (out.handle == nullptr) {
-        TAlloc::free(tinfo);
+        TAlloc::free(tinfo, sizeof(ThreadInfo));
         return core::unexpected(PltErrCode(GetLastError()));
     }
 

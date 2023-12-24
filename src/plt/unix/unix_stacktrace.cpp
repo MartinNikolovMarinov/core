@@ -2,7 +2,7 @@
 
 #include <core_cptr_conv.h>
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <execinfo.h>
 #include <cxxabi.h>
 

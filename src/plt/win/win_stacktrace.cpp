@@ -98,7 +98,6 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
 
 #else
 
-template <typename TAlloc>
 bool stacktrace(char*, addr_size, addr_size&, i32, i32) { return false; }
 
 #endif

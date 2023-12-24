@@ -25,7 +25,7 @@ i32 statsAllocatorBasicCaseTest() {
         void* data = core::StdStatsAllocator::alloc(10);
         Assert(data != nullptr);
         Assert(core::StdStatsAllocator::usedMem() == 25);
-        core::StdStatsAllocator::free(data);
+        core::StdStatsAllocator::free(data, 10);
         Assert(core::StdStatsAllocator::usedMem() == 15);
     }
 
@@ -35,7 +35,7 @@ i32 statsAllocatorBasicCaseTest() {
         Assert(core::StdStatsAllocator::usedMem() == 25);
         char buff[10] = {};
         Assert(core::memcmp(data, buff, 10) == 0, "Memory should be zeroed out.");
-        core::StdStatsAllocator::free(data);
+        core::StdStatsAllocator::free(data, 10 * sizeof(char));
         Assert(core::StdStatsAllocator::usedMem() == 15);
     }
 
@@ -63,7 +63,7 @@ i32 statsAllocatorWithConstructTest() {
     Assert(ts->b == 0.1f);
     Assert(core::StdStatsAllocator::usedMem() == sizeof(TestStruct));
 
-    core::StdStatsAllocator::free(ts);
+    core::StdStatsAllocator::free(ts, sizeof(TestStruct));
     Assert(core::StdStatsAllocator::usedMem() == 0);
 
     constexpr i32 testCount = 100;
@@ -90,11 +90,11 @@ i32 statsAllocatorWithConstructTest() {
     Assert((*c).a == 3);
     Assert((*c).b == 3.5f);
 
-    core::StdStatsAllocator::free(a);
+    core::StdStatsAllocator::free(a, sizeof(i32));
     Assert(core::StdStatsAllocator::usedMem() == sizeof(f64) + sizeof(TestStruct));
-    core::StdStatsAllocator::free(b);
+    core::StdStatsAllocator::free(b, sizeof(f64));
     Assert(core::StdStatsAllocator::usedMem() == sizeof(TestStruct));
-    core::StdStatsAllocator::free(c);
+    core::StdStatsAllocator::free(c, sizeof(TestStruct));
     Assert(core::StdStatsAllocator::usedMem() == 0);
 
     return 0;

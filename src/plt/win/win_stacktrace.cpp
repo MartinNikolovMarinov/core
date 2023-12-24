@@ -17,7 +17,6 @@ namespace core {
 
 #if defined(CORE_DEBUG) && CORE_DEBUG == 1
 
-template <typename TAlloc>
 bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
                 i32 nStackFrames, i32 skipFrames) {
 

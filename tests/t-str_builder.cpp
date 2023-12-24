@@ -207,7 +207,7 @@ constexpr i32 moveAndCopyStrBuilderTest() {
 }
 
 template<typename TAllocator>
-i32 resizeStrBuilderTest() {
+i32 ensureCapStrBuilderTest() {
     using StrBuilder = core::StrBuilder<TAllocator>;
 
     StrBuilder s;
@@ -216,15 +216,15 @@ i32 resizeStrBuilderTest() {
     Assert(s.view().buff == nullptr);
     Assert(s.empty());
 
-    s.adjustCap(10);
+    s.ensureCap(10);
     Assert(s.len() == 0);
     Assert(s.cap() == 10);
     Assert(s.view().buff != nullptr);
     Assert(s.empty());
 
-    s.adjustCap(0);
+    s.ensureCap(2);
     Assert(s.len() == 0);
-    Assert(s.cap() == 0);
+    Assert(s.cap() == 10);
     Assert(s.view().buff != nullptr);
     Assert(s.empty());
 
@@ -486,7 +486,8 @@ i32 takeAndStealStrBuilderTest() {
         StrBuilder s(0, 5);
         s.append("abcde");
 
-        char* data = s.steal();
+        addr_size dataLen = 0;
+        char* data = s.steal(dataLen);
 
         Assert(data != nullptr);
         Assert(core::cptrEq(data, "abcde", 5));
@@ -497,7 +498,7 @@ i32 takeAndStealStrBuilderTest() {
         Assert(s.view().len() == 0);
 
         // The user code is now responsible for freeing the data.
-        TAllocator::free(data);
+        TAllocator::free(data, dataLen * sizeof(char));
     }
 
     return 0;
@@ -642,9 +643,9 @@ i32 runStrBuilderTestsSuite() {
         checkLeaks();
     }
     {
-        RunTest_DisplayMemAllocs(resizeStrBuilderTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(resizeStrBuilderTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(resizeStrBuilderTest<core::BumpAllocator>, core::BumpAllocator);
+        RunTest_DisplayMemAllocs(ensureCapStrBuilderTest<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(ensureCapStrBuilderTest<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(ensureCapStrBuilderTest<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }

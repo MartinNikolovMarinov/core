@@ -784,7 +784,7 @@ i32 complexTypesInHashMapTest() {
 
             void free() {
                 if (data) {
-                    TAllocator::free(data);
+                    TAllocator::free(data, 1 * sizeof(char));
                 }
                 data = nullptr;
             }

@@ -33,7 +33,7 @@ struct AllocatedBlockList {
         m_used += block->size;
     }
 
-    void removeBlock(void* addr) noexcept {
+    void removeBlock(void* addr, addr_size size) noexcept {
         if (m_head == nullptr) return;
 
         AllocatedBlock* block = nullptr;
@@ -56,8 +56,12 @@ struct AllocatedBlockList {
         }
 
         if (block != nullptr) {
+            Assert(block->size == size, "Block size does not match the size of the allocation.");
             m_used -= block->size;
             std::free(block);
+        }
+        else {
+            Assert(false, "Freeing address that is not currently in use, or was not allocated by this allocator.");
         }
     }
 
@@ -137,9 +141,9 @@ void* StdStatsAllocator::calloc(addr_size count, addr_size size) noexcept {
     return addr;
 }
 
-void StdStatsAllocator::free(void* ptr) noexcept {
+void StdStatsAllocator::free(void* ptr, addr_size size) noexcept {
     if (ptr == nullptr) return;
-    g_allocatedBlocks.removeBlock(ptr);
+    g_allocatedBlocks.removeBlock(ptr, size);
     std::free(ptr);
 }
 

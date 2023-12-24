@@ -98,8 +98,8 @@ struct Arr {
     void free() {
         if (m_data == nullptr) return;
         clear();
+        AllocatorType::free(m_data, m_cap * sizeof(DataType));
         m_cap = 0;
-        AllocatorType::free(m_data);
         m_data = nullptr;
     }
 
@@ -115,7 +115,7 @@ struct Arr {
 
     ContainerType& append(const DataType& val) {
         if (m_len == m_cap) {
-            adjustCap(m_cap == 0 ? 1 : m_cap * 2);
+            ensureCap(m_cap == 0 ? 1 : m_cap * 2);
         }
         copyDataAt(val, m_len);
         m_len++;
@@ -124,7 +124,7 @@ struct Arr {
 
     ContainerType& append(DataType&& val) {
         if (m_len == m_cap) {
-            adjustCap(m_cap == 0 ? 1 : m_cap * 2);
+            ensureCap(m_cap == 0 ? 1 : m_cap * 2);
         }
         stealDataAt(core::move(val), m_len);
         m_len++;
@@ -133,7 +133,7 @@ struct Arr {
 
     ContainerType& append(const DataType* val, SizeType len) {
         if (m_len + len > m_cap) {
-            adjustCap(m_cap <= len ? (m_cap*2 + len) : m_cap * 2);
+            ensureCap(m_cap <= len ? (m_cap*2 + len) : m_cap * 2);
         }
         copyDataAt(val, m_len, len);
         m_len += len;
@@ -149,7 +149,7 @@ struct Arr {
 
         [[maybe_unused]] addr_size overwriteIdx = core::min(to, m_len);
         if (to > m_len) {
-            adjustCap(to);
+            ensureCap(to);
             m_len = to;
         }
 
@@ -198,19 +198,8 @@ struct Arr {
         m_len = len;
     }
 
-    void adjustCap(SizeType newCap) {
+    void ensureCap(SizeType newCap) {
         if (newCap <= m_cap) {
-            if constexpr (dataIsTrivial) {
-                m_len = m_len > newCap ? newCap : m_len;
-            }
-            else {
-                // For elements that are not trivially destructible call destructors manually:
-                for (SizeType i = newCap; i < m_len; ++i) {
-                    m_data[i].~T();
-                }
-                m_len = m_len > newCap ? newCap : m_len;
-            }
-            m_cap = newCap;
             return;
         }
 
@@ -220,7 +209,7 @@ struct Arr {
         Assert(newData != nullptr);
         if (m_data != nullptr) {
             core::memcopy(newData, m_data, m_len * sizeof(DataType));
-            AllocatorType::free(m_data);
+            AllocatorType::free(m_data, m_cap * sizeof(DataType));
         }
         m_data = newData;
         m_cap = newCap;

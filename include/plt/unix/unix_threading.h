@@ -78,7 +78,7 @@ expected<PltErrCode> threadStart(Thread& out, void* arg, ThreadRoutine routine) 
     tinfo->arg = arg;
     tinfo->destroy = [] (void* ptr) {
         ThreadInfo* info = reinterpret_cast<ThreadInfo*>(ptr);
-        TAlloc::free(info);
+        TAlloc::free(info, sizeof(ThreadInfo));
     };
     if (tinfo == nullptr) {
         return core::unexpected(ERR_ALLOCATOR_DEFAULT_NO_MEMORY);
@@ -87,7 +87,7 @@ expected<PltErrCode> threadStart(Thread& out, void* arg, ThreadRoutine routine) 
     i32 res = pthread_create(&out.handle, nullptr, proxy, reinterpret_cast<void*>(tinfo));
     if (res != 0) {
         out.handle = pthread_t();
-        TAlloc::free(tinfo);
+        TAlloc::free(tinfo, sizeof(ThreadInfo));
         return core::unexpected(PltErrCode(res));
     }
 

@@ -31,7 +31,7 @@ concept AllocatorConcept = requires {
     { T::allocatorName() } noexcept -> core::same_as<const char*>;
     { T::alloc(core::declval<addr_size>()) } noexcept -> core::same_as<void*>;
     { T::calloc(core::declval<addr_size>(), core::declval<addr_size>()) } noexcept -> core::same_as<void*>;
-    { T::free(core::declval<void*>()) } noexcept;
+    { T::free(core::declval<void*>(), core::declval<addr_size>()) } noexcept;
     { T::usedMem() } noexcept -> core::same_as<addr_size>;
     { T::totalAllocatedMem() } noexcept -> core::same_as<addr_size>;
     { T::isThredSafe() } noexcept -> core::same_as<bool>;
@@ -47,9 +47,9 @@ struct CORE_API_EXPORT StdAllocator {
 
     static void* alloc(addr_size size) noexcept;
     static void* calloc(addr_size count, addr_size size) noexcept;
-    static void free(void* ptr) noexcept;
-    static void clear() noexcept; // does nothing
-    static addr_size usedMem() noexcept; // does nothing
+    static void free(void* ptr, addr_size size) noexcept;
+    static void clear() noexcept;
+    static addr_size usedMem() noexcept;
     static addr_size totalAllocatedMem() noexcept;
     static bool isThredSafe() noexcept;
 
@@ -71,7 +71,7 @@ struct CORE_API_EXPORT StdStatsAllocator {
 
     static void* alloc(addr_size size) noexcept;
     static void* calloc(addr_size count, addr_size size) noexcept;
-    static void free(void* ptr) noexcept;
+    static void free(void* ptr, addr_size size) noexcept;
     static void clear() noexcept;
     static addr_size usedMem() noexcept;
     static addr_size totalAllocatedMem() noexcept;
@@ -95,7 +95,7 @@ struct CORE_API_EXPORT BumpAllocator {
 
     static void* alloc(addr_size size) noexcept;
     static void* calloc(addr_size count, addr_size size) noexcept;
-    static void free(void* ptr) noexcept; // does nothing
+    static void free(void* ptr, addr_size size) noexcept; // does nothing
     static void clear() noexcept;
     static addr_size usedMem() noexcept;
     static addr_size totalAllocatedMem() noexcept;

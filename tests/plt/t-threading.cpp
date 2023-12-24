@@ -106,11 +106,11 @@ i32 start2ThreadsAndJoinThemTest() {
     Args* t1Args = reinterpret_cast<Args*>(TAlloc::alloc(sizeof(Args)));
     Assert(t1Args != nullptr);
     *t1Args = {&t1Done};
-    defer { TAlloc::free(t1Args); };
+    defer { TAlloc::free(t1Args, sizeof(Args)); };
     Args* t2Args = reinterpret_cast<Args*>(TAlloc::alloc(sizeof(Args)));
     Assert(t2Args != nullptr);
     *t2Args = {&t2Done};
-    defer { TAlloc::free(t2Args); };
+    defer { TAlloc::free(t2Args, sizeof(Args)); };
 
     {
         auto res = core::threadStart<TAlloc>(t1, reinterpret_cast<void*>(t1Args), [](void* arg) {
@@ -156,10 +156,10 @@ i32 mutexPreventsRaceConditionsTest() {
 
     Args* t1Args = reinterpret_cast<Args*>(TAlloc::alloc(sizeof(Args)));
     *t1Args = Args{&counter};
-    defer { TAlloc::free(t1Args); };
+    defer { TAlloc::free(t1Args, sizeof(Args)); };
     Args* t2Args = reinterpret_cast<Args*>(TAlloc::alloc(sizeof(Args)));
     *t2Args = Args{&counter};
-    defer { TAlloc::free(t2Args); };
+    defer { TAlloc::free(t2Args, sizeof(Args)); };
 
     {
         auto res = core::threadStart<TAlloc>(t1, reinterpret_cast<void*>(t1Args), [](void* arg) {

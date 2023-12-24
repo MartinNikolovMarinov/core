@@ -118,7 +118,7 @@ i32 moveAndCopyArrTest() {
 }
 
 template <typename TAllocator>
-i32 resizeArrTest() {
+i32 ensureArrCapacity() {
     {
         core::Arr<i32, TAllocator> arr;
         Assert(arr.len() == 0);
@@ -126,15 +126,15 @@ i32 resizeArrTest() {
         Assert(arr.data() == nullptr);
         Assert(arr.empty());
 
-        arr.adjustCap(10);
+        arr.ensureCap(10);
         Assert(arr.len() == 0);
         Assert(arr.cap() == 10);
         Assert(arr.data() != nullptr);
         Assert(arr.empty());
 
-        arr.adjustCap(0);
+        arr.ensureCap(2);
         Assert(arr.len() == 0);
-        Assert(arr.cap() == 0);
+        Assert(arr.cap() == 10);
         Assert(arr.data() != nullptr);
         Assert(arr.empty());
     }
@@ -356,32 +356,6 @@ i32 appendArrTest() {
             Assert(arr.at(i) == i32(i + 1));
         }
 
-        arr.adjustCap(2);
-
-        arr.append(3);
-        Assert(arr.len() == 3);
-        Assert(arr.cap() >= arr.len());
-        for (addr_size i = 0; i < 3; ++i) {
-            Assert(arr[i] == i32(i + 1));
-            Assert(arr.at(i) == i32(i + 1));
-        }
-
-        arr.append(4);
-        Assert(arr.len() == 4);
-        Assert(arr.cap() >= arr.len());
-        for (addr_size i = 0; i < 4; ++i) {
-            Assert(arr[i] == i32(i + 1));
-            Assert(arr.at(i) == i32(i + 1));
-        }
-
-        arr.append(5);
-        Assert(arr.len() == 5);
-        Assert(arr.cap() >= arr.len());
-        for (addr_size i = 0; i < 5; ++i) {
-            Assert(arr[i] == i32(i + 1));
-            Assert(arr.at(i) == i32(i + 1));
-        }
-
         arr.clear();
 
         // Append many trivial values.
@@ -413,10 +387,10 @@ i32 appendArrTest() {
         Assert(CT::dtorsCalled() == 3);
         CT::resetAll();
 
-        // Testing a combination of append and adjustCap.
+        // Testing a combination of append and ensureCap.
         {
             core::Arr<CT, TAllocator> arr;
-            arr.adjustCap(1);
+            arr.ensureCap(1);
             Assert(arr.len() == 0);
             Assert(arr.cap() == 1);
             Assert(CT::noCtorsCalled());
@@ -428,7 +402,7 @@ i32 appendArrTest() {
             }
             Assert(arr.len() == 2);
             Assert(arr.cap() == 2);
-            arr.adjustCap(0); // This adjustCap should call the destructors.
+            arr.free(); // This should call the destructors.
             Assert(arr.len() == 0);
             Assert(arr.cap() == 0);
             Assert(CT::dtorsCalled() == 3);
@@ -653,9 +627,9 @@ i32 runArrTestsSuite() {
         checkLeaks();
     }
     {
-        RunTest_DisplayMemAllocs(resizeArrTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(resizeArrTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(resizeArrTest<core::BumpAllocator>, core::BumpAllocator);
+        RunTest_DisplayMemAllocs(ensureArrCapacity<core::StdAllocator>, core::StdAllocator);
+        RunTest_DisplayMemAllocs(ensureArrCapacity<core::StdStatsAllocator>, core::StdStatsAllocator);
+        RunTest_DisplayMemAllocs(ensureArrCapacity<core::BumpAllocator>, core::BumpAllocator);
         core::BumpAllocator::clear();
         checkLeaks();
     }

@@ -167,9 +167,9 @@ struct HashMap {
                 }
             }
         }
+        AllocatorType::free(m_buckets, m_cap * sizeof(Bucket));
         m_len = 0;
         m_cap = 0;
-        AllocatorType::free(m_buckets);
         m_buckets = nullptr;
     }
 
@@ -399,9 +399,9 @@ struct HashSet {
 
     void free() {
         if (m_buckets == nullptr) return;
+        AllocatorType::free(m_buckets, m_cap * sizeof(Bucket));
         m_len = 0;
         m_cap = 0;
-        AllocatorType::free(m_buckets);
         m_buckets = nullptr;
     }
 

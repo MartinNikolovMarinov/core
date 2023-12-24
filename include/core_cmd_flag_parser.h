@@ -100,7 +100,7 @@ struct CmdFlagParser {
 
         // Pre-allocate at enough space for the worst case scenario:
         m_parsedSymbols.clear();
-        m_parsedSymbols.adjustCap(argc*2);
+        m_parsedSymbols.ensureCap(argc*2);
 
         auto trailingWhitespaceIdx = [](const char* str, addr_size len) -> addr_size {
             if (!core::isWhiteSpace(str[len - 1])) return len;

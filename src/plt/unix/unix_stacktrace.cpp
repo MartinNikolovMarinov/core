@@ -1,19 +1,14 @@
-#pragma once
-
 #include <plt/core_stacktrace.h>
 
 #include <core_cptr_conv.h>
-#include <core_cptr.h>
-#include <core_mem.h>
-#include <core_utils.h>
 
+#include <stdlib.h>
 #include <execinfo.h>
 #include <cxxabi.h>
 
 namespace core {
 
-template <typename TAlloc>
-bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten, int nStackFrames, int skipFrames) {
+bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten, i32 nStackFrames, i32 skipFrames) {
     auto writeToBuf = [&](const char* s) -> bool {
         auto slen = core::cptrLen(s);
         if (bufWritten + slen >= bufMax) {
@@ -29,13 +24,15 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten, int nStackFr
     bufWritten = 0;
 
     // Capture the backtrace
-    void** callstack = reinterpret_cast<void**>(TAlloc::alloc(addr_size(nStackFrames + skipFrames) * sizeof(void*)));
+    void** callstack = reinterpret_cast<void**>(std::malloc(addr_size(nStackFrames + skipFrames) * sizeof(void*)));
     i32 framesCount = backtrace(callstack, nStackFrames + skipFrames - 1);
     if (framesCount == 0) {
         writeToBuf("  <empty, possibly corrupt>\n");
         return false;
     }
-    defer { TAlloc::free(callstack); };
+    defer {
+        std::free(callstack);
+    };
 
     // Get the symbols
     char** symbols = backtrace_symbols(callstack, framesCount);
@@ -43,7 +40,7 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten, int nStackFr
         writeToBuf("  <failed to backtrace symbols>\n");
         return false;
     }
-    defer { TAlloc::free(symbols); };
+    defer { std::free(symbols); };
 
     for (i32 i = skipFrames; i < framesCount; i++) {
         char* symbol = symbols[i];
@@ -75,7 +72,7 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten, int nStackFr
 
             i32 status = 0;
             char* demangled = abi::__cxa_demangle(beginName, nullptr, nullptr, &status);
-            defer { if (demangled) TAlloc::free(demangled); };
+            defer { if (demangled) std::free(demangled); };
 
             bool demangleSuccess = (status == 0);
 

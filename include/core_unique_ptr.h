@@ -42,7 +42,7 @@ struct UniquePtr {
             if constexpr (!core::is_trivially_destructible_v<DataType>) {
                 m_ptr->~T();
             }
-            AllocatorType::free(m_ptr);
+            AllocatorType::free(m_ptr, sizeof(DataType));
         }
         m_ptr = newPtr;
     }

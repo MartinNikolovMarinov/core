@@ -35,7 +35,7 @@ void* BumpAllocator::calloc(addr_size count, addr_size size) noexcept {
     return ptr;
 }
 
-void BumpAllocator::free(void*) noexcept { /* does nothing */ }
+void BumpAllocator::free(void*, addr_size) noexcept { /* does nothing */ }
 
 void BumpAllocator::clear() noexcept {
     g_usedMem = 0;

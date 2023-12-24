@@ -22,7 +22,7 @@ i32 basicBumpAllocatorTest() {
         Assert(buff[2] == 2);
         Assert(buff[3] == 3);
 
-        core::BumpAllocator::free(data); // should not crash
+        core::BumpAllocator::free(data, 4); // should not crash
 
         core::BumpAllocator::clear();
         Assert(core::BumpAllocator::usedMem() == 0);

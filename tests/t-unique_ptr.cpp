@@ -126,7 +126,7 @@ i32 stealUniquePtrTest() {
     Assert(raw != nullptr);
     Assert(*raw == 42);
     Assert(p.get() == nullptr);
-    TAllocator::free(raw);
+    TAllocator::free(raw, sizeof(i32));
     return 0;
 }
 

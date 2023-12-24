@@ -116,12 +116,12 @@ struct StrBuilder {
     void clear() { m_len = 0; }
 
     void free() {
-        m_len = 0;
-        m_cap = 0;
         if (m_data != nullptr) {
-            AllocatorType::free(m_data);
+            AllocatorType::free(m_data, m_cap * sizeof(DataType));
             m_data = nullptr;
         }
+        m_len = 0;
+        m_cap = 0;
     }
 
     ContainerType copy() const {
@@ -148,9 +148,10 @@ struct StrBuilder {
         *ptr = nullptr;
     }
 
-    DataType* steal() {
+    DataType* steal(addr_size& stolenSize) {
         if (m_data != nullptr) m_data[m_len] = core::term_char; // JIT null terminate
         DataType* res = m_data;
+        stolenSize = m_cap;
         m_data = nullptr;
         m_cap = 0;
         m_len = 0;
@@ -159,7 +160,7 @@ struct StrBuilder {
 
     ContainerType& append(const DataType& val) {
         if (shouldResize(1)) {
-            adjustCap(m_cap == 0 ? 2 : m_cap * 2);
+            ensureCap(m_cap == 0 ? 2 : m_cap * 2);
         }
         m_data[m_len] = val;
         m_len++;
@@ -169,7 +170,7 @@ struct StrBuilder {
     ContainerType& append(const DataType* cptr, SizeType len) {
         if (len == 0) return *this;
         if (shouldResize(len)) {
-            adjustCap(m_cap <= len ? (m_cap*2 + len + 1) : m_cap * 2);
+            ensureCap(m_cap <= len ? (m_cap*2 + len + 1) : m_cap * 2);
         }
         core::cptrCopy(m_data + m_len, cptr, len);
         m_len += len;
@@ -189,11 +190,8 @@ struct StrBuilder {
         return *this;
     }
 
-    void adjustCap(SizeType newCap) {
+    void ensureCap(SizeType newCap) {
         if (newCap <= m_cap) {
-            // shrink
-            m_len = m_len > newCap ? newCap - 1 : m_len;
-            m_cap = newCap;
             return;
         }
 
@@ -202,7 +200,7 @@ struct StrBuilder {
         Assert(newData != nullptr);
         if (m_data != nullptr) {
             core::memcopy(newData, m_data, m_len * sizeof(DataType));
-            AllocatorType::free(m_data);
+            AllocatorType::free(m_data, m_cap * sizeof(DataType));
         }
         m_data = newData;
         m_cap = newCap;

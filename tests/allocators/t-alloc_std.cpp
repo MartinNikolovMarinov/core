@@ -8,7 +8,7 @@ i32 basicStdAllocatorCaseTest() {
     {
         u8* data = reinterpret_cast<u8*>(core::StdAllocator::alloc(4));
         Assert(data != nullptr);
-        core::StdAllocator::free(data);
+        core::StdAllocator::free(data, 4);
         core::StdAllocator::usedMem(); // should not crash
     }
 
@@ -26,14 +26,14 @@ i32 basicStdAllocatorCaseTest() {
             Assert(ts != nullptr);
             Assert(ts->a == 42);
             Assert(ts->b == 0.1f);
-            core::StdAllocator::free(ts);
+            core::StdAllocator::free(ts, 1 * sizeof(TestStruct));
         }
         {
             TestStruct* ts = reinterpret_cast<TestStruct*>(core::StdAllocator::calloc(1, sizeof(TestStruct)));
             Assert(ts != nullptr);
             Assert(ts->a == 0);
             Assert(ts->b == 0.0f);
-            core::StdAllocator::free(ts);
+            core::StdAllocator::free(ts, 1 * sizeof(TestStruct));
         }
     }
 

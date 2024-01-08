@@ -33,7 +33,7 @@ struct AllocatedBlockList {
         m_used += block->size;
     }
 
-    void removeBlock(void* addr, addr_size size) noexcept {
+    void removeBlock(void* addr, [[maybe_unused]] addr_size size) noexcept {
         if (m_head == nullptr) return;
 
         AllocatedBlock* block = nullptr;

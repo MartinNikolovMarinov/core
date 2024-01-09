@@ -395,8 +395,8 @@ i32 cmdFlagParserFriendlyInputMatchingTest() {
     parser.setFlagUint32(&c, sv("uint32"));
     parser.setFlagUint64(&d, sv("uint64"));
 
-    char* cptrArg = nullptr;
-    parser.setFlagCptr(&cptrArg, sv("string"));
+    core::StrBuilder<TAllocator> sbArg = nullptr;
+    parser.setFlagString(&sbArg, sv("string"));
 
     bool bool_1 = false;
     bool bool_2 = false;
@@ -446,8 +446,8 @@ i32 cmdFlagParserFriendlyInputMatchingTest() {
 
     // Check string parsing:
     {
-        Assert(cptrArg != nullptr);
-        Assert(core::cptrEq(cptrArg, "banicata   fsa", core::cptrLen("banicata   fsa")));
+        Assert(!sbArg.empty());
+        Assert(core::cptrEq(sbArg.view().data(), "banicata   fsa", core::cptrLen("banicata   fsa")));
     }
 
     // Check boolean parsing:
@@ -674,9 +674,9 @@ i32 cmdParserAliasTest() {
     // Multiple aliases to the same flag:
     {
         CmdFlagParser parser;
-        char* doubleAliased = nullptr;
+        core::StrBuilder<TAllocator> doubleAliased = nullptr;
 
-        parser.setFlagCptr(&doubleAliased, core::sv("full_name"));
+        parser.setFlagString(&doubleAliased, core::sv("full_name"));
 
         parser.alias(core::sv("full_name"), core::sv("a"));
         parser.alias(core::sv("full_name"), core::sv("b"));
@@ -686,7 +686,7 @@ i32 cmdParserAliasTest() {
         Expect(parser.parse(len, input));
         Expect(parser.matchFlags());
 
-        Assert(core::cptrEq(doubleAliased, "override", core::cptrLen("override")));
+        Assert(core::cptrEq(doubleAliased.view().data(), "override", core::cptrLen("override")));
     }
 
     return 0;

@@ -75,7 +75,7 @@ struct CmdFlagParser {
         Uint64,
         Float32,
         Float64,
-        CPtr,
+        String,
 
         SENTINEL
     };
@@ -335,9 +335,11 @@ struct CmdFlagParser {
                         fd->isSet = true;
                         break;
                     }
-                    case FlagType::CPtr:
+                    case FlagType::String:
                     {
-                        *reinterpret_cast<const char**>(fd->data) = value.data();
+                        auto v = reinterpret_cast<sb*>(fd->data);
+                        v->clear();
+                        v->append(value.data());
                         fd->isSet = true;
                         break;
                     }
@@ -384,8 +386,8 @@ struct CmdFlagParser {
         return {};
     }
 
-    void setFlagCptr(char** out, StrView flagName, bool required = false, FlagValidationFn validation = nullptr) {
-        _insertFlag(out, flagName, required, validation, FlagType::CPtr);
+    void setFlagString(sb* out, StrView flagName, bool required = false, FlagValidationFn validation = nullptr) {
+        _insertFlag(out, flagName, required, validation, FlagType::String);
     }
 
     void setFlagBool(bool* out, StrView flagName, bool required = false, FlagValidationFn validation = nullptr) {

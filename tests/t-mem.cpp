@@ -22,7 +22,7 @@ constexpr i32 alignTest() {
         { 25, 32 }
     };
 
-    executeTestTable("alignTest failed at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("alignTest failed at index: ", cases, [](auto& c, const char* cErr) {
         auto got = core::align(c.in);
         Assert(got == c.expected, cErr);
     });
@@ -173,7 +173,7 @@ i32 memcmpTest() {
         { "abc123", "abc000", 4, TestCase::positive },
     };
 
-    executeTestTable("memcmpTest failed at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("memcmpTest failed at index: ", cases, [](auto& c, const char* cErr) {
         switch (c.expected) {
             case 1:  Assert(core::memcmp(c.a, c.b, c.n) > 0, cErr);  break;
             case -1: Assert(core::memcmp(c.a, c.b, c.n) < 0, cErr);  break;

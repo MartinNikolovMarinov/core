@@ -23,7 +23,7 @@ constexpr i32 isDigitTest() {
         { ':', false },
     };
 
-    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         Assert(core::isDigit(c.in) == c.expected, cErr);
     });
 
@@ -45,7 +45,7 @@ constexpr i32 isWhiteSpaceTest() {
         { '\\', false }
     };
 
-    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         Assert(core::isWhiteSpace(c.in) == c.expected, cErr);
     });
 
@@ -74,7 +74,7 @@ constexpr i32 cptrLenTest() {
         { "asd\0aszxc", 3 } // This is where danger lies.
     };
 
-    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         addr_size len = core::cptrLen(c.in);
         Assert(len == c.expected, cErr);
     });
@@ -104,7 +104,7 @@ constexpr i32 cptrCmpTests() {
         { "abb",   "abc",   TestCase::negative },
     };
 
-    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         switch (c.expected) {
             case 1:  Assert(core::cptrCmp(c.a, core::cptrLen(c.a), c.b, core::cptrLen(c.b)) > 0, cErr);  break;
             case -1: Assert(core::cptrCmp(c.a, core::cptrLen(c.a), c.b, core::cptrLen(c.b)) < 0, cErr);  break;
@@ -135,7 +135,7 @@ constexpr i32 cptrEqTest() {
         { "a\0c",  "a\0c",  3, true },
     };
 
-    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         Assert(core::cptrEq(c.a, c.b, c.len) == c.expected, cErr);
     });
 
@@ -196,7 +196,7 @@ constexpr i32 cptrIdxOfCharTest() {
         { "1234567890", 'z', -1 },
     };
 
-    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         addr_off idx = core::cptrIdxOfChar(c.src, core::cptrLen(c.src), c.val);
         Assert(idx == c.idx, cErr);
     });
@@ -230,7 +230,7 @@ constexpr i32 cptrIdxOfTest() {
         { "1234", "12345", -1 },
     };
 
-    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         addr_off idx = core::cptrIdxOf(c.src, core::cptrLen(c.src), c.val, core::cptrLen(c.val));
         Assert(idx == c.idx, cErr);
     });
@@ -255,7 +255,7 @@ constexpr i32 cptrSkipWhiteSpaceTest() {
         { "\n\raa", "aa" },
     };
 
-    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         const char* res = core::cptrSkipSpace(c.src);
         Assert(core::cptrEq(res, c.expected, core::cptrLen(c.expected)), cErr);
     });

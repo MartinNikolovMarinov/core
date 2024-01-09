@@ -2,6 +2,8 @@
 
 template <typename TAllocator>
 i32 initializeUniquePtrTest() {
+    using CT = core::testing::CT;
+
     {
         core::UniquePtr<i32, TAllocator> p;
         Assert(p.get() == nullptr);

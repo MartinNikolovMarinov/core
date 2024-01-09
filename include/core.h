@@ -42,3 +42,5 @@
 #include "plt/core_stacktrace.h"
 #include "plt/core_threading.h"
 #include "plt/core_time.h"
+
+#include "testing/core_testing.h"

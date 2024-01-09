@@ -29,7 +29,7 @@ constexpr i32 pow10Test() {
         { 19, 10000000000000000000ULL },
     };
 
-    executeTestTable("pow10 test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("pow10 test case failed at index: ", cases, [](auto& c, const char* cErr) {
         Assert(core::pow10(c.in) == c.expected, cErr);
     });
 
@@ -109,7 +109,7 @@ constexpr i32 pow2Test() {
         { 63, 9223372036854775808ULL },
     };
 
-    executeTestTable("pow2 test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("pow2 test case failed at index: ", cases, [](auto& c, const char* cErr) {
         Assert(core::pow2(c.in) == c.expected, cErr);
     });
 
@@ -258,7 +258,7 @@ i32 floatNearlyEqExtreamCasesTest() {
         { -MIN_F32, 0.000000001f, defaultEpsilon, false },
     };
 
-        executeTestTable("floatNearlyEqExtreamCasesTest test case failed at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("floatNearlyEqExtreamCasesTest test case failed at index: ", cases, [](auto& c, const char* cErr) {
         Assert(core::nearlyEq(c.a, c.b, c.epsilon) == c.expected, cErr);
     });
 
@@ -327,7 +327,7 @@ constexpr i32 floatNearlyEqTest() {
         { 0.0f, -1e-40f, 0.00000001f, false },
     };
 
-    executeTestTable("float_nearlyEq test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("float_nearlyEq test case failed at index: ", cases, [](auto& c, const char* cErr) {
         Assert(core::nearlyEq(c.a, c.b, c.epsilon) == c.expected, cErr);
     });
 

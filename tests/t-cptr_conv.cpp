@@ -19,7 +19,7 @@ constexpr i32 charToIntTest() {
         { '9', 9 },
     };
 
-    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         Assert(core::charToInt<i8>(c.in) == i8(c.expected), cErr);
         Assert(core::charToInt<i16>(c.in) == i16(c.expected), cErr);
         Assert(core::charToInt<i32>(c.in) == i32(c.expected), cErr);
@@ -54,7 +54,7 @@ constexpr i32 digitToCharTest() {
         { 9, '9' },
     };
 
-    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         Assert(core::digitToChar(i8(c.in)) == c.expected, cErr);
         Assert(core::digitToChar(i16(c.in)) == c.expected, cErr);
         Assert(core::digitToChar(i32(c.in)) == c.expected, cErr);
@@ -88,7 +88,7 @@ constexpr i32 intToCptrTest() {
             { -2147483647, 10, "-2147483647" },
         };
 
-        executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             char buf[12] = {};
             core::intToCptr(c.in, buf, c.digitCount);
             Assert(core::cptrLen(buf) == core::cptrLen(c.expected));
@@ -118,7 +118,7 @@ constexpr i32 intToCptrTest() {
             { -9223372036854775807, 19, "-9223372036854775807" },
         };
 
-        executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             char buf[21] = {};
             core::intToCptr(c.in, buf, c.digitCount);
             Assert(core::cptrLen(buf) == core::cptrLen(c.expected));
@@ -143,7 +143,7 @@ constexpr i32 intToCptrTest() {
             { 4294967295, 10, "4294967295" },
         };
 
-        executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             char buf[11] = {};
             core::intToCptr(c.in, buf, c.digitCount);
             Assert(core::cptrLen(buf) == core::cptrLen(c.expected));
@@ -170,7 +170,7 @@ constexpr i32 intToCptrTest() {
             { 9223372036854775807, 19, "9223372036854775807" },
         };
 
-        executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             char buf[20] = {};
             core::intToCptr(c.in, buf, c.digitCount);
             Assert(core::cptrLen(buf) == core::cptrLen(c.expected));
@@ -210,7 +210,7 @@ constexpr i32 cptrToIntTest() {
             { "-128", -128, true }, // valid in runtime but fails in compiletime execution.
         };
 
-        executeTestTable("test case failed for i8 at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed for i8 at index: ", cases, [](auto& c, const char* cErr) {
             IS_CONST_EVALUATED { if (c.skipAtCompileTime) return; }
             auto v = core::cptrToInt<i8>(c.input);
             Assert(v == c.expected, cErr);
@@ -237,7 +237,7 @@ constexpr i32 cptrToIntTest() {
             { "255", 255 },
         };
 
-        executeTestTable("test case failed for u8 at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed for u8 at index: ", cases, [](auto& c, const char* cErr) {
             auto v = core::cptrToInt<u8>(c.input);
             Assert(v == c.expected, cErr);
         });
@@ -271,7 +271,7 @@ constexpr i32 cptrToIntTest() {
             { "-32768", -32768, true },
         };
 
-        executeTestTable("test case failed for i16 at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed for i16 at index: ", cases, [](auto& c, const char* cErr) {
             IS_CONST_EVALUATED { if (c.skipAtCompileTime) return; }
             auto v = core::cptrToInt<i16>(c.input);
             Assert(v == c.expected, cErr);
@@ -298,7 +298,7 @@ constexpr i32 cptrToIntTest() {
             { "65535", 65535 },
         };
 
-        executeTestTable("test case failed for u16 at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed for u16 at index: ", cases, [](auto& c, const char* cErr) {
             auto v = core::cptrToInt<u16>(c.input);
             Assert(v == c.expected, cErr);
         });
@@ -331,7 +331,7 @@ constexpr i32 cptrToIntTest() {
             { "-2147483648", -2147483648, true },
         };
 
-        executeTestTable("test case failed for i32 at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed for i32 at index: ", cases, [](auto& c, const char* cErr) {
             IS_CONST_EVALUATED { if (c.skipAtCompileTime) return; }
             auto v = core::cptrToInt<i32>(c.input);
             Assert(v == c.expected, cErr);
@@ -358,7 +358,7 @@ constexpr i32 cptrToIntTest() {
             { "4294967295", 4294967295 },
         };
 
-        executeTestTable("test case failed for u32 at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed for u32 at index: ", cases, [](auto& c, const char* cErr) {
             auto v = core::cptrToInt<u32>(c.input);
             Assert(v == c.expected, cErr);
         });
@@ -391,7 +391,7 @@ constexpr i32 cptrToIntTest() {
             { "-9223372036854775808", core::MIN_I64, true },
         };
 
-        executeTestTable("test case failed for i64 at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed for i64 at index: ", cases, [](auto& c, const char* cErr) {
             IS_CONST_EVALUATED { if (c.skipAtCompileTime) return; }
             auto v = core::cptrToInt<i64>(c.input);
             Assert(v == c.expected, cErr);
@@ -418,7 +418,7 @@ constexpr i32 cptrToIntTest() {
             { "18446744073709551615", 18446744073709551615ull },
         };
 
-        executeTestTable("test case failed for u64 at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed for u64 at index: ", cases, [](auto& c, const char* cErr) {
             auto v = core::cptrToInt<u64>(c.input);
             Assert(v == c.expected, cErr);
         });
@@ -452,7 +452,7 @@ constexpr i32 cptrToFloatTest() {
             { "-123.789", -123.789f },
         };
 
-        executeTestTable("test case failed for f32 at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed for f32 at index: ", cases, [](auto& c, const char* cErr) {
             auto v = core::cptrToFloat<f32>(c.input);
             Assert(core::safeEq(v, c.expected, 0.000001f), cErr);
         });
@@ -483,7 +483,7 @@ constexpr i32 cptrToFloatTest() {
             { "-123789.10111213", -123789.10111213 },
         };
 
-        executeTestTable("test case failed for f64 at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed for f64 at index: ", cases, [](auto& c, const char* cErr) {
             auto v = core::cptrToFloat<f64>(c.input);
             Assert(core::safeEq(v, c.expected, 0.00000001), cErr);
         });
@@ -503,7 +503,7 @@ constexpr i32 intHexTest() {
             { core::MAX_I8, "7F" },
         };
 
-        executeTestTable("test case failed for i8 at index: ", cases, [&](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed for i8 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::intToHex(c.in, buf);
             Assert(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
@@ -522,7 +522,7 @@ constexpr i32 intHexTest() {
             { i16(-2), "FFFE" },
             { core::MAX_I16, "7FFF" },
         };
-        executeTestTable("test case failed for i16 at index: ", cases, [&](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed for i16 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::intToHex(c.in, buf);
             Assert(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
@@ -542,7 +542,7 @@ constexpr i32 intHexTest() {
             { i32(-2), "FFFFFFFE" },
             { core::MAX_I32, "7FFFFFFF" },
         };
-        executeTestTable("test case failed for i32 at index: ", cases, [&](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed for i32 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::intToHex(c.in, buf);
             Assert(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
@@ -561,7 +561,7 @@ constexpr i32 intHexTest() {
             { i64(0x123456789ABCDEF0), "123456789ABCDEF0" },
             { core::MAX_I64, "7FFFFFFFFFFFFFFF" },
         };
-        executeTestTable("test case failed for i64 at index: ", cases, [&](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed for i64 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::intToHex(c.in, buf);
             Assert(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
@@ -575,7 +575,7 @@ constexpr i32 intHexTest() {
             { u8(0xF), "0F" },
             { core::MAX_U8, "FF" },
         };
-        executeTestTable("test case failed for u8 at index: ", cases, [&](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed for u8 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::intToHex(c.in, buf);
             Assert(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
@@ -591,7 +591,7 @@ constexpr i32 intHexTest() {
             { u16(0x0F0F), "0F0F" },
             { core::MAX_U16, "FFFF" },
         };
-        executeTestTable("test case failed for u16 at index: ", cases, [&](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed for u16 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::intToHex(c.in, buf);
             Assert(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
@@ -608,7 +608,7 @@ constexpr i32 intHexTest() {
             { u32(0x12345678), "12345678" },
             { core::MAX_U32, "FFFFFFFF" },
         };
-        executeTestTable("test case failed for u32 at index: ", cases, [&](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed for u32 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::intToHex(c.in, buf);
             Assert(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
@@ -626,7 +626,7 @@ constexpr i32 intHexTest() {
             { u64(0x123456789ABCDEF0), "123456789ABCDEF0" },
             { core::MAX_U64, "FFFFFFFFFFFFFFFF" },
         };
-        executeTestTable("test case failed for u64 at index: ", cases, [&](auto& c, const char* cErr) {
+        core::testing::executeTestTable("test case failed for u64 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::intToHex(c.in, buf);
             Assert(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);

@@ -1,7 +1,6 @@
 #include "../t-index.h"
 
 #include <thread>
-#include <iostream>
 
 i32 getNumberOfCoresTest() {
     i32 n = ValueOrDie(core::threadingGetNumCores());

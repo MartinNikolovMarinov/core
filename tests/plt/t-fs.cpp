@@ -262,7 +262,7 @@ i32 createFilesAndAssertTheyExistTest() {
     TestPathBuilder pb;
     pb.setDirPath(testDirectory);
 
-    executeTestTable("alignTest failed at index: ", testNamesTable, [&](auto& c, const char* cErr) {
+    core::testing::executeTestTable("alignTest failed at index: ", testNamesTable, [&](auto& c, const char* cErr) {
         pb.resetFilePart();
         pb.setFileName(c);
 
@@ -360,7 +360,7 @@ i32 directoriesCreateRenameAndDeleteTest() {
     TestPathBuilder pb;
     pb.setDirPath(testDirectory);
 
-    executeTestTable("alignTest failed at index: ", testNamesTable, [&](auto& c, const char* cErr) {
+    core::testing::executeTestTable("alignTest failed at index: ", testNamesTable, [&](auto& c, const char* cErr) {
         pb.resetFilePart();
         pb.setFileName(c);
 

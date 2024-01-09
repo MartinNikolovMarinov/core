@@ -29,7 +29,7 @@ constexpr i32 leastSignificantNBitsTest() {
         { 0b11111000, 0b11111, 5, false },
     };
 
-    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         bool got = core::leastSignificantNBits(c.value, c.bitSeq, c.n);
         Assert(got == c.expected, cErr);
     });
@@ -106,7 +106,7 @@ constexpr i32 mostSignificantNBistsTest() {
         { 0b10100000, 0b101, 3, true },
     };
 
-    executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         bool got = core::mostSignificantNBits(c.value, c.bitSeq, c.n);
         Assert(got == c.expected, cErr);
     });

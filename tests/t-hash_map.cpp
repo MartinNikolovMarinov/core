@@ -657,6 +657,8 @@ i32 removeFromHashSetTest() {
 template <typename TAllocator>
 i32 complexTypesInHashMapTest() {
     using core::sv;
+    using SVCT = core::testing::SVCT;
+    using CT = core::testing::CT;
 
     {
         defer { SVCT::nextId = 0; };

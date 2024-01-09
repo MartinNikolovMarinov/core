@@ -43,7 +43,7 @@ constexpr i32 leadingZeroCountTest() {
             { 0b10000000000000000000000000000000, 0 },
         };
 
-        executeTestTable("leading zero count failed for u32 at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("leading zero count failed for u32 at index: ", cases, [](auto& c, const char* cErr) {
             Assert(core::intrin_countLeadingZeros(c.in) == c.expected, cErr);
         });
     }
@@ -90,7 +90,7 @@ constexpr i32 leadingZeroCountTest() {
             { -1, 0 },
         };
 
-        executeTestTable("leading zero count failed for i32 at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("leading zero count failed for i32 at index: ", cases, [](auto& c, const char* cErr) {
             Assert(core::intrin_countLeadingZeros(c.in) == c.expected, cErr);
         });
     }
@@ -169,7 +169,7 @@ constexpr i32 leadingZeroCountTest() {
             { 0b1000000000000000000000000000000000000000000000000000000000000000, 0 },
         };
 
-        executeTestTable("leading zero count failed for u64 at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("leading zero count failed for u64 at index: ", cases, [](auto& c, const char* cErr) {
             Assert(core::intrin_countLeadingZeros(c.in) == c.expected, cErr);
         });
     }
@@ -248,7 +248,7 @@ constexpr i32 leadingZeroCountTest() {
             { -1, 0 },
         };
 
-        executeTestTable("leading zero count failed for i64 at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("leading zero count failed for i64 at index: ", cases, [](auto& c, const char* cErr) {
             Assert(core::intrin_countLeadingZeros(c.in) == c.expected, cErr);
         });
     }
@@ -287,7 +287,7 @@ constexpr i32 numberOfSetBitsTest() {
             { 0b1000000000000000000000000000001, 2 },
         };
 
-        executeTestTable("number of set bits failed for u32 at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("number of set bits failed for u32 at index: ", cases, [](auto& c, const char* cErr) {
             Assert(core::intrin_numberOfSetBits(c.in) == c.expected, cErr);
         });
     }
@@ -326,7 +326,7 @@ constexpr i32 numberOfSetBitsTest() {
             { 0b111011011101101111101101110111111101101110110111110110111011111, 49 },
         };
 
-        executeTestTable("number of set bits failed for u64 at index: ", cases, [](auto& c, const char* cErr) {
+        core::testing::executeTestTable("number of set bits failed for u64 at index: ", cases, [](auto& c, const char* cErr) {
             Assert(core::intrin_numberOfSetBits(c.in) == c.expected, cErr);
         });
     }
@@ -363,7 +363,7 @@ constexpr i32 rotlTest() {
         { 0b10000000000000000000000000000000, 2, 0b00000000000000000000000000000010 },
     };
 
-    executeTestTable("rotl failed for u32 at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("rotl failed for u32 at index: ", cases, [](auto& c, const char* cErr) {
         auto got = core::intrin_rotl(c.in, c.r);
         Assert(got == c.expected, cErr);
     });
@@ -394,7 +394,7 @@ constexpr i32 rotrTest() {
         { 0b00000000000000000000000000000010, 2, 0b10000000000000000000000000000000 },
     };
 
-    executeTestTable("rotl failed for u32 at index: ", cases, [](auto& c, const char* cErr) {
+    core::testing::executeTestTable("rotl failed for u32 at index: ", cases, [](auto& c, const char* cErr) {
         auto got = core::intrin_rotr(c.in, c.r);
         Assert(got == c.expected, cErr);
     });

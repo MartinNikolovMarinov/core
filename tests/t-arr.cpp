@@ -33,10 +33,10 @@ i32 initializeArrTest() {
     }
 
     {
-        defer { SVCT::nextId = 0; };
+        defer { core::testing::SVCT::nextId = 0; };
 
-        Assert(SVCT::nextId == 0);
-        core::Arr<SVCT, TAllocator> arr(10);
+        Assert(core::testing::SVCT::nextId == 0);
+        core::Arr<core::testing::SVCT, TAllocator> arr(10);
         Assert(arr.len() == 10);
         Assert(arr.cap() == 10);
         Assert(!arr.empty());
@@ -47,31 +47,31 @@ i32 initializeArrTest() {
     }
 
     {
-        defer { CT::resetAll(); };
+        defer { core::testing::CT::resetAll(); };
         constexpr i32 testCount = 10;
         {
-            core::Arr<CT, TAllocator> arr(testCount);
+            core::Arr<core::testing::CT, TAllocator> arr(testCount);
             for (addr_size i = 0; i < arr.len(); ++i) {
                 Assert(arr[i].a == 7, "Initializer did not call constructors!");
             }
-            Assert(CT::totalCtorsCalled() == testCount, "Initializer did not call the exact number of constructors!");
-            Assert(CT::defaultCtorCalled() == testCount, "Initializer did not call the exact number of copy constructors!");
-            CT::resetCtors();
+            Assert(core::testing::CT::totalCtorsCalled() == testCount, "Initializer did not call the exact number of constructors!");
+            Assert(core::testing::CT::defaultCtorCalled() == testCount, "Initializer did not call the exact number of copy constructors!");
+            core::testing::CT::resetCtors();
             {
                 auto arrCpy = arr.copy();
                 Assert(arrCpy.data() != arr.data());
                 for (addr_size i = 0; i < arrCpy.len(); ++i) {
                     Assert(arrCpy[i].a == 7, "Copy constructor did not call constructors!");
                 }
-                Assert(CT::totalCtorsCalled() == testCount, "Copy constructor did not call the exact number of constructors!");
-                Assert(CT::copyCtorCalled() == testCount, "Copy constructor did not call the exact number of copy constructors!");
-                CT::resetCtors();
+                Assert(core::testing::CT::totalCtorsCalled() == testCount, "Copy constructor did not call the exact number of constructors!");
+                Assert(core::testing::CT::copyCtorCalled() == testCount, "Copy constructor did not call the exact number of copy constructors!");
+                core::testing::CT::resetCtors();
             }
-            Assert(CT::dtorsCalled() == testCount, "Copy constructor did not call destructors!");
-            CT::resetDtors();
+            Assert(core::testing::CT::dtorsCalled() == testCount, "Copy constructor did not call destructors!");
+            core::testing::CT::resetDtors();
         }
-        Assert(CT::dtorsCalled() == testCount, "Copy constructor did not call destructors!");
-        CT::resetDtors();
+        Assert(core::testing::CT::dtorsCalled() == testCount, "Copy constructor did not call destructors!");
+        core::testing::CT::resetDtors();
     }
 
     return 0;
@@ -229,6 +229,8 @@ i32 fillArrTest() {
 
     // Assure proper object destructors are called:
     {
+        using CT = core::testing::CT;
+
         CT::resetAll();
         defer { CT::resetAll(); };
         constexpr i32 testCount = 10;
@@ -319,6 +321,8 @@ i32 fillArrTest() {
 
 template <typename TAllocator>
 i32 appendArrTest() {
+    using CT = core::testing::CT;
+
     {
         core::Arr<i32, TAllocator> arr;
 
@@ -503,6 +507,8 @@ i32 arrayOfArraysArrTest() {
 
 template <typename TAllocator>
 i32 clearArrayShouldCallDtorsTest() {
+    using CT = core::testing::CT;
+
     defer { CT::resetAll(); };
     constexpr i32 testCount = 10;
     auto arr = core::Arr<CT, TAllocator>(testCount);
@@ -523,6 +529,7 @@ i32 clearArrayShouldCallDtorsTest() {
 
 template <typename TAllocator>
 i32 removeFromArrayTest() {
+    using CT = core::testing::CT;
 
     {
         core::Arr<i32, TAllocator> arr;

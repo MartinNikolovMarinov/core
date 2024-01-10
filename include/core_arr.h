@@ -147,7 +147,7 @@ struct Arr {
     ContainerType& fill(const DataType& val, addr_size from, addr_size to) {
         if (from >= to) return *this;
 
-        [[maybe_unused]] addr_size overwriteIdx = core::min(to, m_len);
+        [[maybe_unused]] addr_size overwriteIdx = core::core_min(to, m_len);
         if (to > m_len) {
             ensureCap(to);
             m_len = to;

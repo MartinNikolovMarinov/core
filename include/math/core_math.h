@@ -562,25 +562,25 @@ constexpr f32 radToDeg(const radians& n) {
 #pragma region Min/Max/Clamp -----------------------------------------------------------------------------------------
 
 template <typename T>
-constexpr T max(T a, T b) {
+constexpr T core_max(T a, T b) { // apparently Windows defines a max macro, so this is core_max instead of max.
     if (a < b) return b;
     return a;
 }
 
 template <typename T>
-constexpr T min(T a, T b) {
+constexpr T core_min(T a, T b) { // naming this core_min for consistency with core_max.
     if (a > b) return b;
     return a;
 }
 
 template <typename T>
 constexpr tuple<T, T> minmax(T a, T b) {
-    return core::createTuple(core::min(a, b), core::max(a, b));
+    return core::createTuple(core::core_min(a, b), core::core_max(a, b));
 }
 
 template <typename T>
 constexpr T clamp(T value, T min, T max) {
-    return core::max(min, core::min(max, value));
+    return core::core_max(min, core::core_min(max, value));
 }
 
 #pragma endregion
@@ -662,7 +662,7 @@ constexpr bool nearlyEq(f32 a, f32 b, f32 epsilon) {
     if (a == 0 || b == 0 || (absA + absB < MIN_NORMAL_F32)) {
         return diff < (epsilon * MIN_NORMAL_F32);
     }
-    return diff / core::min((absA + absB), MAX_F32) < epsilon;
+    return diff / core::core_min((absA + absB), MAX_F32) < epsilon;
 }
 
 /**
@@ -679,7 +679,7 @@ constexpr bool nearlyEq(f64 a, f64 b, f64 epsilon) {
     if (a == 0 || b == 0 || (absA + absB < MIN_NORMAL_F64)) {
         return diff < (epsilon * MIN_NORMAL_F64);
     }
-    return diff / core::min((absA + absB), MAX_F64) < epsilon;
+    return diff / core::core_min((absA + absB), MAX_F64) < epsilon;
 }
 
 #pragma endregion

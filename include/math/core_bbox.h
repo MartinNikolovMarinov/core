@@ -80,8 +80,8 @@ struct Bbox2D {
             f32 tMinX = (min.x() - start.x()) * invDirX;
             f32 tMaxX = (max.x() - start.x()) * invDirX;
             if (tMinX > tMaxX) core::swap(tMinX, tMaxX);
-            tMin = core::max(tMin, tMinX);
-            tMax = core::min(tMax, tMaxX);
+            tMin = core::core_max(tMin, tMinX);
+            tMax = core::core_min(tMax, tMaxX);
         }
 
         if (dir.y() != 0) {
@@ -89,8 +89,8 @@ struct Bbox2D {
             f32 tMinY = (min.y() - start.y()) * invDirY;
             f32 tMaxY = (max.y() - start.y()) * invDirY;
             if (tMinY > tMaxY) core::swap(tMinY, tMaxY);
-            tMin = core::max(tMin, tMinY);
-            tMax = core::min(tMax, tMaxY);
+            tMin = core::core_max(tMin, tMinY);
+            tMax = core::core_min(tMax, tMaxY);
         }
 
         if (tMin >= tMax) {

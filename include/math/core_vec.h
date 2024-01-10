@@ -221,7 +221,7 @@ template<addr_size Dim, typename T>
 constexpr vec<Dim, T> vmax(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
     vec<Dim, T> ret;
     for (addr_size i = 0; i < v1.dimensions(); ++i) {
-        ret[i] = core::max(v1[i], v2[i]);
+        ret[i] = core::core_max(v1[i], v2[i]);
     }
     return ret;
 }
@@ -232,7 +232,7 @@ template<addr_size Dim, typename T>
 constexpr vec<Dim, T> vmin(const vec<Dim, T>& v1, const vec<Dim, T>& v2) {
     vec<Dim, T> ret;
     for (addr_size i = 0; i < v1.dimensions(); ++i) {
-        ret[i] = core::min(v1[i], v2[i]);
+        ret[i] = core::core_min(v1[i], v2[i]);
     }
     return ret;
 }

@@ -68,23 +68,18 @@ constexpr i32 maxDigitsBase2() {
 
 template <typename T>
 constexpr i32 maxDigitsBase10() {
-    if constexpr (core::is_same_v<T, u8>    &&
-                  core::is_same_v<T, u16>   &&
-                  core::is_same_v<T, u32>   &&
-                  core::is_same_v<T, u64>   &&
-                  core::is_same_v<T, i8>    &&
-                  core::is_same_v<T, i16>   &&
-                  core::is_same_v<T, i32>   &&
-                  core::is_same_v<T, i64>   &&
-                  core::is_same_v<T, char>  &&
-                  core::is_same_v<T, uchar> &&
-                  core::is_same_v<T, schar>
-    ) {
-        return maxDigitsBase2<T>() * i32(std::log10(2));
-    }
-    else {
-        static_assert(core::always_false<T>, "Unsupported type");
-    }
+    if constexpr (core::is_same_v<T, u8>)         return 3;
+    else if constexpr (core::is_same_v<T, u16>)   return 5;
+    else if constexpr (core::is_same_v<T, u32>)   return 10;
+    else if constexpr (core::is_same_v<T, u64>)   return 20;
+    else if constexpr (core::is_same_v<T, i8>)    return 4;
+    else if constexpr (core::is_same_v<T, i16>)   return 6;
+    else if constexpr (core::is_same_v<T, i32>)   return 11;
+    else if constexpr (core::is_same_v<T, i64>)   return 20;
+    else if constexpr (core::is_same_v<T, char>)  return 4;
+    else if constexpr (core::is_same_v<T, uchar>) return 3;
+    else if constexpr (core::is_same_v<T, schar>) return 4;
+    else static_assert(core::always_false<T>, "Unsupported type");
 }
 
 #pragma endregion

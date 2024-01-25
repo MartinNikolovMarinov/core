@@ -101,6 +101,7 @@ struct CmdFlagParser {
         // Pre-allocate at enough space for the worst case scenario:
         m_parsedSymbols.clear();
         m_parsedSymbols.ensureCap(argc*2);
+        m_argumentCount = 0;
 
         auto trailingWhitespaceIdx = [](const char* str, addr_size len) -> addr_size {
             if (!core::isWhiteSpace(str[len - 1])) return len;
@@ -149,6 +150,7 @@ struct CmdFlagParser {
                     if (!isFlag && !isOption) {
                         ParsedSymbol s = { ParsedSymbolType::Argument, core::sv(chunk, trailingIdx) };
                         m_parsedSymbols.append(core::move(s));
+                        m_argumentCount++;
                     }
                     else if (isFlag) {
                         ParsedSymbol s = { ParsedSymbolType::FlagName, core::sv(chunk, trailingIdx) };
@@ -210,6 +212,10 @@ struct CmdFlagParser {
     StrView programName() const {
         auto ret = !m_parsedSymbols.empty() ? m_parsedSymbols[0].value.view() : sv();
         return ret;
+    }
+
+    inline u32 argumentCount() const {
+        return m_argumentCount;
     }
 
     template <typename TCallback>
@@ -461,6 +467,7 @@ private:
     ParsedSymbols m_parsedSymbols;
     FlagDataMap m_flagData;
     bool m_allowUnknownFlags = false;
+    u32 m_argumentCount = 0;
 };
 
 } // namespace core

@@ -92,4 +92,10 @@ constexpr const char* cptrSkipSpace(const char* s) {
     return s;
 }
 
+constexpr char* cptrSkipSpace(char* s) {
+    if (s == nullptr) return s;
+    while (isWhiteSpace(*s)) s++;
+    return s;
+}
+
 } // namespace core

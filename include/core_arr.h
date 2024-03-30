@@ -215,6 +215,20 @@ struct Arr {
         m_cap = newCap;
     }
 
+    DataType* steal(SizeType& len, SizeType& cap) {
+        if constexpr (!dataIsTrivial) {
+            Assert(false, "Stealing the raw pointer from an array of non trivial types is strongly discouraged.");
+        }
+
+        DataType* res = m_data;
+        cap = m_cap;
+        len = m_len;
+        m_data = nullptr;
+        m_cap = 0;
+        m_len = 0;
+        return res;
+    }
+
 private:
     DataType *m_data;
     SizeType m_cap;

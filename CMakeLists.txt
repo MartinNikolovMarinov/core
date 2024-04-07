@@ -4,7 +4,9 @@ project(core VERSION 0.2.0)
 
 # Global CMake options:
 
-set(CMAKE_CXX_STANDARD 20)
+set(CPP_VERSION 20)
+
+set(CMAKE_CXX_STANDARD ${CPP_VERSION})
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Generates compile_commands.json
 
@@ -14,6 +16,7 @@ option(CORE_LIBRARY_SHARED "Build core as a shared library." OFF)
 option(CORE_ASSERT_ENABLED "Enable asserts." ON)
 option(CORE_BUILD_TESTS "Build core tests." OFF)
 option(CORE_RUN_COMPILETIME_TESTS "Run compile-time tests." OFF)
+option(CORE_SANDBOX "Build core sandbox." OFF)
 option(CORE_USE_CPPCHECK "Use cppcheck. [WARNING] This makes compilation incredibly slow!" OFF)
 
 if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -44,7 +47,7 @@ if(CORE_USE_CPPCHECK)
                 "--enable=all"
                 "--inconclusive"
                 "--inline-suppr"
-                "--std=c++20"
+                "--std=c++${CPP_VERSION}"
                 "--check-level=exhaustive"
                 "--output-file=${CMAKE_BINARY_DIR}/cppcheck.out.txt"
                 "--suppressions-list=${CMAKE_SOURCE_DIR}/CppCheckSuppressions.txt")
@@ -67,6 +70,7 @@ message(STATUS "[CORE] Debug:             ${CORE_DEBUG}")
 message(STATUS "[CORE] Assert:            ${CORE_ASSERT_ENABLED}")
 message(STATUS "[CORE] Shared:            ${CORE_LIBRARY_SHARED}")
 message(STATUS "[CORE] Build Tests:       ${CORE_BUILD_TESTS}")
+message(STATUS "[CORE] Sandbox:           ${CORE_SANDBOX}")
 message(STATUS "[CORE] Run Compile Tests: ${CORE_RUN_COMPILETIME_TESTS}")
 message(STATUS "[CORE] Use CppCheck:      ${CORE_USE_CPPCHECK}")
 
@@ -182,7 +186,7 @@ function(configure_compiler_settings
        CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
 
         set(local_common_flags ${local_common_flags}
-            -std=c++20 -pthread
+            -std=c++${CPP_VERSION} -pthread
             -Wall -Wextra -Wfatal-errors -Wconversion -Wpedantic -Werror
             -Wshadow -Wold-style-cast -Wdouble-promotion -Wswitch-enum -Wundef -Wcast-align -Wsign-conversion
             -Wmisleading-indentation -Woverloaded-virtual -Wnon-virtual-dtor
@@ -195,7 +199,7 @@ function(configure_compiler_settings
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 
         set(local_common_flags ${local_common_flags}
-            -std:c++20
+            -std:c++${CPP_VERSION}
             /MP
             -Wall -W4 -WX
             -nologo -FC
@@ -327,6 +331,43 @@ if(CORE_BUILD_TESTS)
     # Add the test
     enable_testing()
     add_test(NAME ${TEST_EXECUTABLE} COMMAND ${TEST_EXECUTABLE})
+endif()
+
+if(CORE_SANDBOX)
+    message(STATUS "[CORE] Configuring tests")
+
+    set(SANDBOX_EXECUTABLE ${PROJECT_NAME}_sandbox)
+
+    # Create executable
+    add_executable(${SANDBOX_EXECUTABLE} ${SANDBOX_EXECUTABLE}.cpp)
+
+    # Link core
+    target_link_libraries(${SANDBOX_EXECUTABLE} ${PROJECT_NAME})
+
+    # Definitions
+    target_compile_definitions(${SANDBOX_EXECUTABLE} PRIVATE
+        -DPATH_TO_TEST_DATA="${CMAKE_CURRENT_BINARY_DIR}"
+    )
+
+    # Compile options
+
+    set(mm_sandbox_common_flags "")
+    set(mm_sandbox_debug_flags "")
+    set(mm_sandbox_release_flags "")
+
+    configure_compiler_settings(
+        ${PROJECT_NAME}
+        mm_sandbox_common_flags "${mm_sandbox_common_flags}"
+        mm_sandbox_debug_flags "${mm_sandbox_debug_flags}"
+        mm_sandbox_release_flags "${mm_sandbox_release_flags}"
+    )
+
+    if(CORE_DEBUG)
+        target_compile_options(${TEST_EXECUTABLE} PUBLIC ${mm_sandbox_common_flags} ${mm_sandbox_debug_flags})
+    else()
+        target_compile_options(${TEST_EXECUTABLE} PUBLIC ${mm_sandbox_common_flags} ${mm_sandbox_release_flags})
+    endif()
+
 endif()
 
 # END Create Testing Executable

@@ -19,8 +19,8 @@ struct mat<2, 2, T> {
     using DataType = T;
     using MatrixType = mat<NCol, NRow, T>;
 
-    static_assert(core::is_trivial_v<DataType>, "DataType must be a trivial");
-    static_assert(core::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
+    static_assert(std::is_trivial_v<DataType>, "DataType must be a trivial");
+    static_assert(std::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
 
     static constexpr MatrixType identity() { return MatrixType(1, 0, 0, 1); }
 
@@ -44,8 +44,8 @@ struct mat<2, 3, T> {
     using DataType = T;
     using MatrixType = mat<NCol, NRow, T>;
 
-    static_assert(core::is_trivial_v<DataType>, "DataType must be a trivial");
-    static_assert(core::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
+    static_assert(std::is_trivial_v<DataType>, "DataType must be a trivial");
+    static_assert(std::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
 
     DataType data[NCol][NRow];
 
@@ -67,8 +67,8 @@ struct mat<2, 4, T> {
     using DataType = T;
     using MatrixType = mat<NCol, NRow, T>;
 
-    static_assert(core::is_trivial_v<DataType>, "DataType must be a trivial");
-    static_assert(core::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
+    static_assert(std::is_trivial_v<DataType>, "DataType must be a trivial");
+    static_assert(std::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
 
     DataType data[NCol][NRow];
 
@@ -90,8 +90,8 @@ struct mat<3, 2, T> {
     using DataType = T;
     using MatrixType = mat<NCol, NRow, T>;
 
-    static_assert(core::is_trivial_v<DataType>, "DataType must be a trivial");
-    static_assert(core::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
+    static_assert(std::is_trivial_v<DataType>, "DataType must be a trivial");
+    static_assert(std::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
 
     DataType data[NCol][NRow];
 
@@ -113,8 +113,8 @@ struct mat<3, 3, T> {
     using DataType = T;
     using MatrixType = mat<NCol, NRow, T>;
 
-    static_assert(core::is_trivial_v<DataType>, "DataType must be a trivial");
-    static_assert(core::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
+    static_assert(std::is_trivial_v<DataType>, "DataType must be a trivial");
+    static_assert(std::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
 
     static constexpr MatrixType identity() { return MatrixType(1, 0, 0, 0, 1, 0, 0, 0, 1); }
 
@@ -138,8 +138,8 @@ struct mat<3, 4, T> {
     using DataType = T;
     using MatrixType = mat<NCol, NRow, T>;
 
-    static_assert(core::is_trivial_v<DataType>, "DataType must be a trivial");
-    static_assert(core::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
+    static_assert(std::is_trivial_v<DataType>, "DataType must be a trivial");
+    static_assert(std::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
 
     DataType data[NCol][NRow];
 
@@ -161,8 +161,8 @@ struct mat<4, 2, T> {
     using DataType = T;
     using MatrixType = mat<NCol, NRow, T>;
 
-    static_assert(core::is_trivial_v<DataType>, "DataType must be a trivial");
-    static_assert(core::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
+    static_assert(std::is_trivial_v<DataType>, "DataType must be a trivial");
+    static_assert(std::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
 
     DataType data[NCol][NRow];
 
@@ -184,8 +184,8 @@ struct mat<4, 3, T> {
     using DataType = T;
     using MatrixType = mat<NCol, NRow, T>;
 
-    static_assert(core::is_trivial_v<DataType>, "DataType must be a trivial");
-    static_assert(core::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
+    static_assert(std::is_trivial_v<DataType>, "DataType must be a trivial");
+    static_assert(std::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
 
     DataType data[NCol][NRow];
 
@@ -207,8 +207,8 @@ struct mat<4, 4, T> {
     using DataType = T;
     using MatrixType = mat<NCol, NRow, T>;
 
-    static_assert(core::is_trivial_v<DataType>, "DataType must be a trivial");
-    static_assert(core::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
+    static_assert(std::is_trivial_v<DataType>, "DataType must be a trivial");
+    static_assert(std::is_arithmetic_v<DataType>, "DataType must be an arithmetic");
 
     static constexpr MatrixType identity() { return MatrixType(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1); }
 
@@ -747,65 +747,65 @@ using mat4x4u = mat4x4<u32>;
 using mat4x4f = mat4x4<f32>;
 using mat4x4d = mat4x4<f64>;
 
-static_assert(core::is_pod_v<mat2i>);
-static_assert(core::is_pod_v<mat2u>);
-static_assert(core::is_pod_v<mat2f>);
-static_assert(core::is_pod_v<mat2d>);
+static_assert(std::is_standard_layout_v<mat2i> && std::is_trivial_v<mat2i>);
+static_assert(std::is_standard_layout_v<mat2u> && std::is_trivial_v<mat2u>);
+static_assert(std::is_standard_layout_v<mat2f> && std::is_trivial_v<mat2f>);
+static_assert(std::is_standard_layout_v<mat2d> && std::is_trivial_v<mat2d>);
 
-static_assert(core::is_pod_v<mat2x2i>);
-static_assert(core::is_pod_v<mat2x2u>);
-static_assert(core::is_pod_v<mat2x2f>);
-static_assert(core::is_pod_v<mat2x2d>);
+static_assert(std::is_standard_layout_v<mat2x2i> && std::is_trivial_v<mat2x2i>);
+static_assert(std::is_standard_layout_v<mat2x2u> && std::is_trivial_v<mat2x2u>);
+static_assert(std::is_standard_layout_v<mat2x2f> && std::is_trivial_v<mat2x2f>);
+static_assert(std::is_standard_layout_v<mat2x2d> && std::is_trivial_v<mat2x2d>);
 
-static_assert(core::is_pod_v<mat2x3i>);
-static_assert(core::is_pod_v<mat2x3u>);
-static_assert(core::is_pod_v<mat2x3f>);
-static_assert(core::is_pod_v<mat2x3d>);
+static_assert(std::is_standard_layout_v<mat2x3i> && std::is_trivial_v<mat2x3i>);
+static_assert(std::is_standard_layout_v<mat2x3u> && std::is_trivial_v<mat2x3u>);
+static_assert(std::is_standard_layout_v<mat2x3f> && std::is_trivial_v<mat2x3f>);
+static_assert(std::is_standard_layout_v<mat2x3d> && std::is_trivial_v<mat2x3d>);
 
-static_assert(core::is_pod_v<mat2x4i>);
-static_assert(core::is_pod_v<mat2x4u>);
-static_assert(core::is_pod_v<mat2x4f>);
-static_assert(core::is_pod_v<mat2x4d>);
+static_assert(std::is_standard_layout_v<mat2x4i> && std::is_trivial_v<mat2x4i>);
+static_assert(std::is_standard_layout_v<mat2x4u> && std::is_trivial_v<mat2x4u>);
+static_assert(std::is_standard_layout_v<mat2x4f> && std::is_trivial_v<mat2x4f>);
+static_assert(std::is_standard_layout_v<mat2x4d> && std::is_trivial_v<mat2x4d>);
 
-static_assert(core::is_pod_v<mat3x2i>);
-static_assert(core::is_pod_v<mat3x2u>);
-static_assert(core::is_pod_v<mat3x2f>);
-static_assert(core::is_pod_v<mat3x2d>);
+static_assert(std::is_standard_layout_v<mat3x2i> && std::is_trivial_v<mat3x2i>);
+static_assert(std::is_standard_layout_v<mat3x2u> && std::is_trivial_v<mat3x2u>);
+static_assert(std::is_standard_layout_v<mat3x2f> && std::is_trivial_v<mat3x2f>);
+static_assert(std::is_standard_layout_v<mat3x2d> && std::is_trivial_v<mat3x2d>);
 
-static_assert(core::is_pod_v<mat3i>);
-static_assert(core::is_pod_v<mat3u>);
-static_assert(core::is_pod_v<mat3f>);
-static_assert(core::is_pod_v<mat3d>);
+static_assert(std::is_standard_layout_v<mat3i> && std::is_trivial_v<mat3i>);
+static_assert(std::is_standard_layout_v<mat3u> && std::is_trivial_v<mat3u>);
+static_assert(std::is_standard_layout_v<mat3f> && std::is_trivial_v<mat3f>);
+static_assert(std::is_standard_layout_v<mat3d> && std::is_trivial_v<mat3d>);
 
-static_assert(core::is_pod_v<mat3x3i>);
-static_assert(core::is_pod_v<mat3x3u>);
-static_assert(core::is_pod_v<mat3x3f>);
-static_assert(core::is_pod_v<mat3x3d>);
+static_assert(std::is_standard_layout_v<mat3x3i> && std::is_trivial_v<mat3x3i>);
+static_assert(std::is_standard_layout_v<mat3x3u> && std::is_trivial_v<mat3x3u>);
+static_assert(std::is_standard_layout_v<mat3x3f> && std::is_trivial_v<mat3x3f>);
+static_assert(std::is_standard_layout_v<mat3x3d> && std::is_trivial_v<mat3x3d>);
 
-static_assert(core::is_pod_v<mat3x4i>);
-static_assert(core::is_pod_v<mat3x4u>);
-static_assert(core::is_pod_v<mat3x4f>);
-static_assert(core::is_pod_v<mat3x4d>);
+static_assert(std::is_standard_layout_v<mat3x4i> && std::is_trivial_v<mat3x4i>);
+static_assert(std::is_standard_layout_v<mat3x4u> && std::is_trivial_v<mat3x4u>);
+static_assert(std::is_standard_layout_v<mat3x4f> && std::is_trivial_v<mat3x4f>);
+static_assert(std::is_standard_layout_v<mat3x4d> && std::is_trivial_v<mat3x4d>);
 
-static_assert(core::is_pod_v<mat4x2i>);
-static_assert(core::is_pod_v<mat4x2u>);
-static_assert(core::is_pod_v<mat4x2f>);
-static_assert(core::is_pod_v<mat4x2d>);
+static_assert(std::is_standard_layout_v<mat4x2i> && std::is_trivial_v<mat4x2i>);
+static_assert(std::is_standard_layout_v<mat4x2u> && std::is_trivial_v<mat4x2u>);
+static_assert(std::is_standard_layout_v<mat4x2f> && std::is_trivial_v<mat4x2f>);
+static_assert(std::is_standard_layout_v<mat4x2d> && std::is_trivial_v<mat4x2d>);
 
-static_assert(core::is_pod_v<mat4x3i>);
-static_assert(core::is_pod_v<mat4x3u>);
-static_assert(core::is_pod_v<mat4x3f>);
-static_assert(core::is_pod_v<mat4x3d>);
+static_assert(std::is_standard_layout_v<mat4x3i> && std::is_trivial_v<mat4x3i>);
+static_assert(std::is_standard_layout_v<mat4x3u> && std::is_trivial_v<mat4x3u>);
+static_assert(std::is_standard_layout_v<mat4x3f> && std::is_trivial_v<mat4x3f>);
+static_assert(std::is_standard_layout_v<mat4x3d> && std::is_trivial_v<mat4x3d>);
 
-static_assert(core::is_pod_v<mat4i>);
-static_assert(core::is_pod_v<mat4u>);
-static_assert(core::is_pod_v<mat4f>);
-static_assert(core::is_pod_v<mat4d>);
+static_assert(std::is_standard_layout_v<mat4i> && std::is_trivial_v<mat4i>);
+static_assert(std::is_standard_layout_v<mat4u> && std::is_trivial_v<mat4u>);
+static_assert(std::is_standard_layout_v<mat4f> && std::is_trivial_v<mat4f>);
+static_assert(std::is_standard_layout_v<mat4d> && std::is_trivial_v<mat4d>);
 
-static_assert(core::is_pod_v<mat4x4i>);
-static_assert(core::is_pod_v<mat4x4u>);
-static_assert(core::is_pod_v<mat4x4f>);
-static_assert(core::is_pod_v<mat4x4d>);
+static_assert(std::is_standard_layout_v<mat4x4i> && std::is_trivial_v<mat4x4i>);
+static_assert(std::is_standard_layout_v<mat4x4u> && std::is_trivial_v<mat4x4u>);
+static_assert(std::is_standard_layout_v<mat4x4f> && std::is_trivial_v<mat4x4f>);
+static_assert(std::is_standard_layout_v<mat4x4d> && std::is_trivial_v<mat4x4d>);
 
 #pragma endregion
 

@@ -13,7 +13,7 @@ struct ConstructorTester {
     i32 a;
     ConstructorTester() : a(defaultValue) { g_defaultCtorCalled++; }
     ConstructorTester(const ConstructorTester& other) : a(other.a) { g_copyCtorCalled++; }
-    ConstructorTester(ConstructorTester&& other) : a(core::move(other.a)) { g_moveCtorCalled++; }
+    ConstructorTester(ConstructorTester&& other) : a(std::move(other.a)) { g_moveCtorCalled++; }
     ~ConstructorTester() { g_destructorsCalled++; }
 
     ConstructorTester& operator=(const ConstructorTester& other) {
@@ -23,7 +23,7 @@ struct ConstructorTester {
     }
 
     ConstructorTester& operator=(ConstructorTester&& other) {
-        a = core::move(other.a);
+        a = std::move(other.a);
         g_assignmentsMoveCalled++;
         return *this;
     }
@@ -69,14 +69,6 @@ private:
 };
 
 using CT = ConstructorTester;
-
-struct StaticVariableDefaultCtorTester {
-    // NOTE: This is a terrible idea, but it still should work.
-    inline static i32 nextId = 0;
-    i32 a = nextId++;
-};
-
-using SVCT = StaticVariableDefaultCtorTester;
 
 /**
  * \brief This code is quite complex, because it does zero allocations, but it's purpose is quite simple. It iterates over

@@ -1,5 +1,7 @@
 #include "t-index.h"
 
+#include <vector>
+
 template <typename TAllocator>
 i32 initializeArrTest() {
     {
@@ -12,51 +14,39 @@ i32 initializeArrTest() {
 
     {
         core::Arr<i32, TAllocator> arr(10);
+        Assert(arr.len() == 0);
+        Assert(arr.cap() == 10);
+        Assert(arr.empty());
+    }
+
+    {
+        core::Arr<i32, TAllocator> arr(10, 0);
         Assert(arr.len() == 10);
         Assert(arr.cap() == 10);
         Assert(!arr.empty());
 
         for (addr_size i = 0; i < arr.len(); ++i) {
             Assert(arr[i] == 0);
-        }
-    }
-
-    {
-        core::Arr<i32, TAllocator> arr(10, 20);
-        Assert(arr.len() == 10);
-        Assert(arr.cap() == 20);
-        Assert(!arr.empty());
-
-        for (addr_size i = 0; i < arr.len(); ++i) {
-            Assert(arr[i] == 0);
-        }
-    }
-
-    {
-        defer { core::testing::SVCT::nextId = 0; };
-
-        Assert(core::testing::SVCT::nextId == 0);
-        core::Arr<core::testing::SVCT, TAllocator> arr(10);
-        Assert(arr.len() == 10);
-        Assert(arr.cap() == 10);
-        Assert(!arr.empty());
-
-        for (addr_size i = 0; i < arr.len(); ++i) {
-            Assert(arr[i].a == i32(i));
         }
     }
 
     {
         defer { core::testing::CT::resetAll(); };
         constexpr i32 testCount = 10;
+
+        core::testing::CT x = {};
+        core::testing::CT::resetCtors(); // Don't count constructor calls for x
+
         {
-            core::Arr<core::testing::CT, TAllocator> arr(testCount);
+
+            core::Arr<core::testing::CT, TAllocator> arr(testCount, x);
             for (addr_size i = 0; i < arr.len(); ++i) {
                 Assert(arr[i].a == 7, "Initializer did not call constructors!");
             }
             Assert(core::testing::CT::totalCtorsCalled() == testCount, "Initializer did not call the exact number of constructors!");
-            Assert(core::testing::CT::defaultCtorCalled() == testCount, "Initializer did not call the exact number of copy constructors!");
+            Assert(core::testing::CT::copyCtorCalled() == testCount, "Initializer did not call the exact number of copy constructors!");
             core::testing::CT::resetCtors();
+
             {
                 auto arrCpy = arr.copy();
                 Assert(arrCpy.data() != arr.data());
@@ -79,10 +69,10 @@ i32 initializeArrTest() {
 
 template <typename TAllocator>
 i32 moveAndCopyArrTest() {
-    core::Arr<i32, TAllocator> arr(10);
+    core::Arr<i32, TAllocator> arr(10, 0);
     arr.fill(1, 0, arr.len());
     core::Arr<i32, TAllocator> arrCpy;
-    core::Arr<i32, TAllocator> arrMoved(10);
+    core::Arr<i32, TAllocator> arrMoved(10, 0);
 
     arrCpy = arr.copy();
     Assert(arrCpy.len() == arr.len());
@@ -102,7 +92,7 @@ i32 moveAndCopyArrTest() {
         Assert(arrCpy2[i] == arr[i]);
     }
 
-    arrMoved = core::move(arr);
+    arrMoved = std::move(arr);
     Assert(arr.len() == 0);
     Assert(arr.cap() == 0);
     Assert(arr.data() == nullptr);
@@ -472,8 +462,8 @@ i32 arrayOfArraysArrTest() {
         arr3.append(9);
 
         multi.append(arr.copy());
-        multi.append(core::move(arr2));
-        multi.append(core::move(arr3));
+        multi.append(std::move(arr2));
+        multi.append(std::move(arr3));
 
         // arr 1 should be copied
         Assert(arr.len() == 3);

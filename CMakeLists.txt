@@ -275,7 +275,6 @@ if(CORE_BUILD_TESTS)
         tests/t-rnd.cpp
         tests/t-sarr.cpp
         tests/t-str_builder.cpp
-        tests/t-traits.cpp
         tests/t-tuple.cpp
         tests/t-unique_ptr.cpp
         tests/t-utf.cpp

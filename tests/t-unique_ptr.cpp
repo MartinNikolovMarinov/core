@@ -34,7 +34,7 @@ i32 initializeUniquePtrTest() {
         Assert(*p1 == 42);
         Assert(*p2 == 24);
 
-        p1 = core::move(p2);
+        p1 = std::move(p2);
         Assert(p1.get() != nullptr);
         Assert(p2.get() == nullptr);
         Assert(*p1.get() == 24);
@@ -109,7 +109,7 @@ i32 initializeUniquePtrTest() {
 
             core::UniquePtr<CT, TAllocator> p2;
 
-            p2 = core::move(p);
+            p2 = std::move(p);
             Assert(CT::totalCtorsCalled() == 1);
             Assert(CT::assignmentsTotalCalled() == 0);
             Assert(CT::dtorsCalled() == 0);

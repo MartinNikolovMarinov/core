@@ -14,7 +14,7 @@ struct SArr {
     using SizeType = addr_size;
     using ContainerType = SArr<T, N>;
 
-    static constexpr bool dataIsStandardLayout = core::is_standard_layout_v<DataType>;
+    static constexpr bool dataIsStandardLayout = std::is_standard_layout_v<DataType>;
     static_assert(dataIsStandardLayout, "SArr data type must be standard layout");
 
     // trivial copy constructor, trivial copy assignment operator
@@ -59,7 +59,7 @@ struct SArr {
     }
 
     constexpr ContainerType& append(DataType&& val) {
-        m_data[m_len] = core::move(val);
+        m_data[m_len] = std::move(val);
         m_len++;
         return *this;
     }

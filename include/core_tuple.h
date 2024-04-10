@@ -4,6 +4,8 @@
 #include <core_utils.h>
 #include <core_traits.h>
 
+#include <utility>
+
 namespace core {
 
 using namespace coretypes;
@@ -144,13 +146,13 @@ constexpr tuple<TArgs...> createTuple(TArgs&&... args) {
     constexpr i32 NArgs = sizeof...(TArgs);
     static_assert(1 < NArgs && NArgs <= 4, "tuples can only have 2, 3 or 4 elements");
     if constexpr (NArgs == 2) {
-        return tuple<TArgs...>{ core::forward<TArgs>(args)... };
+        return tuple<TArgs...>{ std::forward<TArgs>(args)... };
     }
     else if constexpr (NArgs == 3) {
-        return tuple<TArgs...>{ core::forward<TArgs>(args)... };
+        return tuple<TArgs...>{ std::forward<TArgs>(args)... };
     }
     else if constexpr (NArgs == 4) {
-        return tuple<TArgs...>{ core::forward<TArgs>(args)... };
+        return tuple<TArgs...>{ std::forward<TArgs>(args)... };
     }
     else {
         static_assert(core::always_false<TArgs...>, "Can't create tuple with that many arguments.");
@@ -161,8 +163,8 @@ template <typename T> using pair   = tuple<T, T>;
 template <typename T> using triple = tuple<T, T, T>;
 template <typename T> using quad   = tuple<T, T, T, T>;
 
-static_assert(core::is_pod_v<pair<i32>>);
-static_assert(core::is_pod_v<triple<i32>>);
-static_assert(core::is_pod_v<quad<i32>>);
+static_assert(std::is_standard_layout_v<pair<i32>> && std::is_trivial_v<pair<i32>>);
+static_assert(std::is_standard_layout_v<triple<i32>> && std::is_trivial_v<triple<i32>>);
+static_assert(std::is_standard_layout_v<quad<i32>> && std::is_trivial_v<quad<i32>>);
 
 } // namespace core

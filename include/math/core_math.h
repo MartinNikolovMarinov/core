@@ -18,31 +18,31 @@ using namespace coretypes;
 
 template <typename T>
 constexpr T limitMax() {
-    if constexpr (core::is_same_v<T, u8>)       return core::MAX_U8;
-    else if constexpr (core::is_same_v<T, u16>) return core::MAX_U16;
-    else if constexpr (core::is_same_v<T, u32>) return core::MAX_U32;
-    else if constexpr (core::is_same_v<T, u64>) return core::MAX_U64;
-    else if constexpr (core::is_same_v<T, i8>)  return core::MAX_I8;
-    else if constexpr (core::is_same_v<T, i16>) return core::MAX_I16;
-    else if constexpr (core::is_same_v<T, i32>) return core::MAX_I32;
-    else if constexpr (core::is_same_v<T, i64>) return core::MAX_I64;
-    else if constexpr (core::is_same_v<T, f32>) return core::MAX_F32;
-    else if constexpr (core::is_same_v<T, f64>) return core::MAX_F64;
+    if constexpr (std::is_same_v<T, u8>)       return core::MAX_U8;
+    else if constexpr (std::is_same_v<T, u16>) return core::MAX_U16;
+    else if constexpr (std::is_same_v<T, u32>) return core::MAX_U32;
+    else if constexpr (std::is_same_v<T, u64>) return core::MAX_U64;
+    else if constexpr (std::is_same_v<T, i8>)  return core::MAX_I8;
+    else if constexpr (std::is_same_v<T, i16>) return core::MAX_I16;
+    else if constexpr (std::is_same_v<T, i32>) return core::MAX_I32;
+    else if constexpr (std::is_same_v<T, i64>) return core::MAX_I64;
+    else if constexpr (std::is_same_v<T, f32>) return core::MAX_F32;
+    else if constexpr (std::is_same_v<T, f64>) return core::MAX_F64;
     else static_assert(core::always_false<T>, "Unsupported type");
 }
 
 template <typename T>
 constexpr T limitMin() {
-    if constexpr (core::is_same_v<T, u8>)       return 0;
-    else if constexpr (core::is_same_v<T, u16>) return 0;
-    else if constexpr (core::is_same_v<T, u32>) return 0;
-    else if constexpr (core::is_same_v<T, u64>) return 0;
-    else if constexpr (core::is_same_v<T, i8>)  return core::MIN_I8;
-    else if constexpr (core::is_same_v<T, i16>) return core::MIN_I16;
-    else if constexpr (core::is_same_v<T, i32>) return core::MIN_I32;
-    else if constexpr (core::is_same_v<T, i64>) return core::MIN_I64;
-    else if constexpr (core::is_same_v<T, f32>) return core::MIN_NORMAL_F32;
-    else if constexpr (core::is_same_v<T, f64>) return core::MIN_NORMAL_F64;
+    if constexpr (std::is_same_v<T, u8>)       return 0;
+    else if constexpr (std::is_same_v<T, u16>) return 0;
+    else if constexpr (std::is_same_v<T, u32>) return 0;
+    else if constexpr (std::is_same_v<T, u64>) return 0;
+    else if constexpr (std::is_same_v<T, i8>)  return core::MIN_I8;
+    else if constexpr (std::is_same_v<T, i16>) return core::MIN_I16;
+    else if constexpr (std::is_same_v<T, i32>) return core::MIN_I32;
+    else if constexpr (std::is_same_v<T, i64>) return core::MIN_I64;
+    else if constexpr (std::is_same_v<T, f32>) return core::MIN_NORMAL_F32;
+    else if constexpr (std::is_same_v<T, f64>) return core::MIN_NORMAL_F64;
     else static_assert(core::always_false<T>, "Unsupported type");
 }
 
@@ -52,33 +52,33 @@ constexpr T limitMin() {
 
 template <typename T>
 constexpr i32 maxDigitsBase2() {
-    if constexpr (core::is_same_v<T, u8>)         return core::BYTE_SIZE;
-    else if constexpr (core::is_same_v<T, u16>)   return core::BYTE_SIZE * sizeof(u16);
-    else if constexpr (core::is_same_v<T, u32>)   return core::BYTE_SIZE * sizeof(u32);
-    else if constexpr (core::is_same_v<T, u64>)   return core::BYTE_SIZE * sizeof(u64);
-    else if constexpr (core::is_same_v<T, i8>)    return core::BYTE_SIZE * sizeof(i8) - 1;
-    else if constexpr (core::is_same_v<T, i16>)   return core::BYTE_SIZE * sizeof(i16) - 1;
-    else if constexpr (core::is_same_v<T, i32>)   return core::BYTE_SIZE * sizeof(i32) - 1;
-    else if constexpr (core::is_same_v<T, i64>)   return core::BYTE_SIZE * sizeof(i64) - 1;
-    else if constexpr (core::is_same_v<T, char>)  return core::BYTE_SIZE * sizeof(char);
-    else if constexpr (core::is_same_v<T, uchar>) return core::BYTE_SIZE * sizeof(uchar);
-    else if constexpr (core::is_same_v<T, schar>) return core::BYTE_SIZE * sizeof(schar) - 1;
+    if constexpr (std::is_same_v<T, u8>)         return core::BYTE_SIZE;
+    else if constexpr (std::is_same_v<T, u16>)   return core::BYTE_SIZE * sizeof(u16);
+    else if constexpr (std::is_same_v<T, u32>)   return core::BYTE_SIZE * sizeof(u32);
+    else if constexpr (std::is_same_v<T, u64>)   return core::BYTE_SIZE * sizeof(u64);
+    else if constexpr (std::is_same_v<T, i8>)    return core::BYTE_SIZE * sizeof(i8) - 1;
+    else if constexpr (std::is_same_v<T, i16>)   return core::BYTE_SIZE * sizeof(i16) - 1;
+    else if constexpr (std::is_same_v<T, i32>)   return core::BYTE_SIZE * sizeof(i32) - 1;
+    else if constexpr (std::is_same_v<T, i64>)   return core::BYTE_SIZE * sizeof(i64) - 1;
+    else if constexpr (std::is_same_v<T, char>)  return core::BYTE_SIZE * sizeof(char);
+    else if constexpr (std::is_same_v<T, uchar>) return core::BYTE_SIZE * sizeof(uchar);
+    else if constexpr (std::is_same_v<T, schar>) return core::BYTE_SIZE * sizeof(schar) - 1;
     else static_assert(core::always_false<T>, "Unsupported type");
 }
 
 template <typename T>
 constexpr i32 maxDigitsBase10() {
-    if constexpr (core::is_same_v<T, u8>)         return 3;
-    else if constexpr (core::is_same_v<T, u16>)   return 5;
-    else if constexpr (core::is_same_v<T, u32>)   return 10;
-    else if constexpr (core::is_same_v<T, u64>)   return 20;
-    else if constexpr (core::is_same_v<T, i8>)    return 4;
-    else if constexpr (core::is_same_v<T, i16>)   return 6;
-    else if constexpr (core::is_same_v<T, i32>)   return 11;
-    else if constexpr (core::is_same_v<T, i64>)   return 20;
-    else if constexpr (core::is_same_v<T, char>)  return 4;
-    else if constexpr (core::is_same_v<T, uchar>) return 3;
-    else if constexpr (core::is_same_v<T, schar>) return 4;
+    if constexpr (std::is_same_v<T, u8>)         return 3;
+    else if constexpr (std::is_same_v<T, u16>)   return 5;
+    else if constexpr (std::is_same_v<T, u32>)   return 10;
+    else if constexpr (std::is_same_v<T, u64>)   return 20;
+    else if constexpr (std::is_same_v<T, i8>)    return 4;
+    else if constexpr (std::is_same_v<T, i16>)   return 6;
+    else if constexpr (std::is_same_v<T, i32>)   return 11;
+    else if constexpr (std::is_same_v<T, i64>)   return 20;
+    else if constexpr (std::is_same_v<T, char>)  return 4;
+    else if constexpr (std::is_same_v<T, uchar>) return 3;
+    else if constexpr (std::is_same_v<T, schar>) return 4;
     else static_assert(core::always_false<T>, "Unsupported type");
 }
 
@@ -541,7 +541,7 @@ struct radians {
 };
 
 // Should be obvious to the compiler that this struct is a very simple wrapper over a single f32.
-static_assert(core::is_trivial_v<radians>);
+static_assert(std::is_trivial_v<radians>);
 static_assert(sizeof(radians) == sizeof(f32));
 
 constexpr radians degToRad(f32 n) {

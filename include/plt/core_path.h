@@ -15,9 +15,9 @@ static constexpr char PATH_SEPARATOR = '/';
 template <typename T>
 concept Path =
     requires {
-        requires core::is_same_v<decltype(&T::path), const char* (T::*)() const>;
-        requires core::is_same_v<decltype(&T::filePart), const char* (T::*)() const>;
-        requires core::is_same_v<decltype(&T::extPart), const char* (T::*)() const>;
+        requires std::is_same_v<decltype(&T::path), const char* (T::*)() const>;
+        requires std::is_same_v<decltype(&T::filePart), const char* (T::*)() const>;
+        requires std::is_same_v<decltype(&T::extPart), const char* (T::*)() const>;
     };
 
 struct CORE_API_EXPORT ImmutablePath {

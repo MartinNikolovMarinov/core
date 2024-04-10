@@ -64,7 +64,6 @@ i32 runAllTests() {
     RunTestSuite(runRndTestsSuite);
     RunTestSuite(runStaticArrTestsSuite);
     RunTestSuite(runStrBuilderTestsSuite);
-    RunTestSuite(runTraitsTestsSuite);
     RunTestSuite(runTransformsTestsSuite);
     RunTestSuite(runTupleTestsSuite);
     RunTestSuite(runUniquePtrTestsSuite);

@@ -33,7 +33,7 @@ constexpr StrView sv()                               { return {nullptr, 0}; }
 constexpr StrView sv(const char* str)                { return {str, core::cptrLen(str)}; }
 constexpr StrView sv(const char* str, addr_size len) { return {str, len}; }
 
-static_assert(core::is_pod_v<StrView>, "StrView must be pod type");
+static_assert(std::is_standard_layout_v<StrView> && std::is_trivial_v<StrView>, "StrView must be pod type");
 
 // TODO2: [PERFORMANCE] Might want to do some small string optimization.
 //        Also, the JIT null termination seems a bit stupid now.
@@ -226,6 +226,6 @@ private:
     }
 };
 
-static_assert(core::is_standard_layout_v<StrBuilder<>>);
+static_assert(std::is_standard_layout_v<StrBuilder<>>);
 
 } // namespace core

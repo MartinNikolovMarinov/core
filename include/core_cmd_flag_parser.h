@@ -140,7 +140,7 @@ struct CmdFlagParser {
                 case 0: // in program name
                 {
                     ParsedSymbol s = { ParsedSymbolType::ProgramName, core::sv(chunk, trailingIdx) };
-                    m_parsedSymbols.append(core::move(s));
+                    m_parsedSymbols.append(std::move(s));
                     state = 1;
                     break;
                 }
@@ -149,18 +149,18 @@ struct CmdFlagParser {
                 {
                     if (!isFlag && !isOption) {
                         ParsedSymbol s = { ParsedSymbolType::Argument, core::sv(chunk, trailingIdx) };
-                        m_parsedSymbols.append(core::move(s));
+                        m_parsedSymbols.append(std::move(s));
                         m_argumentCount++;
                     }
                     else if (isFlag) {
                         ParsedSymbol s = { ParsedSymbolType::FlagName, core::sv(chunk, trailingIdx) };
-                        m_parsedSymbols.append(core::move(s));
+                        m_parsedSymbols.append(std::move(s));
                         isValue = true; // next symbol is a value.
                         state = 2; // end of argument list, found first flag.
                     }
                     else {
                         ParsedSymbol s = { ParsedSymbolType::OptionName, core::sv(chunk, trailingIdx) };
-                        m_parsedSymbols.append(core::move(s));
+                        m_parsedSymbols.append(std::move(s));
                         state = 2; // end of argument list, found first option.
                     }
 
@@ -171,16 +171,16 @@ struct CmdFlagParser {
                 {
                     if (isFlag) {
                         ParsedSymbol s = { ParsedSymbolType::FlagName, core::sv(chunk, trailingIdx) };
-                        m_parsedSymbols.append(core::move(s));
+                        m_parsedSymbols.append(std::move(s));
                         isValue = true; // next symbol is a value.
                     }
                     else if (isOption && !isValue) {
                         ParsedSymbol s = { ParsedSymbolType::OptionName, core::sv(chunk, trailingIdx) };
-                        m_parsedSymbols.append(core::move(s));
+                        m_parsedSymbols.append(std::move(s));
                     }
                     else if (isValue) {
                         ParsedSymbol s = { ParsedSymbolType::FlagValue, core::sv(chunk, trailingIdx) };
-                        m_parsedSymbols.append(core::move(s));
+                        m_parsedSymbols.append(std::move(s));
                         isValue = false;
                     }
                     else {
@@ -436,7 +436,7 @@ struct CmdFlagParser {
             fd.validationFn = existing->validationFn;
 
             auto key = fd.name.view();
-            m_flagData.put(key, core::move(fd));
+            m_flagData.put(key, std::move(fd));
         }
         else {
             Panic(false, "Alias target does not exist");
@@ -461,7 +461,7 @@ private:
         fd.validationFn = validation;
 
         auto key = fd.name.view();
-        m_flagData.put(key, core::move(fd));
+        m_flagData.put(key, std::move(fd));
     }
 
     ParsedSymbols m_parsedSymbols;

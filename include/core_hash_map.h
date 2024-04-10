@@ -83,13 +83,13 @@ template <typename T> bool eq(const T& a, const T& b) = delete;
 
 template <typename T>
 concept HashableConcept = requires {
-    { core::hash<T>(core::declval<const T&>()) } -> core::same_as<addr_size>;
-    { core::eq<T>(core::declval<const T&>(), core::declval<const T&>()) } -> core::same_as<bool>;
+    { core::hash<T>(std::declval<const T&>()) } -> core::same_as<addr_size>;
+    { core::eq<T>(std::declval<const T&>(), std::declval<const T&>()) } -> core::same_as<bool>;
 };
 
 template<typename TKey, typename TValue, typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
 struct HashMap {
-    static_assert(core::is_trivially_destructible_v<TKey>, "TKey must be trivially destructible");
+    static_assert(std::is_trivially_destructible_v<TKey>, "TKey must be trivially destructible");
     static_assert(HashableConcept<TKey>, "TKey must be hashable");
 
     using DataType       = TValue;
@@ -105,7 +105,7 @@ struct HashMap {
     };
 
     static constexpr SizeType DEFAULT_CAP = 16;
-    static constexpr bool dataHasTrivialDestructor = core::is_trivially_destructible_v<DataType>;
+    static constexpr bool dataHasTrivialDestructor = std::is_trivially_destructible_v<DataType>;
 
     HashMap() : m_buckets(nullptr), m_cap(0), m_len(0) {};
     HashMap(SizeType cap) : m_buckets(nullptr), m_cap(core::alignToPow2(cap)), m_len(0) {
@@ -197,7 +197,7 @@ struct HashMap {
     }
 
     ContainerType& put(const KeyType& key, DataType&& data) {
-        return putImpl(key, core::move(data));
+        return putImpl(key, std::move(data));
     }
 
     ContainerType& remove(const KeyType& key) {
@@ -278,13 +278,13 @@ private:
         SizeType addr = SizeType(h) & (m_cap - 1);
         while (m_buckets[addr].occupied) {
             if (eq(m_buckets[addr].key, key)) {
-                m_buckets[addr].data = core::move(data);
+                m_buckets[addr].data = std::move(data);
                 return *this;
             }
             addr = (addr + 1) & (m_cap - 1);
         }
         m_buckets[addr].key = key;
-        m_buckets[addr].data = core::move(data);
+        m_buckets[addr].data = std::move(data);
         m_buckets[addr].occupied = true;
         m_len++;
 
@@ -301,12 +301,12 @@ private:
         if (m_buckets) {
             for (SizeType i = 0; i < m_cap; ++i) {
                 if (m_buckets[i].occupied) {
-                    newMap.put(m_buckets[i].key, core::move(m_buckets[i].data));
+                    newMap.put(m_buckets[i].key, std::move(m_buckets[i].data));
                 }
             }
         }
 
-        *this = core::move(newMap);
+        *this = std::move(newMap);
     }
 
     const Bucket* findBucket(const KeyType& key) const {
@@ -339,7 +339,7 @@ private:
 
 template<typename TKey, typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
 struct HashSet {
-    static_assert(core::is_trivially_destructible_v<TKey>, "TKey must be trivially destructible");
+    static_assert(std::is_trivially_destructible_v<TKey>, "TKey must be trivially destructible");
     static_assert(HashableConcept<TKey>, "TKey must be hashable");
 
     using KeyType       = TKey;
@@ -490,7 +490,7 @@ private:
             }
         }
 
-        *this = core::move(newSet);
+        *this = std::move(newSet);
     }
 
     const Bucket* findBucket(const KeyType& key) const {

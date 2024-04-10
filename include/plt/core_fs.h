@@ -117,7 +117,7 @@ core::expected<PltErrCode> fileReadEntire(const char* path, core::Arr<u8, TAlloc
         if (res.hasErr()) {
             return core::unexpected(res.err());
         }
-        file = core::move(res.value());
+        file = std::move(res.value());
     }
 
     addr_size size = 0;
@@ -160,7 +160,7 @@ core::expected<PltErrCode> fileWriteEntire(const char* path, const core::Arr<u8,
         if (res.hasErr()) {
             return core::unexpected(res.err());
         }
-        file = core::move(res.value());
+        file = std::move(res.value());
     }
 
     {
@@ -208,7 +208,7 @@ core::expected<PltErrCode> dirDeleteRec(const char* path) {
                 Sb newDirName = curr.copy();
                 newDirName.append(PATH_SEPARATOR);
                 newDirName.append(entry.name);
-                dirNames.append(core::move(newDirName));
+                dirNames.append(std::move(newDirName));
             }
             else {
                 fileNameTmpSb.clear();
@@ -217,7 +217,7 @@ core::expected<PltErrCode> dirDeleteRec(const char* path) {
                 fileNameTmpSb.append(entry.name);
                 const char* fullFilePath = fileNameTmpSb.view().data();
                 if (auto dres = fileDelete(fullFilePath); dres.hasErr()) {
-                    fileDelErrCode = core::move(dres.err());
+                    fileDelErrCode = std::move(dres.err());
                     return false;
                 }
             }

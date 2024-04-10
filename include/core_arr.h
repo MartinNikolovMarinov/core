@@ -17,13 +17,13 @@ struct Arr {
     using AllocatorType = TAllocator;
     using ContainerType = Arr<T, TAllocator>;
 
-    static constexpr bool dataIsTrivial = core::is_trivial_v<DataType>;
-    static constexpr bool dataHasTrivialDestructor = core::is_trivially_destructible_v<DataType>;
+    static constexpr bool dataIsTrivial = std::is_trivial_v<DataType>;
+    static constexpr bool dataHasDestructor = std::is_destructible_v<DataType>;
 
     Arr() : m_data(nullptr), m_cap(0), m_len(0) {}
     Arr(SizeType cap) : m_data(nullptr), m_cap(cap), m_len(0) {
         if (m_cap > 0) {
-            m_data = reinterpret_cast<DataType *>(AllocatorType::calloc(m_cap, sizeof(DataType)));
+            m_data = reinterpret_cast<DataType *>(AllocatorType::alloc(m_cap * sizeof(DataType)));
             Assert(m_data != nullptr);
         }
     }
@@ -34,13 +34,15 @@ struct Arr {
             Assert(m_data != nullptr);
 
             for (SizeType i = 0; i < m_len; i++) {
-                m_data[i] = val;
+                auto& rawBytes = m_data[i];
+                new (reinterpret_cast<void*>(&rawBytes)) DataType(val);
             }
         }
     }
     Arr(const ContainerType& other) = delete; // prevent copy ctor
     Arr(ContainerType&& other) : m_data(other.m_data), m_cap(other.m_cap), m_len(other.m_len) {
         if (this == &other) return;
+        free();
         other.m_data = nullptr;
         other.m_cap = 0;
         other.m_len = 0;
@@ -70,7 +72,7 @@ struct Arr {
     bool            empty()   const { return m_len == 0; }
 
     void clear() {
-        if constexpr (!dataHasTrivialDestructor) {
+        if constexpr (!dataHasDestructor) {
             // For elements that are not trivially destructible call destructors manually:
             for (SizeType i = 0; i < m_len; ++i) {
                 m_data[i].~T();
@@ -89,8 +91,7 @@ struct Arr {
             }
             else {
                 for (SizeType i = 0; i < m_len; i++) {
-                    auto& rawBytes = dataCopy[i];
-                    new (reinterpret_cast<void*>(&rawBytes)) DataType(m_data[i]);
+                    copyDataAt(m_data[i], i);
                 }
             }
         }
@@ -132,7 +133,7 @@ struct Arr {
         if (m_len == m_cap) {
             ensureCap(m_cap == 0 ? 1 : m_cap * 2);
         }
-        stealDataAt(core::move(val), m_len);
+        stealDataAt(std::move(val), m_len);
         m_len++;
         return *this;
     }
@@ -165,7 +166,7 @@ struct Arr {
             core::memfill(m_data + from, count, val);
         }
         else {
-            if constexpr (!dataHasTrivialDestructor) {
+            if constexpr (!dataHasDestructor) {
                 // Destroy only the elements that are being overwritten:
                 for (SizeType i = from; i < overwriteIdx; ++i) {
                     m_data[i].~T();
@@ -182,7 +183,7 @@ struct Arr {
 
     ContainerType& remove(SizeType idx) {
         Assert(idx < m_len);
-        if constexpr (!dataHasTrivialDestructor) {
+        if constexpr (!dataHasDestructor) {
             // For elements that are not trivially destructible, call destructors manually:
             m_data[idx].~T();
         }
@@ -242,7 +243,7 @@ private:
 
     inline void stealDataAt(DataType&& rval, SizeType pos) {
         auto& rawBytes = m_data[pos];
-        new (reinterpret_cast<void*>(&rawBytes)) DataType(core::move(rval));
+        new (reinterpret_cast<void*>(&rawBytes)) DataType(std::move(rval));
     }
 
     inline void copyDataAt(const DataType& lval, SizeType pos) {
@@ -268,6 +269,6 @@ private:
     }
 };
 
-static_assert(core::is_standard_layout_v<Arr<i32>>, "Arr<i32> must be standard layout");
+static_assert(std::is_standard_layout_v<Arr<i32>>, "Arr<i32> must be standard layout");
 
 } // namespace core

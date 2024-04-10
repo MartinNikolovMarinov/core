@@ -7,6 +7,7 @@
 #include <core_compiler.h>
 
 #include <new>
+#include <utility>
 
 namespace core {
 
@@ -29,15 +30,15 @@ static constexpr OOMCallback DEFAULT_OOM_CALLBACK = [](void*) {
 template <typename T>
 concept AllocatorConcept = requires {
     { T::allocatorName() } noexcept -> core::same_as<const char*>;
-    { T::alloc(core::declval<addr_size>()) } noexcept -> core::same_as<void*>;
-    { T::calloc(core::declval<addr_size>(), core::declval<addr_size>()) } noexcept -> core::same_as<void*>;
-    { T::free(core::declval<void*>(), core::declval<addr_size>()) } noexcept;
+    { T::alloc(std::declval<addr_size>()) } noexcept -> core::same_as<void*>;
+    { T::calloc(std::declval<addr_size>(), std::declval<addr_size>()) } noexcept -> core::same_as<void*>;
+    { T::free(std::declval<void*>(), std::declval<addr_size>()) } noexcept;
     { T::usedMem() } noexcept -> core::same_as<addr_size>;
     { T::totalAllocatedMem() } noexcept -> core::same_as<addr_size>;
     { T::isThredSafe() } noexcept -> core::same_as<bool>;
 
     // should be able to construct and integer:
-    { T::template construct<i32>(core::declval<i32>()) } noexcept -> core::same_as<i32*>;
+    { T::template construct<i32>(std::declval<i32>()) } noexcept -> core::same_as<i32*>;
 };
 
 struct CORE_API_EXPORT StdAllocator {
@@ -56,7 +57,7 @@ struct CORE_API_EXPORT StdAllocator {
     template <typename T, typename ...Args>
     static T* construct(Args&&... args) noexcept {
         void* p = StdAllocator::alloc(sizeof(T));
-        return new (p) T(core::forward<Args>(args)...);
+        return new (p) T(std::forward<Args>(args)...);
     }
 
     static void init(OOMCallback cb) noexcept;
@@ -80,7 +81,7 @@ struct CORE_API_EXPORT StdStatsAllocator {
     template <typename T, typename ...Args>
     static T* construct(Args&&... args) noexcept {
         void* p = StdStatsAllocator::alloc(sizeof(T));
-        return new (p) T(core::forward<Args>(args)...);
+        return new (p) T(std::forward<Args>(args)...);
     }
 
     static void init(OOMCallback cb) noexcept;
@@ -104,7 +105,7 @@ struct CORE_API_EXPORT BumpAllocator {
     template <typename T, typename ...Args>
     static T* construct(Args&&... args) noexcept {
         void* p = BumpAllocator::alloc(sizeof(T));
-        return new (p) T(core::forward<Args>(args)...);
+        return new (p) T(std::forward<Args>(args)...);
     }
 
     static void init(OOMCallback cb, void* container, addr_size max) noexcept;

@@ -2,7 +2,6 @@
 
 #include <core_API.h>
 #include <core_types.h>
-#include <core_traits.h>
 
 namespace core {
 
@@ -78,23 +77,5 @@ CORE_API_EXPORT globalAssertHandlerPtr getGlobalAssertHandler();
 // Disable mangling for a function:
 
 #define NO_MANGLE extern "C"
-
-// Move and forward implementations copied from the standard library:
-
-template<typename T>
-constexpr remove_ref_t<T> && move(T && arg) {
-    return static_cast<remove_ref_t<T> &&>(arg);
-}
-
-template<typename T>
-constexpr T&& forward(remove_ref_t<T> & arg) {
-    return static_cast<T&&>(arg);
-}
-
-template<typename T>
-constexpr T&& forward(remove_ref_t<T> && arg) {
-    static_assert(!is_lvalue<T>::value, "invalid rvalue to lvalue conversion");
-    return static_cast<T&&>(arg);
-}
 
 } // namespace core

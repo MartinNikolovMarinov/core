@@ -97,7 +97,7 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
         {
             auto res = core::fileOpen(path);
             Assert(!res.hasErr());
-            f = core::move(res.value());
+            f = std::move(res.value());
         }
         {
             auto res = core::fileClose(f);
@@ -111,7 +111,7 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
         {
             auto res = core::fileOpen(path, core::OpenMode::Read);
             Assert(!res.hasErr());
-            f = core::move(res.value());
+            f = std::move(res.value());
         }
         {
             auto res = core::fileClose(f);
@@ -125,7 +125,7 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
         {
             auto res = core::fileOpen(path, core::OpenMode::Write);
             Assert(!res.hasErr());
-            f = core::move(res.value());
+            f = std::move(res.value());
         }
         {
             auto res = core::fileClose(f);
@@ -139,7 +139,7 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
         {
             auto res = core::fileOpen(path, core::OpenMode::Read | core::OpenMode::Write);
             Assert(!res.hasErr());
-            f = core::move(res.value());
+            f = std::move(res.value());
         }
         {
             auto res = core::fileClose(f);
@@ -153,7 +153,7 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
         {
             auto res = core::fileOpen(path, core::OpenMode::Append);
             Assert(!res.hasErr());
-            f = core::move(res.value());
+            f = std::move(res.value());
         }
         {
             auto res = core::fileClose(f);
@@ -167,7 +167,7 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
         {
             auto res = core::fileOpen(path, core::OpenMode::Append | core::OpenMode::Read);
             Assert(!res.hasErr());
-            f = core::move(res.value());
+            f = std::move(res.value());
         }
         {
             auto res = core::fileClose(f);
@@ -181,7 +181,7 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
         {
             auto res = core::fileOpen(path, core::OpenMode::Append | core::OpenMode::Write);
             Assert(!res.hasErr());
-            f = core::move(res.value());
+            f = std::move(res.value());
         }
         {
             auto res = core::fileClose(f);
@@ -195,7 +195,7 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
         {
             auto res = core::fileOpen(path, core::OpenMode::Create);
             Assert(!res.hasErr());
-            f = core::move(res.value());
+            f = std::move(res.value());
         }
         {
             auto res = core::fileClose(f);
@@ -209,7 +209,7 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
         {
             auto res = core::fileOpen(path, core::OpenMode::Truncate);
             Assert(!res.hasErr());
-            f = core::move(res.value());
+            f = std::move(res.value());
         }
         {
             auto res = core::fileClose(f);
@@ -227,7 +227,7 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
                                             core::OpenMode::Create |
                                             core::OpenMode::Truncate);
             Assert(!res.hasErr());
-            f = core::move(res.value());
+            f = std::move(res.value());
         }
         {
             auto res = core::fileClose(f);
@@ -250,10 +250,10 @@ i32 createAndDeleteFileTest() {
     {
         auto res = core::fileOpen(pb.path(), core::OpenMode::Create);
         Assert(!res.hasErr(), "File creation failed");
-        f = core::move(res.value());
+        f = std::move(res.value());
     }
 
-    closeAndDeleteFile(core::move(f), pb.path());
+    closeAndDeleteFile(std::move(f), pb.path());
 
     return 0;
 }
@@ -272,7 +272,7 @@ i32 createFilesAndAssertTheyExistTest() {
         {
             auto res = core::fileOpen(pb.path(), core::OpenMode::Create);
             Assert(!res.hasErr(), cErr);
-            f = core::move(res.value());
+            f = std::move(res.value());
         }
 
         // Close
@@ -328,13 +328,13 @@ i32 edgeErrorCasesTest() {
         {
             auto res = core::fileOpen(pb.path(), core::OpenMode::Read | core::OpenMode::Create);
             Assert(!res.hasErr());
-            f = core::move(res.value());
+            f = std::move(res.value());
         }
         {
             auto res = core::fileWrite(f, "should fail", core::cptrLen("should fail"));
             Assert(res.hasErr());
         }
-        closeAndDeleteFile(core::move(f), pb.path());
+        closeAndDeleteFile(std::move(f), pb.path());
     }
 
     // Files oppned for writing should fail to read
@@ -343,14 +343,14 @@ i32 edgeErrorCasesTest() {
         {
             auto res = core::fileOpen(pb.path(), core::OpenMode::Write | core::OpenMode::Create);
             Assert(!res.hasErr());
-            f = core::move(res.value());
+            f = std::move(res.value());
         }
         {
             char buff[256] = {};
             auto res = core::fileRead(f, buff, 256);
             Assert(res.hasErr());
         }
-        closeAndDeleteFile(core::move(f), pb.path());
+        closeAndDeleteFile(std::move(f), pb.path());
     }
 
     return 0;
@@ -395,7 +395,7 @@ i32 mostBasicReadAndWriteTest() {
     {
         auto res = core::fileOpen(pb.path(), core::OpenMode::Write | core::OpenMode::Read | core::OpenMode::Create);
         Assert(!res.hasErr());
-        f = core::move(res.value());
+        f = std::move(res.value());
     }
 
     // Write "hello"
@@ -421,7 +421,7 @@ i32 mostBasicReadAndWriteTest() {
         Assert(core::cptrEq(buff, "hello", 5));
     }
 
-    closeAndDeleteFile(core::move(f), pb.path());
+    closeAndDeleteFile(std::move(f), pb.path());
 
     return 0;
 }
@@ -461,7 +461,7 @@ i32 basicListDirectoryContentsTest() {
             {
                 auto res = core::fileOpen(pb.path(), core::OpenMode::Create);
                 Assert(!res.hasErr());
-                f = core::move(res.value());
+                f = std::move(res.value());
             }
             {
                 auto res = core::fileClose(f);

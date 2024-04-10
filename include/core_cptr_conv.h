@@ -15,7 +15,7 @@ using namespace coretypes;
 
 template <typename Ta>
 constexpr inline Ta charToInt(char s) {
-    static_assert(core::is_arithmetic_v<Ta>, "TInt must be an arithmetic type.");
+    static_assert(std::is_arithmetic_v<Ta>, "TInt must be an arithmetic type.");
     return static_cast<Ta>(s - '0');
 }
 

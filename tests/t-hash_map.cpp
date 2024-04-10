@@ -170,7 +170,7 @@ i32 putMoveCopyHashMapTest() {
 
         // Move m to m2
 
-        I32HashMap<i32, TAllocator> m2(core::move(m));
+        I32HashMap<i32, TAllocator> m2(std::move(m));
         Assert(m2.len() == 2);
         __test_verifyKeyVals(m2, __TestKv<i32, i32>{1, 1}, __TestKv<i32, i32>{2, 9});
         Assert(!m2.empty());
@@ -222,7 +222,7 @@ i32 putMoveCopyHashMapTest() {
 
         // Move m to m2
 
-        auto m2 = core::move(m);
+        auto m2 = std::move(m);
         Assert(m2.len() == 4);
         Assert(!m2.empty());
         __test_verifyKeyVals(m2, __TestKv<i32, i32>{1, 1},
@@ -263,7 +263,7 @@ i32 putMoveCopyHashMapTest() {
 
         // Move m to m2
 
-        auto m2 = core::move(m);
+        auto m2 = std::move(m);
         Assert(m2.len() == 2);
         __test_verifyKeyVals(m2, __TestKv<core::StrView, i32>{sv("1"), 1}, __TestKv<core::StrView, i32>{sv("2"), 9});
 
@@ -309,7 +309,7 @@ i32 putMoveCopyHashMapTest() {
 
         // Move m to m2
 
-        auto m2 = core::move(m);
+        auto m2 = std::move(m);
         Assert(m2.len() == 4);
         __test_verifyKeyVals(m2, __TestKv<core::StrView, i32>{sv("1"), 1},
                                  __TestKv<core::StrView, i32>{sv("2"), 9},
@@ -361,7 +361,7 @@ i32 putMoveCopyHashSetTest() {
 
         // Move m to m2
 
-        auto m2 = core::move(m);
+        auto m2 = std::move(m);
         Assert(m2.len() == 2);
         __test_verifyKeys(m2, 1, 2);
 
@@ -399,7 +399,7 @@ i32 putMoveCopyHashSetTest() {
 
         // Move m to m2
 
-        auto m2 = core::move(m);
+        auto m2 = std::move(m);
         Assert(m2.len() == 4);
         __test_verifyKeys(m2, 1, 2, 3, 4);
 
@@ -434,7 +434,7 @@ i32 putMoveCopyHashSetTest() {
 
         // Move m to m2
 
-        auto m2 = core::move(m);
+        auto m2 = std::move(m);
         Assert(m2.len() == 2);
         __test_verifyKeys(m2, sv("1"), sv("2"));
 
@@ -472,7 +472,7 @@ i32 putMoveCopyHashSetTest() {
 
         // Move m to m2
 
-        auto m2 = core::move(m);
+        auto m2 = std::move(m);
         Assert(m2.len() == 4);
         __test_verifyKeys(m2, sv("1"), sv("2"), sv("3"), sv("4"));
 
@@ -657,32 +657,7 @@ i32 removeFromHashSetTest() {
 template <typename TAllocator>
 i32 complexTypesInHashMapTest() {
     using core::sv;
-    using SVCT = core::testing::SVCT;
     using CT = core::testing::CT;
-
-    {
-        defer { SVCT::nextId = 0; };
-
-        SVHashMap<SVCT, TAllocator> m(2); // should not call the ctor!
-
-        Assert(SVCT::nextId == 0);
-
-        m.put(sv("1"), SVCT{});
-        m.put(sv("2"), SVCT{});
-        m.put(sv("3"), SVCT{});
-        m.put(sv("4"), SVCT{});
-
-        Assert(SVCT::nextId == 4);
-        Assert(m.get(sv("1")));
-        Assert(m.get(sv("2")));
-        Assert(m.get(sv("3")));
-        Assert(m.get(sv("4")));
-
-        Assert(m.get(sv("1"))->a == 0);
-        Assert(m.get(sv("2"))->a == 1);
-        Assert(m.get(sv("3"))->a == 2);
-        Assert(m.get(sv("4"))->a == 3);
-    }
 
     {
         defer { CT::resetAll(); };
@@ -717,7 +692,7 @@ i32 complexTypesInHashMapTest() {
         Assert(CT::assignmentsTotalCalled() == 2);
 
         // This triggers a resize
-        m.put(sv("3"), core::move(c));
+        m.put(sv("3"), std::move(c));
 
         Assert(CT::defaultCtorCalled() == 2);
         Assert(CT::copyCtorCalled() == 0);
@@ -819,8 +794,8 @@ i32 complexTypesInHashMapTest() {
 }
 
 constexpr i32 hashMapTraitsTest() {
-    static_assert(core::is_standard_layout_v<core::HashMap<core::StrView, i32>>, "HashMap must be standard layout");
-    static_assert(core::is_standard_layout_v<core::HashSet<core::StrView>>, "HashSet must be standard layout");
+    static_assert(std::is_standard_layout_v<core::HashMap<core::StrView, i32>>, "HashMap must be standard layout");
+    static_assert(std::is_standard_layout_v<core::HashSet<core::StrView>>, "HashSet must be standard layout");
 
     return 0;
 }

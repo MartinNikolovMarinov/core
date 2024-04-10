@@ -120,7 +120,7 @@ constexpr i32 moveAndCopyStrBuilderTest() {
 
     {
         StrBuilder str1("hello");
-        StrBuilder str2 = core::move(str1);
+        StrBuilder str2 = std::move(str1);
         StrBuilder str3;
         StrBuilder str4;
 
@@ -139,7 +139,7 @@ constexpr i32 moveAndCopyStrBuilderTest() {
         Assert(core::cptrEq(str2.view().buff, "hello", str2.view().len()));
         Assert(core::cptrLen(str2.view().buff) == str2.view().len(), "string view should be correctly null terminated");
 
-        str3 = core::move(str2);
+        str3 = std::move(str2);
         str4 = str3.copy();
 
         Assert(str2.len() == 0);
@@ -171,7 +171,7 @@ constexpr i32 moveAndCopyStrBuilderTest() {
     {
         // Move assignment of self.
         StrBuilder a = "hello";
-        a = core::move(a);
+        a = std::move(a);
 
         Assert(a.len() == 5);
         Assert(a.byteLen() == 5 * sizeof(typename StrBuilder::DataType));
@@ -600,7 +600,7 @@ i32 runStrBuilderInArrayAppendRValueBUGTest() {
     newValue.append(" world!");
     newValue[0] = 'H';
 
-    arr.append(core::move(newValue));
+    arr.append(std::move(newValue));
 
     // NOTE: Remember that after this append the array will be reallocated and the rFromArr reference will become invalid.
 

@@ -3,6 +3,8 @@
 #include <core_types.h>
 #include <math/core_math.h>
 
+#include <type_traits>
+
 namespace core {
 
 using namespace coretypes;
@@ -264,8 +266,8 @@ constexpr vec<Dim, T> vfloor(const vec<Dim, T>& v) {
 template<addr_size Dim, typename T>
 struct vec {
     using DataType = T;
-    static_assert(core::is_trivial_v<DataType>, "DataType must be trivial");
-    static_assert(core::is_arithmetic_v<DataType>, "DataType must be arithmetic Type");
+    static_assert(std::is_trivial_v<DataType>, "DataType must be trivial");
+    static_assert(std::is_arithmetic_v<DataType>, "DataType must be arithmetic Type");
     static_assert(Dim > 0, "Dim must be greater than 0");
 
     static constexpr addr_size dimensions() { return Dim; }
@@ -274,23 +276,23 @@ struct vec {
 
     vec() = default;
 
-    template<addr_size D = Dim, typename core::enable_if<(D > 0), addr_size>::type = 0> constexpr DataType& x() { return data[0]; }
-    template<addr_size D = Dim, typename core::enable_if<(D > 0), addr_size>::type = 0> constexpr DataType& r() { return data[0]; }
-    template<addr_size D = Dim, typename core::enable_if<(D > 1), addr_size>::type = 0> constexpr DataType& y() { return data[1]; }
-    template<addr_size D = Dim, typename core::enable_if<(D > 1), addr_size>::type = 0> constexpr DataType& g() { return data[1]; }
-    template<addr_size D = Dim, typename core::enable_if<(D > 2), addr_size>::type = 0> constexpr DataType& z() { return data[2]; }
-    template<addr_size D = Dim, typename core::enable_if<(D > 2), addr_size>::type = 0> constexpr DataType& b() { return data[2]; }
-    template<addr_size D = Dim, typename core::enable_if<(D > 3), addr_size>::type = 0> constexpr DataType& w() { return data[3]; }
-    template<addr_size D = Dim, typename core::enable_if<(D > 3), addr_size>::type = 0> constexpr DataType& a() { return data[3]; }
+    template<addr_size D = Dim, typename std::enable_if<(D > 0), addr_size>::type = 0> constexpr DataType& x() { return data[0]; }
+    template<addr_size D = Dim, typename std::enable_if<(D > 0), addr_size>::type = 0> constexpr DataType& r() { return data[0]; }
+    template<addr_size D = Dim, typename std::enable_if<(D > 1), addr_size>::type = 0> constexpr DataType& y() { return data[1]; }
+    template<addr_size D = Dim, typename std::enable_if<(D > 1), addr_size>::type = 0> constexpr DataType& g() { return data[1]; }
+    template<addr_size D = Dim, typename std::enable_if<(D > 2), addr_size>::type = 0> constexpr DataType& z() { return data[2]; }
+    template<addr_size D = Dim, typename std::enable_if<(D > 2), addr_size>::type = 0> constexpr DataType& b() { return data[2]; }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr DataType& w() { return data[3]; }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr DataType& a() { return data[3]; }
 
-    template<addr_size D = Dim, typename core::enable_if<(D > 0), addr_size>::type = 0> constexpr const DataType& x() const { return data[0]; }
-    template<addr_size D = Dim, typename core::enable_if<(D > 0), addr_size>::type = 0> constexpr const DataType& r() const { return data[0]; }
-    template<addr_size D = Dim, typename core::enable_if<(D > 1), addr_size>::type = 0> constexpr const DataType& y() const { return data[1]; }
-    template<addr_size D = Dim, typename core::enable_if<(D > 1), addr_size>::type = 0> constexpr const DataType& g() const { return data[1]; }
-    template<addr_size D = Dim, typename core::enable_if<(D > 2), addr_size>::type = 0> constexpr const DataType& z() const { return data[2]; }
-    template<addr_size D = Dim, typename core::enable_if<(D > 2), addr_size>::type = 0> constexpr const DataType& b() const { return data[2]; }
-    template<addr_size D = Dim, typename core::enable_if<(D > 3), addr_size>::type = 0> constexpr const DataType& w() const { return data[3]; }
-    template<addr_size D = Dim, typename core::enable_if<(D > 3), addr_size>::type = 0> constexpr const DataType& a() const { return data[3]; }
+    template<addr_size D = Dim, typename std::enable_if<(D > 0), addr_size>::type = 0> constexpr const DataType& x() const { return data[0]; }
+    template<addr_size D = Dim, typename std::enable_if<(D > 0), addr_size>::type = 0> constexpr const DataType& r() const { return data[0]; }
+    template<addr_size D = Dim, typename std::enable_if<(D > 1), addr_size>::type = 0> constexpr const DataType& y() const { return data[1]; }
+    template<addr_size D = Dim, typename std::enable_if<(D > 1), addr_size>::type = 0> constexpr const DataType& g() const { return data[1]; }
+    template<addr_size D = Dim, typename std::enable_if<(D > 2), addr_size>::type = 0> constexpr const DataType& z() const { return data[2]; }
+    template<addr_size D = Dim, typename std::enable_if<(D > 2), addr_size>::type = 0> constexpr const DataType& b() const { return data[2]; }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr const DataType& w() const { return data[3]; }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr const DataType& a() const { return data[3]; }
 
     constexpr DataType& operator[](addr_size i) { return data[i]; }
     constexpr const DataType& operator[](addr_size i) const { return data[i]; }
@@ -497,25 +499,25 @@ using vec2d = vec2<f64>;
 using vec3d = vec3<f64>;
 using vec4d = vec4<f64>;
 
-static_assert(core::is_pod_v<vec1i>);
-static_assert(core::is_pod_v<vec2i>);
-static_assert(core::is_pod_v<vec3i>);
-static_assert(core::is_pod_v<vec4i>);
+static_assert(std::is_standard_layout_v<vec1i> && std::is_trivial_v<vec1i>);
+static_assert(std::is_standard_layout_v<vec2i> && std::is_trivial_v<vec2i>);
+static_assert(std::is_standard_layout_v<vec3i> && std::is_trivial_v<vec3i>);
+static_assert(std::is_standard_layout_v<vec4i> && std::is_trivial_v<vec4i>);
 
-static_assert(core::is_pod_v<vec1u>);
-static_assert(core::is_pod_v<vec2u>);
-static_assert(core::is_pod_v<vec3u>);
-static_assert(core::is_pod_v<vec4u>);
+static_assert(std::is_standard_layout_v<vec1u> && std::is_trivial_v<vec1u>);
+static_assert(std::is_standard_layout_v<vec2u> && std::is_trivial_v<vec2u>);
+static_assert(std::is_standard_layout_v<vec3u> && std::is_trivial_v<vec3u>);
+static_assert(std::is_standard_layout_v<vec4u> && std::is_trivial_v<vec4u>);
 
-static_assert(core::is_pod_v<vec1f>);
-static_assert(core::is_pod_v<vec2f>);
-static_assert(core::is_pod_v<vec3f>);
-static_assert(core::is_pod_v<vec4f>);
+static_assert(std::is_standard_layout_v<vec1f> && std::is_trivial_v<vec1f>);
+static_assert(std::is_standard_layout_v<vec2f> && std::is_trivial_v<vec2f>);
+static_assert(std::is_standard_layout_v<vec3f> && std::is_trivial_v<vec3f>);
+static_assert(std::is_standard_layout_v<vec4f> && std::is_trivial_v<vec4f>);
 
-static_assert(core::is_pod_v<vec1d>);
-static_assert(core::is_pod_v<vec2d>);
-static_assert(core::is_pod_v<vec3d>);
-static_assert(core::is_pod_v<vec4d>);
+static_assert(std::is_standard_layout_v<vec1d> && std::is_trivial_v<vec1d>);
+static_assert(std::is_standard_layout_v<vec2d> && std::is_trivial_v<vec2d>);
+static_assert(std::is_standard_layout_v<vec3d> && std::is_trivial_v<vec3d>);
+static_assert(std::is_standard_layout_v<vec4d> && std::is_trivial_v<vec4d>);
 
 
 } // namespace core

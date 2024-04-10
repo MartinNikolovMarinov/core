@@ -27,13 +27,13 @@ struct Thread {
     Thread(Thread&& other) noexcept // NOTE: Very much NOT thread safe!
         : handle(other.handle)
         , isRunning(other.isRunning)
-        , mu(core::move(other.mu))
+        , mu(std::move(other.mu))
         , canLock(other.canLock.load()) {}
 
     Thread& operator=(Thread&& other) noexcept { // NOTE: Very much NOT thread safe!
         handle = other.handle;
         isRunning = other.isRunning;
-        mu = core::move(other.mu);
+        mu = std::move(other.mu);
         canLock = other.canLock.load();
         other.handle = nullptr;
         other.isRunning = false;

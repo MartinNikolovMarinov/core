@@ -1,5 +1,5 @@
 #include <core_mem.h>
-#include <testing/core_testing.h>
+#include <testing/testing_framework.h>
 
 namespace core::testing {
 

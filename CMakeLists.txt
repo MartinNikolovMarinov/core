@@ -92,7 +92,7 @@ set(src_files
 
     # src/math/core_projections.cpp
 
-    src/testing/core_testing.cpp
+    src/testing/testing_framework.cpp
 )
 
 if(OS STREQUAL "linux")

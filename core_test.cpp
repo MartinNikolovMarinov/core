@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-int main() {
+i32 main() {
     std::cout << "[CORE VERSION] "
               << CORE_VERSION_MAJOR << "."
               << CORE_VERSION_MINOR << "."

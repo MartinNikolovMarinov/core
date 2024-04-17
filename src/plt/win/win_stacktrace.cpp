@@ -62,7 +62,7 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
     symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
     defer { std::free(symbol); };
 
-    for (int i = 0; i < framesCount; ++i) {
+    for (i32  i = 0; i < framesCount; ++i) {
         if (!SymFromAddr(process, reinterpret_cast<DWORD64>(stack[i]), 0, symbol)) {
             if (!writeToBuf(" <sym from addr failed>\n")) return false;
             continue;

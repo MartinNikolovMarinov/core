@@ -54,7 +54,8 @@ i32 runAllTests() {
     TestSuiteInfo sInfo;
 
     // RunTestSuite(runAlgorithmsTestsSuite);
-    // RunTestSuite(runArrTestsSuite);
+    sInfo.name = FN_NAME_TO_CPTR(runArrTestsSuite);
+    if (runTestSuite(sInfo, runArrTestsSuite) != 0) { ret = -1; }
     // RunTestSuite(runBitsTestsSuite);
     // RunTestSuite(runCmdParserTestsSuite);
     // RunTestSuite(runCptrConvTestsSuite);

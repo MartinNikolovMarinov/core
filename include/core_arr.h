@@ -1,56 +1,57 @@
 #pragma once
 
-#include <core_alloc.h>
 #include <core_mem.h>
-#include <core_traits.h>
 #include <core_types.h>
 #include <core_exec_ctx.h>
 #include <math/core_math.h>
+
+// FIXME: It's definitely a good idea to reduce the code duplication between ArrList and ArrStatic!
 
 namespace core {
 
 using namespace coretypes;
 
-template<typename T>
-struct Arr {
+template <typename T>
+struct ArrList {
     using value_type = T;
     using size_type = addr_size;
 
     static constexpr bool dataIsTrivial = std::is_trivial_v<value_type>;
     static constexpr bool dataHasDestructor = std::is_destructible_v<value_type>;
 
-    Arr() : m_data(nullptr), m_cap(0), m_len(0) {}
-    Arr(size_type cap) : m_data(nullptr), m_cap(cap), m_len(0) {
+    ArrList() : m_data(nullptr), m_cap(0), m_len(0) {}
+    ArrList(size_type cap) : m_data(nullptr), m_cap(cap), m_len(0) {
         if (m_cap > 0) {
             m_data = reinterpret_cast<value_type *>(core::alloc(m_cap, sizeof(value_type)));
-            Assert(m_data != nullptr);
         }
     }
-    Arr(size_type len, const T& val) : m_data(nullptr), m_cap(len), m_len(len) {
-        Assert(m_cap >= m_len);
+    ArrList(size_type len, const T& v) : m_data(nullptr), m_cap(len), m_len(len) {
         if (m_cap > 0) {
             m_data = reinterpret_cast<value_type *>(core::alloc(m_cap, sizeof(value_type)));
-            Assert(m_data != nullptr);
-
-            for (size_type i = 0; i < m_len; i++) {
-                auto& rawBytes = m_data[i];
-                new (reinterpret_cast<void*>(&rawBytes)) value_type(val);
+            if constexpr (dataIsTrivial) {
+                core::memfill(m_data, m_len, v);
+            }
+            else {
+                for (size_type i = 0; i < m_len; i++) {
+                    m_data[i] = v;
+                }
             }
         }
     }
-    Arr(const Arr& other) = delete; // prevent copy ctor
-    Arr(Arr&& other) : m_data(other.m_data), m_cap(other.m_cap), m_len(other.m_len) {
+
+    ArrList(const ArrList& other) = delete; // prevent copy ctor
+    ArrList(ArrList&& other) : m_data(other.m_data), m_cap(other.m_cap), m_len(other.m_len) {
         if (this == &other) return;
         free();
         other.m_data = nullptr;
         other.m_cap = 0;
         other.m_len = 0;
     }
-    ~Arr() { free(); }
+    ~ArrList() { free(); }
 
-    Arr& operator=(const Arr& other) = delete; // prevent copy assignment
-    Arr& operator=(size_type) = delete; // prevent size assignment
-    Arr& operator=(Arr&& other) {
+    ArrList& operator=(const ArrList& other) = delete; // prevent copy assignment
+    ArrList& operator=(size_type) = delete; // prevent size assignment
+    ArrList& operator=(ArrList&& other) {
         if (this == &other) return *this;
         free(); // very important to free before assigning new data.
         m_data = other.m_data;
@@ -70,6 +71,16 @@ struct Arr {
     const value_type* data()    const { return m_data; }
     bool              empty()   const { return m_len == 0; }
 
+    value_type& at(size_type idx)                     { return m_data[idx]; }
+    const value_type& at(size_type idx)         const { return m_data[idx]; }
+    value_type& operator[](size_type idx)             { return at(idx); }
+    const value_type& operator[](size_type idx) const { return at(idx); }
+
+    value_type& first()             { return at(0); }
+    const value_type& first() const { return at(0); }
+    value_type& last()              { return at(m_len - 1); }
+    const value_type& last()  const { return at(m_len - 1); }
+
     void clear() {
         if constexpr (!dataHasDestructor) {
             // For elements that are not trivially destructible call destructors manually:
@@ -80,11 +91,10 @@ struct Arr {
         m_len = 0;
     }
 
-    Arr copy() {
+    ArrList copy() {
         value_type* dataCopy = nullptr;
         if (m_cap > 0) {
             dataCopy = reinterpret_cast<value_type *>(core::alloc(m_cap, sizeof(value_type)));
-            Assert(dataCopy != nullptr);
             if constexpr (dataIsTrivial) {
                 core::memcopy(dataCopy, m_data, m_len * sizeof(value_type));
             }
@@ -94,7 +104,7 @@ struct Arr {
                 }
             }
         }
-        Arr result;
+        ArrList result;
         result.m_data = dataCopy;
         result.m_cap = m_cap;
         result.m_len = m_len;
@@ -109,92 +119,6 @@ struct Arr {
         m_data = nullptr;
     }
 
-    value_type& at(size_type idx)                     { Assert(idx < m_len); return m_data[idx]; }
-    const value_type& at(size_type idx)         const { Assert(idx < m_len); return m_data[idx]; }
-    value_type& operator[](size_type idx)             { return at(idx); }
-    const value_type& operator[](size_type idx) const { return at(idx); }
-
-    value_type& first()             { return at(0); }
-    const value_type& first() const { return at(0); }
-    value_type& last()              { return at(m_len - 1); }
-    const value_type& last()  const { return at(m_len - 1); }
-
-    Arr& append(const value_type& val) {
-        if (m_len == m_cap) {
-            ensureCap(m_cap == 0 ? 1 : m_cap * 2);
-        }
-        copyDataAt(val, m_len);
-        m_len++;
-        return *this;
-    }
-
-    Arr& append(value_type&& val) {
-        if (m_len == m_cap) {
-            ensureCap(m_cap == 0 ? 1 : m_cap * 2);
-        }
-        stealDataAt(std::move(val), m_len);
-        m_len++;
-        return *this;
-    }
-
-    Arr& append(const value_type* val, size_type len) {
-        if (m_len + len > m_cap) {
-            ensureCap(m_cap <= len ? (m_cap*2 + len) : m_cap * 2);
-        }
-        copyDataAt(val, m_len, len);
-        m_len += len;
-        return *this;
-    }
-
-    Arr& append(const Arr& other) {
-        return append(other.m_data, other.m_len);
-    }
-
-    Arr& fill(const value_type& val, addr_size from, addr_size to) {
-        if (from >= to) return *this;
-
-        [[maybe_unused]] addr_size overwriteIdx = core::core_min(to, m_len);
-        if (to > m_len) {
-            ensureCap(to);
-            m_len = to;
-        }
-
-        addr_size count = to - from;
-
-        if constexpr (dataIsTrivial) {
-            core::memfill(m_data + from, count, val);
-        }
-        else {
-            if constexpr (!dataHasDestructor) {
-                // Destroy only the elements that are being overwritten:
-                for (size_type i = from; i < overwriteIdx; ++i) {
-                    m_data[i].~T();
-                }
-            }
-
-            for (size_type i = from; i < from + count; ++i) {
-                copyDataAt(val, i);
-            }
-        }
-
-        return *this;
-    }
-
-    Arr& remove(size_type idx) {
-        Assert(idx < m_len);
-        if constexpr (!dataHasDestructor) {
-            // For elements that are not trivially destructible, call destructors manually:
-            m_data[idx].~T();
-        }
-        if (idx < m_len - 1) {
-            for (size_type i = idx; i < m_len - 1; ++i) {
-                m_data[i] = m_data[i + 1];
-            }
-        }
-        m_len--;
-        return *this;
-    }
-
     // This is the "I know what I am doing" method. Gives ownership of data to the array. The array's destructor will
     // free it, so if a different allocator was used to allocate the data the results are undefined.
     void reset(value_type* data, size_type len) {
@@ -204,26 +128,10 @@ struct Arr {
         m_len = len;
     }
 
-    void ensureCap(size_type newCap) {
-        if (newCap <= m_cap) {
-            return;
-        }
-
-        // reallocate
-        value_type* newData = reinterpret_cast<value_type *>(core::alloc(newCap, sizeof(value_type)));
-        // NOTE: Choosing not to clear the new memory here might bite me on the ass later.
-        Assert(newData != nullptr);
-        if (m_data != nullptr) {
-            core::memcopy(newData, m_data, m_len * sizeof(value_type));
-            core::free(m_data, m_cap * sizeof(value_type));
-        }
-        m_data = newData;
-        m_cap = newCap;
-    }
-
-    value_type* steal(size_type& len, size_type& cap) {
+    value_type* release(size_type& len, size_type& cap) {
         if constexpr (!dataIsTrivial) {
-            Assert(false, "Stealing the raw pointer from an array of non trivial types is strongly discouraged.");
+            Panic(false, "Releasing the ownership of a raw pointer, of non trivial type, is strongly discouraged."
+                         "Because you have to remember to manually call the destructor for each element.");
         }
 
         value_type* res = m_data;
@@ -235,39 +143,243 @@ struct Arr {
         return res;
     }
 
-private:
-    value_type *m_data;
-    size_type m_cap;
-    size_type m_len;
+    void ensureCap(size_type newCap) {
+        if (newCap <= m_cap) {
+            return;
+        }
 
-    inline void stealDataAt(value_type&& rval, size_type pos) {
-        auto& rawBytes = m_data[pos];
-        new (reinterpret_cast<void*>(&rawBytes)) value_type(std::move(rval));
+        // reallocate
+        value_type* newData = reinterpret_cast<value_type *>(core::alloc(newCap, sizeof(value_type)));
+        if (m_data != nullptr) {
+            core::memcopy(newData, m_data, m_len * sizeof(value_type));
+            core::free(m_data, m_cap * sizeof(value_type));
+        }
+
+        m_data = newData;
+        m_cap = newCap;
     }
 
-    inline void copyDataAt(const value_type& lval, size_type pos) {
-        if constexpr (dataIsTrivial) {
-            m_data[pos] = lval;
+    void push(const value_type& val) {
+        if (m_len == m_cap) {
+            ensureCap(m_cap == 0 ? 1 : m_cap * 2);
         }
-        else {
-            auto& rawBytes = m_data[pos];
-            new (reinterpret_cast<void*>(&rawBytes)) value_type(lval);
-        }
+
+        m_data[m_len] = val;
+        m_len++;
     }
 
-    inline void copyDataAt(const value_type* pval, size_type pos, size_type len) {
+    void push(value_type&& val) {
+        if (m_len == m_cap) {
+            ensureCap(m_cap == 0 ? 1 : m_cap * 2);
+        }
+
+        m_data[m_len] = std::move(val);
+        m_len++;
+    }
+
+    void push(const value_type* val, size_type len) {
+        if (m_len + len > m_cap) {
+            // This strategy might be a bit to over eager with the size of the new capacity.
+            ensureCap(m_cap <= len ? (m_cap*2 + len) : m_cap * 2);
+        }
+
         if constexpr (dataIsTrivial) {
-            core::memcopy(m_data + pos, pval, len * sizeof(value_type));
+            core::memcopy(m_data + m_len, val, len * sizeof(value_type));
         }
         else {
             for (size_type i = 0; i < len; i++) {
-                auto& rawBytes = m_data[i + pos];
-                new (reinterpret_cast<void*>(&rawBytes)) value_type(pval[i]);
+                m_data[i + m_len] = val[i];
+            }
+        }
+
+        m_len += len;
+    }
+
+    void remove(size_type idx) {
+        if constexpr (!dataHasDestructor) {
+            m_data[idx].~T();
+        }
+
+        if (idx < m_len - 1) {
+            for (size_type i = idx; i < m_len - 1; ++i) {
+                m_data[i] = m_data[i + 1];
+            }
+        }
+
+        m_len--;
+    }
+
+    constexpr void fill(const value_type& val, addr_size from, addr_size to) {
+        if (from >= to) return;
+
+        if (to > m_len) {
+            ensureCap(to);
+            m_len = to;
+        }
+
+        addr_size count = to - from;
+
+        if constexpr (dataIsTrivial) {
+            core::memfill(m_data + from, count, val);
+        }
+        else {
+            addr_size overwriteIdx = core::core_min(to, m_len);
+            if constexpr (!dataHasDestructor) {
+                // Destroy only the elements that are being overwritten:
+                for (size_type i = from; i < overwriteIdx; ++i) {
+                    m_data[i].~T();
+                }
+            }
+
+            for (size_type i = from; i < from + count; ++i) {
+                m_data[i] = val;
             }
         }
     }
+
+private:
+    value_type* m_data;
+    size_type m_cap;
+    size_type m_len;
 };
 
-static_assert(std::is_standard_layout_v<Arr<i32>>, "Arr<i32> must be standard layout");
+template <typename T, addr_size N>
+struct ArrStatic {
+    using value_type = T;
+    using size_type = addr_size;
+
+    static constexpr bool dataIsTrivial = std::is_trivial_v<value_type>;
+    static constexpr bool dataHasDestructor = std::is_destructible_v<value_type>;
+
+    constexpr ArrStatic() : m_data({}), m_len(0) {}
+    constexpr ArrStatic(const ArrStatic& other) = delete; // prevent copy ctor
+    constexpr ArrStatic(ArrStatic&& other) = default;
+    constexpr ~ArrStatic() {
+        if constexpr (!dataHasDestructor) {
+            // For elements that are not trivially destructible call destructors manually:
+            for (size_type i = 0; i < m_len; ++i) {
+                m_data[i].~T();
+            }
+        }
+    }
+
+    constexpr ArrStatic& operator=(const ArrStatic& other) = delete; // Prevent copy assignment
+    constexpr ArrStatic& operator=(ArrStatic&& other) = default;
+
+    constexpr ArrStatic copy() const {
+        ArrStatic ret;
+        if constexpr (dataIsTrivial) {
+            core::memcopy(ret.m_data, m_data, m_len * sizeof(value_type));
+        }
+        else {
+            for (size_type i = 0; i < m_len; ++i) {
+                ret.m_data[i] = m_data[i];
+            }
+        }
+        return ret;
+    }
+
+    constexpr size_type         cap()     const { return N; }
+    constexpr size_type         byteCap() const { return N * sizeof(value_type); }
+    constexpr size_type         len()     const { return m_len; }
+    constexpr size_type         byteLen() const { return m_len * sizeof(value_type); }
+    constexpr value_type*       data()          { return m_data; }
+    constexpr const value_type* data()    const { return m_data; }
+    constexpr bool              empty()   const { return m_len == 0; }
+    constexpr void              clear()         { m_len = 0; }
+
+    constexpr value_type& at(size_type idx)                     { return m_data[idx]; }
+    constexpr const value_type& at(size_type idx)         const { return m_data[idx]; }
+    constexpr value_type& operator[](size_type idx)             { return at(idx); }
+    constexpr const value_type& operator[](size_type idx) const { return at(idx); }
+
+    constexpr value_type& first()             { return at(0); }
+    constexpr const value_type& first() const { return at(0); }
+    constexpr value_type& last()              { return at(m_len - 1); }
+    constexpr const value_type& last()  const { return at(m_len - 1); }
+
+    constexpr void push(const value_type& val) {
+        m_data[m_len] = val;
+        m_len++;
+    }
+
+    constexpr void push(value_type&& val) {
+        m_data[m_len] = std::move(val);
+        m_len++;
+    }
+
+    constexpr void push(const value_type* val, size_type len) {
+        if constexpr (dataIsTrivial) {
+            core::memcopy(m_data + m_len, val, len * sizeof(value_type));
+        }
+        else {
+            for (size_type i = 0; i < len; i++) {
+                m_data[i + m_len] = val[i];
+            }
+        }
+
+        m_len += len;
+    }
+
+    constexpr void remove(size_type idx) {
+        if constexpr (!dataHasDestructor) {
+            m_data[idx].~T();
+        }
+
+        if (idx < m_len - 1) {
+            for (size_type i = idx; i < m_len - 1; ++i) {
+                m_data[i] = m_data[i + 1];
+            }
+        }
+
+        m_len--;
+    }
+
+    constexpr void fill(const value_type& val, size_type from, size_type to) {
+        if (from >= to) return;
+
+        addr_size count = to - from;
+
+        if constexpr (dataIsTrivial) {
+            core::memfill(m_data + from, count, val);
+        }
+        else {
+            addr_size overwriteIdx = core::core_min(to, m_len);
+            if constexpr (!dataHasDestructor) {
+                // Destroy only the elements that are being overwritten:
+                for (size_type i = from; i < overwriteIdx; ++i) {
+                    m_data[i].~T();
+                }
+            }
+
+            for (size_type i = from; i < from + count; ++i) {
+                m_data[i] = val;
+            }
+        }
+    }
+
+private:
+    value_type m_data[N];
+    size_type m_len;
+};
+
+namespace detail {
+
+template<typename TArg, typename ...Args>
+constexpr auto _createSArr(TArg first, Args... rest) {
+    auto ret = ArrStatic<TArg, (sizeof...(rest) + 1)>();
+    ret.push(first);
+    auto f = [&](auto arg) { ret.push(arg); };
+    (f(rest), ...);
+    return ret;
+}
+
+};
+
+template<typename ...Args>
+constexpr auto createSArr(Args... args) {
+    static_assert(sizeof...(Args) > 0, "createSArr requires at least one argument");
+    return detail::_createSArr(args...);
+}
 
 } // namespace core

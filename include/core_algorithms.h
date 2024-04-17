@@ -28,7 +28,7 @@ inline addr_off find(const Arr<T, TAllocator>& arr, TPredicate pred) {
     return -1;
 }
 template <typename T, addr_size N, typename TPredicate>
-inline constexpr addr_off find(const SArr<T, N>& arr, TPredicate pred) {
+inline constexpr addr_off find(const ArrStatic<T, N>& arr, TPredicate pred) {
     for (addr_off i = 0; i < addr_off(arr.len()); ++i) {
         auto& v = arr[addr_size(i)];
         if (pred(v, i)) return i;

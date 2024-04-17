@@ -6,7 +6,7 @@ DISABLE_MSVC_WARNING(4127) // Conditional expression is constant. I don't care h
 
 constexpr i32 fillStaticArrTest() {
     {
-        core::SArr<i32, 4> arr(3);
+        core::ArrStatic<i32, 4> arr(3);
 
         Assert(arr.cap() == 4);
         Assert(arr.len() == 3);
@@ -24,7 +24,7 @@ constexpr i32 fillStaticArrTest() {
     }
 
     {
-        core::SArr<i32, 4> arr(3);
+        core::ArrStatic<i32, 4> arr(3);
 
         arr.fill(1, 1, arr.len());
 
@@ -36,7 +36,7 @@ constexpr i32 fillStaticArrTest() {
     }
 
     {
-        core::SArr<i32, 4> arr(3);
+        core::ArrStatic<i32, 4> arr(3);
 
         arr.fill(1, 1, 50);
 
@@ -49,7 +49,7 @@ constexpr i32 fillStaticArrTest() {
     }
 
     {
-        core::SArr<i32, 4> arr(3);
+        core::ArrStatic<i32, 4> arr(3);
 
         arr.fill(1, 1, 2);
 
@@ -64,7 +64,7 @@ constexpr i32 fillStaticArrTest() {
 }
 
 constexpr i32 appendStaticArrTest() {
-    core::SArr<i32, 4> arr;
+    core::ArrStatic<i32, 4> arr;
 
     Assert(arr.cap() == 4);
     Assert(arr.len() == 0);

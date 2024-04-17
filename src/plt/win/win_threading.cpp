@@ -91,7 +91,7 @@ expected<PltErrCode> threadingSetName(const char* name) noexcept {
     }
 
     wchar_t wname[MAX_THREAD_NAME_LENGTH + 1];
-    int ret = MultiByteToWideChar(CP_UTF8, 0, name, -1, wname, MAX_THREAD_NAME_LENGTH + 1);
+    i32 ret = MultiByteToWideChar(CP_UTF8, 0, name, -1, wname, MAX_THREAD_NAME_LENGTH + 1);
     if (ret <= 0) { // Check for error in conversion
         return core::unexpected(PltErrCode(GetLastError()));
     }
@@ -112,7 +112,7 @@ expected<PltErrCode> threadingGetName(char out[MAX_THREAD_NAME_LENGTH]) noexcept
         return core::unexpected(PltErrCode(hr));
     }
 
-    int ret = WideCharToMultiByte(CP_UTF8, 0, wname, -1, out, MAX_THREAD_NAME_LENGTH, nullptr, nullptr);
+    i32 ret = WideCharToMultiByte(CP_UTF8, 0, wname, -1, out, MAX_THREAD_NAME_LENGTH, nullptr, nullptr);
 
     LocalFree(wname); // Free the memory allocated by GetThreadDescription !
 

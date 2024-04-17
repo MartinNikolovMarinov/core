@@ -76,9 +76,7 @@ void StdArenaAllocator::free(void*, addr_size, addr_size) {}
 
 void StdArenaAllocator::clear() {
     for (addr_size i = 0; i < m_blockCount; ++i) {
-        if (m_blocks[i].begin) {
-            std::free(m_blocks[i].begin);
-        }
+        std::free(m_blocks[i].begin);
     }
     std::free(m_blocks);
     m_blocks = nullptr;

@@ -83,6 +83,8 @@ i32 runAllTests() {
     if (runTestSuite(sInfo, runStdAllocatorTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runStdStatsAllocatorTestsSuite);
     if (runTestSuite(sInfo, runStdStatsAllocatorTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runArenaAllocatorTestsSuite);
+    if (runTestSuite(sInfo, runArenaAllocatorTestsSuite) != 0) { ret = -1; }
 
     // // Run platform specific tests:
 

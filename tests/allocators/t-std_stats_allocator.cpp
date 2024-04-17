@@ -4,43 +4,36 @@
 i32 stdStatsAllocatorBasicValidityTest() {
     core::StdStatsAllocator allocator;
 
-    {
-        void* data = allocator.alloc(4, sizeof(u8));
-        CT_CHECK(data != nullptr);
-        CT_CHECK(allocator.inUseMemory() == 8);
+    void* data1 = allocator.alloc(4, sizeof(u8));
+    CT_CHECK(data1 != nullptr);
+    CT_CHECK(allocator.inUseMemory() == 8);
+    defer { allocator.free(data1, 4, sizeof(u8)); };
+
+    void* data2 = allocator.alloc(9, sizeof(u8));
+    CT_CHECK(data2 != nullptr);
+    CT_CHECK(allocator.inUseMemory() == 24);
+    defer { allocator.free(data2, 9, sizeof(u8)); };
+
+    void* data3 = allocator.alloc(1, sizeof(u8));
+    CT_CHECK(data3 != nullptr);
+    CT_CHECK(allocator.inUseMemory() == 32);
+    defer { allocator.free(data3, 1, sizeof(u8)); };
+
+    void* buff[10];
+
+    for (addr_size i = 0; i < 8; i++) {
+        buff[i] = allocator.alloc(i + 1, sizeof(u8));
+        CT_CHECK(buff[i] != nullptr);
     }
+    CT_CHECK(allocator.inUseMemory() == 96);
 
-    {
-        void* data = allocator.alloc(9, sizeof(u8));
-        CT_CHECK(data != nullptr);
-        CT_CHECK(allocator.inUseMemory() == 24);
-    }
+    buff[8] = allocator.alloc(9, sizeof(u8));
+    CT_CHECK(allocator.inUseMemory() == 112);
+    buff[9] = allocator.alloc(10, sizeof(u8));
+    CT_CHECK(allocator.inUseMemory() == 128);
 
-    {
-        void* data = allocator.alloc(1, sizeof(u8));
-        CT_CHECK(data != nullptr);
-        CT_CHECK(allocator.inUseMemory() == 32);
-    }
-
-    {
-        void* buff[10];
-
-        for (addr_size i = 0; i < 8; i++) {
-            buff[i] = allocator.alloc(i + 1, sizeof(u8));
-            CT_CHECK(buff[i] != nullptr);
-        }
-        CT_CHECK(allocator.inUseMemory() == 96);
-
-        buff[8] = allocator.alloc(9, sizeof(u8));
-        CT_CHECK(allocator.inUseMemory() == 112);
-        buff[9] = allocator.alloc(10, sizeof(u8));
-        CT_CHECK(allocator.inUseMemory() == 128);
-
-        for (addr_size i = 0; i < 10; i++) {
-            allocator.free(buff[i], i + 1, sizeof(u8));
-        }
-
-        CT_CHECK(allocator.inUseMemory() == 32);
+    for (addr_size i = 0; i < 10; i++) {
+        allocator.free(buff[i], i + 1, sizeof(u8));
     }
 
     CT_CHECK(allocator.inUseMemory() == 32);

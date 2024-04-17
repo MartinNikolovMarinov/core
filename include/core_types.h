@@ -67,19 +67,19 @@ static constexpr i32 STDOUT = 1;
 static constexpr i32 STDERR = 2;
 
 // Storage Sizes
-static constexpr u64 BYTE     = static_cast<u64>(1);
-static constexpr u64 KILOBYTE = static_cast<u64>(1024 * BYTE);
-static constexpr u64 MEGABYTE = static_cast<u64>(1024 * KILOBYTE);
-static constexpr u64 GIGABYTE = static_cast<u64>(1024 * MEGABYTE);
-static constexpr u64 TERABYTE = static_cast<u64>(1024 * GIGABYTE);
+static constexpr u64 CORE_BYTE     = static_cast<u64>(1);
+static constexpr u64 CORE_KILOBYTE = static_cast<u64>(1024 * CORE_BYTE);
+static constexpr u64 CORE_MEGABYTE = static_cast<u64>(1024 * CORE_KILOBYTE);
+static constexpr u64 CORE_GIGABYTE = static_cast<u64>(1024 * CORE_MEGABYTE);
+static constexpr u64 CORE_TERABYTE = static_cast<u64>(1024 * CORE_GIGABYTE);
 
 // Duration constants in ns
-static constexpr u64 NANOSECOND  = static_cast<u64>(1);                  //                 1ns
-static constexpr u64 MICROSECOND = static_cast<u64>(1000 * NANOSECOND);  //             1_000ns
-static constexpr u64 MILLISECOND = static_cast<u64>(1000 * MICROSECOND); //         1_000_000ns
-static constexpr u64 SECOND      = static_cast<u64>(1000 * MILLISECOND); //     1_000_000_000ns
-static constexpr u64 MINUTE      = static_cast<u64>(60 * SECOND);        //    60_000_000_000ns
-static constexpr u64 HOUR        = static_cast<u64>(60 * MINUTE);        // 3_600_000_000_000ns
+static constexpr u64 CORE_NANOSECOND  = static_cast<u64>(1);                       //                 1ns
+static constexpr u64 CORE_MICROSECOND = static_cast<u64>(1000 * CORE_NANOSECOND);  //             1_000ns
+static constexpr u64 CORE_MILLISECOND = static_cast<u64>(1000 * CORE_MICROSECOND); //         1_000_000ns
+static constexpr u64 CORE_SECOND      = static_cast<u64>(1000 * CORE_MILLISECOND); //     1_000_000_000ns
+static constexpr u64 CORE_MINUTE      = static_cast<u64>(60 * CORE_SECOND);        //    60_000_000_000ns
+static constexpr u64 CORE_HOUR        = static_cast<u64>(60 * CORE_MINUTE);        // 3_600_000_000_000ns
 
 static constexpr f32 PI = 3.14159265358979323846f;
 

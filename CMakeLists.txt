@@ -85,9 +85,10 @@ set(src_files
     src/core_utils.cpp
     src/core_alloc.cpp
 
-    src/allocators/std_allocator.cpp
-    src/allocators/std_stats_allocator.cpp
     src/allocators/bump_allocator.cpp
+    src/allocators/std_allocator.cpp
+    src/allocators/std_arena_allocator.cpp
+    src/allocators/std_stats_allocator.cpp
 
     # src/math/core_projections.cpp
 
@@ -285,9 +286,10 @@ if(CORE_BUILD_TESTS)
         # tests/t-unique_ptr.cpp
         # tests/t-utf.cpp
 
-        tests/allocators/t-std_allocator.cpp
-        tests/allocators/t-std_stats_allocator.cpp
         tests/allocators/t-bump_allocator.cpp
+        tests/allocators/t-std_allocator.cpp
+        tests/allocators/t-std_arena_allocator.cpp
+        tests/allocators/t-std_stats_allocator.cpp
 
         # tests/math/t-math.cpp
         # tests/math/t-matrix.cpp

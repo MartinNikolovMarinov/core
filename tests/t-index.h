@@ -64,6 +64,7 @@ i32 runVecTestsSuite();
 i32 runBumpAllocatorTestsSuite();
 i32 runStdAllocatorTestsSuite();
 i32 runStdStatsAllocatorTestsSuite();
+i32 runArenaAllocatorTestsSuite();
 
 i32 runPltErrorTestsSuite();
 i32 runPltFileSystemTestsSuite();

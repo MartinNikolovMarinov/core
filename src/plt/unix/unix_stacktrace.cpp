@@ -25,6 +25,10 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten, i32 nStackFr
 
     // Capture the backtrace
     void** callstack = reinterpret_cast<void**>(std::malloc(addr_size(nStackFrames + skipFrames) * sizeof(void*)));
+    if (callstack == nullptr) {
+        writeToBuf("  <failed to allocate callstack>\n");
+        return false;
+    }
     i32 framesCount = backtrace(callstack, nStackFrames + skipFrames - 1);
     if (framesCount == 0) {
         writeToBuf("  <empty, possibly corrupt>\n");

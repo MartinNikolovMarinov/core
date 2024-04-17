@@ -48,7 +48,7 @@ i32 bumpAllocatorBasicValidityTest() {
     {
         allocator.oomHandler = nullptr;
         void* data = allocator.alloc(1, 1);
-        CT_CHECK(data != nullptr); // should be out of memory at this point.
+        CT_CHECK(data == nullptr); // should be out of memory at this point.
     }
 
     return 0;
@@ -57,7 +57,7 @@ i32 bumpAllocatorBasicValidityTest() {
 i32 onOomBumpAllocatorTest() {
     static i32 testOOMCount = 0;
     void* data;
-    constexpr addr_size BUFF_SIZE = 254;
+    constexpr addr_size BUFF_SIZE = 256;
     void* buff[BUFF_SIZE];
     core::BumpAllocator allocator (buff, BUFF_SIZE);
 
@@ -69,7 +69,7 @@ i32 onOomBumpAllocatorTest() {
     CT_CHECK(data == nullptr);
     CT_CHECK(testOOMCount == 1);
 
-    data = allocator.calloc(0x7ffffffffffffffd, sizeof(u32));
+    data = allocator.calloc(257, sizeof(u8));
     CT_CHECK(data == nullptr);
     CT_CHECK(testOOMCount == 2);
 
@@ -81,7 +81,6 @@ i32 onOomBumpAllocatorTest() {
 }
 
 i32 runBumpAllocatorTestsSuite() {
-
     using namespace core::testing;
 
     i32 ret = 0;

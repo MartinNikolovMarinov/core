@@ -24,9 +24,6 @@ concept AllocatorConcept = requires(T a) {
     { a.inUseMemory() } -> std::same_as<addr_size>;
 };
 
-/**
- * @brief TODO: write documentation
-*/
 struct CORE_API_EXPORT StdAllocator {
     OOMHandlerFn oomHandler = nullptr;
 
@@ -44,9 +41,6 @@ struct CORE_API_EXPORT StdAllocator {
 };
 static_assert(AllocatorConcept<StdAllocator>);
 
-/**
- * @brief TODO: write documentation
-*/
 struct CORE_API_EXPORT StdStatsAllocator {
     OOMHandlerFn oomHandler = nullptr;
 
@@ -69,8 +63,6 @@ private:
 static_assert(AllocatorConcept<StdStatsAllocator>);
 
 /**
- * @brief TODO: write documentation
- *
  * @note This allocator is not thread-safe.
 */
 struct CORE_API_EXPORT BumpAllocator {
@@ -95,26 +87,36 @@ private:
 };
 static_assert(AllocatorConcept<BumpAllocator>);
 
-// TODO: Implement the following allocators:
+/**
+ * @note This allocator is not thread-safe.
+*/
+struct CORE_API_EXPORT StdArenaAllocator {
+    struct Block {
+        void* begin;
+        void* curr;
+    };
 
-// struct CORE_API_EXPORT StdArenaAllocator {
-//     void* alloc(addr_size count, addr_size size);
-//     void* calloc(addr_size count, addr_size size);
-//     void free(void* ptr, addr_size count, addr_size size);
-//     void clear();
-//     addr_size totalMemoryAllocated();
-//     addr_size inUseMemory();
-// };
-// static_assert(AllocatorConcept<StdArenaAllocator>);
+    OOMHandlerFn oomHandler = nullptr;
 
-// struct CORE_API_EXPORT StdPoolAllocator {
-//     void* alloc(addr_size count, addr_size size);
-//     void* calloc(addr_size count, addr_size size);
-//     void free(void* ptr, addr_size count, addr_size size);
-//     void clear();
-//     addr_size totalMemoryAllocated();
-//     addr_size inUseMemory();
-// };
-// static_assert(AllocatorConcept<StdPoolAllocator>);
+    NO_COPY(StdArenaAllocator);
+
+    StdArenaAllocator(addr_size blockSize);
+    StdArenaAllocator(StdArenaAllocator&& other);
+
+    void* alloc(addr_size count, addr_size size);
+    void* calloc(addr_size count, addr_size size);
+    void free(void* ptr, addr_size count, addr_size size); // does nothing
+    void clear();
+    addr_size totalMemoryAllocated();
+    addr_size inUseMemory();
+
+    void reset();
+
+private:
+    Block* m_blocks;
+    addr_size m_blockCount;
+    const addr_size m_blockSize;
+};
+static_assert(AllocatorConcept<StdArenaAllocator>);
 
 } // namespace core

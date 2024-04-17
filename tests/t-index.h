@@ -13,11 +13,11 @@ using namespace coretypes;
 
 void coreInit();
 
-template<> addr_size core::hash(const i32& key);
-template<> bool core::eq(const i32& a, const i32& b);
+// template<> addr_size core::hash(const i32& key);
+// template<> bool core::eq(const i32& a, const i32& b);
 
-template<> addr_size core::hash(const core::StrView& key);
-template<> bool core::eq(const core::StrView& a, const core::StrView& b);
+// template<> addr_size core::hash(const core::StrView& key);
+// template<> bool core::eq(const core::StrView& a, const core::StrView& b);
 
 // #################### TESTING HELPERS ################################################################################
 
@@ -27,6 +27,12 @@ template<> bool core::eq(const core::StrView& a, const core::StrView& b);
 #else
     #define RunTestCompileTime(...)
     #define CORE_RUN_COMPILETIME_TESTS 0
+#endif
+
+#if defined(CORE_BUILD_TESTS_USE_ANSI) && CORE_BUILD_TESTS_USE_ANSI == 1
+constexpr bool g_useAnsi = true;
+#else
+constexpr bool g_useAnsi = false;
 #endif
 
 // ##################### Test suites ###################################################################################

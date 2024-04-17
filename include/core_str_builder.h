@@ -55,14 +55,14 @@ struct StrBuilder {
     }
 
     StrBuilder(SizeType len) : m_data(nullptr), m_cap(len + 1), m_len(len) {
-        m_data = reinterpret_cast<DataType*>(AllocatorType::alloc(m_cap * sizeof(DataType)));
+        m_data = reinterpret_cast<DataType*>(core::allocate(m_cap * sizeof(DataType)));
         Assert(m_data != nullptr);
         core::memset(m_data, 0, m_len * sizeof(DataType));
     }
     StrBuilder(SizeType len, SizeType cap) : m_data(nullptr), m_cap(cap), m_len(len) {
         Assert(m_cap >= m_len);
         if (m_cap == m_len) m_cap++; // +1 for null terminator
-        m_data = reinterpret_cast<DataType*>(AllocatorType::alloc(m_cap * sizeof(DataType)));
+        m_data = reinterpret_cast<DataType*>(core::allocate(m_cap * sizeof(DataType)));
         Assert(m_data != nullptr);
         core::memset(m_data, 0, m_len * sizeof(DataType));
     }
@@ -196,7 +196,7 @@ struct StrBuilder {
         }
 
         // reallocate
-        DataType* newData = reinterpret_cast<DataType *>(AllocatorType::alloc(newCap * sizeof(DataType)));
+        DataType* newData = reinterpret_cast<DataType *>(core::allocate(newCap * sizeof(DataType)));
         Assert(newData != nullptr);
         if (m_data != nullptr) {
             core::memcopy(newData, m_data, m_len * sizeof(DataType));
@@ -214,7 +214,7 @@ private:
     inline void assignFromCptr(const char* cptr, SizeType len) {
         m_len = len;
         m_cap = m_len + 1; // +1 for null terminator
-        m_data = reinterpret_cast<DataType*>(AllocatorType::alloc(m_cap * sizeof(DataType)));
+        m_data = reinterpret_cast<DataType*>(core::allocate(m_cap * sizeof(DataType)));
         Assert(m_data != nullptr);
         core::cptrCopy(m_data, cptr, m_len);
         m_data[m_cap - 1] = core::term_char;

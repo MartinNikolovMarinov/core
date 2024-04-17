@@ -61,8 +61,10 @@ void memfill(void* dest, addr_size dstLen, const T& val) {
  * @brief Aligns an integer to the next multiple of the given alignment.
  *        For example, if the machine is 64bit then Align(5) will return 8.
  *
+ * @note Aligning { n : n > (addr_size maximum) - 8 } will wrap around to 0.
+ *
  * @param value The value to align.
- * @return The aligned value.
+ * @return T`he aligned value.
 */
 constexpr addr_size align(addr_size n) {
     return (n + sizeof(addr_size) - 1) & ~(sizeof(addr_size) - 1);
@@ -121,5 +123,27 @@ constexpr void swap(T& a, T& b) {
  * @param size
 */
 CORE_API_EXPORT void swapBytes(void* a, void* b, addr_size size);
+
+/**
+ * @brief Compares two pointers and returns the difference between them.
+ *
+ * @param a
+ * @param b
+ * @return The difference between the two pointers.
+*/
+inline addr_size ptrDiff(const void* a, const void* b) {
+    return reinterpret_cast<addr_size>(a) - reinterpret_cast<addr_size>(b);
+}
+
+/**
+ * @brief Advances a pointer by the given offset.
+ *
+ * @param ptr
+ * @param off The offset is in bytes.
+ * @return The advanced pointer.
+*/
+inline void* ptrAdvance(void* ptr, addr_size off) {
+    return reinterpret_cast<void*>(reinterpret_cast<char*>(ptr) + off);
+}
 
 } // namespace core

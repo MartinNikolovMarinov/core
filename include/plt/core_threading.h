@@ -46,7 +46,6 @@ CORE_API_EXPORT void                      threadingExit(i32 exitCode) noexcept;
  *
  * @return An error code if the thread could not be started.
 */
-template <typename TAlloc = CORE_DEFAULT_ALLOCATOR()>
 expected<PltErrCode> threadStart(Thread& out, void* arg, ThreadRoutine routine) noexcept;
 
 /**

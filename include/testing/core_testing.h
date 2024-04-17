@@ -1,7 +1,15 @@
 #pragma once
 
+#include <core_ansi_escape_codes.h>
+#include <core_API.h>
+#include <core_cptr_conv.h>
+#include <core_exec_ctx.h>
+#include <core_intrinsics.h>
 #include <core_types.h>
 #include <core_utils.h>
+
+#include <iostream>
+#include <chrono>
 
 namespace core::testing {
 
@@ -97,26 +105,128 @@ constexpr void executeTestTable(const char (&errMsgPrefix)[PLen], const TCase (&
 
 inline i32 g_testCount = 0;
 
-#define RunTest(test, ...) \
-    core::testing::g_testCount++; \
-    std::cout << "\t[TEST " << "№ " << core::testing::g_testCount << " RUNNING] " << ANSI_BOLD(#test) << '\n'; \
-    { [[maybe_unused]] auto __notused__ = test(__VA_ARGS__); } \
-    std::cout << "\t[TEST " << "№ " << core::testing::g_testCount << ANSI_BOLD(ANSI_GREEN(" PASSED")) << "] " << ANSI_BOLD(#test) << std::endl;
+CORE_API_EXPORT char* elapsedTimeToStr(char out[256], std::chrono::nanoseconds deltaTime);
+CORE_API_EXPORT char* memoryUsedToStr(char out[128], addr_size deltaMemory);
 
-#define RunTest_DisplayMemAllocs(test, allocator, ...) \
-    { \
-        auto __a_before = allocator::totalAllocatedMem(); \
-        core::testing::g_testCount++; \
-        std::cout << "\t[TEST " << "№ " << core::testing::g_testCount << " RUNNING] " << ANSI_BOLD(#test) << '\n'; \
-        [[maybe_unused]] auto __notused__ = test(__VA_ARGS__); \
-        std::cout << "\t[TEST " << "№ " << core::testing::g_testCount << ANSI_BOLD(ANSI_GREEN(" PASSED")) << "] " << ANSI_BOLD(#test); \
-        auto __a_after = allocator::totalAllocatedMem(); \
-        std::cout << " [TOTAL REQUESTED MEMORY]: " << (__a_after - __a_before) << " bytes" << std::endl; \
+namespace detail {
+
+constexpr inline const char* passedOrFailedStr(bool exp, bool useAnsiColors) {
+    if (useAnsiColors) {
+        return (exp) ? ANSI_GREEN("PASSED") : ANSI_RED("FAILED");
+    }
+    return (exp) ? "PASSED" : "FAILED";
+}
+
+} // namespace detail
+
+struct TestInfo {
+    const char* name = nullptr;
+    bool useAnsiColors = true;
+    bool trackMemory = true;
+    bool trackTime = true;
+    bool trackTicks = true;
+
+    TestInfo() = default;
+    TestInfo(const char* _name) : name(_name), useAnsiColors(true) {}
+    TestInfo(const char* _name, bool _useAnsiColors) : name(_name), useAnsiColors(_useAnsiColors) {}
+};
+
+template <typename TFunc, typename... Args>
+i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
+    g_testCount++;
+
+    const char* testName = info.name;
+    bool useAnsiColors = info.useAnsiColors;
+
+    auto allocatedBefore = core::totalMemoryAllocated();
+    auto inUseBefore = core::inUseMemory();
+    auto startTicks = core::intrin_getCpuTicks();
+    auto start = std::chrono::steady_clock::now();
+
+    std::cout << "\t[TEST " << "№ " << g_testCount << " RUNNING] " << testName << '\n';
+
+    auto returnCode = fn(args...);
+
+    auto allocatedAfter = core::totalMemoryAllocated();
+    auto inUseAfter = core::inUseMemory();
+    auto endTicks = core::intrin_getCpuTicks();
+    auto end = std::chrono::steady_clock::now();
+
+    auto deltaAllocatedMemory = allocatedAfter - allocatedBefore;
+    auto deltaInUseMemory = inUseAfter - inUseBefore;
+    auto deltaTicks = endTicks - startTicks;
+    auto deltaTimeNs = end - start;
+
+    std::cout << "\t[TEST " << "№ " << g_testCount << " "
+              << detail::passedOrFailedStr(returnCode == 0, useAnsiColors) << "] "
+              << testName;
+
+    bool isFirst = true;
+
+    if (info.trackTime) {
+        char elapsedTimeBuffer[256];
+        if (isFirst) std::cout << " [ ";
+        else std::cout << ", ";
+        std::cout << "time: " << elapsedTimeToStr(elapsedTimeBuffer, deltaTimeNs);
+        isFirst = false;
     }
 
-#define RunTestSuite(suite, ...) \
-    std::cout << "[SUITE RUNNING] " << ANSI_BOLD(#suite) << std::endl; \
-    suite(__VA_ARGS__); \
-    std::cout << "[SUITE " << ANSI_BOLD(ANSI_GREEN("PASSED")) << "] " << ANSI_BOLD(#suite) << std::endl;
+    if (info.trackTicks) {
+        if (isFirst) std::cout << " [ ";
+        else std::cout << ", ";
+        std::cout << "ticks: " << deltaTicks;
+        isFirst = false;
+    }
 
-} // namespace core
+    if (info.trackMemory) {
+        char memoryBuffer[128];
+        if (isFirst) std::cout << " [ ";
+        else std::cout << ", ";
+        std::cout << "mem: { alloc: " << memoryUsedToStr(memoryBuffer, deltaAllocatedMemory)
+                  << ", in_use: " << memoryUsedToStr(memoryBuffer, deltaInUseMemory)
+                  << " }";
+        isFirst = false;
+    }
+
+    if (!isFirst) std::cout << " ]";
+
+    std::cout << std::endl;
+    return returnCode;
+}
+
+struct TestSuiteInfo {
+    const char* name = nullptr;
+    bool useAnsiColors = true;
+
+    TestSuiteInfo() = default;
+    TestSuiteInfo(const char* _name) : name(_name), useAnsiColors(true) {}
+    TestSuiteInfo(const char* _name, bool _useAnsiColors) : name(_name), useAnsiColors(_useAnsiColors) {}
+};
+
+template <typename TSuite>
+i32 runTestSuite(const TestSuiteInfo& info, TSuite suite) {
+
+    const char* suiteName = info.name;
+    bool useAnsiColors = info.useAnsiColors;
+
+    std::cout << "[SUITE RUNNING] " << suiteName << std::endl;
+    i32 returnCode = suite();
+    std::cout << "[SUITE " << detail::passedOrFailedStr(returnCode == 0, useAnsiColors) << "] " << suiteName << std::endl;
+    return returnCode;
+}
+
+// CORE TEST CHECK Macro
+#define CT_CHECK(...) C_VFUNC(CT_CHECK, __VA_ARGS__)
+#define CT_CHECK1(expr) CT_CHECK2(expr, "")
+#define CT_CHECK2(expr, msg)                                                     \
+    if (!(expr)) {                                                               \
+        std::cerr << "\t[Test failed] ";                                         \
+        if (core::cptrLen((msg)) > 0) {                                          \
+            std::cerr << "message: \"" << (msg) << "\" ";                        \
+        }                                                                        \
+        std::cerr << "at " << __FILE__ << ":" << __LINE__ << " in " << __func__; \
+        std::cerr << std::endl;                                                  \
+        return -1;                                                               \
+    }
+
+} // namespace core::testing

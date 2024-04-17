@@ -13,6 +13,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Generates compile_commands.json
 option(CORE_LIBRARY_SHARED "Build core as a shared library." OFF)
 option(CORE_ASSERT_ENABLED "Enable asserts." ON)
 option(CORE_BUILD_TESTS "Build core tests." OFF)
+option(CORE_BUILD_TESTS_USE_ANSI "Use ANSI escape codes in tests." OFF)
 option(CORE_RUN_COMPILETIME_TESTS "Run compile-time tests." OFF)
 option(CORE_USE_CPPCHECK "Use cppcheck. [WARNING] This makes compilation incredibly slow!" OFF)
 
@@ -67,6 +68,7 @@ message(STATUS "[CORE] Debug:             ${CORE_DEBUG}")
 message(STATUS "[CORE] Assert:            ${CORE_ASSERT_ENABLED}")
 message(STATUS "[CORE] Shared:            ${CORE_LIBRARY_SHARED}")
 message(STATUS "[CORE] Build Tests:       ${CORE_BUILD_TESTS}")
+message(STATUS "[CORE] Use ANSI in Tests: ${CORE_BUILD_TESTS_USE_ANSI}")
 message(STATUS "[CORE] Run Compile Tests: ${CORE_RUN_COMPILETIME_TESTS}")
 message(STATUS "[CORE] Use CppCheck:      ${CORE_USE_CPPCHECK}")
 
@@ -75,44 +77,48 @@ message(STATUS "[CORE] Use CppCheck:      ${CORE_USE_CPPCHECK}")
 # BEGIN Declare Source Files
 
 set(src_files
+    src/core_exec_ctx.cpp
     src/core_hash.cpp
     src/core_intrinsics.cpp
     src/core_mem.cpp
-    src/core_rnd.cpp
+    # src/core_rnd.cpp
     src/core_utils.cpp
+    src/core_alloc.cpp
 
-    src/allocators/core_alloc_bump.cpp
-    src/allocators/core_alloc_stats_std.cpp
-    src/allocators/core_alloc_std.cpp
+    src/allocators/std_allocator.cpp
+    src/allocators/std_stats_allocator.cpp
+    src/allocators/bump_allocator.cpp
 
-    src/math/core_projections.cpp
+    # src/math/core_projections.cpp
+
+    src/testing/core_testing.cpp
 )
 
 if(OS STREQUAL "linux")
     set(src_files ${src_files}
-        src/plt/unix/unix_threading.cpp
-        src/plt/unix/unix_time.cpp
-        src/plt/unix/unix_plt_error.cpp
-        src/plt/unix/unix_pages.cpp
-        src/plt/unix/unix_fs.cpp
+        # src/plt/unix/unix_threading.cpp
+        # src/plt/unix/unix_time.cpp
+        # src/plt/unix/unix_plt_error.cpp
+        # src/plt/unix/unix_pages.cpp
+        # src/plt/unix/unix_fs.cpp
         src/plt/unix/unix_stacktrace.cpp
     )
 elseif(OS STREQUAL "darwin")
     set(src_files ${src_files}
-        src/plt/unix/unix_threading.cpp
-        src/plt/unix/unix_time.cpp
-        src/plt/unix/unix_plt_error.cpp
-        src/plt/unix/unix_pages.cpp
-        src/plt/unix/unix_fs.cpp
+        # src/plt/unix/unix_threading.cpp
+        # src/plt/unix/unix_time.cpp
+        # src/plt/unix/unix_plt_error.cpp
+        # src/plt/unix/unix_pages.cpp
+        # src/plt/unix/unix_fs.cpp
         src/plt/unix/unix_stacktrace.cpp
     )
 elseif(OS STREQUAL "windows")
     set(src_files ${src_files}
-        src/plt/win/win_threading.cpp
-        src/plt/win/win_time.cpp
-        src/plt/win/win_plt_error.cpp
-        src/plt/win/win_pages.cpp
-        src/plt/win/win_fs.cpp
+        # src/plt/win/win_threading.cpp
+        # src/plt/win/win_time.cpp
+        # src/plt/win/win_plt_error.cpp
+        # src/plt/win/win_pages.cpp
+        # src/plt/win/win_fs.cpp
         src/plt/win/win_stacktrace.cpp
     )
 endif()
@@ -259,41 +265,41 @@ if(CORE_BUILD_TESTS)
 
         tests/t-index_core_init.cpp
 
-        tests/t-algorithms.cpp
-        tests/t-arr.cpp
-        tests/t-bits.cpp
-        tests/t-cmd_flag_parser.cpp
-        tests/t-cptr_conv.cpp
-        tests/t-cptr.cpp
-        tests/t-defer.cpp
-        tests/t-expected.cpp
-        tests/t-hash_map.cpp
-        tests/t-hash.cpp
-        tests/t-intrinsics.cpp
-        tests/t-ints.cpp
-        tests/t-mem.cpp
-        tests/t-rnd.cpp
-        tests/t-sarr.cpp
-        tests/t-str_builder.cpp
-        tests/t-tuple.cpp
-        tests/t-unique_ptr.cpp
-        tests/t-utf.cpp
+        # tests/t-algorithms.cpp
+        # tests/t-arr.cpp
+        # tests/t-bits.cpp
+        # tests/t-cmd_flag_parser.cpp
+        # tests/t-cptr_conv.cpp
+        # tests/t-cptr.cpp
+        # tests/t-defer.cpp
+        # tests/t-expected.cpp
+        # tests/t-hash_map.cpp
+        # tests/t-hash.cpp
+        # tests/t-intrinsics.cpp
+        # tests/t-ints.cpp
+        # tests/t-mem.cpp
+        # tests/t-rnd.cpp
+        # tests/t-sarr.cpp
+        # tests/t-str_builder.cpp
+        # tests/t-tuple.cpp
+        # tests/t-unique_ptr.cpp
+        # tests/t-utf.cpp
 
-        tests/allocators/t-alloc_bump.cpp
-        tests/allocators/t-alloc_std_stats.cpp
-        tests/allocators/t-alloc_std.cpp
+        tests/allocators/t-std_allocator.cpp
+        tests/allocators/t-std_stats_allocator.cpp
+        tests/allocators/t-bump_allocator.cpp
 
-        tests/math/t-math.cpp
-        tests/math/t-matrix.cpp
-        tests/math/t-transforms.cpp
-        tests/math/t-vec.cpp
+        # tests/math/t-math.cpp
+        # tests/math/t-matrix.cpp
+        # tests/math/t-transforms.cpp
+        # tests/math/t-vec.cpp
 
-        tests/plt/t-pages.cpp
-        tests/plt/t-plt_err.cpp
-        tests/plt/t-stacktrace.cpp
-        tests/plt/t-threading.cpp
-        tests/plt/t-time.cpp
-        tests/plt/t-fs.cpp
+        # tests/plt/t-pages.cpp
+        # tests/plt/t-plt_err.cpp
+        # tests/plt/t-stacktrace.cpp
+        # tests/plt/t-threading.cpp
+        # tests/plt/t-time.cpp
+        # tests/plt/t-fs.cpp
     )
 
     # Link core
@@ -302,6 +308,7 @@ if(CORE_BUILD_TESTS)
     # Definitions
     target_compile_definitions(${TEST_EXECUTABLE} PRIVATE
         -DPATH_TO_TEST_DATA="${CMAKE_CURRENT_BINARY_DIR}"
+        "CORE_BUILD_TESTS_USE_ANSI=$<BOOL:${CORE_BUILD_TESTS_USE_ANSI}>"
     )
 
     # Compile options

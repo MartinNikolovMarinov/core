@@ -44,6 +44,7 @@ CORE_API_EXPORT globalAssertHandlerPtr getGlobalAssertHandler();
     #define Assert(...)
 #endif
 
+// FIXME: There is a bug in the Panic macro. Find it and fix it.
 #ifndef Panic
     #if defined(CORE_ASSERT_ENABLED) && CORE_ASSERT_ENABLED
         #define Panic(...) Assert(__VA_ARGS__)
@@ -77,5 +78,9 @@ CORE_API_EXPORT globalAssertHandlerPtr getGlobalAssertHandler();
 // Disable mangling for a function:
 
 #define NO_MANGLE extern "C"
+
+// Take the name of a function:
+
+#define FN_NAME_TO_CPTR(test) #test
 
 } // namespace core

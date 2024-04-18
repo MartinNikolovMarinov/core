@@ -21,7 +21,7 @@ using namespace coretypes;
  *   that max value the behaviour is undefined.
 */
 CORE_API_EXPORT void  rndInit();
-CORE_API_EXPORT void  rndInit(u64 seed);
+CORE_API_EXPORT void  rndInit(u64 seed64, u32 seed32);
 CORE_API_EXPORT u32   rndU32();
 CORE_API_EXPORT u32   rndU32(u32 min, u32 max);
 CORE_API_EXPORT u64   rndU64();

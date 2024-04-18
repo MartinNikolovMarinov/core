@@ -19,9 +19,9 @@ using namespace coretypes;
 #define C_VFUNC(func, ...) __OVERLOAD_MACRO(func, __COUNT_ARGS_MAX10(__VA_ARGS__)) (__VA_ARGS__)
 
 // Customizeble global assert handler:
-using globalAssertHandlerPtr = void (*)(const char* failedExpr, const char* file, i32 line, const char* funcName, const char* errMsg);
-CORE_API_EXPORT void setGlobalAssertHandler(globalAssertHandlerPtr handler);
-CORE_API_EXPORT globalAssertHandlerPtr getGlobalAssertHandler();
+using GlobalAssertHandlerFn = void (*)(const char* failedExpr, const char* file, i32 line, const char* funcName, const char* errMsg);
+CORE_API_EXPORT void setGlobalAssertHandler(GlobalAssertHandlerFn handler);
+CORE_API_EXPORT GlobalAssertHandlerFn getGlobalAssertHandler();
 
 #if defined(CORE_ASSERT_ENABLED) && CORE_ASSERT_ENABLED
     #ifndef Assert

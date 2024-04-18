@@ -4,7 +4,8 @@
 #include <core_traits.h>
 #include <core_types.h>
 #include <core_utils.h>
-#include <plt/core_threading.h>
+
+#include <plt/core_atomics.h>
 
 namespace core {
 
@@ -16,12 +17,12 @@ CORE_API_EXPORT void defaultOOMHandler();
 
 template <typename T>
 concept AllocatorConcept = requires(T a) {
-    { a.alloc(std::declval<addr_size>(), std::declval<addr_size>()) } -> std::same_as<void*>;
-    { a.calloc(std::declval<addr_size>(), std::declval<addr_size>()) } -> std::same_as<void*>;
+    { a.alloc(std::declval<addr_size>(), std::declval<addr_size>()) } -> core::same_as<void*>;
+    { a.calloc(std::declval<addr_size>(), std::declval<addr_size>()) } -> core::same_as<void*>;
     { a.clear() };
     { a.free(std::declval<void*>(), std::declval<addr_size>(), std::declval<addr_size>()) };
-    { a.totalMemoryAllocated() } -> std::same_as<addr_size>;
-    { a.inUseMemory() } -> std::same_as<addr_size>;
+    { a.totalMemoryAllocated() } -> core::same_as<addr_size>;
+    { a.inUseMemory() } -> core::same_as<addr_size>;
 };
 
 struct CORE_API_EXPORT StdAllocator {
@@ -57,8 +58,8 @@ struct CORE_API_EXPORT StdStatsAllocator {
     addr_size inUseMemory();
 
 private:
-    core::AtomicU64 m_totalMemoryAllocated{0};
-    core::AtomicU64 m_inUseMemory{0};
+    core::AtomicU64 m_totalMemoryAllocated;
+    core::AtomicU64 m_inUseMemory;
 };
 static_assert(AllocatorConcept<StdStatsAllocator>);
 

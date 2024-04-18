@@ -22,8 +22,8 @@ i32 rndSignedIntegersTest() {
     for (i32 i = 0; i < testCount; i++) {
         for (i32 j = 0; j < testTable[i].itterCount; j++) {
             i32 v = core::rndI32(testTable[i].min, testTable[i].max);
-            Assert(v >= testTable[i].min);
-            Assert(v <= testTable[i].max);
+            CT_CHECK(v >= testTable[i].min);
+            CT_CHECK(v <= testTable[i].max);
         }
     }
 
@@ -50,10 +50,17 @@ i32 rndRawStrTest() {
 }
 
 i32 runRndTestsSuite() {
+    using namespace core::testing;
+
     core::rndInit();
 
-    RunTest(rndSignedIntegersTest);
-    RunTest(rndRawStrTest);
+    TestInfo tInfo;
+    tInfo.trackMemory = false;
+
+    tInfo.name = FN_NAME_TO_CPTR(rndSignedIntegersTest);
+    if (runTest(tInfo, rndSignedIntegersTest) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(rndRawStrTest);
+    if (runTest(tInfo, rndRawStrTest) != 0) { return -1; }
 
     return 0;
 }

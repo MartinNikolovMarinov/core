@@ -1,12 +1,9 @@
 #pragma once
 
-#include <core_alloc.h>
 #include <core_API.h>
-#include <core_arr.h>
 #include <core_cptr.h>
 #include <core_traits.h>
 #include <core_types.h>
-#include <core_utf.h>
 
 namespace core {
 
@@ -24,10 +21,10 @@ struct CORE_API_EXPORT ImmutablePath {
     const char* data;
     const addr_size len;
 
-    ImmutablePath(const char* p, addr_size l) : data(p), len(l) {}
-    ImmutablePath(const char* p) : data(p), len(core::cptrLen(p)) {}
+    constexpr ImmutablePath(const char* p, addr_size l) : data(p), len(l) {}
+    constexpr ImmutablePath(const char* p) : data(p), len(core::cptrLen(p)) {}
 
-    const char* filePart() const {
+    constexpr const char* filePart() const {
         const char* p = data + len - 1;
         while (p != data && *p != PATH_SEPARATOR) {
             --p;
@@ -36,7 +33,7 @@ struct CORE_API_EXPORT ImmutablePath {
         return p;
     }
 
-    const char* extPart() const {
+    constexpr const char* extPart() const {
         const char* p = filePart();
         while (p != data && *p != '.') {
             --p;
@@ -45,7 +42,7 @@ struct CORE_API_EXPORT ImmutablePath {
         return p;
     }
 
-    const char* path() const { return data; }
+    constexpr const char* path() const { return data; }
 };
 
 static_assert(Path<ImmutablePath>, "ImmutablePath does not satisfy Path concept");

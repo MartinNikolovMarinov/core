@@ -1,9 +1,8 @@
 #pragma once
 
+#include <core_traits.h>
 #include <core_types.h>
 #include <math/core_math.h>
-
-#include <type_traits>
 
 namespace core {
 

@@ -1,4 +1,5 @@
 #include <plt/core_stacktrace.h>
+#include <plt/core_threading.h>
 
 #include <core_cptr_conv.h>
 
@@ -19,7 +20,18 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten, i32 nStackFr
         return true;
     };
 
-    // TODO: Print current thread name.
+    // Print the thread name
+    {
+        char threadingBuffer[MAX_THREAD_NAME_LENGTH] = {};
+        if (!core::threadingGetName(threadingBuffer).hasErr()) {
+            if (!writeToBuf("Thread: ")) return false;
+            if (!writeToBuf(threadingBuffer[0] ? threadingBuffer : "unnamed")) return false;
+            if (!writeToBuf("\n")) return false;
+        }
+        else {
+            if (!writeToBuf("Thread: <failed to get name>\n")) return false;
+        }
+    }
 
     bufWritten = 0;
 
@@ -46,6 +58,7 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten, i32 nStackFr
     }
     defer { std::free(symbols); };
 
+    // Write the stack frames
     for (i32 i = skipFrames; i < framesCount; i++) {
         char* symbol = symbols[i];
 

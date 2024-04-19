@@ -90,34 +90,34 @@ set(src_files
     src/allocators/std_arena_allocator.cpp
     src/allocators/std_stats_allocator.cpp
 
-    # src/math/core_projections.cpp
+    src/math/core_projections.cpp
 
     src/testing/testing_framework.cpp
 )
 
 if(OS STREQUAL "linux")
     set(src_files ${src_files}
-        # src/plt/unix/unix_threading.cpp
-        # src/plt/unix/unix_time.cpp
-        # src/plt/unix/unix_plt_error.cpp
-        # src/plt/unix/unix_pages.cpp
+        src/plt/unix/unix_threading.cpp
+        src/plt/unix/unix_time.cpp
+        src/plt/unix/unix_plt_error.cpp
+        src/plt/unix/unix_pages.cpp
         # src/plt/unix/unix_fs.cpp
         src/plt/unix/unix_stacktrace.cpp
     )
 elseif(OS STREQUAL "darwin")
     set(src_files ${src_files}
-        # src/plt/unix/unix_threading.cpp
-        # src/plt/unix/unix_time.cpp
-        # src/plt/unix/unix_plt_error.cpp
-        # src/plt/unix/unix_pages.cpp
+        src/plt/unix/unix_threading.cpp
+        src/plt/unix/unix_time.cpp
+        src/plt/unix/unix_plt_error.cpp
+        src/plt/unix/unix_pages.cpp
         # src/plt/unix/unix_fs.cpp
         src/plt/unix/unix_stacktrace.cpp
     )
 elseif(OS STREQUAL "windows")
     set(src_files ${src_files}
-        # src/plt/win/win_threading.cpp
-        # src/plt/win/win_time.cpp
-        # src/plt/win/win_plt_error.cpp
+        src/plt/win/win_threading.cpp
+        src/plt/win/win_time.cpp
+        src/plt/win/win_plt_error.cpp
         # src/plt/win/win_pages.cpp
         # src/plt/win/win_fs.cpp
         src/plt/win/win_stacktrace.cpp

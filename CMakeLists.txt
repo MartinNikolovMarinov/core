@@ -56,6 +56,12 @@ endif()
 
 # END Options
 
+# BEGIN Includes:
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+
+# END
+
 # BEGIN Print selected options
 
 message(STATUS "[CORE] ---------------------------------------------")
@@ -306,7 +312,7 @@ if(CORE_BUILD_TESTS)
     )
 
     # Link core
-    target_link_libraries(${TEST_EXECUTABLE} ${PROJECT_NAME})
+    target_link_libraries(${TEST_EXECUTABLE} PRIVATE ${PROJECT_NAME})
 
     # Definitions
     target_compile_definitions(${TEST_EXECUTABLE} PRIVATE
@@ -331,6 +337,17 @@ if(CORE_BUILD_TESTS)
         target_compile_options(${TEST_EXECUTABLE} PUBLIC ${mm_test_common_flags} ${mm_test_debug_flags})
     else()
         target_compile_options(${TEST_EXECUTABLE} PUBLIC ${mm_test_common_flags} ${mm_test_release_flags})
+    endif()
+
+    if (CMAKE_COMPILER_IS_GNUCXX and CORE_DEBUG)
+        include(CodeCoverage)
+        append_coverage_compiler_flags_to_target(${TEST_EXECUTABLE})
+        append_coverage_compiler_flags_to_target(${PROJECT_NAME})
+        setup_target_for_coverage_lcov(
+            NAME ${TEST_EXECUTABLE}_coverage
+            EXECUTABLE ${TEST_EXECUTABLE}
+            DEPENDENCIES ${TEST_EXECUTABLE}
+        )
     endif()
 
     # Add the test

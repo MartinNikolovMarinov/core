@@ -17,21 +17,6 @@ using namespace coretypes;
 // template<> addr_size core::hash(const core::StrView& key);
 // template<> bool core::eq(const core::StrView& a, const core::StrView& b);
 
-// #################### TESTING HELPERS ################################################################################
-
-#if defined(CORE_RUN_COMPILETIME_TESTS) && CORE_RUN_COMPILETIME_TESTS == 1
-    #define RunTestCompileTime(test, ...) \
-        { [[maybe_unused]] constexpr auto __notused__ = core::force_consteval<test(__VA_ARGS__)>; }
-#else
-    #define RunTestCompileTime(...)
-    #define CORE_RUN_COMPILETIME_TESTS 0
-#endif
-
-#if defined(CORE_BUILD_TESTS_USE_ANSI) && CORE_BUILD_TESTS_USE_ANSI == 1
-constexpr bool g_useAnsi = true;
-#else
-constexpr bool g_useAnsi = false;
-#endif
 
 enum AllocatorId {
     STD_STATS_ALLOCATOR,
@@ -48,6 +33,22 @@ inline TAllocatorPtr gatAllocatorByType(void* allocatorData) {
     static_assert(std::is_pointer_v<TAllocatorPtr>, "TAllocatorPtr must be a pointer type");
     return reinterpret_cast<TAllocatorPtr>(allocatorData);
 }
+
+// #################### TESTING HELPERS ################################################################################
+
+#if defined(CORE_RUN_COMPILETIME_TESTS) && CORE_RUN_COMPILETIME_TESTS == 1
+    #define RunTestCompileTime(test, ...) \
+        { [[maybe_unused]] constexpr auto __notused__ = core::force_consteval<test(__VA_ARGS__)>; }
+#else
+    #define RunTestCompileTime(...)
+    #define CORE_RUN_COMPILETIME_TESTS 0
+#endif
+
+#if defined(CORE_BUILD_TESTS_USE_ANSI) && CORE_BUILD_TESTS_USE_ANSI == 1
+constexpr bool g_useAnsi = true;
+#else
+constexpr bool g_useAnsi = false;
+#endif
 
 // ##################### Test suites ###################################################################################
 

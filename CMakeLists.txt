@@ -1,27 +1,73 @@
 cmake_minimum_required(VERSION 3.2)
 
-project(core VERSION 0.2.0)
+set(executable_name core)
+string(TOUPPER ${executable_name} executable_name_uppercase)
 
-# Global CMake options:
+project(core VERSION 0.3.0)
+
+# Standard Requirements:
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Generates compile_commands.json
 
-# BEGIN Options
+# Detect Build Type:
+
+if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(${executable_name_uppercase}_DEBUG OFF)
+else()
+    set(${executable_name_uppercase}_DEBUG ON)
+endif()
+
+# ---------------------------------------- Begin Options ---------------------------------------------------------------
 
 option(CORE_LIBRARY_SHARED "Build core as a shared library." OFF)
-option(CORE_ASSERT_ENABLED "Enable asserts." ON)
+option(CORE_ASSERT_ENABLED "Enable asserts." OFF)
 option(CORE_BUILD_TESTS "Build core tests." OFF)
 option(CORE_BUILD_TESTS_USE_ANSI "Use ANSI escape codes in tests." OFF)
 option(CORE_RUN_COMPILETIME_TESTS "Run compile-time tests." OFF)
 option(CORE_USE_CPPCHECK "Use cppcheck. [WARNING] This makes compilation incredibly slow!" OFF)
+option(CORE_CODE_COVERAGE "Enable code coverage." OFF)
 
-if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(CORE_DEBUG OFF)
-else()
-    set(CORE_DEBUG ON)
+if(CORE_USE_CPPCHECK)
+    find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
+    if(CMAKE_CXX_CPPCHECK)
+
+        # Generate a list of files in the include and src directories to use with cppcheck:
+
+        set(fdfind_error)
+        execute_process(
+            COMMAND bash -c "fdfind . ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src -e cpp -e h > CppCheckFilesToCheck.txt"
+            WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+            ERROR_VARIABLE fdfind_error
+        )
+
+        if(NOT fdfind_error)
+
+            # Configure cppcheck:
+
+            message(STATUS "generated cpp check file list")
+            list(APPEND CMAKE_CXX_CPPCHECK
+                    "--enable=style,performance,portability"
+                    "--inconclusive"
+                    "--inline-suppr"
+                    "--std=c++20"
+                    "--report-progress"
+                    "--check-level=exhaustive"
+                    "--output-file=${CMAKE_BINARY_DIR}/cppcheck.out.txt"
+                    "--suppressions-list=${CMAKE_SOURCE_DIR}/CppCheckSuppressions.txt"
+                    "--file-list=${PROJECT_BINARY_DIR}/CppCheckFilesToCheck.txt")
+        else()
+            message(WARNING "failed to generate cpp check file list!")
+        endif()
+
+    else()
+        message(WARNING "[CORE] cppcheck not found!")
+    endif()
+
 endif()
+
+# Download and update git submodules:
 
 function(update_git_submodules)
     find_package(Git QUIET)
@@ -42,338 +88,248 @@ endfunction()
 
 update_git_submodules()
 
-# if(CMAKE_SYSTEM_NAME STREQUAL "Windows" OR
-#    CMAKE_SYSTEM_NAME STREQUAL "CYGWIN" OR
-#    CMAKE_SYSTEM_NAME STREQUAL "MSYS" OR
-#    CMAKE_SYSTEM_NAME STREQUAL "WindowsCE")
-#     set(OS "windows")
-# elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-#     set(OS "darwin")
-# elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-#     set(OS "linux")
-# else()
-#     set(OS "unsupported")
-#     message(FATAL_ERROR "Unsupported OS: ${CMAKE_SYSTEM_NAME}!")
-# endif()
+# Includes:
 
-# if(CORE_USE_CPPCHECK)
-#     # IMPORTANT: This makes compilation incredibly slow!
-#     find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
-#     if(CMAKE_CXX_CPPCHECK)
-#         list(APPEND CMAKE_CXX_CPPCHECK
-#                 "--enable=all"
-#                 "--inconclusive"
-#                 "--inline-suppr"
-#                 "--std=c++20"
-#                 "--check-level=exhaustive"
-#                 "--output-file=${CMAKE_BINARY_DIR}/cppcheck.out.txt"
-#                 "--suppressions-list=${CMAKE_SOURCE_DIR}/CppCheckSuppressions.txt")
-#     else()
-#         message(WARNING "[CORE] cppcheck not found!")
-#     endif()
-# endif()
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
-# # END Options
+include(DetectOS)
+include(CodeCoverage)
+include(CompilerOptions)
 
-# # BEGIN Includes:
+# ---------------------------------------- End Options -----------------------------------------------------------------
 
-# set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+# Print Selected Options:
 
-# # END
+message(STATUS "[CORE] ---------------------------------------------")
+message(STATUS "[CORE] Version:           ${PROJECT_VERSION}")
+message(STATUS "[CORE] Platform:          ${OS}")
+message(STATUS "[CORE] Arch:              ${CMAKE_HOST_SYSTEM_PROCESSOR}") # IMPORTANT: Do not relly on CMAKE_HOST_SYSTEM_PROCESSOR for anything serious !
+message(STATUS "[CORE] C++ Version:       ${CMAKE_CXX_STANDARD}")
+message(STATUS "[CORE] Compiler:          ${CMAKE_CXX_COMPILER_ID}")
+message(STATUS "[CORE] Debug:             ${CORE_DEBUG}")
+message(STATUS "[CORE] Assert:            ${CORE_ASSERT_ENABLED}")
+message(STATUS "[CORE] Shared:            ${CORE_LIBRARY_SHARED}")
+message(STATUS "[CORE] Build Tests:       ${CORE_BUILD_TESTS}")
+message(STATUS "[CORE] Use ANSI in Tests: ${CORE_BUILD_TESTS_USE_ANSI}")
+message(STATUS "[CORE] Run Compile Tests: ${CORE_RUN_COMPILETIME_TESTS}")
+message(STATUS "[CORE] Code Coverage:     ${CORE_CODE_COVERAGE}")
+message(STATUS "[CORE] Use CppCheck:      ${CORE_USE_CPPCHECK}")
 
-# # BEGIN Print selected options
+# ---------------------------------------- Begin Declare Source Files --------------------------------------------------
 
-# message(STATUS "[CORE] ---------------------------------------------")
-# message(STATUS "[CORE] Version:           ${PROJECT_VERSION}")
-# message(STATUS "[CORE] Platform:          ${OS}")
-# message(STATUS "[CORE] Arch:              ${CMAKE_HOST_SYSTEM_PROCESSOR}") # IMPORTANT: Do not relly on CMAKE_HOST_SYSTEM_PROCESSOR for anything serious !
-# message(STATUS "[CORE] C++ Version:       ${CMAKE_CXX_STANDARD}")
-# message(STATUS "[CORE] Compiler:          ${CMAKE_CXX_COMPILER_ID}")
-# message(STATUS "[CORE] Debug:             ${CORE_DEBUG}")
-# message(STATUS "[CORE] Assert:            ${CORE_ASSERT_ENABLED}")
-# message(STATUS "[CORE] Shared:            ${CORE_LIBRARY_SHARED}")
-# message(STATUS "[CORE] Build Tests:       ${CORE_BUILD_TESTS}")
-# message(STATUS "[CORE] Use ANSI in Tests: ${CORE_BUILD_TESTS_USE_ANSI}")
-# message(STATUS "[CORE] Run Compile Tests: ${CORE_RUN_COMPILETIME_TESTS}")
-# message(STATUS "[CORE] Use CppCheck:      ${CORE_USE_CPPCHECK}")
+set(src_files
+    src/core_exec_ctx.cpp
+    src/core_hash.cpp
+    src/core_intrinsics.cpp
+    src/core_mem.cpp
+    src/core_rnd.cpp
+    src/core_utils.cpp
+    src/core_alloc.cpp
 
-# # END Print selected options
+    src/allocators/bump_allocator.cpp
+    src/allocators/std_allocator.cpp
+    src/allocators/std_arena_allocator.cpp
+    src/allocators/std_stats_allocator.cpp
 
-# # BEGIN Declare Source Files
+    src/math/core_projections.cpp
 
-# set(src_files
-#     src/core_exec_ctx.cpp
-#     src/core_hash.cpp
-#     src/core_intrinsics.cpp
-#     src/core_mem.cpp
-#     src/core_rnd.cpp
-#     src/core_utils.cpp
-#     src/core_alloc.cpp
+    src/testing/testing_framework.cpp
+)
 
-#     src/allocators/bump_allocator.cpp
-#     src/allocators/std_allocator.cpp
-#     src/allocators/std_arena_allocator.cpp
-#     src/allocators/std_stats_allocator.cpp
+if(OS STREQUAL "linux")
+    set(src_files ${src_files}
+        src/plt/unix/unix_threading.cpp
+        src/plt/unix/unix_time.cpp
+        src/plt/unix/unix_plt_error.cpp
+        src/plt/unix/unix_pages.cpp
+        # src/plt/unix/unix_fs.cpp
+        src/plt/unix/unix_stacktrace.cpp
+    )
+elseif(OS STREQUAL "darwin")
+    set(src_files ${src_files}
+        src/plt/unix/unix_threading.cpp
+        src/plt/unix/unix_time.cpp
+        src/plt/unix/unix_plt_error.cpp
+        src/plt/unix/unix_pages.cpp
+        # src/plt/unix/unix_fs.cpp
+        src/plt/unix/unix_stacktrace.cpp
+    )
+elseif(OS STREQUAL "windows")
+    set(src_files ${src_files}
+        src/plt/win/win_threading.cpp
+        src/plt/win/win_time.cpp
+        src/plt/win/win_plt_error.cpp
+        # src/plt/win/win_pages.cpp
+        # src/plt/win/win_fs.cpp
+        src/plt/win/win_stacktrace.cpp
+    )
+endif()
 
-#     src/math/core_projections.cpp
+# ---------------------------------------- End Declare Source Files ----------------------------------------------------
 
-#     src/testing/testing_framework.cpp
-# )
+# Add library:
 
-# if(OS STREQUAL "linux")
-#     set(src_files ${src_files}
-#         src/plt/unix/unix_threading.cpp
-#         src/plt/unix/unix_time.cpp
-#         src/plt/unix/unix_plt_error.cpp
-#         src/plt/unix/unix_pages.cpp
-#         # src/plt/unix/unix_fs.cpp
-#         src/plt/unix/unix_stacktrace.cpp
-#     )
-# elseif(OS STREQUAL "darwin")
-#     set(src_files ${src_files}
-#         src/plt/unix/unix_threading.cpp
-#         src/plt/unix/unix_time.cpp
-#         src/plt/unix/unix_plt_error.cpp
-#         src/plt/unix/unix_pages.cpp
-#         # src/plt/unix/unix_fs.cpp
-#         src/plt/unix/unix_stacktrace.cpp
-#     )
-# elseif(OS STREQUAL "windows")
-#     set(src_files ${src_files}
-#         src/plt/win/win_threading.cpp
-#         src/plt/win/win_time.cpp
-#         src/plt/win/win_plt_error.cpp
-#         # src/plt/win/win_pages.cpp
-#         # src/plt/win/win_fs.cpp
-#         src/plt/win/win_stacktrace.cpp
-#     )
-# endif()
+if(CORE_LIBRARY_SHARED)
+    add_library(${executable_name} SHARED ${src_files})
+    # Set symbols visibility to be hidden by default. This is done to unify behaviour across platforms.
+    set_target_properties(${executable_name} PROPERTIES
+        C_VISIBILITY_PRESET hidden
+        C_VISIBILITY_INLINE_PRESET hidden
+        CXX_VISIBILITY_PRESET hidden
+        CXX_VISIBILITY_INLINE_PRESET hidden
+    )
+else()
+    add_library(${executable_name} STATIC ${src_files})
+endif()
 
-# # END Declare Source Files
+# Set Configure File:
 
-# # BEGIN Add library
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/core_config.h.in core_config.h)
 
-# if(CORE_LIBRARY_SHARED)
-#     add_library(${PROJECT_NAME} SHARED ${src_files})
-#     # Set symbols visibility to be hidden by default:
-#     set_target_properties(${PROJECT_NAME} PROPERTIES
-#         C_VISIBILITY_PRESET hidden
-#         C_VISIBILITY_INLINE_PRESET hidden
-#         CXX_VISIBILITY_PRESET hidden
-#         CXX_VISIBILITY_INLINE_PRESET hidden
-#     )
-# else()
-#     add_library(${PROJECT_NAME} STATIC ${src_files})
-# endif()
+# Include Path:
 
-# # END Add library
+target_include_directories(${executable_name} PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${PROJECT_BINARY_DIR} # for core_config.h
+)
 
-# # BEGIN Set Configure File
+# Definitions:
 
-# configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/core_config.h.in core_config.h)
+target_compile_definitions(${executable_name} PRIVATE
+    "CORE_LIBRARY_SHARED=$<BOOL:${CORE_LIBRARY_SHARED}>" # turn CMake Boolean to 1 or 0
+    -DCORE_LIBRARY_BUILD=1
+)
+target_compile_definitions(${executable_name} PUBLIC
+    "CORE_DEBUG=$<BOOL:${CORE_DEBUG}>"
+    "CORE_ASSERT_ENABLED=$<BOOL:${CORE_ASSERT_ENABLED}>"
+    "CORE_RUN_COMPILETIME_TESTS=$<BOOL:${CORE_RUN_COMPILETIME_TESTS}>"
+)
 
-# # END Set Configure File
+# ---------------------------------------- Begin Compile Options -------------------------------------------------------
 
-# # BEGIN Include Path
+macro(target_set_default_flags target)
 
-# target_include_directories(${PROJECT_NAME} PUBLIC
-#     ${CMAKE_CURRENT_SOURCE_DIR}/include
-#     ${PROJECT_BINARY_DIR} # for core_config.h
-# )
+    if(OS STREQUAL "linux")
+        set(common_flags "-std=c++20" "-pthread")
+        set(debug_flags "")
+        set(release_flags "")
+    elseif(OS STREQUAL "darwin")
+        set(common_flags "-std=c++20" "-pthread")
+        set(debug_flags "")
+        set(release_flags "")
+    elseif(OS STREQUAL "windows")
+        set(common_flags "/std:c++20")
+        set(debug_flags "")
+        set(release_flags "")
+    endif()
 
-# # END Include Path
+    generate_common_flags(
+        common_flags "${common_flags}"
+        debug_flags "${debug_flags}"
+        release_flags "${release_flags}"
+    )
 
-# # BEGIN Definitions
+    if(${executable_name_uppercase}_DEBUG)
+        target_compile_options(${target} PRIVATE ${common_flags} ${debug_flags})
+    else()
+        target_compile_options(${target} PRIVATE ${common_flags} ${release_flags})
+    endif()
 
-# target_compile_definitions(${PROJECT_NAME} PRIVATE
-#     "CORE_LIBRARY_SHARED=$<BOOL:${CORE_LIBRARY_SHARED}>" # turn CMake Boolean to 1 or 0
-#     -DCORE_LIBRARY_BUILD=1
-# )
-# target_compile_definitions(${PROJECT_NAME} PUBLIC
-#     "CORE_DEBUG=$<BOOL:${CORE_DEBUG}>"
-#     "CORE_ASSERT_ENABLED=$<BOOL:${CORE_ASSERT_ENABLED}>"
-#     "CORE_RUN_COMPILETIME_TESTS=$<BOOL:${CORE_RUN_COMPILETIME_TESTS}>"
-# )
+endmacro()
 
-# # END Definitions
+if (CORE_DEBUG AND OS STREQUAL "windows")
+    # DbgHelp.lib is required for stacktrace on Windows.
+    target_link_options(${executable_name} PRIVATE /INCREMENTAL:NO /OPT:REF)
+    target_link_libraries(${executable_name} PUBLIC DbgHelp.lib)
+endif()
 
-# # BEGIN Compile Options
+target_set_default_flags(${executable_name})
 
-# function(configure_compiler_settings
-#          target
-#          common_flags_varname common_flags
-#          debug_flags_varname debug_flags
-#          release_flags_varname release_flags)
+# ---------------------------------------- End Compile Options ---------------------------------------------------------
 
-#     set(local_common_flags "${common_flags}")
-#     set(local_debug_flags "${debug_flags}")
-#     set(local_release_flags "${release_flags}")
 
-#     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
-#        CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
-#        CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+if(CORE_BUILD_TESTS)
+    # ------------------------------------- Begin Testing --------------------------------------------------------------
+    message(STATUS "[CORE] Configuring tests")
 
-#         set(local_common_flags ${local_common_flags}
-#             -std=c++20 -pthread
-#             -Wall -Wextra -Wfatal-errors -Wconversion -Wpedantic -Werror
-#             -Wshadow -Wold-style-cast -Wdouble-promotion -Wswitch-enum -Wundef -Wcast-align -Wsign-conversion
-#             -Wmisleading-indentation -Woverloaded-virtual -Wnon-virtual-dtor
-#             -Wdisabled-optimization # warn if the compailer disables requestd level of optimization
-#             -Wno-unknown-pragmas -Wno-unused-function -Wno-variadic-macros
-#         )
-#         set(local_debug_flags ${local_debug_flags} -g -O0 -Wnull-dereference)
-#         set(local_release_flags ${local_release_flags} -O3)
+    set(test_executable ${executable_name}_test)
+    # set(test_executable ${executable_name}_sandbox)
 
-#     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # Create test executable
+    add_executable(${test_executable}
+        ${test_executable}.cpp
 
-#         set(local_common_flags ${local_common_flags}
-#             -std:c++20
-#             /MP
-#             -Wall -W4 -WX
-#             -nologo -FC
-#             /fastfail
-#             /w14254 # Warns if more than one operator conversion is applied to get from one type to another (useful for finding implicit conversions that might be unintended).
-#             /w14263 # Warns if a member function hides a base class virtual function (similar to -Woverloaded-virtual in GCC/Clang).
-#             /w14265 # Warns if a class is derived from two or more classes that are not interfaces.
-#             /w14287 # Warns for 'unsigned' char, short, int or long types in a conditional expression, which can lead to unexpected behaviors.
-#             /w14296 # Warns if a constructor is declared without specifying either 'explicit' or 'implicit'.
-#             /w14311 # Warns if a catch block has been written to catch C++ exceptions by value rather than by reference.
-#         )
-#         set(local_debug_flags ${local_debug_flags} -Zi -Od)
-#         set(local_release_flags ${local_release_flags} -O2)
+        tests/t-index_core_init.cpp
 
-#         if (CORE_DEBUG)
-#             # DbgHelp.lib is required for stacktrace.
-#             target_link_options(${target} PRIVATE /INCREMENTAL:NO /OPT:REF)
-#             target_link_libraries(${target} PUBLIC DbgHelp.lib)
-#         endif()
+        # tests/t-algorithms.cpp
+        tests/t-arr.cpp
+        # tests/t-bits.cpp
+        # tests/t-cmd_flag_parser.cpp
+        # tests/t-cptr_conv.cpp
+        # tests/t-cptr.cpp
+        # tests/t-defer.cpp
+        # tests/t-expected.cpp
+        # tests/t-hash_map.cpp
+        # tests/t-hash.cpp
+        # tests/t-intrinsics.cpp
+        # tests/t-ints.cpp
+        # tests/t-mem.cpp
+        tests/t-rnd.cpp
+        # tests/t-sarr.cpp
+        # tests/t-str_builder.cpp
+        # tests/t-tuple.cpp
+        # tests/t-unique_ptr.cpp
+        # tests/t-utf.cpp
 
-#     else()
-#         message(FATAL_ERROR "Unsupported compiler")
-#         return()
-#     endif()
+        tests/allocators/t-bump_allocator.cpp
+        tests/allocators/t-std_allocator.cpp
+        tests/allocators/t-std_arena_allocator.cpp
+        tests/allocators/t-std_stats_allocator.cpp
 
-#     set(${common_flags_varname} ${local_common_flags} PARENT_SCOPE)
-#     set(${debug_flags_varname} ${local_debug_flags} PARENT_SCOPE)
-#     set(${release_flags_varname} ${local_release_flags} PARENT_SCOPE)
+        # tests/math/t-math.cpp
+        # tests/math/t-matrix.cpp
+        # tests/math/t-transforms.cpp
+        # tests/math/t-vec.cpp
 
-# endfunction()
+        # tests/plt/t-pages.cpp
+        # tests/plt/t-plt_err.cpp
+        # tests/plt/t-stacktrace.cpp
+        # tests/plt/t-threading.cpp
+        # tests/plt/t-time.cpp
+        # tests/plt/t-fs.cpp
+    )
 
-# set(mm_core_common_flags "")
-# set(mm_core_debug_flags "")
-# set(mm_core_release_flags "")
+    # Link core
+    target_link_libraries(${test_executable} PRIVATE ${executable_name})
 
-# configure_compiler_settings(
-#     ${PROJECT_NAME}
-#     mm_core_common_flags "${mm_core_common_flags}"
-#     mm_core_debug_flags "${mm_core_debug_flags}"
-#     mm_core_release_flags "${mm_core_release_flags}"
-# )
+    # Definitions
+    target_compile_definitions(${test_executable} PRIVATE
+        -DPATH_TO_TEST_DATA="${CMAKE_CURRENT_BINARY_DIR}"
+        "CORE_BUILD_TESTS_USE_ANSI=$<BOOL:${CORE_BUILD_TESTS_USE_ANSI}>"
+    )
 
-# if(CORE_DEBUG)
-#     target_compile_options(${PROJECT_NAME} PRIVATE ${mm_core_common_flags} ${mm_core_debug_flags})
-# else()
-#     target_compile_options(${PROJECT_NAME} PRIVATE ${mm_core_common_flags} ${mm_core_release_flags})
-# endif()
+    target_set_default_flags(${test_executable})
 
-# # END Compile Options
+    if(CORE_CODE_COVERAGE)
+        if (CMAKE_COMPILER_IS_GNUCXX)
+            include(CodeCoverage)
+            append_coverage_compiler_flags_to_target(${test_executable})
+            append_coverage_compiler_flags_to_target(${executable_name})
+            setup_target_for_coverage_lcov(
+                NAME ${test_executable}_coverage
+                EXECUTABLE ${test_executable}
+                DEPENDENCIES ${test_executable}
+            )
+        else()
+            message(WARNING "[CORE] Code coverage is not supported for ${CMAKE_CXX_COMPILER_ID} compiler.")
+        endif()
+    endif()
 
-# # BEGIN Create Testing Executable
+    # Add the test
+    enable_testing()
+    add_test(NAME ${test_executable} COMMAND ${test_executable})
 
-# if(CORE_BUILD_TESTS)
-#     message(STATUS "[CORE] Configuring tests")
+    # ------------------------------------- End Testing ----------------------------------------------------------------
+endif()
 
-#     set(TEST_EXECUTABLE ${PROJECT_NAME}_test)
-#     # set(TEST_EXECUTABLE ${PROJECT_NAME}_sandbox)
-
-#     # Create executable
-#     add_executable(${TEST_EXECUTABLE}
-#         ${TEST_EXECUTABLE}.cpp
-
-#         tests/t-index_core_init.cpp
-
-#         # tests/t-algorithms.cpp
-#         tests/t-arr.cpp
-#         # tests/t-bits.cpp
-#         # tests/t-cmd_flag_parser.cpp
-#         # tests/t-cptr_conv.cpp
-#         # tests/t-cptr.cpp
-#         # tests/t-defer.cpp
-#         # tests/t-expected.cpp
-#         # tests/t-hash_map.cpp
-#         # tests/t-hash.cpp
-#         # tests/t-intrinsics.cpp
-#         # tests/t-ints.cpp
-#         # tests/t-mem.cpp
-#         tests/t-rnd.cpp
-#         # tests/t-sarr.cpp
-#         # tests/t-str_builder.cpp
-#         # tests/t-tuple.cpp
-#         # tests/t-unique_ptr.cpp
-#         # tests/t-utf.cpp
-
-#         tests/allocators/t-bump_allocator.cpp
-#         tests/allocators/t-std_allocator.cpp
-#         tests/allocators/t-std_arena_allocator.cpp
-#         tests/allocators/t-std_stats_allocator.cpp
-
-#         # tests/math/t-math.cpp
-#         # tests/math/t-matrix.cpp
-#         # tests/math/t-transforms.cpp
-#         # tests/math/t-vec.cpp
-
-#         # tests/plt/t-pages.cpp
-#         # tests/plt/t-plt_err.cpp
-#         # tests/plt/t-stacktrace.cpp
-#         # tests/plt/t-threading.cpp
-#         # tests/plt/t-time.cpp
-#         # tests/plt/t-fs.cpp
-#     )
-
-#     # Link core
-#     target_link_libraries(${TEST_EXECUTABLE} PRIVATE ${PROJECT_NAME})
-
-#     # Definitions
-#     target_compile_definitions(${TEST_EXECUTABLE} PRIVATE
-#         -DPATH_TO_TEST_DATA="${CMAKE_CURRENT_BINARY_DIR}"
-#         "CORE_BUILD_TESTS_USE_ANSI=$<BOOL:${CORE_BUILD_TESTS_USE_ANSI}>"
-#     )
-
-#     # Compile options
-
-#     set(mm_test_common_flags "")
-#     set(mm_test_debug_flags "")
-#     set(mm_test_release_flags "")
-
-#     configure_compiler_settings(
-#         ${PROJECT_NAME}
-#         mm_test_common_flags "${mm_test_common_flags}"
-#         mm_test_debug_flags "${mm_test_debug_flags}"
-#         mm_test_release_flags "${mm_test_release_flags}"
-#     )
-
-#     if(CORE_DEBUG)
-#         target_compile_options(${TEST_EXECUTABLE} PUBLIC ${mm_test_common_flags} ${mm_test_debug_flags})
-#     else()
-#         target_compile_options(${TEST_EXECUTABLE} PUBLIC ${mm_test_common_flags} ${mm_test_release_flags})
-#     endif()
-
-#     if (CMAKE_COMPILER_IS_GNUCXX and CORE_DEBUG)
-#         include(CodeCoverage)
-#         append_coverage_compiler_flags_to_target(${TEST_EXECUTABLE})
-#         append_coverage_compiler_flags_to_target(${PROJECT_NAME})
-#         setup_target_for_coverage_lcov(
-#             NAME ${TEST_EXECUTABLE}_coverage
-#             EXECUTABLE ${TEST_EXECUTABLE}
-#             DEPENDENCIES ${TEST_EXECUTABLE}
-#         )
-#     endif()
-
-#     # Add the test
-#     enable_testing()
-#     add_test(NAME ${TEST_EXECUTABLE} COMMAND ${TEST_EXECUTABLE})
-# endif()
-
-# # END Create Testing Executable
-
-# message(STATUS "[CORE] ---------------------------------------------")
+message(STATUS "[CORE] ---------------------------------------------")

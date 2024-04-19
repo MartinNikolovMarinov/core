@@ -11,15 +11,34 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Generates compile_commands.json
 
-# Detect Build Type:
+# Download and update git submodules:
+
+function(update_git_submodules)
+    find_package(Git QUIET)
+    if (GIT_FOUND)
+        message(STATUS "Submodule update")
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            RESULT_VARIABLE GIT_SUBMOD_RESULT
+        )
+        if (NOT GIT_SUBMOD_RESULT EQUAL "0")
+            message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+        endif()
+    else()
+        message(FATAL_ERROR "Git is not found. It is required to update submodules.")
+    endif()
+endfunction()
+
+update_git_submodules()
+
+# ---------------------------------------- Begin Options ---------------------------------------------------------------
 
 if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")
     set(${executable_name_uppercase}_DEBUG OFF)
 else()
     set(${executable_name_uppercase}_DEBUG ON)
 endif()
-
-# ---------------------------------------- Begin Options ---------------------------------------------------------------
 
 option(CORE_LIBRARY_SHARED "Build core as a shared library." OFF)
 option(CORE_ASSERT_ENABLED "Enable asserts." OFF)
@@ -67,27 +86,6 @@ if(CORE_USE_CPPCHECK)
 
 endif()
 
-# Download and update git submodules:
-
-function(update_git_submodules)
-    find_package(Git QUIET)
-    if (GIT_FOUND)
-        message(STATUS "Submodule update")
-        execute_process(
-            COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            RESULT_VARIABLE GIT_SUBMOD_RESULT
-        )
-        if (NOT GIT_SUBMOD_RESULT EQUAL "0")
-            message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
-        endif()
-    else()
-        message(FATAL_ERROR "Git is not found. It is required to update submodules.")
-    endif()
-endfunction()
-
-update_git_submodules()
-
 # Includes:
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
@@ -95,8 +93,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 include(DetectOS)
 include(CodeCoverage)
 include(CompilerOptions)
-
-# ---------------------------------------- End Options -----------------------------------------------------------------
 
 # Print Selected Options:
 
@@ -106,7 +102,7 @@ message(STATUS "[CORE] Platform:          ${OS}")
 message(STATUS "[CORE] Arch:              ${CMAKE_HOST_SYSTEM_PROCESSOR}") # IMPORTANT: Do not relly on CMAKE_HOST_SYSTEM_PROCESSOR for anything serious !
 message(STATUS "[CORE] C++ Version:       ${CMAKE_CXX_STANDARD}")
 message(STATUS "[CORE] Compiler:          ${CMAKE_CXX_COMPILER_ID}")
-message(STATUS "[CORE] Debug:             ${CORE_DEBUG}")
+message(STATUS "[CORE] Debug:             ${${executable_name_uppercase}_DEBUG}")
 message(STATUS "[CORE] Assert:            ${CORE_ASSERT_ENABLED}")
 message(STATUS "[CORE] Shared:            ${CORE_LIBRARY_SHARED}")
 message(STATUS "[CORE] Build Tests:       ${CORE_BUILD_TESTS}")
@@ -114,6 +110,8 @@ message(STATUS "[CORE] Use ANSI in Tests: ${CORE_BUILD_TESTS_USE_ANSI}")
 message(STATUS "[CORE] Run Compile Tests: ${CORE_RUN_COMPILETIME_TESTS}")
 message(STATUS "[CORE] Code Coverage:     ${CORE_CODE_COVERAGE}")
 message(STATUS "[CORE] Use CppCheck:      ${CORE_USE_CPPCHECK}")
+
+# ---------------------------------------- End Options -----------------------------------------------------------------
 
 # ---------------------------------------- Begin Declare Source Files --------------------------------------------------
 
@@ -200,7 +198,7 @@ target_compile_definitions(${executable_name} PRIVATE
     -DCORE_LIBRARY_BUILD=1
 )
 target_compile_definitions(${executable_name} PUBLIC
-    "CORE_DEBUG=$<BOOL:${CORE_DEBUG}>"
+    "${executable_name_uppercase}_DEBUG=$<BOOL:${${executable_name_uppercase}_DEBUG}>"
     "CORE_ASSERT_ENABLED=$<BOOL:${CORE_ASSERT_ENABLED}>"
     "CORE_RUN_COMPILETIME_TESTS=$<BOOL:${CORE_RUN_COMPILETIME_TESTS}>"
 )
@@ -237,7 +235,7 @@ macro(target_set_default_flags target)
 
 endmacro()
 
-if (CORE_DEBUG AND OS STREQUAL "windows")
+if (${executable_name_uppercase}_DEBUG AND OS STREQUAL "windows")
     # DbgHelp.lib is required for stacktrace on Windows.
     target_link_options(${executable_name} PRIVATE /INCREMENTAL:NO /OPT:REF)
     target_link_libraries(${executable_name} PUBLIC DbgHelp.lib)
@@ -246,7 +244,6 @@ endif()
 target_set_default_flags(${executable_name})
 
 # ---------------------------------------- End Compile Options ---------------------------------------------------------
-
 
 if(CORE_BUILD_TESTS)
     # ------------------------------------- Begin Testing --------------------------------------------------------------

@@ -34,8 +34,9 @@ CORE_API_EXPORT GlobalAssertHandlerFn getGlobalAssertHandler();
             if (!(expr)) {                                                                    \
                 if (core::getGlobalAssertHandler()) {                                         \
                     core::getGlobalAssertHandler()(#expr, __FILE__, __LINE__, __func__, msg); \
-                } else {                                                                      \
-                    i32* __forceCrash = nullptr;                                              \
+                }                                                                             \
+                else {                                                                        \
+                    volatile i32* __forceCrash = nullptr;                                     \
                     [[maybe_unused]] i32 __ignored = *__forceCrash;                           \
                 }                                                                             \
             }
@@ -44,12 +45,17 @@ CORE_API_EXPORT GlobalAssertHandlerFn getGlobalAssertHandler();
     #define Assert(...)
 #endif
 
-// FIXME: There is a bug in the Panic macro. Find it and fix it.
 #ifndef Panic
     #if defined(CORE_ASSERT_ENABLED) && CORE_ASSERT_ENABLED
         #define Panic(...) Assert(__VA_ARGS__)
     #else
-        #define Panic(...) *reinterpret_cast<volatile coretypes::i32 *>(0) = 0;
+        #define Panic(...) C_VFUNC(Panic, __VA_ARGS__)
+        #define Panic1(expr) Panic2(expr, "")
+        #define Panic2(expr, msg)                               \
+            if (!(expr)) {                                      \
+                volatile i32* __forceCrash = nullptr;           \
+                [[maybe_unused]] i32 __ignored = *__forceCrash; \
+            }
     #endif
 #endif
 

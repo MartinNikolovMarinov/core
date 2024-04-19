@@ -81,7 +81,7 @@ set(src_files
     src/core_hash.cpp
     src/core_intrinsics.cpp
     src/core_mem.cpp
-    # src/core_rnd.cpp
+    src/core_rnd.cpp
     src/core_utils.cpp
     src/core_alloc.cpp
 
@@ -259,6 +259,7 @@ if(CORE_BUILD_TESTS)
     message(STATUS "[CORE] Configuring tests")
 
     set(TEST_EXECUTABLE ${PROJECT_NAME}_test)
+    # set(TEST_EXECUTABLE ${PROJECT_NAME}_sandbox)
 
     # Create executable
     add_executable(${TEST_EXECUTABLE}
@@ -279,7 +280,7 @@ if(CORE_BUILD_TESTS)
         # tests/t-intrinsics.cpp
         # tests/t-ints.cpp
         # tests/t-mem.cpp
-        # tests/t-rnd.cpp
+        tests/t-rnd.cpp
         # tests/t-sarr.cpp
         # tests/t-str_builder.cpp
         # tests/t-tuple.cpp

@@ -12,11 +12,14 @@ namespace core {
  *
  * TODO2: If there is a need for generating random bits, in really large arrays, there is a version of xorshift-ing
  *       called "xorwow", which is used by default in Nvidia's CUDA toolkit.
+ *
+ * TODO: Run the TestU01 suite to test the quality of the random numbers generated.
 */
 
 namespace {
 
 u64 seedU64;
+u32 seedU32;
 const char alphaChars[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const u32 alphaCharsLen = sizeof(alphaChars) - 1; // alphaChars includes terminating '\0'
 
@@ -27,18 +30,27 @@ u64 xorShift64(u64 state) {
     return state;
 }
 
+u32 xorShift32(u32 state) {
+    state ^= state << 13;
+    state ^= state >> 17;
+    state ^= state << 5;
+    return state;
+}
+
 }
 
 void rndInit() {
     seedU64 = core::intrin_getCpuTicks();
+    seedU32 = u32(core::intrin_getCpuTicks());
 }
-void rndInit(u64 seed) {
-    seedU64 = seed;
+void rndInit(u64 seed64, u32 seed32) {
+    seedU64 = seed64;
+    seedU32 = seed32;
 }
 
 u32 rndU32() {
-    seedU64 = xorShift64(seedU64);
-    return u32(seedU64);
+    seedU32 = xorShift32(seedU32);
+    return seedU32;
 }
 u32 rndU32(u32 min, u32 max) {
     if (min == max) return min;

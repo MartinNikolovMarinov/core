@@ -7,6 +7,8 @@
 
 #include <plt/core_atomics.h>
 
+// TODO: I need to think about alignment in these allocators. Aligning every allocation to 8 bytes might not be the best idea for all cases.
+
 namespace core {
 
 using namespace coretypes;
@@ -67,12 +69,15 @@ static_assert(AllocatorConcept<StdStatsAllocator>);
  * @note This allocator is not thread-safe.
 */
 struct CORE_API_EXPORT BumpAllocator {
-    OOMHandlerFn oomHandler = nullptr;
+    OOMHandlerFn oomHandler;
 
     NO_COPY(BumpAllocator);
 
+    BumpAllocator();
     BumpAllocator(void* data, addr_size cap);
     BumpAllocator(BumpAllocator&& other);
+
+    void setBuffer(void* data, addr_size cap);
 
     void* alloc(addr_size count, addr_size size);
     void* calloc(addr_size count, addr_size size);
@@ -89,20 +94,54 @@ private:
 static_assert(AllocatorConcept<BumpAllocator>);
 
 /**
+ * @note This allocator is thread-safe only if the data pointer is thread-local.
+ *       Only one of these can exist per thread!
+*/
+struct CORE_API_EXPORT ThreadLocalBumpAllocator {
+    OOMHandlerFn oomHandler = nullptr;
+
+    NO_COPY(ThreadLocalBumpAllocator);
+    NO_MOVE(ThreadLocalBumpAllocator);
+
+    static ThreadLocalBumpAllocator create(void* data, addr_size cap); // calling this twice in the same thread will panic
+
+    /**
+     * @note Changing the buffer will force a clear operation.
+    */
+    void setBuffer(void* data, addr_size cap);
+
+    void* alloc(addr_size count, addr_size size);
+    void* calloc(addr_size count, addr_size size);
+    void free(void* ptr, addr_size count, addr_size size); // does nothing
+    void clear();
+    addr_size totalMemoryAllocated(); // same as inUseMemory
+    addr_size inUseMemory();
+
+private:
+    ThreadLocalBumpAllocator();
+};
+static_assert(AllocatorConcept<ThreadLocalBumpAllocator>);
+
+struct CORE_API_EXPORT ArenaBlock {
+    void* begin;
+    void* curr;
+};
+
+/**
  * @note This allocator is not thread-safe.
 */
 struct CORE_API_EXPORT StdArenaAllocator {
-    struct Block {
-        void* begin;
-        void* curr;
-    };
-
     OOMHandlerFn oomHandler = nullptr;
 
     NO_COPY(StdArenaAllocator);
 
     StdArenaAllocator(addr_size blockSize);
     StdArenaAllocator(StdArenaAllocator&& other);
+
+    /**
+     * @note Setting the block size will force a clear operation.
+    */
+    void setBlockSize(addr_size blockSize);
 
     void* alloc(addr_size count, addr_size size);
     void* calloc(addr_size count, addr_size size);
@@ -114,10 +153,41 @@ struct CORE_API_EXPORT StdArenaAllocator {
     void reset();
 
 private:
-    Block* m_blocks;
+    ArenaBlock* m_blocks;
     addr_size m_blockCount;
-    const addr_size m_blockSize;
+    addr_size m_blockSize;
 };
 static_assert(AllocatorConcept<StdArenaAllocator>);
+
+/**
+ * @note This allocator is thread-safe only if the data pointer is thread-local.
+ *       Only one of these can exist per thread!
+*/
+struct CORE_API_EXPORT ThreadLocalStdArenaAllocator {
+    OOMHandlerFn oomHandler = nullptr;
+
+    NO_COPY(ThreadLocalStdArenaAllocator);
+    NO_MOVE(ThreadLocalStdArenaAllocator);
+
+    static ThreadLocalStdArenaAllocator create(addr_size blockSize);
+
+    /**
+     * @note Changing the block size will clear the allocator.
+    */
+    void setBlockSize(addr_size blockSize);
+
+    void* alloc(addr_size count, addr_size size);
+    void* calloc(addr_size count, addr_size size);
+    void free(void* ptr, addr_size count, addr_size size); // does nothing
+    void clear();
+    addr_size totalMemoryAllocated();
+    addr_size inUseMemory();
+
+    void reset();
+
+private:
+    ThreadLocalStdArenaAllocator();
+};
+static_assert(AllocatorConcept<ThreadLocalStdArenaAllocator>);
 
 } // namespace core

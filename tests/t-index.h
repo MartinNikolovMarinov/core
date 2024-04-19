@@ -11,8 +11,6 @@
 
 using namespace coretypes;
 
-void coreInit();
-
 // template<> addr_size core::hash(const i32& key);
 // template<> bool core::eq(const i32& a, const i32& b);
 
@@ -34,6 +32,22 @@ constexpr bool g_useAnsi = true;
 #else
 constexpr bool g_useAnsi = false;
 #endif
+
+enum AllocatorId {
+    STD_STATS_ALLOCATOR,
+    BUMP_ALLOCATOR,
+    ARENA_ALLOCATOR,
+
+    SENTINEL
+};
+
+core::AllocatorContext* getAllocatorCtx(AllocatorId id);
+
+template <typename TAllocatorPtr>
+inline TAllocatorPtr gatAllocatorByType(void* allocatorData) {
+    static_assert(std::is_pointer_v<TAllocatorPtr>, "TAllocatorPtr must be a pointer type");
+    return reinterpret_cast<TAllocatorPtr>(allocatorData);
+}
 
 // ##################### Test suites ###################################################################################
 

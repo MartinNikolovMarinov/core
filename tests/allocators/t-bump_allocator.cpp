@@ -3,7 +3,8 @@
 i32 bumpAllocatorBasicValidityTest() {
     constexpr addr_size BUFF_SIZE = 128;
     void* buff[BUFF_SIZE];
-    core::BumpAllocator allocator (buff, BUFF_SIZE);
+    core::BumpAllocator allocator;
+    allocator.setBuffer(buff, BUFF_SIZE);
 
     {
         void* data = allocator.alloc(4, sizeof(u8));

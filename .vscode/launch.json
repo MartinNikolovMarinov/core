@@ -9,6 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/core_test",
+            // "program": "${workspaceFolder}/build/core_sandbox",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

@@ -16,17 +16,17 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Generates compile_commands.json
 function(update_git_submodules)
     find_package(Git QUIET)
     if (GIT_FOUND)
-        message(STATUS "Submodule update")
+        message(STATUS "[CORE] Submodule update")
         execute_process(
             COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
             RESULT_VARIABLE GIT_SUBMOD_RESULT
         )
         if (NOT GIT_SUBMOD_RESULT EQUAL "0")
-            message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+            message(FATAL_ERROR "[CORE] git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
         endif()
     else()
-        message(FATAL_ERROR "Git is not found. It is required to update submodules.")
+        message(FATAL_ERROR "[CORE] Git is not found. It is required to update submodules.")
     endif()
 endfunction()
 
@@ -65,7 +65,7 @@ if(CORE_USE_CPPCHECK)
 
             # Configure cppcheck:
 
-            message(STATUS "generated cpp check file list")
+            message(STATUS "[CORE] generated cpp check file list")
             list(APPEND CMAKE_CXX_CPPCHECK
                     "--enable=style,performance,portability"
                     "--inconclusive"
@@ -77,7 +77,7 @@ if(CORE_USE_CPPCHECK)
                     "--suppressions-list=${CMAKE_SOURCE_DIR}/CppCheckSuppressions.txt"
                     "--file-list=${PROJECT_BINARY_DIR}/CppCheckFilesToCheck.txt")
         else()
-            message(WARNING "failed to generate cpp check file list!")
+            message(WARNING "[CORE] failed to generate cpp check file list!")
         endif()
 
     else()
@@ -91,7 +91,6 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 include(DetectOS)
-include(CodeCoverage)
 include(CompilerOptions)
 
 # Print Selected Options:

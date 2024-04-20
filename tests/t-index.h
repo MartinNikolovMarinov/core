@@ -17,8 +17,9 @@ using namespace coretypes;
 // template<> addr_size core::hash(const core::StrView& key);
 // template<> bool core::eq(const core::StrView& a, const core::StrView& b);
 
+// #################### TESTING HELPERS ################################################################################
 
-enum AllocatorId {
+enum AllocatorId : i32 {
     STD_STATS_ALLOCATOR,
     BUMP_ALLOCATOR,
     ARENA_ALLOCATOR,
@@ -33,8 +34,6 @@ inline TAllocatorPtr gatAllocatorByType(void* allocatorData) {
     static_assert(std::is_pointer_v<TAllocatorPtr>, "TAllocatorPtr must be a pointer type");
     return reinterpret_cast<TAllocatorPtr>(allocatorData);
 }
-
-// #################### TESTING HELPERS ################################################################################
 
 #if defined(CORE_RUN_COMPILETIME_TESTS) && CORE_RUN_COMPILETIME_TESTS == 1
     #define RunTestCompileTime(test, ...) \

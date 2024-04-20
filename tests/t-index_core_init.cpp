@@ -1,6 +1,8 @@
 #include "t-index.h"
 
+namespace {
 core::AllocatorContext g_allocators[AllocatorId::SENTINEL];
+} // namespace
 
 core::AllocatorContext* getAllocatorCtx(AllocatorId id) {
     auto* allocator =  &g_allocators[id];
@@ -45,41 +47,11 @@ constexpr addr_size THREAD_LOCAL_ARENA_ALLOCATOR_REGION_SIZE = core::CORE_KILOBY
 static auto g_arenaAllocator = core::ThreadLocalStdArenaAllocator::create(THREAD_LOCAL_ARENA_ALLOCATOR_REGION_SIZE);
 
 void coreInit() {
+    core::initProgramCtx(asserHandler, nullptr);
+
     g_allocators[AllocatorId::STD_STATS_ALLOCATOR] = core::createAllocatorCtx(&g_stdStatsAllocator);
     g_allocators[AllocatorId::BUMP_ALLOCATOR] = core::createAllocatorCtx(&g_bumpGlobalBufferAllocator);
     g_allocators[AllocatorId::ARENA_ALLOCATOR] = core::createAllocatorCtx(&g_arenaAllocator);
-
-    core::initProgramCtx(asserHandler, nullptr);
-
-    core::alloc(1, 1);
-
-    // TODO: This pattern is kinda weird. Using a global variable that you need to remember to set/unset.
-    //       It feels much better to create an allocator and just free it once the end of scope is reached.
-    //       Right now that will be a bit slow, so reduce the size of AllocatorContext.
-    u8 buff[255];
-    core::AllocatorContext* actx = getAllocatorCtx(AllocatorId::BUMP_ALLOCATOR);
-    core::BumpAllocator* a = gatAllocatorByType<core::BumpAllocator*>(actx->allocatorData);
-    a->setBuffer(buff, sizeof(buff));
-    defer { a->setBuffer(nullptr, 0); };
-
-    // TODO: This feels nicer:
-    // {
-    //     u8 buff[255];
-    //     core::BumpAllocator a (buff, sizeof(buff));
-    //     core::AllocatorContext actx = core::createAllocatorCtx(&a);
-    //     core::setThreadLocalAllocator(&actx);
-    //     defer { core::setThreadLocalAllocator(nullptr); };
-    // }
-
-    core::setThreadLocalAllocator(actx);
-    defer { core::setThreadLocalAllocator(nullptr); };
-
-    u8* v = reinterpret_cast<u8*>(core::alloc(1, 1));
-    *v = 77;
-
-    core::setThreadLocalAllocator(nullptr);
-
-    core::alloc(1, 1);
 }
 
 void coreShutdown() {

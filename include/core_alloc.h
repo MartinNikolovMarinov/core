@@ -135,7 +135,7 @@ struct CORE_API_EXPORT StdArenaAllocator {
 
     NO_COPY(StdArenaAllocator);
 
-    StdArenaAllocator(addr_size blockSize);
+    explicit StdArenaAllocator(addr_size blockSize);
     StdArenaAllocator(StdArenaAllocator&& other);
 
     /**

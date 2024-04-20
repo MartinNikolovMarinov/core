@@ -1,6 +1,5 @@
 #include "../t-index.h"
 
-
 i32 stdStatsAllocatorBasicValidityTest() {
     core::StdStatsAllocator allocator;
 
@@ -14,7 +13,7 @@ i32 stdStatsAllocatorBasicValidityTest() {
     CT_CHECK(allocator.inUseMemory() == 24);
     defer { allocator.free(data2, 9, sizeof(u8)); };
 
-    void* data3 = allocator.alloc(1, sizeof(u8));
+    void* data3 = allocator.calloc(1, sizeof(u8));
     CT_CHECK(data3 != nullptr);
     CT_CHECK(allocator.inUseMemory() == 32);
     defer { allocator.free(data3, 1, sizeof(u8)); };
@@ -29,7 +28,7 @@ i32 stdStatsAllocatorBasicValidityTest() {
 
     buff[8] = allocator.alloc(9, sizeof(u8));
     CT_CHECK(allocator.inUseMemory() == 112);
-    buff[9] = allocator.alloc(10, sizeof(u8));
+    buff[9] = allocator.calloc(10, sizeof(u8));
     CT_CHECK(allocator.inUseMemory() == 128);
 
     for (addr_size i = 0; i < 10; i++) {
@@ -41,6 +40,23 @@ i32 stdStatsAllocatorBasicValidityTest() {
 
     return 0;
 }
+
+i32 stdStatsAllocatorMoveTest() {
+    core::StdStatsAllocator allocator;
+
+    allocator.alloc(4, sizeof(u8));
+
+    core::StdStatsAllocator allocator2 = std::move(allocator);
+
+    CT_CHECK(allocator.inUseMemory() == 0);
+    CT_CHECK(allocator.totalMemoryAllocated() == 0);
+
+    CT_CHECK(allocator2.inUseMemory() == 8);
+    CT_CHECK(allocator2.totalMemoryAllocated() == 8);
+
+    return 0;
+}
+
 
 i32 onOOMStdStatsAllocatorTest() {
     static i32 testOOMCount = 0;
@@ -76,6 +92,8 @@ i32 runStdStatsAllocatorTestsSuite() {
 
     tInfo.name = FN_NAME_TO_CPTR(stdStatsAllocatorBasicValidityTest);
     if (runTest(tInfo, stdStatsAllocatorBasicValidityTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(stdStatsAllocatorMoveTest);
+    if (runTest(tInfo, stdStatsAllocatorMoveTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(onOOMStdStatsAllocatorTest);
     if (runTest(tInfo, onOOMStdStatsAllocatorTest) != 0) { ret = -1; }
 

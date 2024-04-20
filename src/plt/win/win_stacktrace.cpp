@@ -36,7 +36,18 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
         return writeToBuf(buf);
     };
 
-    // TODO: Print current thread name.
+    // Write the thread name
+    {
+        char threadingBuffer[MAX_THREAD_NAME_LENGTH] = {};
+        if (!core::threadingGetName(threadingBuffer).hasErr()) {
+            if (!writeToBuf("Thread: ")) return false;
+            if (!writeToBuf(threadingBuffer[0] ? threadingBuffer : "unnamed")) return false;
+            if (!writeToBuf("\n")) return false;
+        }
+        else {
+            if (!writeToBuf("Thread: <failed to get name>\n")) return false;
+        }
+    }
 
     bufWritten = 0;
 

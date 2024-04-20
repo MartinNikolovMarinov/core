@@ -108,28 +108,30 @@ inline i32 g_testCount = 0;
 CORE_API_EXPORT char* elapsedTimeToStr(char out[256], std::chrono::nanoseconds deltaTime);
 CORE_API_EXPORT char* memoryUsedToStr(char out[128], addr_size deltaMemory);
 
-namespace detail {
-
-constexpr inline const char* passedOrFailedStr(bool exp, bool useAnsiColors) {
-    if (useAnsiColors) {
-        return (exp) ? ANSI_GREEN("PASSED") : ANSI_RED("FAILED");
-    }
-    return (exp) ? "PASSED" : "FAILED";
-}
-
-} // namespace detail
-
 struct TestInfo {
     const char* name = nullptr;
     bool useAnsiColors = true;
     bool trackMemory = true;
     bool trackTime = true;
     bool trackTicks = true;
+    bool detectLeaks = false;
 
     TestInfo() = default;
     TestInfo(const char* _name) : name(_name), useAnsiColors(true) {}
     TestInfo(const char* _name, bool _useAnsiColors) : name(_name), useAnsiColors(_useAnsiColors) {}
 };
+
+namespace detail {
+
+constexpr inline const char* passedOrFailedStr(bool passed, bool useAnsiColors) {
+    if (useAnsiColors) {
+        return passed ? ANSI_GREEN("PASSED") : ANSI_RED("FAILED");
+    }
+    return passed ? "PASSED" : "FAILED";
+}
+
+} // namespace detail
+
 
 template <typename TFunc, typename... Args>
 i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
@@ -161,6 +163,11 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
               << detail::passedOrFailedStr(returnCode == 0, useAnsiColors) << "] "
               << testName;
 
+    if (info.detectLeaks && deltaInUseMemory != 0) {
+        std::cout << ANSI_RED(" !!LEAKED MEMORY!!");
+        returnCode = -1;
+    }
+
     bool isFirst = true;
 
     if (info.trackTime) {
@@ -179,12 +186,12 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
     }
 
     if (info.trackMemory) {
-        char memoryBuffer[128];
+        char buff[256];
         if (isFirst) std::cout << " [ ";
         else std::cout << ", ";
-        std::cout << "mem: { alloc: " << memoryUsedToStr(memoryBuffer, deltaAllocatedMemory)
-                  << ", in_use: " << memoryUsedToStr(memoryBuffer, deltaInUseMemory)
-                  << " }";
+        std::cout << "memory: { total: " << memoryUsedToStr(buff, deltaAllocatedMemory)
+                              << ", in_use: " << memoryUsedToStr(buff, deltaInUseMemory)
+                              << " }";
         isFirst = false;
     }
 
@@ -211,6 +218,7 @@ i32 runTestSuite(const TestSuiteInfo& info, TSuite suite) {
 
     std::cout << "[SUITE RUNNING] " << suiteName << std::endl;
     i32 returnCode = suite();
+
     std::cout << "[SUITE " << detail::passedOrFailedStr(returnCode == 0, useAnsiColors) << "] " << suiteName << std::endl;
     return returnCode;
 }

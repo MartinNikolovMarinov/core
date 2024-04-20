@@ -20,7 +20,7 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten, i32 nStackFr
         return true;
     };
 
-    // Print the thread name
+    // Write the thread name
     {
         char threadingBuffer[MAX_THREAD_NAME_LENGTH] = {};
         if (!core::threadingGetName(threadingBuffer).hasErr()) {

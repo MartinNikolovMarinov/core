@@ -1,8 +1,7 @@
 #pragma once
 
-#include "core_types.h"
-#include "core_arr.h"
-#include "core_sarr.h"
+#include <core_types.h>
+#include <core_arr.h>
 
 namespace core {
 
@@ -19,8 +18,8 @@ using namespace coretypes;
  * \param pred The predicate to satisfy.
  * \return The index of the first element that satisfies the predicate, or -1 if no element satisfies the predicate.
 */
-template <typename T, typename TAllocator, typename TPredicate>
-inline addr_off find(const Arr<T, TAllocator>& arr, TPredicate pred) {
+template <typename T, typename TPredicate>
+inline addr_off find(const ArrList<T>& arr, TPredicate pred) {
     for (addr_off i = 0; i < addr_off(arr.len()); ++i) {
         auto& v = arr[addr_size(i)];
         if (pred(v, i)) return i;
@@ -45,46 +44,46 @@ inline addr_off find(const T* arr, addr_off len, TPredicate pred) {
 }
 
 /**
- * \brief Appends an element to the array if it is not already present, this is determined by the equality function.
+ * \brief Pushes an element to the array if it is not already present, this is determined by the equality function.
  *
  *       Example equality function:
  *          [closureVar](auto& curr) -> bool { return curr == closureVar; }
  *
- * \param arr The array to append to.
- * \param el The element to append.
+ * \param arr The array to push to.
+ * \param el The element to push.
  * \param eqFn The equality function.
 */
-template <typename T, typename TAllocator, typename TEq>
-inline void appendUnique(Arr<T, TAllocator>& arr, const T& el, TEq eqFn) {
+template <typename T, typename TEq>
+inline void pushUnique(ArrList<T>& arr, const T& el, TEq eqFn) {
     for (addr_off i = 0; i < addr_off(arr.len()); ++i) {
         auto& v = arr[addr_size(i)];
         if (eqFn(v, i, el)) return;
     }
-    arr.append(el);
+    arr.push(el);
 }
-template <typename T, typename TAllocator, typename TEq>
-inline void appendUnique(Arr<T, TAllocator>& arr, T&& el, TEq eqFn) {
+template <typename T, typename TEq>
+inline void pushUnique(ArrList<T>& arr, T&& el, TEq eqFn) {
     for (addr_off i = 0; i < addr_off(arr.len()); ++i) {
         auto& v = arr[addr_size(i)];
         if (eqFn(v, i, el)) return;
     }
-    arr.append(el);
-}
-template <typename T, addr_size N, typename TPredicate>
-inline constexpr void appendUnique(SArr<T, N>& arr, const T& el, TPredicate eqFn) {
-    for (addr_off i = 0; i < addr_off(arr.len()); ++i) {
-        auto& v = arr[addr_size(i)];
-        if (eqFn(v, i, el)) return;
-    }
-    arr.append(el);
+    arr.push(el);
 }
 template <typename T, addr_size N, typename TPredicate>
-inline constexpr void appendUnique(SArr<T, N>& arr, T&& el, TPredicate eqFn) {
+inline constexpr void pushUnique(ArrStatic<T, N>& arr, const T& el, TPredicate eqFn) {
     for (addr_off i = 0; i < addr_off(arr.len()); ++i) {
         auto& v = arr[addr_size(i)];
         if (eqFn(v, i, el)) return;
     }
-    arr.append(el);
+    arr.push(el);
+}
+template <typename T, addr_size N, typename TPredicate>
+inline constexpr void pushUnique(ArrStatic<T, N>& arr, T&& el, TPredicate eqFn) {
+    for (addr_off i = 0; i < addr_off(arr.len()); ++i) {
+        auto& v = arr[addr_size(i)];
+        if (eqFn(v, i, el)) return;
+    }
+    arr.push(el);
 }
 
 } // namespace core

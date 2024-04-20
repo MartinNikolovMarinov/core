@@ -140,9 +140,6 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
     const char* testName = info.name;
     bool useAnsiColors = info.useAnsiColors;
 
-    // FIXME: Think about the actual metrics I want to report.
-    //        Does it make sense to add total memory used by allocator or something like that?
-
     auto allocatedBefore = core::totalMemoryAllocated();
     auto inUseBefore = core::inUseMemory();
     auto startTicks = core::intrin_getCpuTicks();

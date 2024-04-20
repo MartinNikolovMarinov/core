@@ -39,7 +39,7 @@ struct UniquePtr {
 
     void reset(DataType* newPtr = nullptr) {
         if (m_ptr) {
-            if constexpr (!std::is_trivially_destructible_v<DataType>) {
+            if constexpr (!std::is_destructible_v<DataType>) {
                 m_ptr->~T();
             }
             AllocatorType::free(m_ptr, sizeof(DataType));

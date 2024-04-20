@@ -7,8 +7,6 @@
 
 #include <new>
 
-// FIXME: It's definitely a good idea to reduce the code duplication between ArrList and ArrStatic!
-
 namespace core {
 
 using namespace coretypes;

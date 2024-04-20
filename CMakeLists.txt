@@ -257,7 +257,7 @@ if(CORE_BUILD_TESTS)
 
         tests/t-index_core_init.cpp
 
-        # tests/t-algorithms.cpp
+        tests/t-algorithms.cpp
         tests/t-arr.cpp
         # tests/t-bits.cpp
         # tests/t-cmd_flag_parser.cpp

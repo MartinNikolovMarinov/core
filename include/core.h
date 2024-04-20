@@ -1,4 +1,4 @@
-// #include "core_algorithms.h"
+#include "core_algorithms.h"
 #include "core_alloc.h"
 #include "core_ansi_escape_codes.h"
 #include "core_API.h"
@@ -10,7 +10,7 @@
 #include "core_config.h"
 #include "core_cptr_conv.h"
 #include "core_cptr.h"
-#include "core_expected.h"
+#include "core_expected.h" // FIXME: Be careful with this one! Try to make it better, but don't break the API.
 // #include "core_hash_map.h"
 #include "core_hash.h"
 #include "core_intrinsics.h"

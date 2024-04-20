@@ -72,6 +72,23 @@ i32 arenaAllocatorBasicValidityTest() {
     return 0;
 }
 
+i32 arenaAllocatorMoveTest() {
+    constexpr addr_size ARENA_BLOCK_SIZE = 128;
+    core::StdArenaAllocator allocator (ARENA_BLOCK_SIZE);
+
+    allocator.alloc(4, sizeof(u8));
+
+    core::StdArenaAllocator allocator2 = std::move(allocator);
+
+    CT_CHECK(allocator.inUseMemory() == 0);
+    CT_CHECK(allocator.totalMemoryAllocated() == 0);
+
+    CT_CHECK(allocator2.inUseMemory() == 8);
+    CT_CHECK(allocator2.totalMemoryAllocated() == ARENA_BLOCK_SIZE);
+
+    return 0;
+}
+
 i32 onOomArenaAllocatorTest() {
     static i32 testOOMCount = 0;
     constexpr addr_size REGION_SIZE = 0x7ffffffffffffffd;
@@ -100,6 +117,8 @@ i32 runArenaAllocatorTestsSuite() {
 
     tInfo.name = FN_NAME_TO_CPTR(arenaAllocatorBasicValidityTest);
     if (runTest(tInfo, arenaAllocatorBasicValidityTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(arenaAllocatorMoveTest);
+    if (runTest(tInfo, arenaAllocatorMoveTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(onOomArenaAllocatorTest);
     if (runTest(tInfo, onOomArenaAllocatorTest) != 0) { ret = -1; }
 

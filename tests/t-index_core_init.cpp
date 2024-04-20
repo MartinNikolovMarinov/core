@@ -128,7 +128,7 @@ i32 runAllTests() {
     sInfo.name = FN_NAME_TO_CPTR(runArenaAllocatorTestsSuite);
     if (runTestSuite(sInfo, runArenaAllocatorTestsSuite) != 0) { ret = -1; }
 
-    // // Run platform specific tests:
+    // Run platform specific tests:
 
     // #if defined(CORE_DEBUG) && CORE_DEBUG == 1
     //     // Stacktrace should only be expected to work in debug builds.

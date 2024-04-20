@@ -55,6 +55,24 @@ i32 bumpAllocatorBasicValidityTest() {
     return 0;
 }
 
+i32 bumpAllocatorMoveTest() {
+    constexpr addr_size BUFF_SIZE = 128;
+    void* buff[BUFF_SIZE];
+    core::BumpAllocator allocator (buff, BUFF_SIZE);
+
+    allocator.alloc(4, sizeof(u8));
+
+    core::BumpAllocator allocator2 = std::move(allocator);
+
+    CT_CHECK(allocator.inUseMemory() == 0);
+    CT_CHECK(allocator.totalMemoryAllocated() == 0);
+
+    CT_CHECK(allocator2.inUseMemory() == 8);
+    CT_CHECK(allocator2.totalMemoryAllocated() == 8);
+
+    return 0;
+}
+
 i32 onOomBumpAllocatorTest() {
     static i32 testOOMCount = 0;
     void* data;
@@ -91,6 +109,8 @@ i32 runBumpAllocatorTestsSuite() {
 
     tInfo.name = FN_NAME_TO_CPTR(bumpAllocatorBasicValidityTest);
     if (runTest(tInfo, bumpAllocatorBasicValidityTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(bumpAllocatorMoveTest);
+    if (runTest(tInfo, bumpAllocatorMoveTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(onOomBumpAllocatorTest);
     if (runTest(tInfo, onOomBumpAllocatorTest) != 0) { ret = -1; }
 

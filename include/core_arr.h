@@ -174,7 +174,7 @@ struct ArrList {
             ensureCap(m_cap == 0 ? 1 : m_cap * 2);
         }
 
-        m_data[m_len] = val;
+        new (&m_data[m_len]) T(val);
         m_len++;
     }
 
@@ -183,7 +183,7 @@ struct ArrList {
             ensureCap(m_cap == 0 ? 1 : m_cap * 2);
         }
 
-        m_data[m_len] = std::move(val);
+        new (&m_data[m_len]) T(std::move(val));
         m_len++;
     }
 
@@ -198,7 +198,7 @@ struct ArrList {
         }
         else {
             for (size_type i = 0; i < len; i++) {
-                m_data[i + m_len] = val[i];
+                new (&m_data[i + m_len]) T(val[i]);
             }
         }
 
@@ -292,12 +292,12 @@ struct ArrStatic {
     constexpr const value_type& last()  const { return at(m_len - 1); }
 
     constexpr void push(const value_type& val) {
-        m_data[m_len] = val;
+        new (&m_data[m_len]) T(val);
         m_len++;
     }
 
     constexpr void push(value_type&& val) {
-        m_data[m_len] = std::move(val);
+        new (&m_data[m_len]) T(std::move(val));
         m_len++;
     }
 
@@ -307,7 +307,7 @@ struct ArrStatic {
         }
         else {
             for (size_type i = 0; i < len; i++) {
-                m_data[i + m_len] = val[i];
+                new (&m_data[i + m_len]) T(val[i]);
             }
         }
 
@@ -321,7 +321,7 @@ struct ArrStatic {
 
         if (idx < m_len - 1) {
             for (size_type i = idx; i < m_len - 1; ++i) {
-                m_data[i] = std::move(m_data[i + 1]);
+                new (&m_data[i]) T(std::move(m_data[i + 1]));
             }
         }
 

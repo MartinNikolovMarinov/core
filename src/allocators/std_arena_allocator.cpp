@@ -164,6 +164,8 @@ ThreadLocalStdArenaAllocator ThreadLocalStdArenaAllocator::create(addr_size bloc
     Panic(tl_blockSize == 0, "ThreadLocalStdArenaAllocator::create() called twice in the same thread");
     Panic(blockSize > 0, "ThreadLocalStdArenaAllocator::create() Invalid block size");
     tl_blockSize = blockSize;
+    tl_blockCount = 0;
+    tl_blocks = nullptr;
     return ThreadLocalStdArenaAllocator{};
 }
 

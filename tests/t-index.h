@@ -41,28 +41,42 @@ void runForAllGlobalAllocatorVariants(TCallback cb, i32& retCode) {
 
     {
         TestInfo tInfo = {};
+        tInfo.trackMemory = false; // the default allocator can't track memory allocations.
+        tInfo.detectLeaks = false; // the default allocator can't detect memory leaks.
         cb(tInfo, "Default Allocator", retCode);
     }
     {
         core::AllocatorContext* actx = getAllocatorCtx(AllocatorId::STD_STATS_ALLOCATOR);
         core::setActiveAllocatorForThread(actx);
-        defer { core::setActiveAllocatorForThread(nullptr); };
+        defer {
+            actx->clear(actx->allocatorData);
+            core::setActiveAllocatorForThread(nullptr);
+        };
         TestInfo tInfo = {};
+        tInfo.trackMemory = true;
         tInfo.detectLeaks = true;
         cb(tInfo, "Stats STD Allocator", retCode);
     }
     {
         core::AllocatorContext* actx = getAllocatorCtx(AllocatorId::BUMP_ALLOCATOR);
         core::setActiveAllocatorForThread(actx);
-        defer { core::setActiveAllocatorForThread(nullptr); };
+        defer {
+            actx->clear(actx->allocatorData);
+            core::setActiveAllocatorForThread(nullptr);
+        };
         TestInfo tInfo = {};
+        tInfo.trackMemory = true;
         cb(tInfo, "THREAD LOCAL BUMP Allocator", retCode);
     }
     {
         core::AllocatorContext* actx = getAllocatorCtx(AllocatorId::ARENA_ALLOCATOR);
         core::setActiveAllocatorForThread(actx);
-        defer { core::setActiveAllocatorForThread(nullptr); };
+        defer {
+            actx->clear(actx->allocatorData);
+            core::setActiveAllocatorForThread(nullptr);
+        };
         TestInfo tInfo = {};
+        tInfo.trackMemory = true;
         cb(tInfo, "THREAD LOCAL ARENA Allocator", retCode);
     }
 }

@@ -141,6 +141,9 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
     const char* testName = info.name;
     bool useAnsiColors = info.useAnsiColors;
 
+    // FIXME: Think about the actual metrics I want to report.
+    //        Does it make sense to add total memory used by allocator or something like that?
+
     auto allocatedBefore = core::totalMemoryAllocated();
     auto inUseBefore = core::inUseMemory();
     auto startTicks = core::intrin_getCpuTicks();
@@ -197,9 +200,11 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
         char buff[256];
         if (isFirst) std::cout << " [ ";
         else std::cout << ", ";
-        std::cout << "memory: { total: " << memoryUsedToStr(buff, deltaAllocatedMemory)
-                              << ", in_use: " << memoryUsedToStr(buff, deltaInUseMemory)
-                              << " }";
+        std::cout << "memory: {"
+                  << " total: " << memoryUsedToStr(buff, allocatedAfter)
+                  << ", allocated: " << memoryUsedToStr(buff, deltaAllocatedMemory)
+                  << ", in_use: " << memoryUsedToStr(buff, deltaInUseMemory)
+                  << " }";
         isFirst = false;
     }
 
@@ -236,7 +241,7 @@ i32 runTestSuite(const TestSuiteInfo& info, TSuite suite) {
 #define CT_CHECK1(expr) CT_CHECK2(expr, "")
 #define CT_CHECK2(expr, msg)                                                     \
     if (!(expr)) {                                                               \
-        std::cerr << "\t[Test failed] ";                                         \
+        std::cerr << "\t\t[Test failed] ";                                       \
         if (core::cptrLen((msg)) > 0) {                                          \
             std::cerr << "message: \"" << (msg) << "\" ";                        \
         }                                                                        \

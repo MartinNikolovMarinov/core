@@ -133,7 +133,6 @@ constexpr inline const char* passedOrFailedStr(bool passed, bool useAnsiColors) 
 
 } // namespace detail
 
-
 template <typename TFunc, typename... Args>
 i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
     g_testCount++;
@@ -235,6 +234,14 @@ i32 runTestSuite(const TestSuiteInfo& info, TSuite suite) {
     std::cout << "[SUITE " << detail::passedOrFailedStr(returnCode == 0, useAnsiColors) << "] " << suiteName << std::endl;
     return returnCode;
 }
+
+#if defined(CORE_RUN_COMPILETIME_TESTS) && CORE_RUN_COMPILETIME_TESTS == 1
+    #define RunTestCompileTime(test, ...) \
+        { [[maybe_unused]] constexpr auto __notused__ = core::force_consteval<test(__VA_ARGS__)>; }
+#else
+    #define RunTestCompileTime(...)
+    #define CORE_RUN_COMPILETIME_TESTS 0
+#endif
 
 // CORE TEST CHECK Macro
 #define CT_CHECK(...) C_VFUNC(CT_CHECK, __VA_ARGS__)

@@ -14,6 +14,8 @@ inline i32 checkEmptynessOfArr(const core::ArrList<T>& arr) {
 } // namespace
 
 i32 initializeArrTest() {
+    using namespace core::testing;
+
     {
         core::ArrList<i32> arr;
         CT_CHECK(checkEmptynessOfArr(arr) == 0);
@@ -119,35 +121,35 @@ i32 initializeArrTest() {
     }
 
     {
-        defer { core::testing::CT::resetAll(); };
+        defer { CT::resetAll(); };
         constexpr i32 testCount = 10;
 
-        core::testing::CT x = {};
-        core::testing::CT::resetCtors(); // Don't count constructor calls for x
+        CT x = {};
+        CT::resetCtors(); // Don't count constructor calls for x
 
         {
-            core::ArrList<core::testing::CT> arr(testCount, x);
+            core::ArrList<CT> arr(testCount, x);
             for (addr_size i = 0; i < arr.len(); ++i) {
                 CT_CHECK(arr[i].a == 7);
             }
-            CT_CHECK(core::testing::CT::totalCtorsCalled() == testCount);
-            CT_CHECK(core::testing::CT::copyCtorCalled() == testCount);
-            core::testing::CT::resetCtors();
+            CT_CHECK(CT::totalCtorsCalled() == testCount);
+            CT_CHECK(CT::copyCtorCalled() == testCount);
+            CT::resetCtors();
 
             {
                 auto arrCpy = arr.copy();
                 for (addr_size i = 0; i < arrCpy.len(); ++i) {
                     CT_CHECK(arrCpy[i].a == 7);
                 }
-                CT_CHECK(core::testing::CT::totalCtorsCalled() == testCount);
-                CT_CHECK(core::testing::CT::copyCtorCalled() == testCount);
-                core::testing::CT::resetCtors();
+                CT_CHECK(CT::totalCtorsCalled() == testCount);
+                CT_CHECK(CT::copyCtorCalled() == testCount);
+                CT::resetCtors();
             }
-            CT_CHECK(core::testing::CT::dtorsCalled() == testCount);
-            core::testing::CT::resetDtors();
+            CT_CHECK(CT::dtorsCalled() == testCount);
+            CT::resetDtors();
         }
-        CT_CHECK(core::testing::CT::dtorsCalled() == testCount);
-        core::testing::CT::resetDtors();
+        CT_CHECK(CT::dtorsCalled() == testCount);
+        CT::resetDtors();
     }
 
     return 0;

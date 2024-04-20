@@ -111,7 +111,8 @@ i32 runAllTests() {
     // RunTestSuite(runMemTestsSuite);
     sInfo.name = FN_NAME_TO_CPTR(runRndTestsSuite);
     if (runTestSuite(sInfo, runRndTestsSuite) != 0) { ret = -1; }
-    // RunTestSuite(runStaticArrTestsSuite);
+    sInfo.name = FN_NAME_TO_CPTR(runStaticArrTestsSuite);
+    if (runTestSuite(sInfo, runStaticArrTestsSuite) != 0) { ret = -1; }
     // RunTestSuite(runStrBuilderTestsSuite);
     // RunTestSuite(runTransformsTestsSuite);
     // RunTestSuite(runTupleTestsSuite);

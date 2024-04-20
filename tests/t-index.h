@@ -81,14 +81,6 @@ void runForAllGlobalAllocatorVariants(TCallback cb, i32& retCode) {
     }
 }
 
-#if defined(CORE_RUN_COMPILETIME_TESTS) && CORE_RUN_COMPILETIME_TESTS == 1
-    #define RunTestCompileTime(test, ...) \
-        { [[maybe_unused]] constexpr auto __notused__ = core::force_consteval<test(__VA_ARGS__)>; }
-#else
-    #define RunTestCompileTime(...)
-    #define CORE_RUN_COMPILETIME_TESTS 0
-#endif
-
 #if defined(CORE_BUILD_TESTS_USE_ANSI) && CORE_BUILD_TESTS_USE_ANSI == 1
 constexpr bool g_useAnsi = true;
 #else

@@ -233,47 +233,26 @@ struct ArrStatic {
     static constexpr bool dataIsTrivial = std::is_trivial_v<value_type>;
     static constexpr bool dataHasDestructor = std::is_destructible_v<value_type>;
 
+    static_assert(std::is_standard_layout_v<T>, "ArrStatic should be standard layout");
+    static_assert(std::is_trivially_copy_constructible_v<T>, "ArrStatic should be trivially copy constructible");
+    static_assert(std::is_trivially_move_constructible_v<T>, "ArrStatic should be trivially move constructible");
+    static_assert(std::is_trivially_copy_assignable_v<T>, "ArrStatic should be trivially copy assignable");
+    static_assert(std::is_trivially_move_assignable_v<T>, "ArrStatic should be trivially move assignable");
+
     constexpr ArrStatic() : m_data({}), m_len(0) {}
-    constexpr ArrStatic(const ArrStatic& other) = delete; // prevent copy ctor
+    constexpr ArrStatic(const ArrStatic& other) = default;
     constexpr ArrStatic(ArrStatic&& other) = default;
-    constexpr ArrStatic(const value_type* data, size_type len) : m_data({}), m_len(len) {
-        if constexpr (dataIsTrivial) {
-            core::memcopy(m_data, data, len * sizeof(value_type));
-        }
-        else {
-            for (size_type i = 0; i < len; i++) {
-                new (&m_data[i]) T(data[i]);
-            }
-        }
-    }
-    constexpr ~ArrStatic() {
-        if constexpr (dataHasDestructor) {
-            // For elements that are not trivially destructible call destructors manually:
-            for (size_type i = 0; i < m_len; ++i) {
-                m_data[i].~T();
-            }
+    constexpr ArrStatic(size_type len, const T& v) : m_len(len) {
+        for (size_type i = 0; i < m_len; i++) {
+            m_data[i] = v;
         }
     }
 
-    constexpr ArrStatic& operator=(const ArrStatic& other) = delete; // Prevent copy assignment
+    constexpr ArrStatic& operator=(const ArrStatic& other) = default;
     constexpr ArrStatic& operator=(ArrStatic&& other) = default;
 
-    constexpr ArrStatic copy() const {
-        ArrStatic ret;
-        if constexpr (dataIsTrivial) {
-            core::memcopy(ret.m_data, m_data, m_len * sizeof(value_type));
-        }
-        else {
-            for (size_type i = 0; i < m_len; ++i) {
-                new (&ret.m_data[i]) T(m_data[i]);
-            }
-        }
-        ret.m_len = m_len;
-        return ret;
-    }
-
-    static constexpr size_type  cap()           { return N; }
-    static constexpr size_type  byteCap()       { return N * sizeof(value_type); }
+    constexpr static size_type  cap()           { return N; }
+    constexpr static size_type  byteCap()       { return N * sizeof(value_type); }
     constexpr size_type         len()     const { return m_len; }
     constexpr size_type         byteLen() const { return m_len * sizeof(value_type); }
     constexpr value_type*       data()          { return m_data; }
@@ -292,36 +271,26 @@ struct ArrStatic {
     constexpr const value_type& last()  const { return at(m_len - 1); }
 
     constexpr void push(const value_type& val) {
-        new (&m_data[m_len]) T(val);
+        m_data[m_len] = val;
         m_len++;
     }
 
     constexpr void push(value_type&& val) {
-        new (&m_data[m_len]) T(std::move(val));
+        m_data[m_len] = std::move(val);
         m_len++;
     }
 
     constexpr void push(const value_type* val, size_type len) {
-        if constexpr (dataIsTrivial) {
-            core::memcopy(m_data + m_len, val, len * sizeof(value_type));
+        for (size_type i = 0; i < len; i++) {
+            m_data[i + m_len] = val[i];
         }
-        else {
-            for (size_type i = 0; i < len; i++) {
-                new (&m_data[i + m_len]) T(val[i]);
-            }
-        }
-
         m_len += len;
     }
 
     constexpr void remove(size_type idx) {
-        if constexpr (dataHasDestructor) {
-            m_data[idx].~T();
-        }
-
         if (idx < m_len - 1) {
             for (size_type i = idx; i < m_len - 1; ++i) {
-                new (&m_data[i]) T(std::move(m_data[i + 1]));
+                m_data[i] = std::move(m_data[i + 1]);
             }
         }
 
@@ -333,10 +302,12 @@ private:
     size_type m_len;
 };
 
+static_assert(std::is_standard_layout_v<ArrStatic<i32, 3>>, "ArrStatic should be trivial");
+
 namespace detail {
 
 template<typename TArg, typename ...Args>
-constexpr auto _createSArr(TArg first, Args... rest) {
+constexpr auto _createArrStatic(TArg first, Args... rest) {
     auto ret = ArrStatic<TArg, (sizeof...(rest) + 1)>();
     ret.push(first);
     auto f = [&](auto arg) { ret.push(arg); };
@@ -347,9 +318,9 @@ constexpr auto _createSArr(TArg first, Args... rest) {
 };
 
 template<typename ...Args>
-constexpr auto createSArr(Args... args) {
-    static_assert(sizeof...(Args) > 0, "createSArr requires at least one argument");
-    return detail::_createSArr(args...);
+constexpr auto createArrStatic(Args... args) {
+    static_assert(sizeof...(Args) > 0, "createArrStatic requires at least one argument");
+    return detail::_createArrStatic(args...);
 }
 
 } // namespace core

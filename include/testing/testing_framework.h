@@ -110,6 +110,7 @@ CORE_API_EXPORT char* memoryUsedToStr(char out[128], addr_size deltaMemory);
 
 struct TestInfo {
     const char* name = nullptr;
+    const char* description = nullptr;
     bool useAnsiColors = true;
     bool trackMemory = true;
     bool trackTime = true;
@@ -145,7 +146,11 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
     auto startTicks = core::intrin_getCpuTicks();
     auto start = std::chrono::steady_clock::now();
 
-    std::cout << "\t[TEST " << "№ " << g_testCount << " RUNNING] " << testName << '\n';
+    std::cout << "\t[TEST " << "№ " << g_testCount << " RUNNING] " << testName;
+    if (info.description) {
+        std::cout << " ( " << info.description << " )";
+    }
+    std::cout << '\n';
 
     auto returnCode = fn(args...);
 
@@ -162,6 +167,9 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
     std::cout << "\t[TEST " << "№ " << g_testCount << " "
               << detail::passedOrFailedStr(returnCode == 0, useAnsiColors) << "] "
               << testName;
+    if (info.description) {
+        std::cout << " ( " << info.description << " )";
+    }
 
     if (info.detectLeaks && deltaInUseMemory != 0) {
         std::cout << ANSI_RED(" !!LEAKED MEMORY!!");

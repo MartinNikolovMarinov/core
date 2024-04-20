@@ -35,6 +35,38 @@ inline TAllocatorPtr gatAllocatorByType(void* allocatorData) {
     return reinterpret_cast<TAllocatorPtr>(allocatorData);
 }
 
+template <typename TCallback>
+void runForAllGlobalAllocatorVariants(TCallback cb, i32& retCode) {
+    using namespace core::testing;
+
+    {
+        TestInfo tInfo = {};
+        cb(tInfo, "Default Allocator", retCode);
+    }
+    {
+        core::AllocatorContext* actx = getAllocatorCtx(AllocatorId::STD_STATS_ALLOCATOR);
+        core::setActiveAllocatorForThread(actx);
+        defer { core::setActiveAllocatorForThread(nullptr); };
+        TestInfo tInfo = {};
+        tInfo.detectLeaks = true;
+        cb(tInfo, "Stats STD Allocator", retCode);
+    }
+    {
+        core::AllocatorContext* actx = getAllocatorCtx(AllocatorId::BUMP_ALLOCATOR);
+        core::setActiveAllocatorForThread(actx);
+        defer { core::setActiveAllocatorForThread(nullptr); };
+        TestInfo tInfo = {};
+        cb(tInfo, "THREAD LOCAL BUMP Allocator", retCode);
+    }
+    {
+        core::AllocatorContext* actx = getAllocatorCtx(AllocatorId::ARENA_ALLOCATOR);
+        core::setActiveAllocatorForThread(actx);
+        defer { core::setActiveAllocatorForThread(nullptr); };
+        TestInfo tInfo = {};
+        cb(tInfo, "THREAD LOCAL ARENA Allocator", retCode);
+    }
+}
+
 #if defined(CORE_RUN_COMPILETIME_TESTS) && CORE_RUN_COMPILETIME_TESTS == 1
     #define RunTestCompileTime(test, ...) \
         { [[maybe_unused]] constexpr auto __notused__ = core::force_consteval<test(__VA_ARGS__)>; }

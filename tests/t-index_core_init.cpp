@@ -131,10 +131,11 @@ i32 runAllTests() {
 
     // Run platform specific tests:
 
-    // #if defined(CORE_DEBUG) && CORE_DEBUG == 1
-    //     // Stacktrace should only be expected to work in debug builds.
-    //     RunTestSuite(runPltStacktraceTestsSuite);
-    // #endif
+    #if defined(CORE_DEBUG) && CORE_DEBUG == 1
+        // Stacktrace should only be expected to work in debug builds.
+        sInfo.name = FN_NAME_TO_CPTR(runPltStacktraceTestsSuite);
+        if (runTestSuite(sInfo, runPltStacktraceTestsSuite) != 0) { ret = -1; }
+    #endif
     // RunTestSuite(runPltThreadingTestsSuite);
     // RunTestSuite(runPltTimeTestsSuite);
     // RunTestSuite(runPltErrorTestsSuite);

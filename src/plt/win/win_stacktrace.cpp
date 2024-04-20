@@ -36,6 +36,8 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
         return writeToBuf(buf);
     };
 
+    bufWritten = 0;
+
     // Write the thread name
     {
         char threadingBuffer[MAX_THREAD_NAME_LENGTH] = {};
@@ -48,8 +50,6 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
             if (!writeToBuf("Thread: <failed to get name>\n")) return false;
         }
     }
-
-    bufWritten = 0;
 
     HANDLE process = GetCurrentProcess();
     bool ret = SymInitialize(process, NULL, TRUE);

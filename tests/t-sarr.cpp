@@ -33,10 +33,8 @@ constexpr i32 initializeStaticArrBasicTest() {
     }
 
     {
-        core::ArrStatic<i32, 3> a;
-        a.push(1); a.push(2); a.push(3);
-        core::ArrStatic<i32, 3> b;
-        b.push(4); b.push(5); b.push(6);
+        core::ArrStatic<i32, 3> a = core::createArrStatic(1, 2, 3);
+        core::ArrStatic<i32, 3> b = core::createArrStatic(99, 99, 99);
 
         b = std::move(a);
 
@@ -44,6 +42,17 @@ constexpr i32 initializeStaticArrBasicTest() {
         Assert(b[0] == 1 && a[0] == 1);
         Assert(b[1] == 2 && a[1] == 2);
         Assert(b[2] == 3 && a[2] == 3);
+    }
+
+    {
+        core::ArrStatic<core::vec3f, 3> arr = core::createArrStatic(core::v(1.0f, 2.0f, 3.0f),
+                                                                    core::v(4.0f, 5.0f, 6.0f),
+                                                                    core::v(7.0f, 8.0f, 9.0f));
+
+        Assert(arr.len() == 3);
+        Assert(arr[0] == core::v(1.0f, 2.0f, 3.0f));
+        Assert(arr[1] == core::v(4.0f, 5.0f, 6.0f));
+        Assert(arr[2] == core::v(7.0f, 8.0f, 9.0f));
     }
 
     return 0;

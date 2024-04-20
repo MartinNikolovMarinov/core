@@ -20,6 +20,8 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten, i32 nStackFr
         return true;
     };
 
+    bufWritten = 0;
+
     // Write the thread name
     {
         char threadingBuffer[MAX_THREAD_NAME_LENGTH] = {};
@@ -32,8 +34,6 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten, i32 nStackFr
             if (!writeToBuf("Thread: <failed to get name>\n")) return false;
         }
     }
-
-    bufWritten = 0;
 
     // Capture the backtrace
     void** callstack = reinterpret_cast<void**>(std::malloc(addr_size(nStackFrames + skipFrames) * sizeof(void*)));

@@ -5,30 +5,30 @@ constexpr i32 initializeStaticArrBasicTest() {
 
     {
         core::ArrStatic<i32, 4> arr;
-        Assert(arr.len() == 0);
-        Assert(arr.cap() == 4);
-        Assert(arr.empty());
+        CT_CHECK(arr.len() == 0);
+        CT_CHECK(arr.cap() == 4);
+        CT_CHECK(arr.empty());
     }
 
     {
         core::ArrStatic<i32, 5> arr(3, 99);
-        Assert(arr.len() == 3);
-        Assert(arr.byteLen() == 3 * sizeof(i32));
-        Assert(arr.cap() == 5);
-        Assert(arr.byteCap() == 5 * sizeof(i32));
-        Assert(!arr.empty());
+        CT_CHECK(arr.len() == 3);
+        CT_CHECK(arr.byteLen() == 3 * sizeof(i32));
+        CT_CHECK(arr.cap() == 5);
+        CT_CHECK(arr.byteCap() == 5 * sizeof(i32));
+        CT_CHECK(!arr.empty());
         for (addr_size i = 0; i < arr.len(); ++i) {
-            Assert(arr[i] == 99);
+            CT_CHECK(arr[i] == 99);
         }
     }
 
     {
         auto arr = core::createArrStatic(2, 3, 4, 5, 6, 7, 8);
-        Assert(arr.len() == 7);
-        Assert(arr.cap() == 7);
-        Assert(!arr.empty());
+        CT_CHECK(arr.len() == 7);
+        CT_CHECK(arr.cap() == 7);
+        CT_CHECK(!arr.empty());
         for (addr_size i = 0; i < arr.len(); ++i) {
-            Assert(arr[i] == i32(i + 2));
+            CT_CHECK(arr[i] == i32(i + 2));
         }
     }
 
@@ -38,10 +38,10 @@ constexpr i32 initializeStaticArrBasicTest() {
 
         b = std::move(a);
 
-        Assert(b.len() == 3);
-        Assert(b[0] == 1 && a[0] == 1);
-        Assert(b[1] == 2 && a[1] == 2);
-        Assert(b[2] == 3 && a[2] == 3);
+        CT_CHECK(b.len() == 3);
+        CT_CHECK(b[0] == 1 && a[0] == 1);
+        CT_CHECK(b[1] == 2 && a[1] == 2);
+        CT_CHECK(b[2] == 3 && a[2] == 3);
     }
 
     {
@@ -49,10 +49,10 @@ constexpr i32 initializeStaticArrBasicTest() {
                                                                     core::v(4.0f, 5.0f, 6.0f),
                                                                     core::v(7.0f, 8.0f, 9.0f));
 
-        Assert(arr.len() == 3);
-        Assert(arr[0] == core::v(1.0f, 2.0f, 3.0f));
-        Assert(arr[1] == core::v(4.0f, 5.0f, 6.0f));
-        Assert(arr[2] == core::v(7.0f, 8.0f, 9.0f));
+        CT_CHECK(arr.len() == 3);
+        CT_CHECK(arr[0] == core::v(1.0f, 2.0f, 3.0f));
+        CT_CHECK(arr[1] == core::v(4.0f, 5.0f, 6.0f));
+        CT_CHECK(arr[2] == core::v(7.0f, 8.0f, 9.0f));
     }
 
     return 0;
@@ -62,46 +62,46 @@ constexpr i32 pushStaticArrTest() {
     {
         core::ArrStatic<i32, 4> arr;
 
-        Assert(arr.cap() == 4);
-        Assert(arr.len() == 0);
-        Assert(arr.empty());
+        CT_CHECK(arr.cap() == 4);
+        CT_CHECK(arr.len() == 0);
+        CT_CHECK(arr.empty());
 
         arr.push(1);
-        Assert(arr.len() == 1);
+        CT_CHECK(arr.len() == 1);
         arr.push(2);
-        Assert(arr.len() == 2);
+        CT_CHECK(arr.len() == 2);
         arr.push(3);
-        Assert(arr.len() == 3);
+        CT_CHECK(arr.len() == 3);
         arr.push(4);
-        Assert(arr.len() == 4);
+        CT_CHECK(arr.len() == 4);
 
-        Assert(!arr.empty());
+        CT_CHECK(!arr.empty());
 
-        Assert(arr[0] == 1);
-        Assert(arr.at(0) == 1);
-        Assert(arr[1] == 2);
-        Assert(arr.at(1) == 2);
-        Assert(arr[2] == 3);
-        Assert(arr.at(2) == 3);
-        Assert(arr[3] == 4);
-        Assert(arr.at(3) == 4);
+        CT_CHECK(arr[0] == 1);
+        CT_CHECK(arr.at(0) == 1);
+        CT_CHECK(arr[1] == 2);
+        CT_CHECK(arr.at(1) == 2);
+        CT_CHECK(arr[2] == 3);
+        CT_CHECK(arr.at(2) == 3);
+        CT_CHECK(arr[3] == 4);
+        CT_CHECK(arr.at(3) == 4);
 
-        Assert(arr.first() == 1);
-        Assert(arr.last() == 4);
+        CT_CHECK(arr.first() == 1);
+        CT_CHECK(arr.last() == 4);
 
         arr.clear();
-        Assert(arr.len() == 0);
-        Assert(arr.empty());
+        CT_CHECK(arr.len() == 0);
+        CT_CHECK(arr.empty());
 
         arr.push(1);
-        Assert(arr.len() == 1);
+        CT_CHECK(arr.len() == 1);
         arr.push(2);
-        Assert(arr.len() == 2);
+        CT_CHECK(arr.len() == 2);
         arr.push(3);
-        Assert(arr.len() == 3);
+        CT_CHECK(arr.len() == 3);
         arr.push(4);
-        Assert(arr.len() == 4);
-        Assert(!arr.empty());
+        CT_CHECK(arr.len() == 4);
+        CT_CHECK(!arr.empty());
     }
 
     {
@@ -109,9 +109,9 @@ constexpr i32 pushStaticArrTest() {
         char buff[] = {1, 2, 3};
         arr.push(buff, 3);
 
-        Assert(arr.len() == 3);
+        CT_CHECK(arr.len() == 3);
         for (addr_size i = 0; i < arr.len(); ++i) {
-            Assert(arr[i] == i32(i + 1));
+            CT_CHECK(arr[i] == i32(i + 1));
         }
     }
 
@@ -133,30 +133,30 @@ constexpr i32 copyStaticArrTest() {
 
     arr1 = arr2;
 
-    Assert(arr1.len() == 4);
-    Assert(arr1[0] == 5);
-    Assert(arr1[1] == 6);
-    Assert(arr1[2] == 7);
-    Assert(arr1[3] == 8);
+    CT_CHECK(arr1.len() == 4);
+    CT_CHECK(arr1[0] == 5);
+    CT_CHECK(arr1[1] == 6);
+    CT_CHECK(arr1[2] == 7);
+    CT_CHECK(arr1[3] == 8);
 
     core::ArrStatic<core::ArrStatic<i32, 4>, 4> arr3;
 
     arr3.push(arr1);
     arr3.push(arr2);
 
-    Assert(arr3.len() == 2);
+    CT_CHECK(arr3.len() == 2);
 
-    Assert(arr3[0].len() == 4);
-    Assert(arr3[0][0] == 5);
-    Assert(arr3[0][1] == 6);
-    Assert(arr3[0][2] == 7);
-    Assert(arr3[0][3] == 8);
+    CT_CHECK(arr3[0].len() == 4);
+    CT_CHECK(arr3[0][0] == 5);
+    CT_CHECK(arr3[0][1] == 6);
+    CT_CHECK(arr3[0][2] == 7);
+    CT_CHECK(arr3[0][3] == 8);
 
-    Assert(arr3[1].len() == 4);
-    Assert(arr3[1][0] == 5);
-    Assert(arr3[1][1] == 6);
-    Assert(arr3[1][2] == 7);
-    Assert(arr3[1][3] == 8);
+    CT_CHECK(arr3[1].len() == 4);
+    CT_CHECK(arr3[1][0] == 5);
+    CT_CHECK(arr3[1][1] == 6);
+    CT_CHECK(arr3[1][2] == 7);
+    CT_CHECK(arr3[1][3] == 8);
 
     return 0;
 }
@@ -168,33 +168,33 @@ constexpr i32 runStaticArrRemoveTest() {
     arr.push(3);
     arr.push(4);
 
-    Assert(arr.len() == 4);
-    Assert(arr[0] == 1);
-    Assert(arr[1] == 2);
-    Assert(arr[2] == 3);
-    Assert(arr[3] == 4);
+    CT_CHECK(arr.len() == 4);
+    CT_CHECK(arr[0] == 1);
+    CT_CHECK(arr[1] == 2);
+    CT_CHECK(arr[2] == 3);
+    CT_CHECK(arr[3] == 4);
 
     arr.remove(arr.len() - 1);
 
-    Assert(arr.len() == 3);
-    Assert(arr[0] == 1);
-    Assert(arr[1] == 2);
-    Assert(arr[2] == 3);
+    CT_CHECK(arr.len() == 3);
+    CT_CHECK(arr[0] == 1);
+    CT_CHECK(arr[1] == 2);
+    CT_CHECK(arr[2] == 3);
 
     arr.remove(1);
 
-    Assert(arr.len() == 2);
-    Assert(arr[0] == 1);
-    Assert(arr[1] == 3);
+    CT_CHECK(arr.len() == 2);
+    CT_CHECK(arr[0] == 1);
+    CT_CHECK(arr[1] == 3);
 
     arr.remove(0);
 
-    Assert(arr.len() == 1);
-    Assert(arr[0] == 3);
+    CT_CHECK(arr.len() == 1);
+    CT_CHECK(arr[0] == 3);
 
     arr.remove(0);
 
-    Assert(arr.len() == 0);
+    CT_CHECK(arr.len() == 0);
 
     return 0;
 }

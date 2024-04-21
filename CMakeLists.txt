@@ -131,6 +131,8 @@ set(src_files
     src/math/core_projections.cpp
 
     src/testing/testing_framework.cpp
+
+    src/core_extensions/hash_functions.cpp
 )
 
 if(OS STREQUAL "linux")

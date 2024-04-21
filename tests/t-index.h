@@ -1,21 +1,14 @@
 #pragma once
 
-// #################### CORE LIBRARY CONFIGURATIONS ####################################################################
-
-#define CORE_DEFAULT_ALLOCATOR() core::StdAllocator
-
 #include <core.h>
 #include <core.h> // If pragma once is omitted somewhere in the core library, this will catch it.
+
+#include <core_extensions/hash_functions.h>
+#include <core_extensions/hash_functions.h>
 
 #include <iostream>
 
 using namespace coretypes;
-
-// template<> addr_size core::hash(const i32& key);
-// template<> bool core::eq(const i32& a, const i32& b);
-
-// template<> addr_size core::hash(const core::StrView& key);
-// template<> bool core::eq(const core::StrView& a, const core::StrView& b);
 
 // #################### TESTING HELPERS ################################################################################
 
@@ -87,7 +80,7 @@ constexpr bool g_useAnsi = true;
 constexpr bool g_useAnsi = false;
 #endif
 
-// ##################### Test suites ###################################################################################
+// ##################### TEST SUITES ###################################################################################
 
 i32 runAlgorithmsTestsSuite();
 i32 runArrTestsSuite();

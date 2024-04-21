@@ -7,22 +7,17 @@
 #include <string>
 
 i32 main() {
-    constexpr i32 NUM_SAMPLES = 1000000;
-    u32 seed = 0;
-    std::unordered_map<u64, u64> histogram;
+    core::initProgramCtx(nullptr, nullptr);
 
-    srand(u32(time(NULL)));
-
-    for (i32 i = 0; i < NUM_SAMPLES; i++) {
-        auto rnd = rand();
-        std::string testStr = std::to_string(rnd);
-
-        u64 hash = core::djb2_64(testStr.c_str(), testStr.size(), seed);
-
-        histogram[hash]++;
+    core::HashMap<i32, i32> map;
+    i32 b = 0;
+    map.put(7, b);
+    map.put(b, 7);
+    map.put(7, 7);
+    map.put(b, b);
+    i32* v = map.get(7);
+    if (v == nullptr) {
+        return -1;
     }
-
-    std::cout << "Collisions: " << NUM_SAMPLES - histogram.size() << std::endl;
-
-    return 0;
+    return *v;
 }

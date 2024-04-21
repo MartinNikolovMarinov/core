@@ -11,7 +11,7 @@
 #include "core_cptr_conv.h"
 #include "core_cptr.h"
 #include "core_expected.h" // FIXME: Be careful with this one! Try to make it better, but don't break the API.
-// #include "core_hash_map.h"
+#include "core_hash_map.h"
 #include "core_hash.h"
 #include "core_intrinsics.h"
 #include "core_ints.h"

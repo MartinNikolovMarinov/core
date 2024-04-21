@@ -17,7 +17,6 @@ struct ArrList {
     using size_type = addr_size;
 
     static constexpr bool dataIsTrivial = std::is_trivial_v<value_type>;
-    static constexpr bool dataHasDestructor = std::is_destructible_v<value_type>;
 
     ArrList() : m_data(nullptr), m_cap(0), m_len(0) {}
     ArrList(size_type cap) : m_data(nullptr), m_cap(cap), m_len(0) {
@@ -90,11 +89,8 @@ struct ArrList {
     const value_type& last()  const { return at(m_len - 1); }
 
     void clear() {
-        if constexpr (dataHasDestructor) {
-            // For elements that are not trivially destructible call destructors manually:
-            for (size_type i = 0; i < m_len; ++i) {
-                m_data[i].~T();
-            }
+        for (size_type i = 0; i < m_len; ++i) {
+            m_data[i].~T();
         }
         m_len = 0;
     }
@@ -204,9 +200,7 @@ struct ArrList {
     }
 
     void remove(size_type idx) {
-        if constexpr (dataHasDestructor) {
-            m_data[idx].~T();
-        }
+        m_data[idx].~T();
 
         if (idx < m_len - 1) {
             for (size_type i = idx; i < m_len - 1; ++i) {
@@ -229,11 +223,8 @@ struct ArrStatic {
     using size_type = addr_size;
 
     static constexpr bool dataIsTrivial = std::is_trivial_v<value_type>;
-    static constexpr bool dataHasDestructor = std::is_destructible_v<value_type>;
 
     static_assert(std::is_standard_layout_v<T>, "ArrStatic should be standard layout");
-    static_assert(std::is_trivially_copy_constructible_v<T>, "ArrStatic should be trivially copy constructible");
-    static_assert(std::is_trivially_move_constructible_v<T>, "ArrStatic should be trivially move constructible");
     static_assert(std::is_trivially_copy_assignable_v<T>, "ArrStatic should be trivially copy assignable");
     static_assert(std::is_trivially_move_assignable_v<T>, "ArrStatic should be trivially move assignable");
 

@@ -60,28 +60,6 @@ void coreShutdown() {
 
 } // namespace
 
-// template<>
-// addr_size core::hash(const i32& key) {
-//     addr_size h = addr_size(core::simpleHash_32(reinterpret_cast<const void*>(&key), sizeof(key)));
-//     return h;
-// }
-
-// template<>
-// bool core::eq(const i32& a, const i32& b) {
-//     return a == b;
-// }
-
-// template<>
-// addr_size core::hash(const core::StrView& key) {
-//     addr_size h = addr_size(core::simpleHash_32(key.data(), key.len()));
-//     return h;
-// }
-
-// template<>
-// bool core::eq(const core::StrView& a, const core::StrView& b) {
-//     return a.eq(b);
-// }
-
 i32 runAllTests() {
     using namespace core::testing;
 

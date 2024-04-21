@@ -9,9 +9,9 @@ i32 findAlgorithmTest() {
         constexpr addr_size BUFF_LEN = 5;
         i32 arr[BUFF_LEN] = {1, 2, 3, 4, 5};
         addr_off found = core::find(arr, BUFF_LEN, [](i32 elem, addr_off) -> bool { return elem == 3; });
-        Assert(found == 2);
+        CT_CHECK(found == 2);
         found = core::find(arr, BUFF_LEN, [] (i32 elem, addr_off) -> bool { return elem == 6; });
-        Assert(found == -1);
+        CT_CHECK(found == -1);
     }
     {
         struct TestStruct {
@@ -24,9 +24,9 @@ i32 findAlgorithmTest() {
         arr.push(TestStruct{3, 4});
         arr.push(TestStruct{5, 6});
         addr_off found = core::find(arr, [](const TestStruct& elem, addr_off) -> bool { return elem.a == 3; });
-        Assert(found == 1);
+        CT_CHECK(found == 1);
         found = core::find(arr, [] (const TestStruct& elem, addr_off) -> bool { return elem.a == 6; });
-        Assert(found == -1);
+        CT_CHECK(found == -1);
     }
 
     return 0;
@@ -45,10 +45,10 @@ i32 basicpushUniqueTest() {
         i32 existingLValue = 1;
         core::pushUnique(arr, existingLValue, eqFn);
 
-        Assert(arr.len() == 3);
-        Assert(arr[0] == 1);
-        Assert(arr[1] == 2);
-        Assert(arr[2] == 3);
+        CT_CHECK(arr.len() == 3);
+        CT_CHECK(arr[0] == 1);
+        CT_CHECK(arr[1] == 2);
+        CT_CHECK(arr[2] == 3);
     }
 
     {
@@ -68,13 +68,13 @@ i32 basicpushUniqueTest() {
         TestStruct existingLValue {1, 2};
         core::pushUnique(arr, existingLValue, eqFn);
 
-        Assert(arr.len() == 3);
-        Assert(arr[0].a == 1);
-        Assert(arr[0].b == 2);
-        Assert(arr[1].a == 3);
-        Assert(arr[1].b == 4);
-        Assert(arr[2].a == 5);
-        Assert(arr[2].b == 6);
+        CT_CHECK(arr.len() == 3);
+        CT_CHECK(arr[0].a == 1);
+        CT_CHECK(arr[0].b == 2);
+        CT_CHECK(arr[1].a == 3);
+        CT_CHECK(arr[1].b == 4);
+        CT_CHECK(arr[2].a == 5);
+        CT_CHECK(arr[2].b == 6);
     }
 
     return 0;
@@ -92,9 +92,9 @@ constexpr i32 constFindAlgorithmTest() {
         staticArr.push(TestStruct{3, 4});
         staticArr.push(TestStruct{5, 6});
         auto found = core::find(staticArr, [](const TestStruct& elem, addr_off) -> bool { return elem.a == 3; });
-        Assert(found == 1);
+        CT_CHECK(found == 1);
         found = core::find(staticArr, [] (const TestStruct& elem, addr_off) -> bool { return elem.a == 6; });
-        Assert(found == -1);
+        CT_CHECK(found == -1);
     }
 
     return 0;
@@ -112,10 +112,10 @@ constexpr i32 constBasicpushUniqueTest() {
     i32 existingLValue = 1;
     core::pushUnique(staticArr, existingLValue, eqFn);
 
-    Assert(staticArr.len() == 3);
-    Assert(staticArr[0] == 1);
-    Assert(staticArr[1] == 2);
-    Assert(staticArr[2] == 3);
+    CT_CHECK(staticArr.len() == 3);
+    CT_CHECK(staticArr[0] == 1);
+    CT_CHECK(staticArr[1] == 2);
+    CT_CHECK(staticArr[2] == 3);
 
     return 0;
 }

@@ -266,7 +266,7 @@ if(CORE_BUILD_TESTS)
         # tests/t-defer.cpp
         # tests/t-expected.cpp
         # tests/t-hash_map.cpp
-        # tests/t-hash.cpp
+        tests/t-hash.cpp
         # tests/t-intrinsics.cpp
         # tests/t-ints.cpp
         # tests/t-mem.cpp

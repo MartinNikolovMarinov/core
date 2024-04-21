@@ -104,7 +104,8 @@ i32 runAllTests() {
     // RunTestSuite(runDeferTestsSuite);
     // RunTestSuite(runExpectedTestsSuite);
     // RunTestSuite(runHashMapTestsSuite);
-    // RunTestSuite(runHashTestsSuite);
+    sInfo.name = FN_NAME_TO_CPTR(runHashTestsSuite);
+    if (runTestSuite(sInfo, runHashTestsSuite) != 0) { ret = -1; }
     // RunTestSuite(runIntrinsicsTestsSuite);
     // RunTestSuite(runIntsTestsSuite);
     // RunTestSuite(runMathTestsSuite);

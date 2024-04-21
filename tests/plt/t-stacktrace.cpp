@@ -6,11 +6,11 @@ i32 callingStacktraceDoesNotCrashTest() {
     addr_size bufWritten = 0;
     bool ok = core::stacktrace(buf, BUF_MAX, bufWritten, 20);
 
-    Assert(ok);
-    Assert(bufWritten > 0);
-    Assert(bufWritten < BUF_MAX);
-    Assert(buf[0] != '\0');
-    Assert(core::cptrLen(buf) == bufWritten);
+    CT_CHECK(ok);
+    CT_CHECK(bufWritten > 0);
+    CT_CHECK(bufWritten < BUF_MAX);
+    CT_CHECK(buf[0] != '\0');
+    CT_CHECK(core::cptrLen(buf) == bufWritten);
 
     return 0;
 }
@@ -21,16 +21,16 @@ i32 testFn2() {
     addr_size bufWritten = 0;
     bool ok = core::stacktrace(buf, BUF_MAX, bufWritten, 4);
 
-    Assert(ok);
-    Assert(bufWritten > 0);
-    Assert(bufWritten < BUF_MAX);
-    Assert(buf[0] != '\0');
-    Assert(core::cptrLen(buf) == bufWritten);
+    CT_CHECK(ok);
+    CT_CHECK(bufWritten > 0);
+    CT_CHECK(bufWritten < BUF_MAX);
+    CT_CHECK(buf[0] != '\0');
+    CT_CHECK(core::cptrLen(buf) == bufWritten);
 
     std::string traceStr(buf, bufWritten);
-    Assert(traceStr.find("stacktraceFunctionCheckTest") != std::string::npos);
-    Assert(traceStr.find("testFn1") != std::string::npos);
-    Assert(traceStr.find("testFn2") != std::string::npos);
+    CT_CHECK(traceStr.find("stacktraceFunctionCheckTest") != std::string::npos);
+    CT_CHECK(traceStr.find("testFn1") != std::string::npos);
+    CT_CHECK(traceStr.find("testFn2") != std::string::npos);
 
     return 0;
 }
@@ -45,14 +45,14 @@ inline i32 testFn3() {
     addr_size bufWritten = 0;
     bool ok = core::stacktrace(buf, BUF_MAX, bufWritten, 3);
 
-    Assert(ok);
-    Assert(bufWritten > 0);
-    Assert(bufWritten < BUF_MAX);
-    Assert(buf[0] != '\0');
-    Assert(core::cptrLen(buf) == bufWritten);
+    CT_CHECK(ok);
+    CT_CHECK(bufWritten > 0);
+    CT_CHECK(bufWritten < BUF_MAX);
+    CT_CHECK(buf[0] != '\0');
+    CT_CHECK(core::cptrLen(buf) == bufWritten);
 
     std::string traceStr(buf, bufWritten);
-    Assert(traceStr.find("stacktraceOnInlinedTest") != std::string::npos);
+    CT_CHECK(traceStr.find("stacktraceOnInlinedTest") != std::string::npos);
 
     return 0;
 }

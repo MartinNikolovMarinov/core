@@ -4,33 +4,33 @@ template <typename THash>
 i32 hashCorrectnessTest(THash calcHash) {
     {
         constexpr const char* msg = "Hello, world!";
-        u32 first = calcHash(msg, core::cptrLen(msg), 0);
-        u32 second = calcHash(msg, core::cptrLen(msg), 0);
-        Assert(first == second);
+        u64 first = calcHash(msg, core::cptrLen(msg), u64(0));
+        u64 second = calcHash(msg, core::cptrLen(msg), u64(0));
+        CT_CHECK(first == second);
     }
     {
         constexpr const char* msg = "";
-        u32 first = calcHash(msg, core::cptrLen(msg), 0);
-        u32 second = calcHash(msg, core::cptrLen(msg), 0);
-        Assert(first == second);
+        u64 first = calcHash(msg, core::cptrLen(msg), u64(0));
+        u64 second = calcHash(msg, core::cptrLen(msg), u64(0));
+        CT_CHECK(first == second);
     }
     {
         constexpr const char* msg = nullptr;
-        u32 first = calcHash(msg, core::cptrLen(msg), 0);
-        u32 second = calcHash(msg, core::cptrLen(msg), 0);
-        Assert(first == second);
+        u64 first = calcHash(msg, core::cptrLen(msg), u64(0));
+        u64 second = calcHash(msg, core::cptrLen(msg), u64(0));
+        CT_CHECK(first == second);
     }
     {
         constexpr const char* msg = nullptr;
-        u32 first = calcHash(msg, core::cptrLen(msg), 12);
-        u32 second = calcHash(msg, core::cptrLen(msg), 12);
-        Assert(first == second);
+        u64 first = calcHash(msg, core::cptrLen(msg), u64(12));
+        u64 second = calcHash(msg, core::cptrLen(msg), u64(12));
+        CT_CHECK(first == second);
     }
     {
         constexpr const char* msg = nullptr;
-        u32 first = calcHash(msg, core::cptrLen(msg), 0);
-        u32 second = calcHash(msg, core::cptrLen(msg), 1234);
-        Assert(first != second);
+        u64 first = calcHash(msg, core::cptrLen(msg), u64(0));
+        u64 second = calcHash(msg, core::cptrLen(msg), u64(1234));
+        CT_CHECK(first != second);
     }
     {
         constexpr const char* msg = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor"
@@ -52,16 +52,32 @@ i32 hashCorrectnessTest(THash calcHash) {
                                     "consectetur. Proident fugiat et adipisicing qui ea veniam qui adipisicing ut ea. Qui"
                                     "officia in cillum magna commodo consectetur aute cillum ex et. Id tempor eiusmod"
                                     "commodo dolor enim sint eiusmod exercitation incididunt esse nulla.";
-        u32 first = calcHash(msg, core::cptrLen(msg), 0);
-        u32 second = calcHash(msg, core::cptrLen(msg), 0);
-        Assert(first == second);
+        u64 first = calcHash(msg, core::cptrLen(msg), 0);
+        u64 second = calcHash(msg, core::cptrLen(msg), 0);
+        CT_CHECK(first == second);
     }
     return 0;
 }
 
-i32 runHashTestsSuite() {
-    RunTest(hashCorrectnessTest, &core::simpleHash_32);
-    RunTest(hashCorrectnessTest, &core::djb2_32);
-
+template <typename T>
+i32 banica(T n) {
+    CT_CHECK(n = 5);
     return 0;
+}
+
+i32 runHashTestsSuite() {
+    using namespace core::testing;
+
+    i32 ret = 0;
+    TestInfo tInfo;
+    tInfo.trackMemory = false;
+
+    tInfo.name = FN_NAME_TO_CPTR(hashCorrectnessTest);
+
+    tInfo.description = "fnv1a_64";
+    if (runTest(tInfo, hashCorrectnessTest<decltype(core::fnv1a_64)>, &core::fnv1a_64) != 0) { ret = -1; }
+    tInfo.description = "djb2_64";
+    if (runTest(tInfo, hashCorrectnessTest<decltype(core::djb2_64)>, &core::djb2_64) != 0) { ret = -1; }
+
+    return ret;
 }

@@ -54,8 +54,7 @@ i32 runRndTestsSuite() {
 
     core::rndInit();
 
-    TestInfo tInfo;
-    tInfo.trackMemory = false;
+    TestInfo tInfo = createTestInfo();
 
     tInfo.name = FN_NAME_TO_CPTR(rndSignedIntegersTest);
     if (runTest(tInfo, rndSignedIntegersTest) != 0) { return -1; }

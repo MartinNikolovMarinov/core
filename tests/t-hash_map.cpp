@@ -1,878 +1,316 @@
 #include "t-index.h"
 
-template <typename TVal, typename TAllocator>
-using I32HashMap = core::HashMap<i32, TVal, TAllocator>;
+// ----------------------------------------------- Begin Helpers -------------------------------------------------------
 
-template <typename TVal, typename TAllocator>
-using SVHashMap = core::HashMap<core::StrView, TVal, TAllocator>;
-
-template <typename TAllocator>
-using I32HashSet = core::HashSet<i32, TAllocator>;
-
-template <typename TAllocator>
-using SVHashSet = core::HashSet<core::StrView, TAllocator>;
-
-template <typename K, typename V>
-struct __TestKv { const K& first; const V& second; };
 
 template <typename M, typename K, typename V>
-void __test_verifyKeyVal(const M& m, const __TestKv<K, V>& kv) {
-    auto& key = kv.first;
-    auto& val = kv.second;
+i32 __test_verifyKeyVal(const M& m, const core::tuple<K, V>& kv) {
+    auto& key = kv.v1;
+    auto& val = kv.v2;
 
     auto a = m.get(key);
-    Assert(a != nullptr, "Failed to get data for key");
-    Assert(*a == val, "Value at key is incorrect");
+    CT_CHECK(a != nullptr, "Failed to get data for key");
+    CT_CHECK(*a == val, "Value at key is incorrect");
 
     i32 found = 0;
     m.keys([&](const auto& k) -> bool {
         if (core::eq(k, key)) { found++; }
         return true;
     });
-    Assert(found == 1, "Key should be found exactly once");
+    CT_CHECK(found == 1, "Key should be found exactly once");
 
     found = 0;
     m.values([&](const auto& v) -> bool {
         if (v == val) { found++; }
         return true;
     });
-    Assert(found > 0, "Value should be found at least once");
+    CT_CHECK(found > 0, "Value should be found at least once");
+
+    return 0;
 }
 
 // test verify many key values with variadic
 template <typename M, typename... KV>
-void __test_verifyKeyVals(const M& m, const KV&... kv) {
-    (__test_verifyKeyVal(m, kv), ...);
+i32 __test_verifyKeyVals(const M& m, const KV&... kv) {
+    return (__test_verifyKeyVal(m, kv), ...);
 }
 
 template <typename M, typename K>
-void __test_verifyKey(const M& m, const K& key) {
+i32 __test_verifyKey(const M& m, const K& key) {
     auto a = m.get(key);
-    Assert(a != nullptr, "Failed to get data for key");
+    CT_CHECK(a != nullptr, "Failed to get data for key");
 
     i32 found = 0;
     m.keys([&](const auto& k) -> bool {
         if (core::eq(k, key)) { found++; }
         return true;
     });
-    Assert(found == 1, "Key should be found exactly once");
+    CT_CHECK(found == 1, "Key should be found exactly once");
+
+    return 0;
 }
 
 template <typename M, typename... K>
-void __test_verifyKeys(const M& m, const K&... keys) {
-    (__test_verifyKey(m, keys), ...);
+i32 __test_verifyKeys(const M& m, const K&... keys) {
+    return (__test_verifyKey(m, keys), ...);
 }
 
 template <typename M>
-void __test_verifyNoKeys(const M& m) {
+i32 __test_verifyNoKeys(const M& m) {
     bool noKeys = true;
     m.keys([&](const auto&) -> bool { noKeys = false; return true; });
-    Assert(noKeys, "Hash map should not have keys");
+    CT_CHECK(noKeys, "Hash map should not have keys");
+    return 0;
 }
 
 template <typename M>
-void __test_verifyNoValues(const M& m) {
+i32 __test_verifyNoValues(const M& m) {
     bool noValues = true;
     m.values([&](const auto&) -> bool { noValues = false; return true; });
-    Assert(noValues, "Hash map should not have values");
+    CT_CHECK(noValues, "Hash map should not have values");
+    return 0;
 }
 
-template <typename TAllocator>
+// ----------------------------------------------- End Helpers ---------------------------------------------------------
+
 i32 initializeHashMapTest() {
     {
-        I32HashMap<i32, TAllocator> m;
-        Assert(m.len() == 0);
-        Assert(m.cap() == 0);
-        Assert(m.empty());
-        __test_verifyNoKeys(m);
-        __test_verifyNoValues(m);
+        core::HashMap<i32, i32> m;
+        CT_CHECK(m.len() == 0);
+        CT_CHECK(m.cap() == 0);
+        CT_CHECK(m.empty());
+        CT_CHECK(__test_verifyNoKeys(m) == 0);
+        CT_CHECK(__test_verifyNoValues(m) == 0);
     }
     {
-        SVHashMap<i32, TAllocator> m;
-        Assert(m.len() == 0);
-        Assert(m.cap() == 0);
-        Assert(m.empty());
-        __test_verifyNoKeys(m);
-        __test_verifyNoValues(m);
+        core::HashMap<core::StrView, core::StrView> m;
+        CT_CHECK(m.len() == 0);
+        CT_CHECK(m.cap() == 0);
+        CT_CHECK(m.empty());
+        CT_CHECK(__test_verifyNoKeys(m) == 0);
+        CT_CHECK(__test_verifyNoValues(m) == 0);
     }
     {
-        I32HashMap<i32, TAllocator> m(7);
-        Assert(m.len() == 0);
-        Assert(m.cap() > 0);
-        Assert(m.empty());
-        __test_verifyNoKeys(m);
-        __test_verifyNoValues(m);
+        core::HashMap<i32, i32> m(7);
+        CT_CHECK(m.len() == 0);
+        CT_CHECK(m.cap() > 0);
+        CT_CHECK(m.empty());
+        CT_CHECK(__test_verifyNoKeys(m) == 0);
+        CT_CHECK(__test_verifyNoValues(m) == 0);
     }
     {
-        SVHashMap<i32, TAllocator> m(7);
-        Assert(m.len() == 0);
-        Assert(m.cap() > 0);
-        Assert(m.empty());
-        __test_verifyNoKeys(m);
-        __test_verifyNoValues(m);
+        core::HashMap<core::StrView, core::StrView> m(7);
+        CT_CHECK(m.len() == 0);
+        CT_CHECK(m.cap() > 0);
+        CT_CHECK(m.empty());
+        CT_CHECK(__test_verifyNoKeys(m) == 0);
+        CT_CHECK(__test_verifyNoValues(m) == 0);
     }
 
     return 0;
 }
 
-template <typename TAllocator>
-i32 initializeHashSetTest() {
-    {
-        I32HashSet<TAllocator> m;
-        Assert(m.len() == 0);
-        Assert(m.cap() == 0);
-        Assert(m.empty());
-        __test_verifyNoKeys(m);
-    }
-    {
-        SVHashSet<TAllocator> m;
-        Assert(m.len() == 0);
-        Assert(m.cap() == 0);
-        Assert(m.empty());
-        __test_verifyNoKeys(m);
-    }
-    {
-        I32HashSet<TAllocator> m(7);
-        Assert(m.len() == 0);
-        Assert(m.cap() > 0);
-        Assert(m.empty());
-        __test_verifyNoKeys(m);
-    }
-    {
-        SVHashSet<TAllocator> m(7);
-        Assert(m.len() == 0);
-        Assert(m.cap() > 0);
-        Assert(m.empty());
-        __test_verifyNoKeys(m);
-    }
-
-    return 0;
-}
-
-template <typename TAllocator>
-i32 putMoveCopyHashMapTest() {
+i32 basicPushToHashMapTest() {
+    using namespace core::testing;
     using core::sv;
+    using core::createTuple;
 
     {
-        I32HashMap<i32, TAllocator> m;
-        m.put(1, 1);
-        __test_verifyKeyVals(m, __TestKv<i32, i32>{1, 1});
-        Assert(m.len() == 1);
-        Assert(!m.empty());
-        m.put(2, 1);
-        __test_verifyKeyVals(m, __TestKv<i32, i32>{1, 1}, __TestKv<i32, i32>{2, 1});
-        Assert(m.len() == 2);
-        Assert(!m.empty());
-        m.put(2, 9);
-        __test_verifyKeyVals(m, __TestKv<i32, i32>{1, 1}, __TestKv<i32, i32>{2, 9});
-        Assert(m.len() == 2);
-        Assert(!m.empty());
-
-        // Move m to m2
-
-        I32HashMap<i32, TAllocator> m2(std::move(m));
-        Assert(m2.len() == 2);
-        __test_verifyKeyVals(m2, __TestKv<i32, i32>{1, 1}, __TestKv<i32, i32>{2, 9});
-        Assert(!m2.empty());
-
-        // Verify m is empty
-
-        Assert(m.len() == 0);
-        Assert(m.cap() == 0);
-        Assert(m.empty());
-        __test_verifyNoKeys(m);
-
-        // Copy back to m
-
-        m = m2.copy();
-        Assert(m.len() == 2);
-        __test_verifyKeyVals(m, __TestKv<i32, i32>{1, 1}, __TestKv<i32, i32>{2, 9});
-        Assert(!m.empty());
-
-        Assert(m2.len() == 2);
-        __test_verifyKeyVals(m2, __TestKv<i32, i32>{1, 1}, __TestKv<i32, i32>{2, 9});
-        Assert(!m2.empty());
-    }
-
-    {
-        I32HashMap<i32, TAllocator> m(2);
-        m.put(1, 1);
-        Assert(m.len() == 1);
-        Assert(!m.empty());
-        __test_verifyKeyVals(m, __TestKv<i32, i32>{1, 1});
-        m.put(2, 1);
-        Assert(m.len() == 2);
-        Assert(!m.empty());
-        __test_verifyKeyVals(m, __TestKv<i32, i32>{1, 1}, __TestKv<i32, i32>{2, 1});
-        m.put(2, 9);
-        Assert(m.len() == 2);
-        Assert(!m.empty());
-        __test_verifyKeyVals(m, __TestKv<i32, i32>{1, 1}, __TestKv<i32, i32>{2, 9});
-        m.put(3, 5);
-        Assert(m.len() == 3);
-        Assert(!m.empty());
-        __test_verifyKeyVals(m, __TestKv<i32, i32>{1, 1}, __TestKv<i32, i32>{2, 9}, __TestKv<i32, i32>{3, 5});
-        m.put(4, 5);
-        Assert(m.len() == 4);
-        Assert(!m.empty());
-        __test_verifyKeyVals(m, __TestKv<i32, i32>{1, 1},
-                                __TestKv<i32, i32>{2, 9},
-                                __TestKv<i32, i32>{3, 5},
-                                __TestKv<i32, i32>{4, 5});
-
-        // Move m to m2
-
-        auto m2 = std::move(m);
-        Assert(m2.len() == 4);
-        Assert(!m2.empty());
-        __test_verifyKeyVals(m2, __TestKv<i32, i32>{1, 1},
-                                 __TestKv<i32, i32>{2, 9},
-                                 __TestKv<i32, i32>{3, 5},
-                                 __TestKv<i32, i32>{4, 5});
-
-        // Verify m is empty
-
-        Assert(m.len() == 0);
-        Assert(m.cap() == 0);
-        Assert(m.empty());
-        __test_verifyNoKeys(m);
-
-        // Copy back to m
-
-        m = m2.copy();
-
-        Assert(m.len() == 4);
-        Assert(!m.empty());
-        __test_verifyKeyVals(m, __TestKv<i32, i32>{1, 1},
-                                __TestKv<i32, i32>{2, 9},
-                                __TestKv<i32, i32>{3, 5},
-                                __TestKv<i32, i32>{4, 5});
-    }
-
-    {
-        SVHashMap<i32, TAllocator> m;
-        m.put(sv("1"), 1);
-        Assert(m.len() == 1);
-        __test_verifyKeyVals(m, __TestKv<core::StrView, i32>{sv("1"), 1});
-        m.put(sv("2"), 1);
-        Assert(m.len() == 2);
-        __test_verifyKeyVals(m, __TestKv<core::StrView, i32>{sv("1"), 1}, __TestKv<core::StrView, i32>{sv("2"), 1});
-        m.put(sv("2"), 9);
-        Assert(m.len() == 2);
-        __test_verifyKeyVals(m, __TestKv<core::StrView, i32>{sv("1"), 1}, __TestKv<core::StrView, i32>{sv("2"), 9});
-
-        // Move m to m2
-
-        auto m2 = std::move(m);
-        Assert(m2.len() == 2);
-        __test_verifyKeyVals(m2, __TestKv<core::StrView, i32>{sv("1"), 1}, __TestKv<core::StrView, i32>{sv("2"), 9});
-
-        // Verify m is empty
-
-        Assert(m.len() == 0);
-        Assert(m.cap() == 0);
-        Assert(m.empty());
-        __test_verifyNoKeys(m);
-
-        // Copy back to m
-
-        m = m2.copy();
-        Assert(m.len() == 2);
-        __test_verifyKeyVals(m, __TestKv<core::StrView, i32>{sv("1"), 1}, __TestKv<core::StrView, i32>{sv("2"), 9});
-
-        Assert(m2.len() == 2);
-        __test_verifyKeyVals(m2, __TestKv<core::StrView, i32>{sv("1"), 1}, __TestKv<core::StrView, i32>{sv("2"), 9});
-    }
-
-    {
-        SVHashMap<i32, TAllocator> m(2);
-        m.put(sv("1"), 1);
-        Assert(m.len() == 1);
-        __test_verifyKeyVals(m, __TestKv<core::StrView, i32>{sv("1"), 1});
-        m.put(sv("2"), 1);
-        Assert(m.len() == 2);
-        __test_verifyKeyVals(m, __TestKv<core::StrView, i32>{sv("1"), 1}, __TestKv<core::StrView, i32>{sv("2"), 1});
-        m.put(sv("2"), 9);
-        Assert(m.len() == 2);
-        __test_verifyKeyVals(m, __TestKv<core::StrView, i32>{sv("1"), 1}, __TestKv<core::StrView, i32>{sv("2"), 9});
-        m.put(sv("3"), 5);
-        Assert(m.len() == 3);
-        __test_verifyKeyVals(m, __TestKv<core::StrView, i32>{sv("1"), 1},
-                                __TestKv<core::StrView, i32>{sv("2"), 9},
-                                __TestKv<core::StrView, i32>{sv("3"), 5});
-        m.put(sv("4"), 5);
-        Assert(m.len() == 4);
-        __test_verifyKeyVals(m, __TestKv<core::StrView, i32>{sv("1"), 1},
-                                __TestKv<core::StrView, i32>{sv("2"), 9},
-                                __TestKv<core::StrView, i32>{sv("3"), 5},
-                                __TestKv<core::StrView, i32>{sv("4"), 5});
-
-        // Move m to m2
-
-        auto m2 = std::move(m);
-        Assert(m2.len() == 4);
-        __test_verifyKeyVals(m2, __TestKv<core::StrView, i32>{sv("1"), 1},
-                                 __TestKv<core::StrView, i32>{sv("2"), 9},
-                                 __TestKv<core::StrView, i32>{sv("3"), 5},
-                                 __TestKv<core::StrView, i32>{sv("4"), 5});
-
-        // Verify m is empty
-
-        Assert(m.len() == 0);
-        Assert(m.cap() == 0);
-        Assert(m.empty());
-        __test_verifyNoKeys(m);
-
-        // Copy back to m
-
-        m = m2.copy();
-        Assert(m.len() == 4);
-        __test_verifyKeyVals(m, __TestKv<core::StrView, i32>{sv("1"), 1},
-                                __TestKv<core::StrView, i32>{sv("2"), 9},
-                                __TestKv<core::StrView, i32>{sv("3"), 5},
-                                __TestKv<core::StrView, i32>{sv("4"), 5});
-
-
-        Assert(m2.len() == 4);
-        __test_verifyKeyVals(m2, __TestKv<core::StrView, i32>{sv("1"), 1},
-                                 __TestKv<core::StrView, i32>{sv("2"), 9},
-                                 __TestKv<core::StrView, i32>{sv("3"), 5},
-                                 __TestKv<core::StrView, i32>{sv("4"), 5});
-    }
-
-    return 0;
-}
-
-template <typename TAllocator>
-i32 putMoveCopyHashSetTest() {
-    using core::sv;
-
-    {
-        I32HashSet<TAllocator> m;
-        m.put(1);
-        Assert(m.len() == 1);
-        __test_verifyKeys(m, 1);
-        m.put(2);
-        Assert(m.len() == 2);
-        __test_verifyKeys(m, 1, 2);
-        m.put(2);
-        Assert(m.len() == 2);
-        __test_verifyKeys(m, 1, 2);
-
-        // Move m to m2
-
-        auto m2 = std::move(m);
-        Assert(m2.len() == 2);
-        __test_verifyKeys(m2, 1, 2);
-
-        // Verify m is empty
-
-        Assert(m.len() == 0);
-        Assert(m.cap() == 0);
-        Assert(m.empty());
-        __test_verifyKeys(m);
-
-        // Copy back to m
-
-        m = m2.copy();
-        Assert(m.len() == 2);
-        __test_verifyKeys(m, 1, 2);
-
-        Assert(m2.len() == 2);
-        __test_verifyKeys(m2, 1, 2);
-    }
-
-    {
-        I32HashSet<TAllocator> m(2);
-        m.put(1);
-        Assert(m.len() == 1);
-        __test_verifyKeys(m, 1);
-        m.put(2);
-        Assert(m.len() == 2);
-        __test_verifyKeys(m, 1, 2);
-        m.put(3);
-        Assert(m.len() == 3);
-        __test_verifyKeys(m, 1, 2, 3);
-        m.put(4);
-        Assert(m.len() == 4);
-        __test_verifyKeys(m, 1, 2, 3, 4);
-
-        // Move m to m2
-
-        auto m2 = std::move(m);
-        Assert(m2.len() == 4);
-        __test_verifyKeys(m2, 1, 2, 3, 4);
-
-        // Verify m is empty
-
-        Assert(m.len() == 0);
-        Assert(m.cap() == 0);
-        Assert(m.empty());
-        __test_verifyKeys(m);
-
-        // Copy back to m
-
-        m = m2.copy();
-        Assert(m.len() == 4);
-        __test_verifyKeys(m, 1, 2, 3, 4);
-
-        Assert(m2.len() == 4);
-        __test_verifyKeys(m2, 1, 2, 3, 4);
-    }
-
-    {
-        SVHashSet<TAllocator> m;
-        m.put(sv("1"));
-        Assert(m.len() == 1);
-        __test_verifyKeys(m, sv("1"));
-        m.put(sv("2"));
-        Assert(m.len() == 2);
-        __test_verifyKeys(m, sv("1"), sv("2"));
-        m.put(sv("2"));
-        Assert(m.len() == 2);
-        __test_verifyKeys(m, sv("1"), sv("2"));
-
-        // Move m to m2
-
-        auto m2 = std::move(m);
-        Assert(m2.len() == 2);
-        __test_verifyKeys(m2, sv("1"), sv("2"));
-
-        // Verify m is empty
-
-        Assert(m.len() == 0);
-        Assert(m.cap() == 0);
-        Assert(m.empty());
-        __test_verifyKeys(m);
-
-        // Copy back to m
-
-        m = m2.copy();
-        Assert(m.len() == 2);
-        __test_verifyKeys(m, sv("1"), sv("2"));
-
-        Assert(m2.len() == 2);
-        __test_verifyKeys(m2, sv("1"), sv("2"));
-    }
-
-    {
-        SVHashSet<TAllocator> m(2);
-        m.put(sv("1"));
-        Assert(m.len() == 1);
-        __test_verifyKeys(m, sv("1"));
-        m.put(sv("2"));
-        Assert(m.len() == 2);
-        __test_verifyKeys(m, sv("1"), sv("2"));
-        m.put(sv("3"));
-        Assert(m.len() == 3);
-        __test_verifyKeys(m, sv("1"), sv("2"), sv("3"));
-        m.put(sv("4"));
-        Assert(m.len() == 4);
-        __test_verifyKeys(m, sv("1"), sv("2"), sv("3"), sv("4"));
-
-        // Move m to m2
-
-        auto m2 = std::move(m);
-        Assert(m2.len() == 4);
-        __test_verifyKeys(m2, sv("1"), sv("2"), sv("3"), sv("4"));
-
-        // Verify m is empty
-
-        Assert(m.len() == 0);
-        Assert(m.cap() == 0);
-        Assert(m.empty());
-        __test_verifyKeys(m);
-
-        // Copy back to m
-
-        m = m2.copy();
-        Assert(m.len() == 4);
-        __test_verifyKeys(m, sv("1"), sv("2"), sv("3"), sv("4"));
-
-        Assert(m2.len() == 4);
-        __test_verifyKeys(m2, sv("1"), sv("2"), sv("3"), sv("4"));
-    }
-
-    return 0;
-}
-
-template <typename TAllocator>
-i32 getWhenHashMapIsFilledToCapacityTest() {
-    core::HashMap<i32, i32, TAllocator> m(2);
-
-    m.put(1, 1);
-    m.put(2, 1);
-
-    Assert(m.len() == 2);
-    Assert(m.cap() == 2); // I don't usually assume the cap but this is a special case.
-    Assert(!m.empty());
-
-    Assert(m.get(1) != nullptr);
-    Assert(m.get(2) != nullptr);
-    Assert(m.get(3) == nullptr); // Make sure these don't loop forever.
-    Assert(m.get(55) == nullptr);
-
-    return 0;
-}
-
-template <typename TAllocator>
-i32 getWhenHashSetIsFilledToCapacityTest() {
-    core::HashSet<i32, TAllocator> m(2);
-
-    m.put(1);
-    m.put(2);
-
-    Assert(m.len() == 2);
-    Assert(m.cap() == 2); // I don't usually assume the cap but this is a special case.
-    Assert(!m.empty());
-
-    Assert(m.get(1) != nullptr);
-    Assert(m.get(2) != nullptr);
-    Assert(m.get(3) == nullptr); // Make sure these don't loop forever.
-    Assert(m.get(55) == nullptr);
-
-    return 0;
-}
-
-template <typename TAllocator>
-i32 removeFromHashMapTest() {
-    {
-        I32HashMap<i32, TAllocator> m(2);
-        m.put(1, 1);
-        m.remove(1);
-
-        Assert(m.len() == 0);
-        Assert(m.cap() > 0);
-        Assert(m.empty());
-        __test_verifyNoKeys(m);
-        __test_verifyNoValues(m);
-    }
-
-    {
-        I32HashMap<i32, TAllocator> m;
-        m.put(1, 1);
-        m.put(2, 1);
-        m.put(3, 1);
-
-        m.remove(2);
-        Assert(m.len() == 2);
-        Assert(!m.empty());
-        __test_verifyKeyVals(m, __TestKv<i32, i32>{1, 1}, __TestKv<i32, i32>{3, 1});
-
-        m.remove(1);
-        Assert(m.len() == 1);
-        Assert(!m.empty());
-        __test_verifyKeyVals(m, __TestKv<i32, i32>{3, 1});
-
-        m.remove(3);
-        Assert(m.len() == 0);
-        Assert(m.empty());
-        __test_verifyNoKeys(m);
-        __test_verifyNoValues(m);
-    }
-
-    {
-        I32HashMap<i32, TAllocator> m(2);
+        core::HashMap<i32, i32> m;
 
         m.put(1, 1);
-        m.put(2, 1);
+        CT_CHECK(m.len() == 1);
+        CT_CHECK(__test_verifyKeyVal(m, createTuple(1, 1)) == 0);
 
-        m.remove(1);
-        m.remove(2);
+        i32 a = 2;
+        m.put(a, 1);
+        CT_CHECK(m.len() == 2);
+        CT_CHECK(__test_verifyKeyVals(m, createTuple(1, 1),
+                                         createTuple(2, 1)) == 0);
 
-        m.put(1, 7);
-        m.put(2, 8);
-        Assert(m.len() == 2);
-        Assert(!m.empty());
-        __test_verifyKeyVals(m, __TestKv<i32, i32>{1, 7}, __TestKv<i32, i32>{2, 8});
+        i32 b = 9;
+        m.put(2, b);
+        CT_CHECK(m.len() == 2);
+        CT_CHECK(__test_verifyKeyVals(m, createTuple(1, 1),
+                                         createTuple(2, 9)) == 0);
 
-        m.put(3, 9);
-        Assert(m.len() == 3);
-        Assert(!m.empty());
-        __test_verifyKeyVals(m, __TestKv<i32, i32>{1, 7}, __TestKv<i32, i32>{2, 8}, __TestKv<i32, i32>{3, 9});
-    }
-
-    return 0;
-}
-
-template <typename TAllocator>
-i32 removeFromHashSetTest() {
-    {
-        I32HashSet<TAllocator> m(2);
-        m.put(1);
-        m.remove(1);
-
-        Assert(m.len() == 0);
-        Assert(m.cap() > 0);
-        Assert(m.empty());
-        __test_verifyNoKeys(m);
+        m.put(b, a);
+        CT_CHECK(m.len() == 3);
+        CT_CHECK(__test_verifyKeyVals(m, createTuple(1, 1),
+                                         createTuple(2, 9),
+                                         createTuple(9, 2)) == 0);
     }
 
     {
-        I32HashSet<TAllocator> m;
-        m.put(1);
-        m.put(2);
-        m.put(3);
+        core::HashMap<i32, f32> m;
 
-        m.remove(2);
-        Assert(m.len() == 2);
-        Assert(!m.empty());
-        __test_verifyKeys(m, 1, 3);
+        m.put(1, 1.0f);
+        CT_CHECK(m.len() == 1);
+        CT_CHECK(__test_verifyKeyVal(m, createTuple(1, 1.0f)) == 0);
 
-        m.remove(1);
-        Assert(m.len() == 1);
-        Assert(!m.empty());
-        __test_verifyKeys(m, 3);
+        f32 a = 2.0f;
+        m.put(2, a);
+        CT_CHECK(m.len() == 2);
+        CT_CHECK(__test_verifyKeyVals(m, createTuple(1, 1.0f),
+                                         createTuple(2, 2.0f)) == 0);
 
-        m.remove(3);
-        Assert(m.len() == 0);
-        Assert(m.empty());
-        __test_verifyNoKeys(m);
+        f32 b = 9.0f;
+        m.put(2, b);
+        CT_CHECK(m.len() == 2);
+        CT_CHECK(__test_verifyKeyVals(m, createTuple(1, 1.0f),
+                                         createTuple(2, 9.0f)) == 0);
+
+        i32 c = 9;
+        m.put(c, a);
+        CT_CHECK(m.len() == 3);
+        CT_CHECK(__test_verifyKeyVals(m, createTuple(1, 1.0f),
+                                         createTuple(2, 9.0f),
+                                         createTuple(9, 2.0f)) == 0);
     }
 
     {
-        I32HashSet<TAllocator> m(2);
+        core::HashMap<core::StrView, core::StrView> m;
 
-        m.put(1);
-        m.put(2);
+        m.put(sv("1"), "abc"_sv);
+        CT_CHECK(m.len() == 1);
+        CT_CHECK(__test_verifyKeyVal(m, createTuple(sv("1"), sv("abc"))) == 0);
 
-        m.remove(1);
-        m.remove(2);
+        auto a = "def"_sv;
+        m.put(sv("2"), a);
+        CT_CHECK(m.len() == 2);
+        CT_CHECK(__test_verifyKeyVals(m, createTuple(sv("1"), "abc"_sv),
+                                         createTuple(sv("2"), "def"_sv)) == 0);
 
-        m.put(1);
-        m.put(2);
-        Assert(m.len() == 2);
-        Assert(!m.empty());
-        __test_verifyKeys(m, 1, 2);
+        auto b = "2"_sv;
+        m.put(b, sv("ghi"));
+        CT_CHECK(m.len() == 2);
+        CT_CHECK(__test_verifyKeyVals(m, createTuple(sv("1"), "abc"_sv),
+                                         createTuple(sv("2"), "ghi"_sv)) == 0);
 
-        m.put(3);
-        Assert(m.len() == 3);
-        Assert(!m.empty());
-        __test_verifyKeys(m, 1, 2, 3);
+        m.put(a, b);
+        CT_CHECK(m.len() == 3);
+        CT_CHECK(__test_verifyKeyVals(m, createTuple(sv("1"), "abc"_sv),
+                                         createTuple(sv("2"), "ghi"_sv),
+                                         createTuple(sv("def"), "2"_sv)) == 0);
     }
-
-    return 0;
-}
-
-template <typename TAllocator>
-i32 complexTypesInHashMapTest() {
-    using core::sv;
-    using CT = core::testing::CT;
 
     {
         defer { CT::resetAll(); };
 
-        SVHashMap<CT, TAllocator> m(2);
+        CT k1, k2, k3, k4;
+        k1.a = 1; k2.a = 2; k3.a = 3; k4.a = 4;
+        CT::resetAll(); // Reset the counters for the previous line.
 
-        Assert(CT::dtorsCalled() == 0);
-        Assert(CT::totalCtorsCalled() == 0);
-        Assert(CT::assignmentsTotalCalled() == 0);
+        {
+            core::HashMap<CT, i32> m;
+            CT_CHECK(CT::noCtorsCalled());
 
-        m.put(sv("1"), CT{});
+            m.put(k1, 9);
+            CT_CHECK(CT::copyCtorCalled() == 1);
+            CT_CHECK(CT::dtorsCalled() == 0);
+            CT_CHECK(CT::assignmentsTotalCalled() == 0);
 
-        Assert(CT::defaultCtorCalled() == 1);
-        Assert(CT::copyCtorCalled() == 0);
-        Assert(CT::moveCtorCalled() == 0);
-        Assert(CT::assignmentsCopyCalled() == 0);
-        Assert(CT::assignmentsMoveCalled() == 1); // put calls move assignment
-        Assert(CT::dtorsCalled() == 1);
-        Assert(CT::totalCtorsCalled() == 1);
-        Assert(CT::assignmentsTotalCalled() == 1);
+            m.put(k2, 10);
+            CT_CHECK(CT::copyCtorCalled() == 2);
+            CT_CHECK(CT::dtorsCalled() == 0);
+            CT_CHECK(CT::assignmentsTotalCalled() == 0);
 
-        CT c;
-        m.put(sv("2"), c);
-
-        Assert(CT::defaultCtorCalled() == 2);
-        Assert(CT::copyCtorCalled() == 0);
-        Assert(CT::moveCtorCalled() == 0);
-        Assert(CT::assignmentsCopyCalled() == 1); // put calls copy assignment
-        Assert(CT::assignmentsMoveCalled() == 1);
-        Assert(CT::dtorsCalled() == 1);
-        Assert(CT::totalCtorsCalled() == 2);
-        Assert(CT::assignmentsTotalCalled() == 2);
-
-        // This triggers a resize
-        m.put(sv("3"), std::move(c));
-
-        Assert(CT::defaultCtorCalled() == 2);
-        Assert(CT::copyCtorCalled() == 0);
-        Assert(CT::moveCtorCalled() == 0);
-        Assert(CT::assignmentsCopyCalled() == 1);
-        Assert(CT::assignmentsMoveCalled() == 4); // old acount (1) += 2 assignments to resize + 1 assignment for put
-        Assert(CT::dtorsCalled() == 3); // old dcount (1) += 1 before put is called + 1 for put
-        Assert(CT::totalCtorsCalled() == 2);
-        Assert(CT::assignmentsTotalCalled() == 5);
-
-        m.put(sv("3"), CT{}); // update
-
-        Assert(CT::defaultCtorCalled() == 3);
-        Assert(CT::copyCtorCalled() == 0);
-        Assert(CT::moveCtorCalled() == 0);
-        Assert(CT::assignmentsCopyCalled() == 1);
-        Assert(CT::assignmentsMoveCalled() == 5);
-        Assert(CT::dtorsCalled() == 4);
-        Assert(CT::totalCtorsCalled() == 3);
-        Assert(CT::assignmentsTotalCalled() == 6);
-
-        // Make sure data is appropriately copied and moved in the containder.
-
-        auto v1 = m.get(sv("1")); Assert(v1);
-        auto v2 = m.get(sv("2")); Assert(v2);
-        auto v3 = m.get(sv("3")); Assert(v3);
-
-        Assert(v1->a == CT::defaultValue);
-        Assert(v2->a == CT::defaultValue);
-        Assert(v3->a == CT::defaultValue);
-
-        v1->a = 1;
-        Assert(v1->a == 1);
-        Assert(v2->a == CT::defaultValue);
-        Assert(v3->a == CT::defaultValue);
-
-        v2->a = 2;
-        Assert(v1->a == 1);
-        Assert(v2->a == 2);
-        Assert(v3->a == CT::defaultValue);
-
-        v3->a = 3;
-        Assert(v1->a == 1);
-        Assert(v2->a == 2);
-        Assert(v3->a == 3);
-    }
-
-    {
-        // Make sure that put calls the destructor and memory leaks are not possible.
-
-        struct tmp {
-            char* data = nullptr;
-            tmp() { data = reinterpret_cast<char*>(TAllocator::alloc(1)); }
-            tmp(const tmp& other) {
-                data = reinterpret_cast<char*>(TAllocator::alloc(1));
-                core::memcopy(data, other.data, 1);
-            }
-            tmp(tmp&& other) {
-                if (this == &other) return;
-                data = other.data;
-                other.data = nullptr;
-            }
-            ~tmp() {
-                free();
-            }
-
-            void free() {
-                if (data) {
-                    TAllocator::free(data, 1 * sizeof(char));
+            i32 counter = 0;
+            i32 err = 0;
+            m.values([&](const auto& v) -> bool {
+                if (counter == 0 && v != 9) {
+                    err = -1;
+                    return false;
                 }
-                data = nullptr;
-            }
+                if (counter == 1 && v != 10) {
+                    err = -2;
+                    return false;
+                }
+                counter++;
+                return true;
+            });
 
-            tmp& operator=(const tmp& other) {
-                if (this == &other) return *this;
-                free();
-                data = reinterpret_cast<char*>(TAllocator::alloc(1));
-                core::memcopy(data, other.data, 1);
-                return *this;
-            }
-            tmp& operator=(tmp&& other) {
-                if (this == &other) return *this;
-                free();
-                data = other.data;
-                other.data = nullptr;
-                return *this;
-            }
-        };
-
-        SVHashMap<tmp, TAllocator> m(2);
-        tmp t;
-        m.put(sv("1"), t);
-        m.put(sv("1"), tmp{});
-
-        // m.get(sv("1"))->data = nullptr; // this will be detected as a memory leak.
+            CT_CHECK(err == 0);
+            CT_CHECK(CT::copyCtorCalled() == 2);
+            CT_CHECK(CT::dtorsCalled() == 0);
+            CT_CHECK(CT::assignmentsTotalCalled() == 0);
+        }
+        CT_CHECK(CT::dtorsCalled() == 2);
+        CT::resetAll();
     }
+
+    return 0;
+}
+
+i32 getWhenHashMapIsFilledToCapacityTest() {
+    core::HashMap<i32, i32> m(2);
+
+    m.put(1, 1);
+    m.put(2, 1);
+
+    CT_CHECK(m.len() == 2);
+    CT_CHECK(m.cap() > 2);
+    CT_CHECK(!m.empty());
+
+    CT_CHECK(m.get(1) != nullptr);
+    CT_CHECK(m.get(2) != nullptr);
+    CT_CHECK(m.get(3) == nullptr); // Make sure these don't loop forever.
+    CT_CHECK(m.get(55) == nullptr);
 
     return 0;
 }
 
 constexpr i32 hashMapTraitsTest() {
-    static_assert(std::is_standard_layout_v<core::HashMap<core::StrView, i32>>, "HashMap must be standard layout");
-    static_assert(std::is_standard_layout_v<core::HashSet<core::StrView>>, "HashSet must be standard layout");
+    static_assert(std::is_standard_layout_v<core::HashMap<i32, i32>>,
+                 "HashMap(i32, i32) should be standard layout");
+    static_assert(std::is_standard_layout_v<core::HashMap<core::StrView, core::StrView>>,
+                 "HashMap(StrView, StrView) should be standard layout");
 
     return 0;
 }
 
 i32 runHashMapTestsSuite() {
-    constexpr addr_size BUFF_SIZE = core::KILOBYTE * 4;
-    char buf[BUFF_SIZE];
+    using namespace core::testing;
 
-    core::StdAllocator::init(nullptr);
-    core::StdStatsAllocator::init(nullptr);
-    core::BumpAllocator::init(nullptr, buf, BUFF_SIZE);
+    auto runTests = [] (TestInfo& tInfo, const char* description, i32& retCode) {
+        tInfo.description = description;
+        tInfo.useAnsiColors = g_useAnsi;
 
-    auto checkLeaks = []() {
-        Assert(core::StdAllocator::usedMem() == 0);
-        Assert(core::StdStatsAllocator::usedMem() == 0, "Memory leak detected!");
-        Assert(core::BumpAllocator::usedMem() == 0);
+        tInfo.name = FN_NAME_TO_CPTR(initializeHashMapTest);
+        if (runTest(tInfo, initializeHashMapTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(basicPushToHashMapTest);
+        if (runTest(tInfo, basicPushToHashMapTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(getWhenHashMapIsFilledToCapacityTest);
+        if (runTest(tInfo, getWhenHashMapIsFilledToCapacityTest) != 0) { retCode = -1; }
+
+        // FIXME: Continue writing tests here.
+        // FIXME: Implement the hash set as well.
+        // FIXME: Implement a static sized hash set for the cases where a exactly sized map is needed.
     };
 
+    i32 ret = 0;
+    runForAllGlobalAllocatorVariants(runTests, ret);
+
     {
-        RunTest_DisplayMemAllocs(initializeHashMapTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(initializeHashMapTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(initializeHashMapTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(putMoveCopyHashMapTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(putMoveCopyHashMapTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(putMoveCopyHashMapTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(removeFromHashMapTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(removeFromHashMapTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(removeFromHashMapTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(complexTypesInHashMapTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(complexTypesInHashMapTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(complexTypesInHashMapTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(getWhenHashMapIsFilledToCapacityTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(getWhenHashMapIsFilledToCapacityTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(getWhenHashMapIsFilledToCapacityTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
+        constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE * 3;
+        char buf[BUFFER_SIZE];
+        USE_STACK_BASED_BUMP_ALLOCATOR_FOR_BLOCK_SCOPE(buf, BUFFER_SIZE);
+
+        TestInfo tInfo = createTestInfo();
+        tInfo.trackMemory = true;
+        runTests(tInfo, "STACK BASED BUMP Allocator", ret);
     }
 
     {
-        RunTest_DisplayMemAllocs(initializeHashSetTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(initializeHashSetTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(initializeHashSetTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(putMoveCopyHashSetTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(putMoveCopyHashSetTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(putMoveCopyHashSetTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(removeFromHashSetTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(removeFromHashSetTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(removeFromHashSetTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
+        constexpr u32 BUFFER_SIZE = 256; // intentially small to test overflow.
+        USE_CUSTOM_ARENA_ALLOCATOR_FOR_FOR_BLOCK_SCOPE(BUFFER_SIZE);
+
+        TestInfo tInfo = createTestInfo();
+        tInfo.trackMemory = true;
+        runTests(tInfo, "CUSTOM ARENA Allocator", ret);
     }
 
-    return 0;
+    return ret;
 }
 
 constexpr i32 runCompiletimeHashMapTestsSuite() {

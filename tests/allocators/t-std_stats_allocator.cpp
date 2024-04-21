@@ -38,6 +38,11 @@ i32 stdStatsAllocatorBasicValidityTest() {
     CT_CHECK(allocator.inUseMemory() == 32);
     CT_CHECK(allocator.totalMemoryAllocated() == 128);
 
+    allocator.clear();
+
+    CT_CHECK(allocator.inUseMemory() == 0);
+    CT_CHECK(allocator.totalMemoryAllocated() == 0);
+
     return 0;
 }
 
@@ -87,8 +92,7 @@ i32 runStdStatsAllocatorTestsSuite() {
 
     i32 ret = 0;
 
-    TestInfo tInfo;
-    tInfo.trackMemory = false;
+    TestInfo tInfo = createTestInfo();
 
     tInfo.name = FN_NAME_TO_CPTR(stdStatsAllocatorBasicValidityTest);
     if (runTest(tInfo, stdStatsAllocatorBasicValidityTest) != 0) { ret = -1; }

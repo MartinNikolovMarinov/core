@@ -2,7 +2,7 @@
 
 i32 getCurrentUnixTimestampTest() {
     auto v = ValueOrDie(core::getCurrentUnixTimestampMs());
-    Assert(v > 0);
+    CT_CHECK(v > 0);
     return 0;
 }
 

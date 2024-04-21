@@ -28,12 +28,31 @@ inline TAllocatorPtr gatAllocatorByType(void* allocatorData) {
     return reinterpret_cast<TAllocatorPtr>(allocatorData);
 }
 
+#if defined(CORE_BUILD_TESTS_USE_ANSI) && CORE_BUILD_TESTS_USE_ANSI == 1
+constexpr bool g_useAnsi = true;
+#else
+constexpr bool g_useAnsi = false;
+#endif
+
+constexpr bool g_stopOnFirstFailure = true; // FIXME: Make this a cmake option!
+
+constexpr inline core::testing::TestInfo createTestInfo() {
+    core::testing::TestInfo tInfo = {};
+    tInfo.trackTicks = false;
+    tInfo.trackTime = false;
+    tInfo.trackMemory = false;
+    tInfo.detectLeaks = false;
+    tInfo.useAnsiColors = g_useAnsi;
+    tInfo.exitOnFailure = g_stopOnFirstFailure;
+    return tInfo;
+}
+
 template <typename TCallback>
 void runForAllGlobalAllocatorVariants(TCallback cb, i32& retCode) {
     using namespace core::testing;
 
     {
-        TestInfo tInfo = {};
+        TestInfo tInfo = createTestInfo();
         tInfo.trackMemory = false; // the default allocator can't track memory allocations.
         tInfo.detectLeaks = false; // the default allocator can't detect memory leaks.
         cb(tInfo, "Default Allocator", retCode);
@@ -45,7 +64,7 @@ void runForAllGlobalAllocatorVariants(TCallback cb, i32& retCode) {
             actx->clear(actx->allocatorData);
             core::setActiveAllocatorForThread(nullptr);
         };
-        TestInfo tInfo = {};
+        TestInfo tInfo = createTestInfo();
         tInfo.trackMemory = true;
         tInfo.detectLeaks = true;
         cb(tInfo, "Stats STD Allocator", retCode);
@@ -57,7 +76,7 @@ void runForAllGlobalAllocatorVariants(TCallback cb, i32& retCode) {
             actx->clear(actx->allocatorData);
             core::setActiveAllocatorForThread(nullptr);
         };
-        TestInfo tInfo = {};
+        TestInfo tInfo = createTestInfo();
         tInfo.trackMemory = true;
         cb(tInfo, "THREAD LOCAL BUMP Allocator", retCode);
     }
@@ -68,17 +87,31 @@ void runForAllGlobalAllocatorVariants(TCallback cb, i32& retCode) {
             actx->clear(actx->allocatorData);
             core::setActiveAllocatorForThread(nullptr);
         };
-        TestInfo tInfo = {};
+        TestInfo tInfo = createTestInfo();
         tInfo.trackMemory = true;
         cb(tInfo, "THREAD LOCAL ARENA Allocator", retCode);
     }
 }
 
-#if defined(CORE_BUILD_TESTS_USE_ANSI) && CORE_BUILD_TESTS_USE_ANSI == 1
-constexpr bool g_useAnsi = true;
-#else
-constexpr bool g_useAnsi = false;
-#endif
+// a bit of macro magic never hurt nobody!@
+
+#define USE_STACK_BASED_BUMP_ALLOCATOR_FOR_BLOCK_SCOPE(buff, size)          \
+    core::BumpAllocator __lba__((buff), (size));                            \
+    core::AllocatorContext __lbaCtx__ = core::createAllocatorCtx(&__lba__); \
+    core::setActiveAllocatorForThread(&__lbaCtx__);                         \
+    defer {                                                                 \
+        __lba__.clear();                                                    \
+        core::setActiveAllocatorForThread(nullptr);                         \
+    }
+
+#define USE_CUSTOM_ARENA_ALLOCATOR_FOR_FOR_BLOCK_SCOPE(regionSize)        \
+    core::StdArenaAllocator __la__(regionSize);                           \
+    core::AllocatorContext __laCtx__ = core::createAllocatorCtx(&__la__); \
+    core::setActiveAllocatorForThread(&__laCtx__);                        \
+    defer {                                                               \
+        __la__.clear();                                                   \
+        core::setActiveAllocatorForThread(nullptr);                       \
+    }
 
 // ##################### TEST SUITES ###################################################################################
 

@@ -124,8 +124,7 @@ i32 runAlgorithmsTestsSuite() {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo;
-    tInfo.trackMemory = false;
+    TestInfo tInfo = createTestInfo();
 
     tInfo.name = FN_NAME_TO_CPTR(findAlgorithmTest);
     if (runTest(tInfo, findAlgorithmTest) != 0) { ret = -1; }

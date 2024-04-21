@@ -69,8 +69,7 @@ i32 runStdAllocatorTestsSuite() {
 
     i32 ret = 0;
 
-    TestInfo tInfo;
-    tInfo.trackMemory = false;
+    TestInfo tInfo = createTestInfo();
 
     tInfo.name = FN_NAME_TO_CPTR(stdAllocatorBasicValidityTest);
     if (runTest(tInfo, stdAllocatorBasicValidityTest) != 0) { ret = -1; }

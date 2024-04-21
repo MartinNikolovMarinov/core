@@ -30,7 +30,7 @@ constexpr i32 pow10Test() {
     };
 
     core::testing::executeTestTable("pow10 test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        Assert(core::pow10(c.in) == c.expected, cErr);
+        CT_CHECK(core::pow10(c.in) == c.expected, cErr);
     });
 
     return 0;
@@ -110,80 +110,80 @@ constexpr i32 pow2Test() {
     };
 
     core::testing::executeTestTable("pow2 test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        Assert(core::pow2(c.in) == c.expected, cErr);
+        CT_CHECK(core::pow2(c.in) == c.expected, cErr);
     });
 
     return 0;
 }
 
 constexpr i32 degreesTest() {
-    Assert(core::degToRad(0.0f).value == 0.0f);
-    Assert(core::degToRad(90.0f).value == core::PI / 2.0f);
-    Assert(core::degToRad(180.0f).value == core::PI);
-    Assert(core::degToRad(270.0f).value == core::PI * 1.5f);
-    Assert(core::degToRad(360.0f).value == core::PI * 2.0f);
+    CT_CHECK(core::degToRad(0.0f).value == 0.0f);
+    CT_CHECK(core::degToRad(90.0f).value == core::PI / 2.0f);
+    CT_CHECK(core::degToRad(180.0f).value == core::PI);
+    CT_CHECK(core::degToRad(270.0f).value == core::PI * 1.5f);
+    CT_CHECK(core::degToRad(360.0f).value == core::PI * 2.0f);
 
-    Assert(core::radToDeg(core::radians(0.0f)) == 0.0f);
-    Assert(core::radToDeg(core::radians(core::PI / 2.0f)) == 90.0f);
-    Assert(core::radToDeg(core::radians(core::PI)) == 180.0f);
-    Assert(core::radToDeg(core::radians(core::PI * 1.5f)) == 270.0f);
-    Assert(core::radToDeg(core::radians(core::PI * 2.0f)) == 360.0f);
+    CT_CHECK(core::radToDeg(core::radians(0.0f)) == 0.0f);
+    CT_CHECK(core::radToDeg(core::radians(core::PI / 2.0f)) == 90.0f);
+    CT_CHECK(core::radToDeg(core::radians(core::PI)) == 180.0f);
+    CT_CHECK(core::radToDeg(core::radians(core::PI * 1.5f)) == 270.0f);
+    CT_CHECK(core::radToDeg(core::radians(core::PI * 2.0f)) == 360.0f);
 
     return 0;
 }
 
 constexpr i32 absTest() {
-    Assert(core::absGeneric(i8(0)) == 0);
-    Assert(core::absGeneric(i8(1)) == 1);
-    Assert(core::absGeneric(i8(-1)) == 1);
-    Assert(core::absGeneric(i16(0)) == 0);
-    Assert(core::absGeneric(i16(1)) == 1);
-    Assert(core::absGeneric(i16(-1)) == 1);
-    Assert(core::absGeneric(i32(0)) == 0);
-    Assert(core::absGeneric(i32(1)) == 1);
-    Assert(core::absGeneric(i32(-1)) == 1);
-    Assert(core::absGeneric(i64(0)) == 0);
-    Assert(core::absGeneric(i64(1)) == 1);
-    Assert(core::absGeneric(i64(-1)) == 1);
-    Assert(core::abs(f32(0)) == 0.0f);
-    Assert(core::abs(f32(1)) == 1.0f);
-    Assert(core::abs(f32(-1)) == 1.0f);
-    Assert(core::abs(f64(0)) == 0.0);
-    Assert(core::abs(f64(1)) == 1.0);
-    Assert(core::abs(f64(-1)) == 1.0);
+    CT_CHECK(core::absGeneric(i8(0)) == 0);
+    CT_CHECK(core::absGeneric(i8(1)) == 1);
+    CT_CHECK(core::absGeneric(i8(-1)) == 1);
+    CT_CHECK(core::absGeneric(i16(0)) == 0);
+    CT_CHECK(core::absGeneric(i16(1)) == 1);
+    CT_CHECK(core::absGeneric(i16(-1)) == 1);
+    CT_CHECK(core::absGeneric(i32(0)) == 0);
+    CT_CHECK(core::absGeneric(i32(1)) == 1);
+    CT_CHECK(core::absGeneric(i32(-1)) == 1);
+    CT_CHECK(core::absGeneric(i64(0)) == 0);
+    CT_CHECK(core::absGeneric(i64(1)) == 1);
+    CT_CHECK(core::absGeneric(i64(-1)) == 1);
+    CT_CHECK(core::abs(f32(0)) == 0.0f);
+    CT_CHECK(core::abs(f32(1)) == 1.0f);
+    CT_CHECK(core::abs(f32(-1)) == 1.0f);
+    CT_CHECK(core::abs(f64(0)) == 0.0);
+    CT_CHECK(core::abs(f64(1)) == 1.0);
+    CT_CHECK(core::abs(f64(-1)) == 1.0);
 
     // check with max and min values
-    Assert(core::absGeneric(i8(core::MAX_I8))       == core::MAX_I8);
-    Assert(core::absGeneric(i8(core::MIN_I8 + 1))   == core::MAX_I8);
-    Assert(core::absGeneric(i16(core::MAX_I16))     == core::MAX_I16);
-    Assert(core::absGeneric(i16(core::MIN_I16 + 1)) == core::MAX_I16);
-    Assert(core::absGeneric(i32(core::MAX_I32))     == core::MAX_I32);
-    Assert(core::absGeneric(i32(core::MIN_I32 + 1)) == core::MAX_I32);
-    Assert(core::absGeneric(i64(core::MAX_I64))     == core::MAX_I64);
-    Assert(core::absGeneric(i64(core::MIN_I64 + 1)) == core::MAX_I64);
+    CT_CHECK(core::absGeneric(i8(core::MAX_I8))       == core::MAX_I8);
+    CT_CHECK(core::absGeneric(i8(core::MIN_I8 + 1))   == core::MAX_I8);
+    CT_CHECK(core::absGeneric(i16(core::MAX_I16))     == core::MAX_I16);
+    CT_CHECK(core::absGeneric(i16(core::MIN_I16 + 1)) == core::MAX_I16);
+    CT_CHECK(core::absGeneric(i32(core::MAX_I32))     == core::MAX_I32);
+    CT_CHECK(core::absGeneric(i32(core::MIN_I32 + 1)) == core::MAX_I32);
+    CT_CHECK(core::absGeneric(i64(core::MAX_I64))     == core::MAX_I64);
+    CT_CHECK(core::absGeneric(i64(core::MIN_I64 + 1)) == core::MAX_I64);
 
     return 0;
 }
 
 constexpr i32 isPositiveTest() {
-    Assert(core::isPositive(i8(0)) == true);
-    Assert(core::isPositive(i8(1)) == true);
-    Assert(core::isPositive(i8(-1)) == false);
-    Assert(core::isPositive(i16(0)) == true);
-    Assert(core::isPositive(i16(1)) == true);
-    Assert(core::isPositive(i16(-1)) == false);
-    Assert(core::isPositive(i32(0)) == true);
-    Assert(core::isPositive(i32(1)) == true);
-    Assert(core::isPositive(i32(-1)) == false);
-    Assert(core::isPositive(i64(0)) == true);
-    Assert(core::isPositive(i64(1)) == true);
-    Assert(core::isPositive(i64(-1)) == false);
-    Assert(core::isPositive(f32(0)) == true);
-    Assert(core::isPositive(f32(1)) == true);
-    Assert(core::isPositive(f32(-1)) == false);
-    Assert(core::isPositive(f64(0)) == true);
-    Assert(core::isPositive(f64(1)) == true);
-    Assert(core::isPositive(f64(-1)) == false);
+    CT_CHECK(core::isPositive(i8(0)) == true);
+    CT_CHECK(core::isPositive(i8(1)) == true);
+    CT_CHECK(core::isPositive(i8(-1)) == false);
+    CT_CHECK(core::isPositive(i16(0)) == true);
+    CT_CHECK(core::isPositive(i16(1)) == true);
+    CT_CHECK(core::isPositive(i16(-1)) == false);
+    CT_CHECK(core::isPositive(i32(0)) == true);
+    CT_CHECK(core::isPositive(i32(1)) == true);
+    CT_CHECK(core::isPositive(i32(-1)) == false);
+    CT_CHECK(core::isPositive(i64(0)) == true);
+    CT_CHECK(core::isPositive(i64(1)) == true);
+    CT_CHECK(core::isPositive(i64(-1)) == false);
+    CT_CHECK(core::isPositive(f32(0)) == true);
+    CT_CHECK(core::isPositive(f32(1)) == true);
+    CT_CHECK(core::isPositive(f32(-1)) == false);
+    CT_CHECK(core::isPositive(f64(0)) == true);
+    CT_CHECK(core::isPositive(f64(1)) == true);
+    CT_CHECK(core::isPositive(f64(-1)) == false);
 
     return 0;
 }
@@ -219,7 +219,7 @@ constexpr i32 floatSafeEqTest() {
     for (auto& c : cases) {
         core::intToCptr(i++, appendIdx, 2);
         for (i32 j = 0; j < c.iterations; ++j) {
-            Assert(core::safeEq(c.startA, c.startB, c.epsilon) == c.expected, iterAsCptr);
+            CT_CHECK(core::safeEq(c.startA, c.startB, c.epsilon) == c.expected, iterAsCptr);
             c.startA += c.step;
             c.startB += c.step;
         }
@@ -259,7 +259,7 @@ i32 floatNearlyEqExtreamCasesTest() {
     };
 
         core::testing::executeTestTable("floatNearlyEqExtreamCasesTest test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        Assert(core::nearlyEq(c.a, c.b, c.epsilon) == c.expected, cErr);
+        CT_CHECK(core::nearlyEq(c.a, c.b, c.epsilon) == c.expected, cErr);
     });
 
     return 0;
@@ -328,7 +328,7 @@ constexpr i32 floatNearlyEqTest() {
     };
 
     core::testing::executeTestTable("float_nearlyEq test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        Assert(core::nearlyEq(c.a, c.b, c.epsilon) == c.expected, cErr);
+        CT_CHECK(core::nearlyEq(c.a, c.b, c.epsilon) == c.expected, cErr);
     });
 
     return 0;

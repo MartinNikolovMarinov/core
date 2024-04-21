@@ -2,7 +2,7 @@
 
 i32 getTheSystemPageSizeTest() {
     addr_size pageSize = core::getPageSize();
-    Assert(pageSize > 0);
+    CT_CHECK(pageSize > 0);
     return 0;
 }
 
@@ -12,14 +12,14 @@ i32 allocateAndFreePagesTest() {
     void* addr = nullptr;
     {
         auto res = core::allocPages(pageSize * pageCount);
-        Assert(!res.hasErr());
-        Assert(res.hasValue());
-        Assert(res.value() != nullptr);
+        CT_CHECK(!res.hasErr());
+        CT_CHECK(res.hasValue());
+        CT_CHECK(res.value() != nullptr);
         addr = res.value();
     }
     {
         auto res = core::freePages(addr, pageSize * pageCount);
-        Assert(!res.hasErr());
+        CT_CHECK(!res.hasErr());
     }
 
     return 0;

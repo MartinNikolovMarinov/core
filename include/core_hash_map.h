@@ -1,7 +1,6 @@
 #pragma once
 
 #include <core_alloc.h>
-#include <core_mem.h>
 #include <core_traits.h>
 #include <core_types.h>
 #include <core_hash.h>
@@ -23,8 +22,9 @@ constexpr inline addr_size addLoadFactor(addr_size cap, f64 loadFactor) {
 // AND. This function returns the next power of 2 for a given cap.
 constexpr inline addr_size nextPowerOf2ForCap(addr_size cap) {
     for (addr_size i = 0; i < sizeof(addr_size) * 8; i++) {
-        if (cap <= (1ull << i)) {
-            return (1ull << (i + 1));
+        const addr_size powOf2 = (1ull << i);
+        if (cap <= powOf2) {
+            return powOf2;
         }
     }
 
@@ -40,8 +40,7 @@ struct HashMap {
     using value_type  = TValue;
     using size_type   = addr_size;
 
-    static constexpr f64 maxLoadFactor                = detail::DEFAULT_MAX_LOAD_FACTOR;
-    static constexpr size_type minResizeCap           = 16;
+    static constexpr f64 maxLoadFactor = detail::DEFAULT_MAX_LOAD_FACTOR;
 
     static_assert(HashableConcept<key_type>, "TKey must be hashable");
     static_assert(std::is_move_constructible_v<key_type>, "TKey must be move constructible");
@@ -59,6 +58,11 @@ struct HashMap {
             m_keys        = reinterpret_cast<key_type*>(core::alloc(m_cap, sizeof(key_type)));
             m_values      = reinterpret_cast<value_type*>(core::alloc(m_cap, sizeof(value_type)));
             m_occupied    = reinterpret_cast<bool*>(core::zeroAlloc(m_cap, sizeof(bool)));
+        }
+        else {
+            m_keys = nullptr;
+            m_values = nullptr;
+            m_occupied = nullptr;
         }
     }
 
@@ -109,7 +113,7 @@ struct HashMap {
     bool      empty()   const { return m_len == 0; }
 
     void clear() {
-        for (size_type i = 0; i < m_len; ++i) {
+        for (size_type i = 0; i < m_cap; ++i) {
             if (m_occupied[i]) {
                 m_values[i].~value_type();
                 m_keys[i].~key_type();
@@ -244,10 +248,42 @@ struct HashMap {
         m_occupied = newOccupied;
     }
 
+    template <typename TCallback>
+    void keys(TCallback cb) const {
+        for (size_type i = 0; i < m_cap; i++) {
+            if (m_occupied[i]) {
+                cb(m_keys[i]);
+            }
+        }
+    }
+
+    template <typename TCallback>
+    void values(TCallback cb) const {
+        for (size_type i = 0; i < m_cap; i++) {
+            if (m_occupied[i]) {
+                cb(m_values[i]);
+            }
+        }
+    }
+
+    template <typename TCallback>
+    void values(TCallback cb) {
+        return static_cast<const HashMap&>(*this).values(cb);
+    }
+
+    template <typename TCallback>
+    void entries(TCallback cb) const {
+        for (size_type i = 0; i < m_cap; i++) {
+            if (m_occupied[i]) {
+                cb(m_keys[i], m_values[i]);
+            }
+        }
+    }
+
 private:
 
     template <typename TTKey, typename TTVal>
-    value_type* putImpl(TTKey key, TTVal val) {
+    inline value_type* putImpl(TTKey key, TTVal val) {
         static_assert(std::is_reference_v<TTKey>, "Key must be a reference");
         static_assert(std::is_reference_v<TTVal>, "Value must be a reference");
 

@@ -33,37 +33,35 @@ template <typename T, typename TErr>
 struct expected<T, TErr> {
     static_assert(std::is_standard_layout_v<T>, "type must be standard layout to store in a union");
 
-    expected(T&& value)  : m_value(std::forward<T>(value)), m_hasValue(true) {}
+    constexpr expected(T&& value) : m_value(std::forward<T>(value)), m_hasValue(true) {}
     template <typename TErr2>
-    expected(unexpected_t<TErr2>&& wrapper) : m_err(std::move(wrapper.err)), m_hasValue(false) {}
+    constexpr expected(unexpected_t<TErr2>&& wrapper) : m_err(std::move(wrapper.err)), m_hasValue(false) {}
 
     // no copy
-    expected(const expected&) = delete;
-    expected& operator=(const expected&) = delete;
+    constexpr expected(const expected&) = delete;
+    constexpr expected& operator=(const expected&) = delete;
 
     // move
-    expected(expected&& other) : m_hasValue(other.m_hasValue) {
+    constexpr expected(expected&& other) : m_hasValue(other.m_hasValue) {
         if (m_hasValue) new (&m_value) T(std::move(other.m_value));
         else new (&m_err) TErr(std::move(other.m_err));
     }
 
-    ~expected() {
-        if (hasValue()) m_value.~T();
-        else m_err.~TErr();
+    constexpr ~expected() {
+        if constexpr (!std::is_trivially_destructible_v<T> ||
+                      !std::is_trivially_destructible_v<TErr>) {
+            if (hasValue()) m_value.~T();
+            else m_err.~TErr();
+        }
     }
 
-    bool hasValue() const { return m_hasValue; }
-    bool hasErr()   const { return !m_hasValue; }
+    constexpr bool hasValue() const { return m_hasValue; }
+    constexpr bool hasErr()   const { return !m_hasValue; }
 
-    const T& value()  const { return m_value; }
-    T& value()              { return m_value; }
-    const TErr& err() const { return m_err; }
-    TErr& err()             { return m_err; }
-
-    expected<T, TErr>& check([[maybe_unused]] const char* msg) {
-        Assert(!hasErr(), msg);
-        return *this;
-    }
+    constexpr const T& value() const  { return m_value; }
+    constexpr T& value()              { return m_value; }
+    constexpr const TErr& err() const { return m_err; }
+    constexpr TErr& err()             { return m_err; }
 
 private:
 
@@ -73,26 +71,21 @@ private:
 
 template <typename TErr>
 struct expected<TErr> {
-    expected() : m_hasErr(false) {}
+    constexpr expected() : m_hasErr(false) {}
     template <typename TErr2>
-    expected(unexpected_t<TErr2>&& wrapper) : m_hasErr(true), m_err(std::move(wrapper.err)) {}
-    ~expected() = default;
+    constexpr expected(unexpected_t<TErr2>&& wrapper) : m_hasErr(true), m_err(std::move(wrapper.err)) {}
+    constexpr ~expected() = default;
 
     // no copy
-    expected(const expected&) = delete;
-    expected& operator=(const expected&) = delete;
+    constexpr expected(const expected&) = delete;
+    constexpr expected& operator=(const expected&) = delete;
 
     // move
-    expected(expected&& other) : m_hasErr(other.m_hasErr), m_err(std::move(other.m_err)) {}
+    constexpr expected(expected&& other) : m_hasErr(other.m_hasErr), m_err(std::move(other.m_err)) {}
 
-    const TErr& err() const { return m_err; }
-    TErr& err()             { return m_err; }
-    bool hasErr()   const  { return m_hasErr; }
-
-    expected<TErr>& check([[maybe_unused]] const char* msg) {
-        Assert(!hasErr(), msg);
-        return *this;
-    }
+    constexpr const TErr& err() const { return m_err; }
+    constexpr TErr& err()             { return m_err; }
+    constexpr bool hasErr() const     { return m_hasErr; }
 
 private:
 
@@ -100,56 +93,50 @@ private:
     TErr m_err;
 };
 
-template <typename...> struct sexpected; // static expected
+// template <typename...> struct sexpected; // static expected
+
+// template <typename T, typename TErr>
+// struct sexpected<T, TErr> {
+//     static_assert(std::is_standard_layout_v<T>, "type must be standard layout to store it in a union");
+//     static_assert(std::is_trivially_destructible_v<T>, "type must be trivially destructible to allow constant evaluation");
+
+//     constexpr sexpected(T&& value) : m_value(std::forward<T>(value)), m_hasValue(true) {}
+//     template <typename TErr2>
+//     constexpr sexpected(unexpected_t<TErr2>&& wrapper) : m_err(std::move(wrapper.err)), m_hasValue(false) {}
+
+//     // no copy
+//     constexpr sexpected(const sexpected&) = delete;
+//     constexpr sexpected& operator=(const sexpected&) = delete;
+
+//     // move
+//     constexpr sexpected(sexpected&& other) : m_hasValue(other.m_hasValue) {
+//         if (m_hasValue) new (&m_value) T(std::move(other.m_value));
+//         else new (&m_err) TErr(std::move(other.m_err));
+//     }
+
+//     constexpr bool hasValue() const { return m_hasValue; }
+//     constexpr bool hasErr()   const { return !m_hasValue; }
+
+//     constexpr const T& value()  const { return m_value; }
+//     constexpr T& value()              { return m_value; }
+//     constexpr const TErr& err() const { return m_err; }
+//     constexpr TErr& err()             { return m_err; }
+
+// private:
+
+//     union { T m_value; TErr m_err; };
+//     bool m_hasValue;
+// };
 
 template <typename T, typename TErr>
-struct sexpected<T, TErr> {
-    static_assert(std::is_standard_layout_v<T>, "type must be standard layout to store it in a union");
-    static_assert(std::is_trivially_destructible_v<T>, "type must be trivially destructible to allow constant evaluation");
+constexpr inline T&& Expect(expected<T, TErr>&& exp, [[maybe_unused]] const char* msg = nullptr) {
+    Panic(!exp.hasErr(), msg);
+    return std::move(exp.value());
+}
 
-    constexpr sexpected(T&& value) : m_value(std::forward<T>(value)), m_hasValue(true) {}
-    template <typename TErr2>
-    constexpr sexpected(unexpected_t<TErr2>&& wrapper) : m_err(std::move(wrapper.err)), m_hasValue(false) {}
-
-    // no copy
-    constexpr sexpected(const sexpected&) = delete;
-    constexpr sexpected& operator=(const sexpected&) = delete;
-
-    // move
-    constexpr sexpected(sexpected&& other) : m_hasValue(other.m_hasValue) {
-        if (m_hasValue) new (&m_value) T(std::move(other.m_value));
-        else new (&m_err) TErr(std::move(other.m_err));
-    }
-
-    constexpr bool hasValue() const { return m_hasValue; }
-    constexpr bool hasErr()   const { return !m_hasValue; }
-
-    constexpr const T& value()  const { return m_value; }
-    constexpr T& value()              { return m_value; }
-    constexpr const TErr& err() const { return m_err; }
-    constexpr TErr& err()             { return m_err; }
-
-    constexpr sexpected<T, TErr>& check([[maybe_unused]] const char* msg) {
-        Assert(!hasErr(), msg);
-        return *this;
-    }
-
-private:
-
-    union { T m_value; TErr m_err; };
-    bool m_hasValue;
-};
-
-#ifndef Expect
-    #define Expect(...) C_VFUNC(Expect, __VA_ARGS__)
-    #define Expect1(expr) (expr).check("failed expectation")
-    #define Expect2(expr, msg) (expr).check(msg)
-#endif
-
-#ifndef ValueOrDie
-    #define ValueOrDie(...) C_VFUNC(ValueOrDie, __VA_ARGS__)
-    #define ValueOrDie1(expr) std::move(Expect1(expr).value())
-    #define ValueOrDie2(expr, msg) std::move(Expect2(expr, msg).value())
-#endif
+template <typename TErr>
+constexpr inline void Expect(expected<TErr>&& expr, [[maybe_unused]] const char* msg = nullptr) {
+    Panic(!expr.hasErr(), msg);
+}
 
 } // namespace core

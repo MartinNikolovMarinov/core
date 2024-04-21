@@ -29,12 +29,13 @@ constexpr i32 leastSignificantNBitsTest() {
         { 0b11111000, 0b11111, 5, false },
     };
 
-    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         bool got = core::leastSignificantNBits(c.value, c.bitSeq, c.n);
-        Assert(got == c.expected, cErr);
+        CT_CHECK(got == c.expected, cErr);
+        return 0;
     });
 
-    return 0;
+    return ret;
 }
 
 constexpr i32 mostSignificantNBistsTest() {
@@ -106,19 +107,27 @@ constexpr i32 mostSignificantNBistsTest() {
         { 0b10100000, 0b101, 3, true },
     };
 
-    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         bool got = core::mostSignificantNBits(c.value, c.bitSeq, c.n);
-        Assert(got == c.expected, cErr);
+        CT_CHECK(got == c.expected, cErr);
+        return 0;
     });
 
-    return 0;
+    return ret;
 }
 
 i32 runBitsTestsSuite() {
-    RunTest(leastSignificantNBitsTest);
-    RunTest(mostSignificantNBistsTest);
+    using namespace core::testing;
 
-    return 0;
+    i32 ret = 0;
+    TestInfo tInfo = createTestInfo();
+
+    tInfo.name = FN_NAME_TO_CPTR(leastSignificantNBitsTest);
+    if (runTest(tInfo, leastSignificantNBitsTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(mostSignificantNBistsTest);
+    if (runTest(tInfo, mostSignificantNBistsTest) != 0) { ret = -1; }
+
+    return ret;
 }
 
 constexpr i32 runCompiletimeBitsTestsSuite() {

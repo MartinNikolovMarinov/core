@@ -3,7 +3,7 @@
 i32 pltErrorDescribeWorksTest() {
     char buf[core::MAX_SYSTEM_ERR_MSG_SIZE] = {};
     bool ok = core::pltErrorDescribe(0, buf);
-    Assert(ok, "Platform failed to describe error code 0.");
+    CT_CHECK(ok, "Platform failed to describe error code 0.");
 
     i32 pltSpecificErrCode = 0;
 
@@ -12,8 +12,8 @@ i32 pltErrorDescribeWorksTest() {
 #elif (defined(OS_LINUX) && OS_LINUX) || (defined(OS_MAC) && OS_MAC == 1)
     pltSpecificErrCode = ENOENT;
     ok = core::pltErrorDescribe(pltSpecificErrCode, buf);
-    Assert(ok);
-    Assert(core::cptrLen(buf) > 0);
+    CT_CHECK(ok);
+    CT_CHECK(core::cptrLen(buf) > 0);
 #endif
 
     return 0;

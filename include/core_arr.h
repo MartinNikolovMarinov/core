@@ -228,7 +228,7 @@ struct ArrStatic {
     static_assert(std::is_trivially_copy_assignable_v<T>, "ArrStatic should be trivially copy assignable");
     static_assert(std::is_trivially_move_assignable_v<T>, "ArrStatic should be trivially move assignable");
 
-    constexpr ArrStatic() : m_data({}), m_len(0) {}
+    constexpr ArrStatic() : m_len(0) {}
     constexpr ArrStatic(const ArrStatic& other) = default;
     constexpr ArrStatic(ArrStatic&& other) = default;
     constexpr ArrStatic(size_type len, const T& v) : m_len(len) {

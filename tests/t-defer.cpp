@@ -4,26 +4,32 @@ i32 deferTest() {
     {
         i32 a = 0;
         {
-            Assert(a == 0);
+            CT_CHECK(a == 0);
             defer { a++; };
-            Assert(a == 0);
+            CT_CHECK(a == 0);
 
             {
-                Assert(a == 0);
+                CT_CHECK(a == 0);
                 defer { a++; };
-                Assert(a == 0);
+                CT_CHECK(a == 0);
             }
 
-            Assert(a == 1);
+            CT_CHECK(a == 1);
         }
-        Assert(a == 2);
+        CT_CHECK(a == 2);
     }
 
     return 0;
 }
 
 i32 runDeferTestsSuite() {
-    RunTest(deferTest);
+    using namespace core::testing;
 
-    return 0;
+    i32 ret = 0;
+    TestInfo tInfo = createTestInfo();
+
+    tInfo.name = FN_NAME_TO_CPTR(deferTest);
+    if (runTest(tInfo, deferTest) != 0) { ret = -1; }
+
+    return ret;
 }

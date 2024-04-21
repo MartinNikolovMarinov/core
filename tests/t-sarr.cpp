@@ -203,8 +203,7 @@ i32 runStaticArrTestsSuite() {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo;
-    tInfo.trackMemory = false;
+    TestInfo tInfo = createTestInfo();
 
     tInfo.name = FN_NAME_TO_CPTR(initializeStaticArrBasicTest);
     if (runTest(tInfo, initializeStaticArrBasicTest) != 0) { ret = -1; }

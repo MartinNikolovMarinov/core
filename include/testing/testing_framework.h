@@ -7,6 +7,7 @@
 #include <core_intrinsics.h>
 #include <core_types.h>
 #include <core_utils.h>
+#include <core_hash.h>
 
 #include <iostream>
 #include <chrono>
@@ -21,8 +22,14 @@ struct ConstructorTester {
     i32 a;
     ConstructorTester() : a(defaultValue) { g_defaultCtorCalled++; }
     ConstructorTester(const ConstructorTester& other) : a(other.a) { g_copyCtorCalled++; }
-    ConstructorTester(ConstructorTester&& other) : a(std::move(other.a)) { g_moveCtorCalled++; }
-    ~ConstructorTester() { g_destructorsCalled++; }
+    ConstructorTester(ConstructorTester&& other) : a(std::move(other.a)) {
+        g_moveCtorCalled++;
+        other.a = defaultValue;
+     }
+    ~ConstructorTester() {
+        g_destructorsCalled++;
+        a = defaultValue;
+    }
 
     ConstructorTester& operator=(const ConstructorTester& other) {
         a = other.a;
@@ -33,6 +40,7 @@ struct ConstructorTester {
     ConstructorTester& operator=(ConstructorTester&& other) {
         a = std::move(other.a);
         g_assignmentsMoveCalled++;
+        other.a = defaultValue;
         return *this;
     }
 
@@ -66,6 +74,7 @@ struct ConstructorTester {
     static i32 assignmentsTotalCalled() { return g_assignmentsCopyCalled + g_assignmentsMoveCalled; }
     static i32 dtorsCalled()            { return g_destructorsCalled; }
     static bool noCtorsCalled()         { return totalCtorsCalled() == 0; }
+    static bool noAssignmentsCalled()   { return assignmentsTotalCalled() == 0; }
 
 private:
     inline static i32 g_destructorsCalled;
@@ -89,7 +98,9 @@ using CT = ConstructorTester;
  * \param assertionFn The assertion function.
 */
 template <addr_size PLen, typename TCase, addr_size NCases, typename Afunc>
-constexpr void executeTestTable(const char (&errMsgPrefix)[PLen], const TCase (&cases)[NCases], Afunc assertionFn) {
+[[nodiscard]] constexpr i32 executeTestTable(const char (&errMsgPrefix)[PLen],
+                                             const TCase (&cases)[NCases],
+                                             Afunc assertionFn) {
     addr_size i = 0;
     char errMsg[PLen + 20] = {}; // The 20 is for the test case index number.
     for (addr_size j = 0; j < PLen; j++) { // NOTE: intentionally not using memcopy, because this needs to work in constexpr.
@@ -98,9 +109,10 @@ constexpr void executeTestTable(const char (&errMsgPrefix)[PLen], const TCase (&
     char* appendIdx = &errMsg[PLen - 1];
     for (auto& c : cases) {
         core::intToCptr(i, appendIdx, 2);
-        assertionFn(c, errMsg);
+        if (assertionFn(c, errMsg) != 0) return -1;
         i++;
     }
+    return 0;
 }
 
 inline i32 g_testCount = 0;
@@ -116,9 +128,10 @@ struct TestInfo {
     bool trackTime = true;
     bool trackTicks = true;
     bool detectLeaks = false;
+    bool exitOnFailure = false;
 
     TestInfo() = default;
-    TestInfo(const char* _name) : name(_name), useAnsiColors(true) {}
+    TestInfo(const char* _name) : name(_name) {}
     TestInfo(const char* _name, bool _useAnsiColors) : name(_name), useAnsiColors(_useAnsiColors) {}
 };
 
@@ -206,6 +219,11 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
 
     if (!isFirst) std::cout << " ]";
 
+    if (info.exitOnFailure && returnCode != 0) {
+        std::cout << std::endl;
+        Panic(false, "Test failed, exiting...");
+    }
+
     std::cout << std::endl;
     return returnCode;
 }
@@ -255,3 +273,22 @@ i32 runTestSuite(const TestSuiteInfo& info, TSuite suite) {
     }
 
 } // namespace core::testing
+
+namespace core {
+
+using namespace coretypes;
+
+template <>
+inline addr_size hash(const testing::CT& key) {
+    return addr_size(key.a);
+}
+
+template <>
+inline bool eq(const testing::CT& a, const testing::CT& b) {
+    return a.a == b.a;
+}
+
+static_assert(core::HashableConcept<testing::CT>, "CT must satisfy the HashableConcept.");
+
+} // namespace core
+

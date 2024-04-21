@@ -104,8 +104,7 @@ i32 runBumpAllocatorTestsSuite() {
 
     i32 ret = 0;
 
-    TestInfo tInfo;
-    tInfo.trackMemory = false;
+    TestInfo tInfo = createTestInfo();
 
     tInfo.name = FN_NAME_TO_CPTR(bumpAllocatorBasicValidityTest);
     if (runTest(tInfo, bumpAllocatorBasicValidityTest) != 0) { ret = -1; }

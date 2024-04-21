@@ -23,11 +23,12 @@ constexpr i32 isDigitTest() {
         { ':', false },
     };
 
-    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        Assert(core::isDigit(c.in) == c.expected, cErr);
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+        CT_CHECK(core::isDigit(c.in) == c.expected, cErr);
+        return 0;
     });
 
-    return 0;
+    return ret;
 }
 
 constexpr i32 isWhiteSpaceTest() {
@@ -45,11 +46,12 @@ constexpr i32 isWhiteSpaceTest() {
         { '\\', false }
     };
 
-    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        Assert(core::isWhiteSpace(c.in) == c.expected, cErr);
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+        CT_CHECK(core::isWhiteSpace(c.in) == c.expected, cErr);
+        return 0;
     });
 
-    return 0;
+    return ret;
 }
 
 constexpr i32 cptrLenTest() {
@@ -74,12 +76,13 @@ constexpr i32 cptrLenTest() {
         { "asd\0aszxc", 3 } // This is where danger lies.
     };
 
-    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         addr_size len = core::cptrLen(c.in);
-        Assert(len == c.expected, cErr);
+        CT_CHECK(len == c.expected, cErr);
+        return 0;
     });
 
-    return 0;
+    return ret;
 }
 
 constexpr i32 cptrCmpTests() {
@@ -104,15 +107,24 @@ constexpr i32 cptrCmpTests() {
         { "abb",   "abc",   TestCase::negative },
     };
 
-    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         switch (c.expected) {
-            case 1:  Assert(core::cptrCmp(c.a, core::cptrLen(c.a), c.b, core::cptrLen(c.b)) > 0, cErr);  break;
-            case -1: Assert(core::cptrCmp(c.a, core::cptrLen(c.a), c.b, core::cptrLen(c.b)) < 0, cErr);  break;
-            case 0:  Assert(core::cptrCmp(c.a, core::cptrLen(c.a), c.b, core::cptrLen(c.b)) == 0, cErr); break;
+            case TestCase::positive:
+                CT_CHECK(core::cptrCmp(c.a, core::cptrLen(c.a), c.b, core::cptrLen(c.b)) > 0, cErr);
+                break;
+            case TestCase::negative:
+                CT_CHECK(core::cptrCmp(c.a, core::cptrLen(c.a), c.b, core::cptrLen(c.b)) < 0, cErr);
+                break;
+            case TestCase::zero:
+                CT_CHECK(core::cptrCmp(c.a, core::cptrLen(c.a), c.b, core::cptrLen(c.b)) == 0, cErr);
+                break;
         }
-    });
 
-    return 0;
+        return 0;
+    });
+    CT_CHECK(ret == 0);
+
+    return ret;
 }
 
 constexpr i32 cptrEqTest() {
@@ -135,11 +147,12 @@ constexpr i32 cptrEqTest() {
         { "a\0c",  "a\0c",  3, true },
     };
 
-    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        Assert(core::cptrEq(c.a, c.b, c.len) == c.expected, cErr);
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+        CT_CHECK(core::cptrEq(c.a, c.b, c.len) == c.expected, cErr);
+        return 0;
     });
 
-    return 0;
+    return ret;
 }
 
 constexpr i32 cptrCopyTest() {
@@ -147,30 +160,30 @@ constexpr i32 cptrCopyTest() {
     char dst[20] = {};
     core::cptrCopy(dst, src, core::cptrLen(src));
 
-    Assert(core::cptrLen(src) == core::cptrLen(dst));
-    Assert(core::cptrEq(src, dst, core::cptrLen(dst)));
-    Assert(dst[0] == '1');
-    Assert(dst[1] == '2');
-    Assert(dst[2] == '3');
-    Assert(dst[3] == '4');
-    Assert(dst[4] == '5');
-    Assert(dst[5] == '6');
-    Assert(dst[6] == '7');
-    Assert(dst[7] == '8');
-    Assert(dst[8] == '9');
-    Assert(dst[9] == '0');
-    Assert(dst[10] == core::term_char);
+    CT_CHECK(core::cptrLen(src) == core::cptrLen(dst));
+    CT_CHECK(core::cptrEq(src, dst, core::cptrLen(dst)));
+    CT_CHECK(dst[0] == '1');
+    CT_CHECK(dst[1] == '2');
+    CT_CHECK(dst[2] == '3');
+    CT_CHECK(dst[3] == '4');
+    CT_CHECK(dst[4] == '5');
+    CT_CHECK(dst[5] == '6');
+    CT_CHECK(dst[6] == '7');
+    CT_CHECK(dst[7] == '8');
+    CT_CHECK(dst[8] == '9');
+    CT_CHECK(dst[9] == '0');
+    CT_CHECK(dst[10] == core::term_char);
 
     for (u32 i = 0; i < 20; ++i) dst[i] = 0;
     core::cptrCopy(dst, src, 5);
 
-    Assert(core::cptrEq(dst, "12345", core::cptrLen("12345")));
-    Assert(dst[0] == '1');
-    Assert(dst[1] == '2');
-    Assert(dst[2] == '3');
-    Assert(dst[3] == '4');
-    Assert(dst[4] == '5');
-    Assert(dst[5] == core::term_char);
+    CT_CHECK(core::cptrEq(dst, "12345", core::cptrLen("12345")));
+    CT_CHECK(dst[0] == '1');
+    CT_CHECK(dst[1] == '2');
+    CT_CHECK(dst[2] == '3');
+    CT_CHECK(dst[3] == '4');
+    CT_CHECK(dst[4] == '5');
+    CT_CHECK(dst[5] == core::term_char);
 
     return 0;
 }
@@ -196,12 +209,13 @@ constexpr i32 cptrIdxOfCharTest() {
         { "1234567890", 'z', -1 },
     };
 
-    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         addr_off idx = core::cptrIdxOfChar(c.src, core::cptrLen(c.src), c.val);
-        Assert(idx == c.idx, cErr);
+        CT_CHECK(idx == c.idx, cErr);
+        return 0;
     });
 
-    return 0;
+    return ret;
 }
 
 constexpr i32 cptrIdxOfTest() {
@@ -230,12 +244,13 @@ constexpr i32 cptrIdxOfTest() {
         { "1234", "12345", -1 },
     };
 
-    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         addr_off idx = core::cptrIdxOf(c.src, core::cptrLen(c.src), c.val, core::cptrLen(c.val));
-        Assert(idx == c.idx, cErr);
+        CT_CHECK(idx == c.idx, cErr);
+        return 0;
     });
 
-    return 0;
+    return ret;
 }
 
 constexpr i32 cptrSkipWhiteSpaceTest() {
@@ -255,26 +270,41 @@ constexpr i32 cptrSkipWhiteSpaceTest() {
         { "\n\raa", "aa" },
     };
 
-    core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         const char* res = core::cptrSkipSpace(c.src);
-        Assert(core::cptrEq(res, c.expected, core::cptrLen(c.expected)), cErr);
+        CT_CHECK(core::cptrEq(res, c.expected, core::cptrLen(c.expected)), cErr);
+        return 0;
     });
 
-    return 0;
+    return ret;
 };
 
 i32 runCptrTestsSuite() {
-    RunTest(isDigitTest);
-    RunTest(isWhiteSpaceTest);
-    RunTest(cptrLenTest);
-    RunTest(cptrCmpTests);
-    RunTest(cptrEqTest);
-    RunTest(cptrCopyTest);
-    RunTest(cptrIdxOfCharTest);
-    RunTest(cptrIdxOfTest);
-    RunTest(cptrSkipWhiteSpaceTest);
+    using namespace core::testing;
 
-    return 0;
+    i32 ret = 0;
+    TestInfo tInfo = createTestInfo();
+
+    tInfo.name = FN_NAME_TO_CPTR(isDigitTest);
+    if (runTest(tInfo, isDigitTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(isWhiteSpaceTest);
+    if (runTest(tInfo, isWhiteSpaceTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cptrLenTest);
+    if (runTest(tInfo, cptrLenTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cptrCmpTests);
+    if (runTest(tInfo, cptrCmpTests) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cptrEqTest);
+    if (runTest(tInfo, cptrEqTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cptrCopyTest);
+    if (runTest(tInfo, cptrCopyTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cptrIdxOfCharTest);
+    if (runTest(tInfo, cptrIdxOfCharTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cptrIdxOfTest);
+    if (runTest(tInfo, cptrIdxOfTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cptrSkipWhiteSpaceTest);
+    if (runTest(tInfo, cptrSkipWhiteSpaceTest) != 0) { ret = -1; }
+
+    return ret;
 }
 
 constexpr i32 runCompiletimeCptrTestsSuite() {

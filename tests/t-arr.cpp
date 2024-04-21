@@ -82,11 +82,17 @@ i32 initializeArrTest() {
         CT_CHECK(a.cap() == 7);
         CT_CHECK(!a.empty());
 
+        PRAGMA_WARNING_PUSH
+
+        DISABLE_CLANG_WARNING(-Wself-move) // this is what I am testing here. I know it's wrong to do.
+
         a = std::move(a); // self assignment should not do anything
 
         CT_CHECK(a.len() == 7);
         CT_CHECK(a.cap() == 7);
         CT_CHECK(!a.empty());
+
+        PRAGMA_WARNING_POP
 
         a = core::ArrList<i32>(3, 9); // should work and should not leak memory
 
@@ -552,28 +558,19 @@ i32 runArrTestsSuite() {
     {
         constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE * 3;
         char buf[BUFFER_SIZE];
-        core::BumpAllocator localBumpAllocator(buf, BUFFER_SIZE);
-        defer {
-            // It's not strictly necessary to clear here, because the buffer is on the stack, but it's good practice.
-            localBumpAllocator.clear();
-        };
-        core::AllocatorContext localBumpAllocatorCtx = core::createAllocatorCtx(&localBumpAllocator);
-        core::setActiveAllocatorForThread(&localBumpAllocatorCtx);
-        defer { core::setActiveAllocatorForThread(nullptr); };
+        USE_STACK_BASED_BUMP_ALLOCATOR_FOR_BLOCK_SCOPE(buf, BUFFER_SIZE);
 
-        TestInfo tInfo = {};
+        TestInfo tInfo = createTestInfo();
+        tInfo.trackMemory = true;
         runTests(tInfo, "STACK BASED BUMP Allocator", ret);
     }
 
     {
         constexpr u32 BUFFER_SIZE = 256; // intentially small to test overflow.
-        core::StdArenaAllocator customArenaAllocator (BUFFER_SIZE);
-        defer { customArenaAllocator.clear(); }; // need to free the memory manually.
-        core::AllocatorContext customArenaAllocatorCtx = core::createAllocatorCtx(&customArenaAllocator);
-        core::setActiveAllocatorForThread(&customArenaAllocatorCtx);
-        defer { core::setActiveAllocatorForThread(nullptr); };
+        USE_CUSTOM_ARENA_ALLOCATOR_FOR_FOR_BLOCK_SCOPE(BUFFER_SIZE);
 
-        TestInfo tInfo = {};
+        TestInfo tInfo = createTestInfo();
+        tInfo.trackMemory = true;
         runTests(tInfo, "CUSTOM ARENA Allocator", ret);
     }
 

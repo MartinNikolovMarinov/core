@@ -70,35 +70,44 @@ i32 runAllTests() {
 
     i32 ret = 0;
     TestSuiteInfo sInfo;
+    sInfo.useAnsiColors = g_useAnsi;
 
     sInfo.name = FN_NAME_TO_CPTR(runAlgorithmsTestsSuite);
     if (runTestSuite(sInfo, runAlgorithmsTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runArrTestsSuite);
     if (runTestSuite(sInfo, runArrTestsSuite) != 0) { ret = -1; }
-    // RunTestSuite(runBitsTestsSuite);
-    // RunTestSuite(runCmdParserTestsSuite);
-    // RunTestSuite(runCptrConvTestsSuite);
-    // RunTestSuite(runCptrTestsSuite);
-    // RunTestSuite(runDeferTestsSuite);
-    // RunTestSuite(runExpectedTestsSuite);
-    // RunTestSuite(runHashMapTestsSuite);
+    // RunTestSuite(runCmdParserTestsSuite); // FIXME:
+    sInfo.name = FN_NAME_TO_CPTR(runBitsTestsSuite);
+    if (runTestSuite(sInfo, runBitsTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runCptrConvTestsSuite);
+    if (runTestSuite(sInfo, runCptrConvTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runCptrTestsSuite);
+    if (runTestSuite(sInfo, runCptrTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runDeferTestsSuite);
+    if (runTestSuite(sInfo, runDeferTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runExpectedTestsSuite);
+    if (runTestSuite(sInfo, runExpectedTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runHashMapTestsSuite);
+    if (runTestSuite(sInfo, runHashMapTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runHashTestsSuite);
     if (runTestSuite(sInfo, runHashTestsSuite) != 0) { ret = -1; }
-    // RunTestSuite(runIntrinsicsTestsSuite);
-    // RunTestSuite(runIntsTestsSuite);
-    // RunTestSuite(runMathTestsSuite);
-    // RunTestSuite(runMatrixTestsSuite);
-    // RunTestSuite(runMemTestsSuite);
+    // RunTestSuite(runIntrinsicsTestsSuite); // FIXME:
+    // RunTestSuite(runUtfTestsSuite); // FIXME:
+    // RunTestSuite(runIntsTestsSuite); // FIXME:
+    // RunTestSuite(runMathTestsSuite); // FIXME:
+    // RunTestSuite(runVecTestsSuite); // FIXME:
+    // RunTestSuite(runMatrixTestsSuite); // FIXME:
+    // RunTestSuite(runMemTestsSuite); // FIXME:
+    // RunTestSuite(runTransformsTestsSuite); // FIXME:
     sInfo.name = FN_NAME_TO_CPTR(runRndTestsSuite);
     if (runTestSuite(sInfo, runRndTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runStaticArrTestsSuite);
     if (runTestSuite(sInfo, runStaticArrTestsSuite) != 0) { ret = -1; }
-    // RunTestSuite(runStrBuilderTestsSuite);
-    // RunTestSuite(runTransformsTestsSuite);
-    // RunTestSuite(runTupleTestsSuite);
-    // RunTestSuite(runUniquePtrTestsSuite);
-    // RunTestSuite(runUtfTestsSuite);
-    // RunTestSuite(runVecTestsSuite);
+    // RunTestSuite(runStrBuilderTestsSuite); // FIXME:
+    // FIXME: write tests for string view !
+    sInfo.name = FN_NAME_TO_CPTR(runTupleTestsSuite);
+    if (runTestSuite(sInfo, runTupleTestsSuite) != 0) { ret = -1; }
+    // RunTestSuite(runUniquePtrTestsSuite); // FIXME:
 
     sInfo.name = FN_NAME_TO_CPTR(runBumpAllocatorTestsSuite);
     if (runTestSuite(sInfo, runBumpAllocatorTestsSuite) != 0) { ret = -1; }
@@ -116,11 +125,11 @@ i32 runAllTests() {
         sInfo.name = FN_NAME_TO_CPTR(runPltStacktraceTestsSuite);
         if (runTestSuite(sInfo, runPltStacktraceTestsSuite) != 0) { ret = -1; }
     #endif
-    // RunTestSuite(runPltThreadingTestsSuite);
-    // RunTestSuite(runPltTimeTestsSuite);
-    // RunTestSuite(runPltErrorTestsSuite);
-    // RunTestSuite(runPltPagesTestsSuite);
-    // RunTestSuite(runPltFileSystemTestsSuite);
+    // RunTestSuite(runPltThreadingTestsSuite); // FIXME:
+    // RunTestSuite(runPltTimeTestsSuite); // FIXME:
+    // RunTestSuite(runPltErrorTestsSuite); // FIXME:
+    // RunTestSuite(runPltPagesTestsSuite); // FIXME:
+    // RunTestSuite(runPltFileSystemTestsSuite); // FIXME:
 
     std::cout << '\n';
     if (ret == 0) {

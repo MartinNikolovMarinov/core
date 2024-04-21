@@ -33,7 +33,7 @@ constexpr i32 digitCountTest() {
         };
 
         core::testing::executeTestTable("test case failed for i32 at index: ", cases, [](auto& c, const char* cErr) {
-            Assert(core::digitCount(c.value) == c.expected, cErr);
+            CT_CHECK(core::digitCount(c.value) == c.expected, cErr);
         });
     }
     {
@@ -57,7 +57,7 @@ constexpr i32 digitCountTest() {
         };
 
         core::testing::executeTestTable("test case failed for u64 at index: ", cases, [](auto& c, const char* cErr) {
-            Assert(core::digitCount(c.value) == c.expected, cErr);
+            CT_CHECK(core::digitCount(c.value) == c.expected, cErr);
         });
     }
     {
@@ -110,7 +110,7 @@ constexpr i32 digitCountTest() {
         };
 
         core::testing::executeTestTable("test case failed for i64 at index: ", cases, [](auto& c, const char* cErr) {
-            Assert(core::digitCount(c.value) == c.expected, cErr);
+            CT_CHECK(core::digitCount(c.value) == c.expected, cErr);
         });
     }
     {
@@ -143,7 +143,7 @@ constexpr i32 digitCountTest() {
         };
 
         core::testing::executeTestTable("test case failed for u64 at index: ", cases, [](auto& c, const char* cErr) {
-            Assert(core::digitCount(c.value) == c.expected, cErr);
+            CT_CHECK(core::digitCount(c.value) == c.expected, cErr);
         });
     }
 

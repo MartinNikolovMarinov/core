@@ -14,21 +14,21 @@ constexpr i32 runTupleArgumentIncrementTest() {
     auto t1 = core::createTuple(1, A{2, 3.0}, u64(6));
     auto t2 = t1;
 
-    Assert(t1.get<0>() == t2.get<0>());
-    Assert(t1.get<1>() == t2.get<1>());
-    Assert(t1.get<2>() == t2.get<2>());
+    CT_CHECK(t1.get<0>() == t2.get<0>());
+    CT_CHECK(t1.get<1>() == t2.get<1>());
+    CT_CHECK(t1.get<2>() == t2.get<2>());
 
-    Assert(t1.get<2>() == 6);
+    CT_CHECK(t1.get<2>() == 6);
     auto& ref = t1.get<2>();
     ref++;
-    Assert(t1.get<2>() == 7);
+    CT_CHECK(t1.get<2>() == 7);
     auto& [a, b, c] = t1;
     c++;
-    Assert(t1.get<2>() == 8);
+    CT_CHECK(t1.get<2>() == 8);
 
-    Assert(t1.get<0>() == t2.get<0>());
-    Assert(t1.get<1>() == t2.get<1>());
-    Assert(t1.get<2>() != t2.get<2>());
+    CT_CHECK(t1.get<0>() == t2.get<0>());
+    CT_CHECK(t1.get<1>() == t2.get<1>());
+    CT_CHECK(t1.get<2>() != t2.get<2>());
 
     return 0;
 }
@@ -40,36 +40,36 @@ DISABLE_MSVC_WARNING(4127) // Disable conditional expression is constant. This i
 constexpr i32 runCreateTuplesOfDifferentSizesTest() {
     {
         auto t = core::createTuple(1, 2);
-        Assert(t.len == 2);
-        Assert(t.get<0>() == 1);
-        Assert(t.get<1>() == 2);
+        CT_CHECK(t.len == 2);
+        CT_CHECK(t.get<0>() == 1);
+        CT_CHECK(t.get<1>() == 2);
         auto [first, second] = t;
-        Assert(first == 1);
-        Assert(second == 2);
+        CT_CHECK(first == 1);
+        CT_CHECK(second == 2);
     }
     {
         auto t = core::createTuple(1, 2, 3);
-        Assert(t.len == 3);
-        Assert(t.get<0>() == 1);
-        Assert(t.get<1>() == 2);
-        Assert(t.get<2>() == 3);
+        CT_CHECK(t.len == 3);
+        CT_CHECK(t.get<0>() == 1);
+        CT_CHECK(t.get<1>() == 2);
+        CT_CHECK(t.get<2>() == 3);
         auto [first, second, third] = t;
-        Assert(first == 1);
-        Assert(second == 2);
-        Assert(third == 3);
+        CT_CHECK(first == 1);
+        CT_CHECK(second == 2);
+        CT_CHECK(third == 3);
     }
     {
         auto t = core::createTuple(1, 2, 3, 4);
-        Assert(t.len == 4);
-        Assert(t.get<0>() == 1);
-        Assert(t.get<1>() == 2);
-        Assert(t.get<2>() == 3);
-        Assert(t.get<3>() == 4);
+        CT_CHECK(t.len == 4);
+        CT_CHECK(t.get<0>() == 1);
+        CT_CHECK(t.get<1>() == 2);
+        CT_CHECK(t.get<2>() == 3);
+        CT_CHECK(t.get<3>() == 4);
         auto [first, second, third, fourth] = t;
-        Assert(first == 1);
-        Assert(second == 2);
-        Assert(third == 3);
-        Assert(fourth == 4);
+        CT_CHECK(first == 1);
+        CT_CHECK(second == 2);
+        CT_CHECK(third == 3);
+        CT_CHECK(fourth == 4);
     }
 
     return 0;
@@ -78,9 +78,17 @@ constexpr i32 runCreateTuplesOfDifferentSizesTest() {
 PRAGMA_WARNING_POP
 
 i32 runTupleTestsSuite() {
-    RunTest(runTupleArgumentIncrementTest);
-    RunTest(runCreateTuplesOfDifferentSizesTest);
-    return 0;
+    using namespace core::testing;
+
+    i32 ret = 0;
+    TestInfo tInfo = createTestInfo();
+
+    tInfo.name = FN_NAME_TO_CPTR(runTupleArgumentIncrementTest);
+    if (runTest(tInfo, runTupleArgumentIncrementTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(runCreateTuplesOfDifferentSizesTest);
+    if (runTest(tInfo, runCreateTuplesOfDifferentSizesTest) != 0) { ret = -1; }
+
+    return ret;
 }
 
 constexpr i32 runCompiletimeTupleTestsSuite() {

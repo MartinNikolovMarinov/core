@@ -55,7 +55,10 @@ void StdStatsAllocator::free(void* ptr, addr_size count, addr_size size) {
     std::free(ptr);
 }
 
-void StdStatsAllocator::clear() {}
+void StdStatsAllocator::clear() {
+    m_totalMemoryAllocated.store(0);
+    m_inUseMemory.store(0);
+}
 addr_size StdStatsAllocator::totalMemoryAllocated() { return m_totalMemoryAllocated.load(); }
 addr_size StdStatsAllocator::inUseMemory() { return m_inUseMemory.load(); }
 

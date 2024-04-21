@@ -48,31 +48,31 @@ i32 cmdFlagParserSymbolParsingTest() {
     CmdFlagParser parser;
 
     auto ret = parser.parse(__cmd_flag_test_input_1_len, __cmd_flag_test_input_1);
-    Assert(!ret.hasErr());
+    CT_CHECK(!ret.hasErr());
 
     auto& symbols = parser.parsedSymbols();
 
-    Assert(symbols.len() == __cmd_flag_test_input_1_len);
+    CT_CHECK(symbols.len() == __cmd_flag_test_input_1_len);
 
     // Check the program name:
     {
-        Assert(symbols[0].type == CmdFlagParser::ParsedSymbolType::ProgramName);
-        Assert(symbols[0].value.eq(sv("das.exe")));
-        Assert(parser.programName().eq(sv("das.exe")));
+        CT_CHECK(symbols[0].type == CmdFlagParser::ParsedSymbolType::ProgramName);
+        CT_CHECK(symbols[0].value.eq(sv("das.exe")));
+        CT_CHECK(parser.programName().eq(sv("das.exe")));
     }
 
     // Check the program argument list:
     {
-        Assert(symbols[1].type == CmdFlagParser::ParsedSymbolType::Argument);
-        Assert(symbols[1].value.eq(sv("adsad")));
-        Assert(symbols[2].type == CmdFlagParser::ParsedSymbolType::Argument);
-        Assert(symbols[2].value.eq(sv("zxczxc")));
+        CT_CHECK(symbols[1].type == CmdFlagParser::ParsedSymbolType::Argument);
+        CT_CHECK(symbols[1].value.eq(sv("adsad")));
+        CT_CHECK(symbols[2].type == CmdFlagParser::ParsedSymbolType::Argument);
+        CT_CHECK(symbols[2].value.eq(sv("zxczxc")));
 
         parser.arguments([](core::StrView arg, addr_size idx) -> bool {
             switch (idx) {
-                case 0: Assert(arg.eq(sv("adsad"))); break;
-                case 1: Assert(arg.eq(sv("zxczxc"))); break;
-                default: Assert(false); break;
+                case 0: CT_CHECK(arg.eq(sv("adsad"))); break;
+                case 1: CT_CHECK(arg.eq(sv("zxczxc"))); break;
+                default: CT_CHECK(false); break;
             }
             return true;
         });
@@ -80,43 +80,43 @@ i32 cmdFlagParserSymbolParsingTest() {
 
     // Check the rest:
     {
-        Assert(symbols[3].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[3].value.eq(sv("b")));
-        Assert(symbols[4].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[4].value.eq(sv("asd")));
-        Assert(symbols[5].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[5].value.eq(sv("basd")));
-        Assert(symbols[6].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[6].value.eq(sv("-123")));
-        Assert(symbols[7].type == CmdFlagParser::ParsedSymbolType::OptionName);
-        Assert(symbols[7].value.eq(sv("bb")));
-        Assert(symbols[8].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[8].value.eq(sv("cc")));
-        Assert(symbols[9].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[9].value.eq(sv("asdasd")));
-        Assert(symbols[10].type == CmdFlagParser::ParsedSymbolType::OptionName);
-        Assert(symbols[10].value.eq(sv("bb")));
-        Assert(symbols[11].type == CmdFlagParser::ParsedSymbolType::OptionName);
-        Assert(symbols[11].value.eq(sv("zz")));
+        CT_CHECK(symbols[3].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[3].value.eq(sv("b")));
+        CT_CHECK(symbols[4].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[4].value.eq(sv("asd")));
+        CT_CHECK(symbols[5].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[5].value.eq(sv("basd")));
+        CT_CHECK(symbols[6].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[6].value.eq(sv("-123")));
+        CT_CHECK(symbols[7].type == CmdFlagParser::ParsedSymbolType::OptionName);
+        CT_CHECK(symbols[7].value.eq(sv("bb")));
+        CT_CHECK(symbols[8].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[8].value.eq(sv("cc")));
+        CT_CHECK(symbols[9].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[9].value.eq(sv("asdasd")));
+        CT_CHECK(symbols[10].type == CmdFlagParser::ParsedSymbolType::OptionName);
+        CT_CHECK(symbols[10].value.eq(sv("bb")));
+        CT_CHECK(symbols[11].type == CmdFlagParser::ParsedSymbolType::OptionName);
+        CT_CHECK(symbols[11].value.eq(sv("zz")));
 
         // Check the flags:
         {
             i32 flagsChecker[] = { 0, 0, 0 };
             parser.flags([&flagsChecker](core::StrView flag, core::StrView value) -> bool {
                 if (flag.eq(sv("b"))) {
-                    Assert(value.eq(sv("asd")));
+                    CT_CHECK(value.eq(sv("asd")));
                     flagsChecker[0]++;
                 }
                 else if (flag.eq(sv("basd"))) {
-                    Assert(value.eq(sv("-123")));
+                    CT_CHECK(value.eq(sv("-123")));
                     flagsChecker[1]++;
                 }
                 else if (flag.eq(sv("cc"))) {
-                    Assert(value.eq(sv("asdasd")));
+                    CT_CHECK(value.eq(sv("asdasd")));
                     flagsChecker[2]++;
                 }
                 else {
-                    Assert(false, "Parsed somthing that shouldn't have been parsed!");
+                    CT_CHECK(false, "Parsed somthing that shouldn't have been parsed!");
                 }
 
                 return true;
@@ -124,7 +124,7 @@ i32 cmdFlagParserSymbolParsingTest() {
 
             // Check that all flags were parsed and iterated over exactly once:
             for (auto v : flagsChecker) {
-                Assert(v == 1);
+                CT_CHECK(v == 1);
             }
         }
 
@@ -139,15 +139,15 @@ i32 cmdFlagParserSymbolParsingTest() {
                     optionsChecker[1]++;
                 }
                 else {
-                    Assert(false, "Parsed somthing that shouldn't have been parsed!");
+                    CT_CHECK(false, "Parsed somthing that shouldn't have been parsed!");
                 }
 
                 return true;
             });
 
             // Check that all options were parsed and iterated over exactly once:
-            Assert(optionsChecker[0] == 2); // this should be set twice.
-            Assert(optionsChecker[1] == 1);
+            CT_CHECK(optionsChecker[0] == 2); // this should be set twice.
+            CT_CHECK(optionsChecker[1] == 1);
         }
     }
 
@@ -162,17 +162,17 @@ i32 cmdFlagParserSymbolParsingLongerTest() {
     CmdFlagParser parser;
 
     auto ret = parser.parse(__cmd_flag_test_input_2_len, __cmd_flag_test_input_2);
-    Assert(!ret.hasErr());
+    CT_CHECK(!ret.hasErr());
 
     auto& symbols = parser.parsedSymbols();
 
-    Assert(symbols.len() == __cmd_flag_test_input_2_len);
+    CT_CHECK(symbols.len() == __cmd_flag_test_input_2_len);
 
     // Check the program name:
     {
-        Assert(symbols[0].type == CmdFlagParser::ParsedSymbolType::ProgramName);
-        Assert(symbols[0].value.eq(sv("name_of_program")));
-        Assert(parser.programName().eq(sv("name_of_program")));
+        CT_CHECK(symbols[0].type == CmdFlagParser::ParsedSymbolType::ProgramName);
+        CT_CHECK(symbols[0].value.eq(sv("name_of_program")));
+        CT_CHECK(parser.programName().eq(sv("name_of_program")));
     }
 
     // Check argument list:
@@ -182,95 +182,95 @@ i32 cmdFlagParserSymbolParsingLongerTest() {
             none++;
             return true;
         });
-        Assert(none == 0);
+        CT_CHECK(none == 0);
     }
 
     // Check the flags:
     {
-        Assert(symbols[1].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[1].value.eq(sv("bool-1")));
-        Assert(symbols[2].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[2].value.eq(sv("t")));
-        Assert(symbols[3].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[3].value.eq(sv("bool-2")));
-        Assert(symbols[4].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[4].value.eq(sv("T")));
-        Assert(symbols[5].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[5].value.eq(sv("bool-3")));
-        Assert(symbols[6].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[6].value.eq(sv("true")));
-        Assert(symbols[7].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[7].value.eq(sv("bool-4")));
-        Assert(symbols[8].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[8].value.eq(sv("TRUE")));
-        Assert(symbols[9].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[9].value.eq(sv("bool-5")));
-        Assert(symbols[10].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[10].value.eq(sv("True")));
-        Assert(symbols[11].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[11].value.eq(sv("bool-6")));
-        Assert(symbols[12].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[12].value.eq(sv("1")));
-        Assert(symbols[13].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[13].value.eq(sv("bool-7")));
-        Assert(symbols[14].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[14].value.eq(sv("false")));
-        Assert(symbols[15].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[15].value.eq(sv("bool-8")));
-        Assert(symbols[16].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[16].value.eq(sv("zxcasdasd")));
-        Assert(symbols[17].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[17].value.eq(sv("int32")));
-        Assert(symbols[18].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[18].value.eq(sv("0004")));
-        Assert(symbols[19].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[19].value.eq(sv("int64")));
-        Assert(symbols[20].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[20].value.eq(sv("-13")));
-        Assert(symbols[21].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[21].value.eq(sv("uint32")));
-        Assert(symbols[22].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[22].value.eq(sv("19")));
-        Assert(symbols[23].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[23].value.eq(sv("uint64")));
-        Assert(symbols[24].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[24].value.eq(sv("99asad")));
-        Assert(symbols[25].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[25].value.eq(sv("string")));
-        Assert(symbols[26].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[26].value.eq(sv("banicata   fsa")));
-        Assert(symbols[27].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[27].value.eq(sv("float32-1")));
-        Assert(symbols[28].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[28].value.eq(sv("1.2")));
-        Assert(symbols[29].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[29].value.eq(sv("float32-2")));
-        Assert(symbols[30].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[30].value.eq(sv(".5.")));
-        Assert(symbols[31].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[31].value.eq(sv("float32-3")));
-        Assert(symbols[32].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[32].value.eq(sv("1.")));
-        Assert(symbols[33].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[33].value.eq(sv("float32-4")));
-        Assert(symbols[34].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[34].value.eq(sv("-1.2cvxc")));
-        Assert(symbols[35].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[35].value.eq(sv("float64-5")));
-        Assert(symbols[36].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[36].value.eq(sv("1.2.")));
-        Assert(symbols[37].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[37].value.eq(sv("float64-6")));
-        Assert(symbols[38].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[38].value.eq(sv("7...")));
-        Assert(symbols[39].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[39].value.eq(sv("float64-7")));
-        Assert(symbols[40].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[40].value.eq(sv("-1.2")));
-        Assert(symbols[41].type == CmdFlagParser::ParsedSymbolType::FlagName);
-        Assert(symbols[41].value.eq(sv("float64-8")));
-        Assert(symbols[42].type == CmdFlagParser::ParsedSymbolType::FlagValue);
-        Assert(symbols[42].value.eq(sv("00012.000005")));
+        CT_CHECK(symbols[1].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[1].value.eq(sv("bool-1")));
+        CT_CHECK(symbols[2].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[2].value.eq(sv("t")));
+        CT_CHECK(symbols[3].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[3].value.eq(sv("bool-2")));
+        CT_CHECK(symbols[4].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[4].value.eq(sv("T")));
+        CT_CHECK(symbols[5].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[5].value.eq(sv("bool-3")));
+        CT_CHECK(symbols[6].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[6].value.eq(sv("true")));
+        CT_CHECK(symbols[7].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[7].value.eq(sv("bool-4")));
+        CT_CHECK(symbols[8].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[8].value.eq(sv("TRUE")));
+        CT_CHECK(symbols[9].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[9].value.eq(sv("bool-5")));
+        CT_CHECK(symbols[10].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[10].value.eq(sv("True")));
+        CT_CHECK(symbols[11].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[11].value.eq(sv("bool-6")));
+        CT_CHECK(symbols[12].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[12].value.eq(sv("1")));
+        CT_CHECK(symbols[13].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[13].value.eq(sv("bool-7")));
+        CT_CHECK(symbols[14].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[14].value.eq(sv("false")));
+        CT_CHECK(symbols[15].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[15].value.eq(sv("bool-8")));
+        CT_CHECK(symbols[16].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[16].value.eq(sv("zxcasdasd")));
+        CT_CHECK(symbols[17].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[17].value.eq(sv("int32")));
+        CT_CHECK(symbols[18].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[18].value.eq(sv("0004")));
+        CT_CHECK(symbols[19].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[19].value.eq(sv("int64")));
+        CT_CHECK(symbols[20].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[20].value.eq(sv("-13")));
+        CT_CHECK(symbols[21].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[21].value.eq(sv("uint32")));
+        CT_CHECK(symbols[22].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[22].value.eq(sv("19")));
+        CT_CHECK(symbols[23].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[23].value.eq(sv("uint64")));
+        CT_CHECK(symbols[24].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[24].value.eq(sv("99asad")));
+        CT_CHECK(symbols[25].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[25].value.eq(sv("string")));
+        CT_CHECK(symbols[26].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[26].value.eq(sv("banicata   fsa")));
+        CT_CHECK(symbols[27].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[27].value.eq(sv("float32-1")));
+        CT_CHECK(symbols[28].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[28].value.eq(sv("1.2")));
+        CT_CHECK(symbols[29].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[29].value.eq(sv("float32-2")));
+        CT_CHECK(symbols[30].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[30].value.eq(sv(".5.")));
+        CT_CHECK(symbols[31].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[31].value.eq(sv("float32-3")));
+        CT_CHECK(symbols[32].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[32].value.eq(sv("1.")));
+        CT_CHECK(symbols[33].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[33].value.eq(sv("float32-4")));
+        CT_CHECK(symbols[34].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[34].value.eq(sv("-1.2cvxc")));
+        CT_CHECK(symbols[35].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[35].value.eq(sv("float64-5")));
+        CT_CHECK(symbols[36].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[36].value.eq(sv("1.2.")));
+        CT_CHECK(symbols[37].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[37].value.eq(sv("float64-6")));
+        CT_CHECK(symbols[38].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[38].value.eq(sv("7...")));
+        CT_CHECK(symbols[39].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[39].value.eq(sv("float64-7")));
+        CT_CHECK(symbols[40].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[40].value.eq(sv("-1.2")));
+        CT_CHECK(symbols[41].type == CmdFlagParser::ParsedSymbolType::FlagName);
+        CT_CHECK(symbols[41].value.eq(sv("float64-8")));
+        CT_CHECK(symbols[42].type == CmdFlagParser::ParsedSymbolType::FlagValue);
+        CT_CHECK(symbols[42].value.eq(sv("00012.000005")));
     }
 
     return 0;
@@ -285,72 +285,72 @@ i32 cmdFlagParserBasicErrorsTest() {
     {
         const char* input[] = { "lies" };
         auto ret = parser.parse(CmdFlagParser::MAX_ARG_COUNT + 1, input);
-        Assert(ret.hasErr());
-        Assert(ret.err() == CmdFlagParser::ParseError::ArgumentListTooLong);
+        CT_CHECK(ret.hasErr());
+        CT_CHECK(ret.err() == CmdFlagParser::ParseError::ArgumentListTooLong);
     }
     {
         auto ret = parser.parse(5, nullptr);
-        Assert(ret.hasErr());
-        Assert(ret.err() == CmdFlagParser::ParseError::NothingToParse);
+        CT_CHECK(ret.hasErr());
+        CT_CHECK(ret.err() == CmdFlagParser::ParseError::NothingToParse);
     }
     {
         const char* input[] = { "lies" };
         auto ret = parser.parse(0, input);
-        Assert(ret.hasErr());
-        Assert(ret.err() == CmdFlagParser::ParseError::NothingToParse);
+        CT_CHECK(ret.hasErr());
+        CT_CHECK(ret.err() == CmdFlagParser::ParseError::NothingToParse);
     }
     {
         const char* input[] = { nullptr };
         constexpr addr_size len = sizeof(input) / sizeof(input[0]);
         auto ret = parser.parse(len, input);
-        Assert(ret.hasErr());
-        Assert(ret.err() == CmdFlagParser::ParseError::InvalidArgvElement);
+        CT_CHECK(ret.hasErr());
+        CT_CHECK(ret.err() == CmdFlagParser::ParseError::InvalidArgvElement);
     }
     {
         const char* input[] = { "a", "asd", nullptr };
         constexpr addr_size len = sizeof(input) / sizeof(input[0]);
         auto ret = parser.parse(len, input);
-        Assert(ret.hasErr());
-        Assert(ret.err() == CmdFlagParser::ParseError::InvalidArgvElement);
+        CT_CHECK(ret.hasErr());
+        CT_CHECK(ret.err() == CmdFlagParser::ParseError::InvalidArgvElement);
     }
     {
         const char* input[] = { "a", "-a", nullptr };
         constexpr addr_size len = sizeof(input) / sizeof(input[0]);
         auto ret = parser.parse(len, input);
-        Assert(ret.hasErr());
-        Assert(ret.err() == CmdFlagParser::ParseError::InvalidArgvElement);
+        CT_CHECK(ret.hasErr());
+        CT_CHECK(ret.err() == CmdFlagParser::ParseError::InvalidArgvElement);
     }
     {
         // Values must be associated with flags not options.
         const char* input[] = { "a", "--b", "c" };
         constexpr addr_size len = sizeof(input) / sizeof(input[0]);
         auto ret = parser.parse(len, input);
-        Assert(ret.hasErr());
-        Assert(ret.err() == CmdFlagParser::ParseError::IncorrectValue);
+        CT_CHECK(ret.hasErr());
+        CT_CHECK(ret.err() == CmdFlagParser::ParseError::IncorrectValue);
     }
     {
         // Multiple values for a single flag are not allowed.
         const char* input[] = { "a", "-b", "c", "d", "--f" };
         constexpr addr_size len = sizeof(input) / sizeof(input[0]);
         auto ret = parser.parse(len, input);
-        Assert(ret.hasErr());
-        Assert(ret.err() == CmdFlagParser::ParseError::IncorrectValue);
+        CT_CHECK(ret.hasErr());
+        CT_CHECK(ret.err() == CmdFlagParser::ParseError::IncorrectValue);
     }
     {
         // Dangling flag.
         const char* input[] = { "a", "-b", "c", "-d" };
         constexpr addr_size len = sizeof(input) / sizeof(input[0]);
         auto ret = parser.parse(len, input);
-        Assert(ret.hasErr());
-        Assert(ret.err() == CmdFlagParser::ParseError::FlagWithoutValue);
+        CT_CHECK(ret.hasErr());
+        CT_CHECK(ret.err() == CmdFlagParser::ParseError::FlagWithoutValue);
     }
     {
         // Dangling flag.
         const char* input[] = { "a", "-b" };
         constexpr addr_size len = sizeof(input) / sizeof(input[0]);
         auto ret = parser.parse(len, input);
-        Assert(ret.hasErr());
-        Assert(ret.err() == CmdFlagParser::ParseError::FlagWithoutValue);
+        CT_CHECK(ret.hasErr());
+        CT_CHECK(ret.err() == CmdFlagParser::ParseError::FlagWithoutValue);
     }
 
     return 0;
@@ -365,14 +365,14 @@ i32 cmdFlagParserDoubleParsingTest() {
     {
         const char* input[] = { "a", "-b", "c" };
         auto res = parser.parse(3, input);
-        Assert(!res.hasErr());
-        Assert(parser.parsedSymbols().len() == 3);
+        CT_CHECK(!res.hasErr());
+        CT_CHECK(parser.parsedSymbols().len() == 3);
     }
     {
         const char* input[] = { "a", "-b", "c", "--f", "-d", "e" };
         auto res = parser.parse(6, input);
-        Assert(!res.hasErr());
-        Assert(parser.parsedSymbols().len() == 6);
+        CT_CHECK(!res.hasErr());
+        CT_CHECK(parser.parsedSymbols().len() == 6);
     }
 
     return 0;
@@ -428,50 +428,50 @@ i32 cmdFlagParserFriendlyInputMatchingTest() {
 
     {
         auto ret = parser.parse(__cmd_flag_test_input_2_len, __cmd_flag_test_input_2);
-        Assert(!ret.hasErr());
+        CT_CHECK(!ret.hasErr());
     }
 
     {
         auto ret = parser.matchFlags();
-        Assert(!ret.hasErr());
+        CT_CHECK(!ret.hasErr());
     }
 
     // Check integer parsing:
     {
-        Assert(a == 4);
-        Assert(b == -13);
-        Assert(c == 19);
-        Assert(d == 99);
+        CT_CHECK(a == 4);
+        CT_CHECK(b == -13);
+        CT_CHECK(c == 19);
+        CT_CHECK(d == 99);
     }
 
     // Check string parsing:
     {
-        Assert(!sbArg.empty());
-        Assert(core::cptrEq(sbArg.view().data(), "banicata   fsa", core::cptrLen("banicata   fsa")));
+        CT_CHECK(!sbArg.empty());
+        CT_CHECK(core::cptrEq(sbArg.view().data(), "banicata   fsa", core::cptrLen("banicata   fsa")));
     }
 
     // Check boolean parsing:
     {
-        Assert(bool_1);
-        Assert(bool_2);
-        Assert(bool_3);
-        Assert(bool_4);
-        Assert(bool_5);
-        Assert(bool_6);
-        Assert(!bool_7);
-        Assert(!bool_8);
+        CT_CHECK(bool_1);
+        CT_CHECK(bool_2);
+        CT_CHECK(bool_3);
+        CT_CHECK(bool_4);
+        CT_CHECK(bool_5);
+        CT_CHECK(bool_6);
+        CT_CHECK(!bool_7);
+        CT_CHECK(!bool_8);
     }
 
     // Check float parsing:
     {
-        Assert(core::safeEq(fa, 1.2f, 0.00001f));
-        Assert(core::safeEq(fb, 0.5f, 0.00001f));
-        Assert(core::safeEq(fc, 1.0f, 0.00001f));
-        Assert(core::safeEq(fd, -1.2f, 0.00001f));
-        Assert(core::safeEq(fe, 1.2, 0.00001));
-        Assert(core::safeEq(ff, 7.0, 0.00001));
-        Assert(core::safeEq(fg, -1.2, 0.00001));
-        Assert(core::safeEq(fh, 12.000005, 0.00001));
+        CT_CHECK(core::safeEq(fa, 1.2f, 0.00001f));
+        CT_CHECK(core::safeEq(fb, 0.5f, 0.00001f));
+        CT_CHECK(core::safeEq(fc, 1.0f, 0.00001f));
+        CT_CHECK(core::safeEq(fd, -1.2f, 0.00001f));
+        CT_CHECK(core::safeEq(fe, 1.2, 0.00001));
+        CT_CHECK(core::safeEq(ff, 7.0, 0.00001));
+        CT_CHECK(core::safeEq(fg, -1.2, 0.00001));
+        CT_CHECK(core::safeEq(fh, 12.000005, 0.00001));
 
     }
 
@@ -493,12 +493,12 @@ i32 cmdFlagParserMatchingEdgecasesTest() {
             const char* input[] = { "exe", "-int32 5", "8" };
             constexpr addr_size len = sizeof(input) / sizeof(input[0]);
             auto ret = parser.parse(len, input);
-            Assert(!ret.hasErr());
+            CT_CHECK(!ret.hasErr());
         }
         {
             auto ret = parser.matchFlags();
-            Assert(ret.hasErr());
-            Assert(ret.err() == CmdFlagParser::MatchError::UnknownFlag);
+            CT_CHECK(ret.hasErr());
+            CT_CHECK(ret.err() == CmdFlagParser::MatchError::UnknownFlag);
         }
     }
 
@@ -510,18 +510,18 @@ i32 cmdFlagParserMatchingEdgecasesTest() {
             const char* input[] = { "exe", "-int32", "8" };
             constexpr addr_size len = sizeof(input) / sizeof(input[0]);
             auto ret = parser.parse(len, input);
-            Assert(!ret.hasErr());
+            CT_CHECK(!ret.hasErr());
         }
         {
             auto ret = parser.matchFlags();
-            Assert(ret.hasErr());
-            Assert(ret.err() == CmdFlagParser::MatchError::UnknownFlag);
+            CT_CHECK(ret.hasErr());
+            CT_CHECK(ret.err() == CmdFlagParser::MatchError::UnknownFlag);
         }
         parser.setFlagInt32(&a, sv("int32"));
         {
             // Match again after setting the flag.
             auto ret = parser.matchFlags();
-            Assert(!ret.hasErr());
+            CT_CHECK(!ret.hasErr());
         }
     }
 
@@ -538,22 +538,22 @@ i32 cmdFlagParserMatchingEdgecasesTest() {
             const char* input[] = { "exe", "-int64", "8" };
             constexpr addr_size len = sizeof(input) / sizeof(input[0]);
             auto ret = parser.parse(len, input);
-            Assert(!ret.hasErr());
+            CT_CHECK(!ret.hasErr());
         }
         {
             auto ret = parser.matchFlags();
-            Assert(ret.hasErr());
-            Assert(ret.err() == CmdFlagParser::MatchError::MissingRequiredFlag);
+            CT_CHECK(ret.hasErr());
+            CT_CHECK(ret.err() == CmdFlagParser::MatchError::MissingRequiredFlag);
         }
         {
             const char* input[] = { "exe", "-int32", "8" };
             constexpr addr_size len = sizeof(input) / sizeof(input[0]);
             auto ret = parser.parse(len, input);
-            Assert(!ret.hasErr());
+            CT_CHECK(!ret.hasErr());
         }
         {
             auto ret = parser.matchFlags();
-            Assert(!ret.hasErr());
+            CT_CHECK(!ret.hasErr());
         }
     }
 
@@ -565,17 +565,17 @@ i32 cmdFlagParserMatchingEdgecasesTest() {
             const char* input[] = { "exe", "-int32", "8", "-int64", "8" };
             constexpr addr_size len = sizeof(input) / sizeof(input[0]);
             auto ret = parser.parse(len, input);
-            Assert(!ret.hasErr());
+            CT_CHECK(!ret.hasErr());
         }
         {
             auto ret = parser.matchFlags();
-            Assert(ret.hasErr());
-            Assert(ret.err() == CmdFlagParser::MatchError::UnknownFlag);
+            CT_CHECK(ret.hasErr());
+            CT_CHECK(ret.err() == CmdFlagParser::MatchError::UnknownFlag);
         }
         parser.allowUnknownFlags(true);
         {
             auto ret = parser.matchFlags();
-            Assert(!ret.hasErr());
+            CT_CHECK(!ret.hasErr());
         }
     }
 
@@ -613,8 +613,8 @@ i32 cmdParserValidationRulesTest() {
         constexpr addr_size len = sizeof(input) / sizeof(input[0]);
         Expect(parser.parse(len, input));
         auto res = parser.matchFlags();
-        Assert(res.hasErr());
-        Assert(res.err() == CmdFlagParser::MatchError::ValidationFailed);
+        CT_CHECK(res.hasErr());
+        CT_CHECK(res.err() == CmdFlagParser::MatchError::ValidationFailed);
     }
     {
         const char* input[] = { "exe", "-a", "1", "-b", "10" };
@@ -627,8 +627,8 @@ i32 cmdParserValidationRulesTest() {
         constexpr addr_size len = sizeof(input) / sizeof(input[0]);
         Expect(parser.parse(len, input));
         auto res = parser.matchFlags();
-        Assert(res.hasErr());
-        Assert(res.err() == CmdFlagParser::MatchError::ValidationFailed);
+        CT_CHECK(res.hasErr());
+        CT_CHECK(res.err() == CmdFlagParser::MatchError::ValidationFailed);
     }
     {
         const char* input[] = { "exe", "-a", "1", "-b", "10" };
@@ -667,8 +667,8 @@ i32 cmdParserAliasTest() {
         Expect(parser.parse(len, input));
         Expect(parser.matchFlags());
 
-        Assert(arg1 == 1);
-        Assert(arg2 == true);
+        CT_CHECK(arg1 == 1);
+        CT_CHECK(arg2 == true);
     }
 
     // Multiple aliases to the same flag:
@@ -686,7 +686,7 @@ i32 cmdParserAliasTest() {
         Expect(parser.parse(len, input));
         Expect(parser.matchFlags());
 
-        Assert(core::cptrEq(doubleAliased.view().data(), "override", core::cptrLen("override")));
+        CT_CHECK(core::cptrEq(doubleAliased.view().data(), "override", core::cptrLen("override")));
     }
 
     return 0;
@@ -701,9 +701,9 @@ i32 runCmdParserTestsSuite() {
     core::BumpAllocator::init(nullptr, buf, BUFF_SIZE);
 
     auto checkLeaks = []() {
-        Assert(core::StdAllocator::usedMem() == 0);
-        Assert(core::StdStatsAllocator::usedMem() == 0, "Memory leak detected!");
-        Assert(core::BumpAllocator::usedMem() == 0);
+        CT_CHECK(core::StdAllocator::usedMem() == 0);
+        CT_CHECK(core::StdStatsAllocator::usedMem() == 0, "Memory leak detected!");
+        CT_CHECK(core::BumpAllocator::usedMem() == 0);
     };
 
     {

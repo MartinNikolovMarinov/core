@@ -131,8 +131,6 @@ set(src_files
     src/math/core_projections.cpp
 
     src/testing/testing_framework.cpp
-
-    src/core_extensions/hash_functions.cpp
 )
 
 if(OS STREQUAL "linux")
@@ -253,7 +251,7 @@ if(CORE_BUILD_TESTS)
     set(test_executable ${executable_name}_test)
     # set(test_executable ${executable_name}_sandbox)
 
-    # Create test executable
+    # # Create test executable
     add_executable(${test_executable}
         ${test_executable}.cpp
 
@@ -261,13 +259,13 @@ if(CORE_BUILD_TESTS)
 
         tests/t-algorithms.cpp
         tests/t-arr.cpp
-        # tests/t-bits.cpp
+        tests/t-bits.cpp
         # tests/t-cmd_flag_parser.cpp
-        # tests/t-cptr_conv.cpp
-        # tests/t-cptr.cpp
-        # tests/t-defer.cpp
-        # tests/t-expected.cpp
-        # tests/t-hash_map.cpp
+        tests/t-cptr_conv.cpp
+        tests/t-cptr.cpp
+        tests/t-defer.cpp
+        tests/t-expected.cpp
+        tests/t-hash_map.cpp
         tests/t-hash.cpp
         # tests/t-intrinsics.cpp
         # tests/t-ints.cpp
@@ -275,7 +273,7 @@ if(CORE_BUILD_TESTS)
         tests/t-rnd.cpp
         tests/t-sarr.cpp
         # tests/t-str_builder.cpp
-        # tests/t-tuple.cpp
+        tests/t-tuple.cpp
         # tests/t-unique_ptr.cpp
         # tests/t-utf.cpp
 

@@ -65,8 +65,7 @@ i32 runPltStacktraceTestsSuite() {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo = {};
-    tInfo.trackMemory = false;
+    TestInfo tInfo = createTestInfo();
 
     tInfo.name = FN_NAME_TO_CPTR(callingStacktraceDoesNotCrashTest);
     if (runTest(tInfo, callingStacktraceDoesNotCrashTest) != 0) { ret = -1; }

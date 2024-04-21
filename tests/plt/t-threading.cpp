@@ -4,9 +4,9 @@
 
 i32 getNumberOfCoresTest() {
     i32 n = ValueOrDie(core::threadingGetNumCores());
-    Assert(n > 0);
+    CT_CHECK(n > 0);
     u32 stdN = std::thread::hardware_concurrency();
-    Assert(u32(n) == stdN);
+    CT_CHECK(u32(n) == stdN);
     return 0;
 }
 
@@ -23,7 +23,7 @@ i32 threadNameingTest() {
         auto res = core::threadingGetName(buff);
         if (!res.hasErr()) {
             // Might have an error or might be empty.
-            Assert(core::cptrEq(buff, "", core::cptrLen("")));
+            CT_CHECK(core::cptrEq(buff, "", core::cptrLen("")));
         }
     }
 
@@ -31,14 +31,14 @@ i32 threadNameingTest() {
         Expect(core::threadingSetName("First Name"));
         core::memset(buff, 0, core::MAX_THREAD_NAME_LENGTH);
         Expect(core::threadingGetName(buff));
-        Assert(core::cptrEq(buff, "First Name", core::cptrLen("First Name")));
+        CT_CHECK(core::cptrEq(buff, "First Name", core::cptrLen("First Name")));
     }
 
     {
         Expect(core::threadingSetName("Name Change"));
         core::memset(buff, 0, core::MAX_THREAD_NAME_LENGTH);
         Expect(core::threadingGetName(buff));
-        Assert(core::cptrEq(buff, "Name Change", core::cptrLen("Name Change")));
+        CT_CHECK(core::cptrEq(buff, "Name Change", core::cptrLen("Name Change")));
     }
 
     return 0;
@@ -49,21 +49,21 @@ i32 threadDetachDoesNotBreak() {
 
     {
         auto res = core::threadDetach(t);
-        Assert(res.hasErr(), "Detaching a thread that is not initialized should fail.");
-        Assert(res.err() == core::ERR_THREAD_FAILED_TO_ACQUIRE_LOCK, "Invalid error code.");
+        CT_CHECK(res.hasErr(), "Detaching a thread that is not initialized should fail.");
+        CT_CHECK(res.err() == core::ERR_THREAD_FAILED_TO_ACQUIRE_LOCK, "Invalid error code.");
     }
 
     Expect(core::threadInit(t));
     {
         auto res = core::threadDetach(t);
-        Assert(res.hasErr(), "Detaching a thread that is not running should fail.");
-        Assert(res.err() == core::ERR_THREAD_IS_NOT_JOINABLE_OR_DETACHABLE, "Invalid error code.");
+        CT_CHECK(res.hasErr(), "Detaching a thread that is not running should fail.");
+        CT_CHECK(res.err() == core::ERR_THREAD_IS_NOT_JOINABLE_OR_DETACHABLE, "Invalid error code.");
     }
 
     Expect(core::threadStart(t, nullptr, [](void*) { core::threadingSleep(100); }));
     {
         auto res = core::threadDetach(t);
-        Assert(!res.hasErr(), "Failed to detach thread.");
+        CT_CHECK(!res.hasErr(), "Failed to detach thread.");
     }
 
     return 0;
@@ -72,7 +72,7 @@ i32 threadDetachDoesNotBreak() {
 i32 getCurrentThreadTest() {
     core::Thread t;
     Expect(core::threadingGetCurrent(t));
-    Assert(core::threadIsRunning(t));
+    CT_CHECK(core::threadIsRunning(t));
     return 0;
 }
 
@@ -89,25 +89,25 @@ i32 start2ThreadsAndJoinThemTest() {
 
     {
         auto res = core::threadStart(t1, nullptr, [](void*) {});
-        Assert(res.hasErr(), "Starting a thread that is not initialized should fail.");
-        Assert(res.err() == core::ERR_THREAD_FAILED_TO_ACQUIRE_LOCK, "Invalid error code.");
+        CT_CHECK(res.hasErr(), "Starting a thread that is not initialized should fail.");
+        CT_CHECK(res.err() == core::ERR_THREAD_FAILED_TO_ACQUIRE_LOCK, "Invalid error code.");
     }
 
     Expect(core::threadInit(t1));
     Expect(core::threadInit(t2));
 
-    Assert(core::threadIsRunning(t1) == false);
-    Assert(core::threadIsRunning(t2) == false);
+    CT_CHECK(core::threadIsRunning(t1) == false);
+    CT_CHECK(core::threadIsRunning(t2) == false);
 
     // In this case arguments could be on the stack, because the threads are joined before the function returns, but
     // in general started threads will outlive the current stack frame, dus the lifetime of the arguments must be
     // managed on the heap.
     Args* t1Args = reinterpret_cast<Args*>(TAlloc::alloc(sizeof(Args)));
-    Assert(t1Args != nullptr);
+    CT_CHECK(t1Args != nullptr);
     *t1Args = {&t1Done};
     defer { TAlloc::free(t1Args, sizeof(Args)); };
     Args* t2Args = reinterpret_cast<Args*>(TAlloc::alloc(sizeof(Args)));
-    Assert(t2Args != nullptr);
+    CT_CHECK(t2Args != nullptr);
     *t2Args = {&t2Done};
     defer { TAlloc::free(t2Args, sizeof(Args)); };
 
@@ -116,7 +116,7 @@ i32 start2ThreadsAndJoinThemTest() {
             Args* args = reinterpret_cast<Args*>(arg);
             *args->done = true;
         });
-        Assert(!res.hasErr());
+        CT_CHECK(!res.hasErr());
     }
 
     {
@@ -124,16 +124,16 @@ i32 start2ThreadsAndJoinThemTest() {
             Args* args = reinterpret_cast<Args*>(arg);
             *args->done = true;
         });
-        Assert(!res.hasErr());
+        CT_CHECK(!res.hasErr());
     }
 
     Expect(core::threadJoin(t1));
-    Assert(core::threadIsRunning(t1) == false);
-    Assert(t1Done == true);
+    CT_CHECK(core::threadIsRunning(t1) == false);
+    CT_CHECK(t1Done == true);
 
     Expect(core::threadJoin(t2));
-    Assert(core::threadIsRunning(t2) == false);
-    Assert(t2Done == true);
+    CT_CHECK(core::threadIsRunning(t2) == false);
+    CT_CHECK(t2Done == true);
 
     return 0;
 }
@@ -172,7 +172,7 @@ i32 mutexPreventsRaceConditionsTest() {
                 Expect(core::mutexUnlock(mu));
             }
         });
-        Assert(!res.hasErr());
+        CT_CHECK(!res.hasErr());
     }
 
     {
@@ -187,13 +187,13 @@ i32 mutexPreventsRaceConditionsTest() {
                 Expect(core::mutexUnlock(mu));
             }
         });
-        Assert(!res.hasErr());
+        CT_CHECK(!res.hasErr());
     }
 
     Expect(core::threadJoin(t1));
     Expect(core::threadJoin(t2));
 
-    Assert(counter == 200000, "Race condition was not prevented by the mutex.");
+    CT_CHECK(counter == 200000, "Race condition was not prevented by the mutex.");
 
     return 0;
 }

@@ -24,7 +24,7 @@ constexpr i32 alignTest() {
 
     core::testing::executeTestTable("alignTest failed at index: ", cases, [](auto& c, const char* cErr) {
         auto got = core::align(c.in);
-        Assert(got == c.expected, cErr);
+        CT_CHECK(got == c.expected, cErr);
     });
 
     return 0;
@@ -45,8 +45,8 @@ i32 swapBytesTest() {
         core::swapBytes(a, b, N);
 
         for (addr_size i = 0; i < N; ++i) {
-            Assert(a[i] == i + N);
-            Assert(b[i] == i);
+            CT_CHECK(a[i] == i + N);
+            CT_CHECK(b[i] == i);
         }
     };
 
@@ -78,12 +78,12 @@ i32 swapBytesTest() {
         A a1 = { core::MAX_I32, core::MAX_U64, core::MAX_U8 };
         A a2 = { core::MIN_I32, 0, 0 };
         core::swapBytes(&a1, &a2, sizeof(A));
-        Assert(a1.a == core::MIN_I32);
-        Assert(a1.b == 0);
-        Assert(a1.c == 0);
-        Assert(a2.a == core::MAX_I32);
-        Assert(a2.b == core::MAX_U64);
-        Assert(a2.c == core::MAX_U8);
+        CT_CHECK(a1.a == core::MIN_I32);
+        CT_CHECK(a1.b == 0);
+        CT_CHECK(a1.c == 0);
+        CT_CHECK(a2.a == core::MAX_I32);
+        CT_CHECK(a2.b == core::MAX_U64);
+        CT_CHECK(a2.c == core::MAX_U8);
     }
     {
         struct A {
@@ -95,16 +95,16 @@ i32 swapBytesTest() {
         A a1 = { 1, {2, 3, 4}, 5 };
         A a2 = { 5, {6, 7, 8}, 9 };
         core::swapBytes(&a1, &a2, sizeof(A));
-        Assert(a1.a == 5);
-        Assert(a1.b[0] == 6);
-        Assert(a1.b[1] == 7);
-        Assert(a1.b[2] == 8);
-        Assert(a1.c == 9);
-        Assert(a2.a == 1);
-        Assert(a2.b[0] == 2);
-        Assert(a2.b[1] == 3);
-        Assert(a2.b[2] == 4);
-        Assert(a2.c == 5);
+        CT_CHECK(a1.a == 5);
+        CT_CHECK(a1.b[0] == 6);
+        CT_CHECK(a1.b[1] == 7);
+        CT_CHECK(a1.b[2] == 8);
+        CT_CHECK(a1.c == 9);
+        CT_CHECK(a2.a == 1);
+        CT_CHECK(a2.b[0] == 2);
+        CT_CHECK(a2.b[1] == 3);
+        CT_CHECK(a2.b[2] == 4);
+        CT_CHECK(a2.c == 5);
     }
 
     return 0;
@@ -125,12 +125,12 @@ i32 memcopyTest() {
         u8 buf[N] = {};
         core::memcopy(buf, sequence, addr_size(i)); // copy the sequence into the buffer to i
         for (i32 j = 0; j < i; j++) {
-            // Assert that the first i bytes are the same as the sequence
-            Assert(buf[j] == j);
+            // CT_CHECK that the first i bytes are the same as the sequence
+            CT_CHECK(buf[j] == j);
         }
         for (i32 j = i; j < N; j++) {
-            // Assert that the rest are all zeroes
-            Assert(buf[j] == 0);
+            // CT_CHECK that the rest are all zeroes
+            CT_CHECK(buf[j] == 0);
         }
     }
 
@@ -143,12 +143,12 @@ i32 memsetTest() {
         u8 buf[N] = {};
         core::memset(buf, 7, addr_size(i)); // set the first i bytes to 7
         for (i32 j = 0; j < i; j++) {
-            // Assert that the first i bytes are 7
-            Assert(buf[j] == 7);
+            // CT_CHECK that the first i bytes are 7
+            CT_CHECK(buf[j] == 7);
         }
         for (i32 j = i; j < N; j++) {
-            // Assert that the rest are all zeroes
-            Assert(buf[j] == 0);
+            // CT_CHECK that the rest are all zeroes
+            CT_CHECK(buf[j] == 0);
         }
     }
 
@@ -175,9 +175,9 @@ i32 memcmpTest() {
 
     core::testing::executeTestTable("memcmpTest failed at index: ", cases, [](auto& c, const char* cErr) {
         switch (c.expected) {
-            case 1:  Assert(core::memcmp(c.a, c.b, c.n) > 0, cErr);  break;
-            case -1: Assert(core::memcmp(c.a, c.b, c.n) < 0, cErr);  break;
-            case 0:  Assert(core::memcmp(c.a, c.b, c.n) == 0, cErr); break;
+            case 1:  CT_CHECK(core::memcmp(c.a, c.b, c.n) > 0, cErr);  break;
+            case -1: CT_CHECK(core::memcmp(c.a, c.b, c.n) < 0, cErr);  break;
+            case 0:  CT_CHECK(core::memcmp(c.a, c.b, c.n) == 0, cErr); break;
         }
     });
 
@@ -196,9 +196,9 @@ i32 memfillTest() {
     core::memfill(Arr, 10, A{ 1, 2, 3 });
 
     for (auto& a : Arr) {
-        Assert(a.a == 1);
-        Assert(a.b == 2);
-        Assert(a.c == 3);
+        CT_CHECK(a.a == 1);
+        CT_CHECK(a.b == 2);
+        CT_CHECK(a.c == 3);
     }
 
     return 0;

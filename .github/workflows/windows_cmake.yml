@@ -24,6 +24,7 @@ jobs:
             cc: "cl", cxx: "cl",
             environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
             cmake_preset: "debug test static",
+            cmake_config: "-DCORE_TESTS_USE_ANSI=OFF",
             cmake_build_config: "--config Debug",
             ctest_config: "-C Debug",
           }
@@ -32,6 +33,7 @@ jobs:
             cc: "cl", cxx: "cl",
             environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
             cmake_preset: "debug test shared",
+            cmake_config: "-DCORE_TESTS_USE_ANSI=OFF",
             cmake_build_config: "--config Debug",
             ctest_config: "-C Debug",
           }
@@ -40,6 +42,7 @@ jobs:
             cc: "cl", cxx: "cl",
             environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
             cmake_preset: "release test static",
+            cmake_config: "-DCORE_TESTS_USE_ANSI=OFF",
             cmake_build_config: "--config Release",
             ctest_config: "-C Release",
           }
@@ -48,6 +51,7 @@ jobs:
             cc: "cl", cxx: "cl",
             environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
             cmake_preset: "release test shared",
+            cmake_config: "-DCORE_TESTS_USE_ANSI=OFF",
             cmake_build_config: "--config Release",
             ctest_config: "-C Release",
           }
@@ -130,7 +134,7 @@ jobs:
           COMMAND cmake
             -S .
             -B build
-            --preset "${{ matrix.config.cmake_preset }}"
+            --preset "${{ matrix.config.cmake_preset }}" ${{ matrix.config.cmake_config }}
           RESULT_VARIABLE result
         )
         if(NOT result EQUAL 0)

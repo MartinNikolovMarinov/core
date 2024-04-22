@@ -1,6 +1,7 @@
 #pragma once
 
 #include <plt/core_stacktrace.h>
+#include <plt/core_threading.h>
 
 #if defined(CORE_DEBUG) && CORE_DEBUG == 1
 

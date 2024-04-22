@@ -43,7 +43,8 @@ endif()
 option(CORE_LIBRARY_SHARED "Build core as a shared library." OFF)
 option(CORE_ASSERT_ENABLED "Enable asserts." OFF)
 option(CORE_BUILD_TESTS "Build core tests." OFF)
-option(CORE_BUILD_TESTS_USE_ANSI "Use ANSI escape codes in tests." OFF)
+option(CORE_TESTS_USE_ANSI "Use ANSI escape codes in tests." OFF)
+option(CORE_TESTS_STOP_ON_FIRST_FAILED "Stop running tests on first failure." OFF)
 option(CORE_RUN_COMPILETIME_TESTS "Run compile-time tests." OFF)
 option(CORE_USE_CPPCHECK "Use cppcheck. [WARNING] This makes compilation incredibly slow!" OFF)
 option(CORE_CODE_COVERAGE "Enable code coverage." OFF)
@@ -96,19 +97,20 @@ include(CompilerOptions)
 # Print Selected Options:
 
 message(STATUS "[CORE] ---------------------------------------------")
-message(STATUS "[CORE] Version:           ${PROJECT_VERSION}")
-message(STATUS "[CORE] Platform:          ${OS}")
-message(STATUS "[CORE] Arch:              ${CMAKE_HOST_SYSTEM_PROCESSOR}") # IMPORTANT: Do not relly on CMAKE_HOST_SYSTEM_PROCESSOR for anything serious !
-message(STATUS "[CORE] C++ Version:       ${CMAKE_CXX_STANDARD}")
-message(STATUS "[CORE] Compiler:          ${CMAKE_CXX_COMPILER_ID}")
-message(STATUS "[CORE] Debug:             ${${executable_name_uppercase}_DEBUG}")
-message(STATUS "[CORE] Assert:            ${CORE_ASSERT_ENABLED}")
-message(STATUS "[CORE] Shared:            ${CORE_LIBRARY_SHARED}")
-message(STATUS "[CORE] Build Tests:       ${CORE_BUILD_TESTS}")
-message(STATUS "[CORE] Use ANSI in Tests: ${CORE_BUILD_TESTS_USE_ANSI}")
-message(STATUS "[CORE] Run Compile Tests: ${CORE_RUN_COMPILETIME_TESTS}")
-message(STATUS "[CORE] Code Coverage:     ${CORE_CODE_COVERAGE}")
-message(STATUS "[CORE] Use CppCheck:      ${CORE_USE_CPPCHECK}")
+message(STATUS "[CORE] Version:                   ${PROJECT_VERSION}")
+message(STATUS "[CORE] Platform:                  ${OS}")
+message(STATUS "[CORE] Arch:                      ${CMAKE_HOST_SYSTEM_PROCESSOR}") # IMPORTANT: Do not relly on CMAKE_HOST_SYSTEM_PROCESSOR for anything serious !
+message(STATUS "[CORE] C++ Version:               ${CMAKE_CXX_STANDARD}")
+message(STATUS "[CORE] Compiler:                  ${CMAKE_CXX_COMPILER_ID}")
+message(STATUS "[CORE] Debug:                     ${${executable_name_uppercase}_DEBUG}")
+message(STATUS "[CORE] Assert:                    ${CORE_ASSERT_ENABLED}")
+message(STATUS "[CORE] Shared:                    ${CORE_LIBRARY_SHARED}")
+message(STATUS "[CORE] Build Tests:               ${CORE_BUILD_TESTS}")
+message(STATUS "[CORE] Use ANSI in Tests:         ${CORE_TESTS_USE_ANSI}")
+message(STATUS "[CORE] Stop on first failed test: ${CORE_TESTS_STOP_ON_FIRST_FAILED}")
+message(STATUS "[CORE] Run Compile Tests:         ${CORE_RUN_COMPILETIME_TESTS}")
+message(STATUS "[CORE] Code Coverage:             ${CORE_CODE_COVERAGE}")
+message(STATUS "[CORE] Use CppCheck:              ${CORE_USE_CPPCHECK}")
 
 # ---------------------------------------- End Options -----------------------------------------------------------------
 
@@ -301,7 +303,8 @@ if(CORE_BUILD_TESTS)
     # Definitions
     target_compile_definitions(${test_executable} PRIVATE
         -DPATH_TO_TEST_DATA="${CMAKE_CURRENT_BINARY_DIR}"
-        "CORE_BUILD_TESTS_USE_ANSI=$<BOOL:${CORE_BUILD_TESTS_USE_ANSI}>"
+        "CORE_TESTS_USE_ANSI=$<BOOL:${CORE_TESTS_USE_ANSI}>"
+        "CORE_TESTS_STOP_ON_FIRST_FAILED=$<BOOL:${CORE_TESTS_STOP_ON_FIRST_FAILED}>"
     )
 
     target_set_default_flags(${test_executable})

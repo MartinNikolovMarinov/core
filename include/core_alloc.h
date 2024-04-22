@@ -15,7 +15,7 @@ using namespace coretypes;
 
 using OOMHandlerFn = void (*)();
 
-CORE_API_EXPORT void defaultOOMHandler();
+CORE_API_EXPORT OOMHandlerFn getDefaultOOMHandler();
 
 template <typename T>
 concept AllocatorConcept = requires(T a) {
@@ -44,20 +44,25 @@ struct CORE_API_EXPORT StdAllocator {
 };
 static_assert(AllocatorConcept<StdAllocator>);
 
-struct CORE_API_EXPORT StdStatsAllocator {
+struct StdStatsAllocator {
+    // NOTE: This type exports functions instead of the whole struct because the use of atomic types in the triggers C4251
+    //       warning on MSVC. It's a valid warning and it's caused by the fact that the atomic types are not exported.
+    // TODO2: This raises another potential issue. Perhaps, exproting only the functions, should become the rule in the
+    //        entire project. That is tedious refactoring... push it for the future, or never.
+
     OOMHandlerFn oomHandler = nullptr;
 
     NO_COPY(StdStatsAllocator);
 
-    StdStatsAllocator();
-    StdStatsAllocator(StdStatsAllocator&& other);
+    CORE_API_EXPORT StdStatsAllocator();
+    CORE_API_EXPORT StdStatsAllocator(StdStatsAllocator&& other);
 
-    void* alloc(addr_size count, addr_size size);
-    void* calloc(addr_size count, addr_size size);
-    void free(void* ptr, addr_size count, addr_size size);
-    void clear(); // does nothing
-    addr_size totalMemoryAllocated();
-    addr_size inUseMemory();
+    CORE_API_EXPORT void* alloc(addr_size count, addr_size size);
+    CORE_API_EXPORT void* calloc(addr_size count, addr_size size);
+    CORE_API_EXPORT void free(void* ptr, addr_size count, addr_size size);
+    CORE_API_EXPORT void clear(); // does nothing
+    CORE_API_EXPORT addr_size totalMemoryAllocated();
+    CORE_API_EXPORT addr_size inUseMemory();
 
 private:
     core::AtomicU64 m_totalMemoryAllocated;

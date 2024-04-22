@@ -5,7 +5,7 @@
 
 namespace core {
 
-StdStatsAllocator::StdStatsAllocator() : oomHandler(defaultOOMHandler), m_totalMemoryAllocated(0), m_inUseMemory(0) {}
+StdStatsAllocator::StdStatsAllocator() : oomHandler(getDefaultOOMHandler()), m_totalMemoryAllocated(0), m_inUseMemory(0) {}
 
 StdStatsAllocator::StdStatsAllocator(StdStatsAllocator&& other) {
     m_totalMemoryAllocated.store(other.m_totalMemoryAllocated.load());

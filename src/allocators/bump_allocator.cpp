@@ -48,13 +48,13 @@ inline void* _calloc(void** currentAddr, const void* startAddr, addr_size cap, c
 // Bump Allocator
 
 BumpAllocator::BumpAllocator()
-    : oomHandler(defaultOOMHandler)
+    : oomHandler(getDefaultOOMHandler())
     , m_startAddr(nullptr)
     , m_currentAddr(nullptr)
     , m_cap(0) {}
 
 BumpAllocator::BumpAllocator(void* data, addr_size cap)
-    : oomHandler(defaultOOMHandler)
+    : oomHandler(getDefaultOOMHandler())
     , m_startAddr(data)
     , m_currentAddr(data)
     , m_cap(cap) {}
@@ -100,7 +100,7 @@ addr_size BumpAllocator::inUseMemory() {
 
 // Thread Local Bump Allocator
 
-ThreadLocalBumpAllocator::ThreadLocalBumpAllocator() : oomHandler(defaultOOMHandler) {}
+ThreadLocalBumpAllocator::ThreadLocalBumpAllocator() : oomHandler(getDefaultOOMHandler()) {}
 
 ThreadLocalBumpAllocator ThreadLocalBumpAllocator::create(void* data, addr_size cap) {
     Panic(tl_capacity == core::MAX_U64, "ThreadLocalBumpAllocator::create() called twice in the same thread");

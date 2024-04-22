@@ -68,7 +68,7 @@ i32 onOOMStdStatsAllocatorTest() {
     void* data;
     core::StdStatsAllocator allocator;
 
-    CT_CHECK(allocator.oomHandler == core::defaultOOMHandler);
+    CT_CHECK(allocator.oomHandler == core::getDefaultOOMHandler());
 
     allocator.oomHandler = []() { testOOMCount++; };
 

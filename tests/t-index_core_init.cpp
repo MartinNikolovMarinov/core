@@ -133,16 +133,30 @@ i32 runAllTests() {
 
     std::cout << '\n';
     if (ret == 0) {
-        std::cout << ANSI_BOLD(ANSI_GREEN("Tests OK")) << std::endl;
+        if (sInfo.useAnsiColors) {
+            std::cout << ANSI_BOLD(ANSI_GREEN("Tests OK")) << std::endl;
+        }
+        else {
+            std::cout << "Tests OK" << std::endl;
+        }
     }
     else {
-        std::cout << ANSI_BOLD(ANSI_RED("Tests FAILED")) << std::endl;
+        if (sInfo.useAnsiColors) {
+            std::cout << ANSI_BOLD(ANSI_RED("Tests FAILED")) << std::endl;
+        }
+        else {
+            std::cout << "Tests FAILED" << std::endl;
+        }
     }
 
     if constexpr (CORE_RUN_COMPILETIME_TESTS != 1) {
-        std::cout << ANSI_YELLOW_START() << ANSI_BOLD_START()
-                  << "[WARN] DID NOT RUN COMPILETIME TESTS!"
-                  << ANSI_RESET() << std::endl;
+        if (sInfo.useAnsiColors) {
+            std::cout << ANSI_YELLOW_START() << ANSI_BOLD_START();
+        }
+        std::cout << "[WARN] DID NOT RUN COMPILETIME TESTS!";
+        if (sInfo.useAnsiColors) {
+            std::cout << ANSI_RESET() << std::endl;
+        }
     }
 
     return ret;

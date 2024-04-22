@@ -96,7 +96,7 @@ i32 onOomArenaAllocatorTest() {
     defer { allocator.clear(); };
     void* data;
 
-    CT_CHECK(allocator.oomHandler == core::defaultOOMHandler);
+    CT_CHECK(allocator.oomHandler == core::getDefaultOOMHandler());
 
     allocator.oomHandler = []() { testOOMCount++; };
 

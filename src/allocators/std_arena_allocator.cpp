@@ -111,7 +111,7 @@ inline void _reset(ArenaBlock* blocks, addr_size blockCount) {
 // Std Arena Allocator
 
 StdArenaAllocator::StdArenaAllocator(addr_size blockSize)
-    : oomHandler(defaultOOMHandler)
+    : oomHandler(getDefaultOOMHandler())
     , m_blocks(nullptr)
     , m_blockCount(0)
     , m_blockSize(blockSize) {}
@@ -158,7 +158,7 @@ void StdArenaAllocator::reset() {
 
 // Thread Local Std Arena Allocator
 
-ThreadLocalStdArenaAllocator::ThreadLocalStdArenaAllocator() : oomHandler(defaultOOMHandler) {}
+ThreadLocalStdArenaAllocator::ThreadLocalStdArenaAllocator() : oomHandler(getDefaultOOMHandler()) {}
 
 ThreadLocalStdArenaAllocator ThreadLocalStdArenaAllocator::create(addr_size blockSize) {
     Panic(tl_blockSize == 0, "ThreadLocalStdArenaAllocator::create() called twice in the same thread");

@@ -225,5 +225,3 @@ constexpr i32 runCompletimeStaticArrTestsSuite() {
 
     return 0;
 }
-
-PRAGMA_WARNING_POP

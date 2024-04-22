@@ -4,7 +4,7 @@
 
 namespace core {
 
-StdAllocator::StdAllocator() : oomHandler(defaultOOMHandler) {}
+StdAllocator::StdAllocator() : oomHandler(getDefaultOOMHandler()) {}
 
 void* StdAllocator::alloc(addr_size count, addr_size size) {
     Panic(count > 0 && size > 0, "Invalid allocation size");

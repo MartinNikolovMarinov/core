@@ -80,7 +80,8 @@ i32 onOomBumpAllocatorTest() {
     void* buff[BUFF_SIZE];
     core::BumpAllocator allocator (buff, BUFF_SIZE);
 
-    CT_CHECK(allocator.oomHandler == core::defaultOOMHandler);
+    core::OOMHandlerFn addr = core::getDefaultOOMHandler();
+    CT_CHECK(allocator.oomHandler == addr);
 
     allocator.oomHandler = []() { testOOMCount++; };
 

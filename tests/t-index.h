@@ -28,13 +28,17 @@ inline TAllocatorPtr gatAllocatorByType(void* allocatorData) {
     return reinterpret_cast<TAllocatorPtr>(allocatorData);
 }
 
-#if defined(CORE_BUILD_TESTS_USE_ANSI) && CORE_BUILD_TESTS_USE_ANSI == 1
+#if defined(CORE_TESTS_USE_ANSI) && CORE_TESTS_USE_ANSI == 1
 constexpr bool g_useAnsi = true;
 #else
 constexpr bool g_useAnsi = false;
 #endif
 
-constexpr bool g_stopOnFirstFailure = true; // FIXME: Make this a cmake option!
+#if defined(CORE_TESTS_STOP_ON_FIRST_FAILED) && CORE_TESTS_STOP_ON_FIRST_FAILED == 1
+constexpr bool g_stopOnFirstFailure = true;
+#else
+constexpr bool g_stopOnFirstFailure = false;
+#endif
 
 constexpr inline core::testing::TestInfo createTestInfo() {
     core::testing::TestInfo tInfo = {};

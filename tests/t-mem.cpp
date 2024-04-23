@@ -22,10 +22,13 @@ constexpr i32 alignTest() {
         { 25, 32 }
     };
 
-    core::testing::executeTestTable("alignTest failed at index: ", cases, [](auto& c, const char* cErr) {
+    i32 ret = core::testing::executeTestTable("alignTest failed at index: ", cases, [](auto& c, const char* cErr) {
         auto got = core::align(c.in);
         CT_CHECK(got == c.expected, cErr);
+
+        return 0;
     });
+    CT_CHECK(ret == 0);
 
     return 0;
 }
@@ -36,7 +39,7 @@ DISABLE_GCC_AND_CLANG_WARNING(-Wconversion)
 DISABLE_MSVC_WARNING(4244)
 
 i32 swapBytesTest() {
-    auto runTestCase = [](auto& a, auto& b, addr_size N) {
+    auto testCase = [](auto& a, auto& b, addr_size N) {
         for (addr_size i = 0; i < N; ++i) {
             a[i] = i;
             b[i] = i + N;
@@ -48,25 +51,27 @@ i32 swapBytesTest() {
             CT_CHECK(a[i] == i + N);
             CT_CHECK(b[i] == i);
         }
+
+        return 0;
     };
 
     {
         // small
         u8 a[1] = {};
         u8 b[1] = {};
-        runTestCase(a, b, 1);
+        CT_CHECK(testCase(a, b, 1) == 0);
     }
     {
         // odd
         u8 a[5] = {};
         u8 b[5] = {};
-        runTestCase(a, b, 5);
+        CT_CHECK(testCase(a, b, 5) == 0);
     }
     {
         // even
         u8 a[6] = {};
         u8 b[6] = {};
-        runTestCase(a, b, 6);
+        CT_CHECK(testCase(a, b, 6) == 0);
     }
     {
         struct A {
@@ -173,13 +178,16 @@ i32 memcmpTest() {
         { "abc123", "abc000", 4, TestCase::positive },
     };
 
-    core::testing::executeTestTable("memcmpTest failed at index: ", cases, [](auto& c, const char* cErr) {
+    i32 ret = core::testing::executeTestTable("memcmpTest failed at index: ", cases, [](auto& c, const char* cErr) {
         switch (c.expected) {
             case 1:  CT_CHECK(core::memcmp(c.a, c.b, c.n) > 0, cErr);  break;
             case -1: CT_CHECK(core::memcmp(c.a, c.b, c.n) < 0, cErr);  break;
             case 0:  CT_CHECK(core::memcmp(c.a, c.b, c.n) == 0, cErr); break;
         }
+
+        return 0;
     });
+    CT_CHECK(ret == 0);
 
     return 0;
 }
@@ -205,14 +213,25 @@ i32 memfillTest() {
 }
 
 i32 runMemTestsSuite() {
-    RunTest(alignTest);
-    RunTest(swapBytesTest);
-    RunTest(memcopyTest);
-    RunTest(memsetTest);
-    RunTest(memcmpTest);
-    RunTest(memfillTest)
+    using namespace core::testing;
 
-    return 0;
+    i32 ret = 0;
+    TestInfo tInfo = createTestInfo();
+
+    tInfo.name = FN_NAME_TO_CPTR(alignTest);
+    if (runTest(tInfo, alignTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(swapBytesTest);
+    if (runTest(tInfo, swapBytesTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(memcopyTest);
+    if (runTest(tInfo, memcopyTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(memsetTest);
+    if (runTest(tInfo, memsetTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(memcmpTest);
+    if (runTest(tInfo, memcmpTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(memfillTest);
+    if (runTest(tInfo, memfillTest) != 0) { ret = -1; }
+
+    return ret;
 }
 
 constexpr i32 runCompiletimeMemTestsSuite() {

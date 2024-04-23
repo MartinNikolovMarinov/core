@@ -39,26 +39,27 @@ jobs:
             cc: "gcc", cxx: "g++",
             cmake_preset: "release test shared"
           }
-        - {
-            name: "Ubuntu with Clang Debug static", os: ubuntu-latest,
-            cc: "clang", cxx: "clang++",
-            cmake_preset: "debug test static"
-          }
-        - {
-            name: "Ubuntu with Clang Debug shared", os: ubuntu-latest,
-            cc: "clang", cxx: "clang++",
-            cmake_preset: "debug test shared"
-          }
-        - {
-            name: "Ubuntu with Clang Release static", os: ubuntu-latest,
-            cc: "clang", cxx: "clang++",
-            cmake_preset: "release test static"
-          }
-        - {
-            name: "Ubuntu with Clang Release shared", os: ubuntu-latest,
-            cc: "clang", cxx: "clang++",
-            cmake_preset: "release test shared"
-          }
+        # TODO: Uncomment this when the github action runner is fixed...
+        # - {
+        #     name: "Ubuntu with Clang Debug static", os: ubuntu-latest,
+        #     cc: "clang", cxx: "clang++",
+        #     cmake_preset: "debug test static"
+        #   }
+        # - {
+        #     name: "Ubuntu with Clang Debug shared", os: ubuntu-latest,
+        #     cc: "clang", cxx: "clang++",
+        #     cmake_preset: "debug test shared"
+        #   }
+        # - {
+        #     name: "Ubuntu with Clang Release static", os: ubuntu-latest,
+        #     cc: "clang", cxx: "clang++",
+        #     cmake_preset: "release test static"
+        #   }
+        # - {
+        #     name: "Ubuntu with Clang Release shared", os: ubuntu-latest,
+        #     cc: "clang", cxx: "clang++",
+        #     cmake_preset: "release test shared"
+        #   }
 
     steps:
     - name: Checkout source code

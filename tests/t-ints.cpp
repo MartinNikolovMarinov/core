@@ -32,9 +32,11 @@ constexpr i32 digitCountTest() {
             { -1111111111, 10 },
         };
 
-        core::testing::executeTestTable("test case failed for i32 at index: ", cases, [](auto& c, const char* cErr) {
+        i32 ret = core::testing::executeTestTable("test case failed for i32 at index: ", cases, [](auto& c, const char* cErr) {
             CT_CHECK(core::digitCount(c.value) == c.expected, cErr);
+            return 0;
         });
+        CT_CHECK(ret == 0);
     }
     {
         struct TestCase {
@@ -56,9 +58,11 @@ constexpr i32 digitCountTest() {
             { 1111111111, 10 },
         };
 
-        core::testing::executeTestTable("test case failed for u64 at index: ", cases, [](auto& c, const char* cErr) {
+        i32 ret = core::testing::executeTestTable("test case failed for u64 at index: ", cases, [](auto& c, const char* cErr) {
             CT_CHECK(core::digitCount(c.value) == c.expected, cErr);
+            return 0;
         });
+        CT_CHECK(ret == 0);
     }
     {
         struct TestCase {
@@ -109,9 +113,11 @@ constexpr i32 digitCountTest() {
             { -1111111111111111111, 19 },
         };
 
-        core::testing::executeTestTable("test case failed for i64 at index: ", cases, [](auto& c, const char* cErr) {
+        i32 ret = core::testing::executeTestTable("test case failed for i64 at index: ", cases, [](auto& c, const char* cErr) {
             CT_CHECK(core::digitCount(c.value) == c.expected, cErr);
+            return 0;
         });
+        CT_CHECK(ret == 0);
     }
     {
         struct TestCase {
@@ -142,18 +148,26 @@ constexpr i32 digitCountTest() {
             { 1111111111111111111, 19 },
         };
 
-        core::testing::executeTestTable("test case failed for u64 at index: ", cases, [](auto& c, const char* cErr) {
+        i32 ret = core::testing::executeTestTable("test case failed for u64 at index: ", cases, [](auto& c, const char* cErr) {
             CT_CHECK(core::digitCount(c.value) == c.expected, cErr);
+            return 0;
         });
+        CT_CHECK(ret == 0);
     }
 
     return 0;
 }
 
 i32 runIntsTestsSuite() {
-    RunTest(digitCountTest);
+    using namespace core::testing;
 
-    return 0;
+    i32 ret = 0;
+    TestInfo tInfo = createTestInfo();
+
+    tInfo.name = FN_NAME_TO_CPTR(digitCountTest);
+    if (runTest(tInfo, digitCountTest) != 0) { ret = -1; }
+
+    return ret;
 }
 
 constexpr i32 runCompiletimeIntsTestsSuite() {

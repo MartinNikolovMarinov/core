@@ -13,7 +13,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneOneBitTest() {
 
     // 0 is NULL, which is the MINUMUM 1 byte encoded character.
     d[0] = 0;
-    r = ValueOrDie(core::runeFromBytes(d, 1));
+    r = core::Unpack(core::runeFromBytes(d, 1));
     CT_CHECK(r == 0);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 1);
@@ -21,7 +21,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneOneBitTest() {
 
     // 127 is DELETE, which is the the MAXIMUM 1 byte encoded character.
     d[0] = 127;
-    r = ValueOrDie(core::runeFromBytes(d, 1));
+    r = core::Unpack(core::runeFromBytes(d, 1));
     CT_CHECK(r == 127);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 1);
@@ -43,7 +43,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneTwoBitTest() {
     // 194, 128 is , which is the MINIMUM 2 byte encoded character.
     d[0] = 194;
     d[1] = 128;
-    r = ValueOrDie(core::runeFromBytes(d, 2));
+    r = core::Unpack(core::runeFromBytes(d, 2));
     CT_CHECK(r == 128);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 2);
@@ -52,7 +52,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneTwoBitTest() {
     // д symbol
     d[0] = 208;
     d[1] = 180;
-    r = ValueOrDie(core::runeFromBytes(d, 2));
+    r = core::Unpack(core::runeFromBytes(d, 2));
     CT_CHECK(r == 1076);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 2);
@@ -61,7 +61,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneTwoBitTest() {
     // 223, 191 is ߿ , which is the MAXIMUM 2 byte encoded character.
     d[0] = 223;
     d[1] = 191;
-    r = ValueOrDie(core::runeFromBytes(d, 2));
+    r = core::Unpack(core::runeFromBytes(d, 2));
     CT_CHECK(r == 2047);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 2);
@@ -84,7 +84,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneThreeBitTest() {
     d[0] = 224;
     d[1] = 160;
     d[2] = 128;
-    r = ValueOrDie(core::runeFromBytes(d, 3));
+    r = core::Unpack(core::runeFromBytes(d, 3));
     CT_CHECK(r == 2048);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 3);
@@ -94,7 +94,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneThreeBitTest() {
     d[0] = 239;
     d[1] = 191;
     d[2] = 191;
-    r = ValueOrDie(core::runeFromBytes(d, 3));
+    r = core::Unpack(core::runeFromBytes(d, 3));
     CT_CHECK(r == 65535);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 3);
@@ -118,7 +118,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneFourBitTest() {
     d[1] = 144;
     d[2] = 128;
     d[3] = 128;
-    r = ValueOrDie(core::runeFromBytes(d, 4));
+    r = core::Unpack(core::runeFromBytes(d, 4));
     CT_CHECK(r == 65536);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 4);
@@ -129,7 +129,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneFourBitTest() {
     d[1] = 159;
     d[2] = 146;
     d[3] = 169;
-    r = ValueOrDie(core::runeFromBytes(d, 4));
+    r = core::Unpack(core::runeFromBytes(d, 4));
     CT_CHECK(r == 128169);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 4);
@@ -140,7 +140,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneFourBitTest() {
     d[1] = 191;
     d[2] = 191;
     d[3] = 191;
-    r = ValueOrDie(core::runeFromBytes(d, 4));
+    r = core::Unpack(core::runeFromBytes(d, 4));
     CT_CHECK(r == 2097151);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 4);
@@ -150,12 +150,21 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneFourBitTest() {
 }
 
 i32 runUtfTestsSuite() {
-    RunTest(convertingUtf8SequenceToUtf32RuneOneBitTest);
-    RunTest(convertingUtf8SequenceToUtf32RuneTwoBitTest);
-    RunTest(convertingUtf8SequenceToUtf32RuneThreeBitTest);
-    RunTest(convertingUtf8SequenceToUtf32RuneFourBitTest);
+    using namespace core::testing;
 
-    return 0;
+    i32 ret = 0;
+    TestInfo tInfo = createTestInfo();
+
+    tInfo.name = FN_NAME_TO_CPTR(convertingUtf8SequenceToUtf32RuneOneBitTest);
+    if (runTest(tInfo, convertingUtf8SequenceToUtf32RuneOneBitTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(convertingUtf8SequenceToUtf32RuneTwoBitTest);
+    if (runTest(tInfo, convertingUtf8SequenceToUtf32RuneTwoBitTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(convertingUtf8SequenceToUtf32RuneThreeBitTest);
+    if (runTest(tInfo, convertingUtf8SequenceToUtf32RuneThreeBitTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(convertingUtf8SequenceToUtf32RuneFourBitTest);
+    if (runTest(tInfo, convertingUtf8SequenceToUtf32RuneFourBitTest) != 0) { ret = -1; }
+
+    return ret;
 }
 
 constexpr i32 runCompiletimeUtfTestsSuite() {

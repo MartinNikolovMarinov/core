@@ -306,17 +306,19 @@ constexpr i32 matAddTest() {
                 CT_CHECK(res[i][j] == m1[i][j] + m2[i][j])
             }
         }
+
+        return 0;
     };
 
-    testCase(core::mat2x2i(), core::mat2x2i());
-    testCase(core::mat2x3i(), core::mat2x3i());
-    testCase(core::mat2x4i(), core::mat2x4i());
-    testCase(core::mat3x2i(), core::mat3x2i());
-    testCase(core::mat3x3i(), core::mat3x3i());
-    testCase(core::mat3x4i(), core::mat3x4i());
-    testCase(core::mat4x2i(), core::mat4x2i());
-    testCase(core::mat4x3i(), core::mat4x3i());
-    testCase(core::mat4x4i(), core::mat4x4i());
+    CT_CHECK(testCase(core::mat2x2i(), core::mat2x2i()) == 0);
+    CT_CHECK(testCase(core::mat2x3i(), core::mat2x3i()) == 0);
+    CT_CHECK(testCase(core::mat2x4i(), core::mat2x4i()) == 0);
+    CT_CHECK(testCase(core::mat3x2i(), core::mat3x2i()) == 0);
+    CT_CHECK(testCase(core::mat3x3i(), core::mat3x3i()) == 0);
+    CT_CHECK(testCase(core::mat3x4i(), core::mat3x4i()) == 0);
+    CT_CHECK(testCase(core::mat4x2i(), core::mat4x2i()) == 0);
+    CT_CHECK(testCase(core::mat4x3i(), core::mat4x3i()) == 0);
+    CT_CHECK(testCase(core::mat4x4i(), core::mat4x4i()) == 0);
 
     return 0;
 }
@@ -337,17 +339,19 @@ constexpr i32 matSubTest() {
                 CT_CHECK(res[i][j] == m1[i][j] - m2[i][j])
             }
         }
+
+        return 0;
     };
 
-    testCase(core::mat2x2i(), core::mat2x2i());
-    testCase(core::mat2x3i(), core::mat2x3i());
-    testCase(core::mat2x4i(), core::mat2x4i());
-    testCase(core::mat3x2i(), core::mat3x2i());
-    testCase(core::mat3x3i(), core::mat3x3i());
-    testCase(core::mat3x4i(), core::mat3x4i());
-    testCase(core::mat4x2i(), core::mat4x2i());
-    testCase(core::mat4x3i(), core::mat4x3i());
-    testCase(core::mat4x4i(), core::mat4x4i());
+    CT_CHECK(testCase(core::mat2x2i(), core::mat2x2i()) == 0);
+    CT_CHECK(testCase(core::mat2x3i(), core::mat2x3i()) == 0);
+    CT_CHECK(testCase(core::mat2x4i(), core::mat2x4i()) == 0);
+    CT_CHECK(testCase(core::mat3x2i(), core::mat3x2i()) == 0);
+    CT_CHECK(testCase(core::mat3x3i(), core::mat3x3i()) == 0);
+    CT_CHECK(testCase(core::mat3x4i(), core::mat3x4i()) == 0);
+    CT_CHECK(testCase(core::mat4x2i(), core::mat4x2i()) == 0);
+    CT_CHECK(testCase(core::mat4x3i(), core::mat4x3i()) == 0);
+    CT_CHECK(testCase(core::mat4x4i(), core::mat4x4i()) == 0);
 
     return 0;
 }
@@ -1000,20 +1004,37 @@ constexpr i32 matInverseTest() {
 }
 
 i32 runMatrixTestsSuite() {
-    RunTest(matEqualsTest);
-    RunTest(mat2xNConstructorsTest);
-    RunTest(mat3xNConstructorsTest);
-    RunTest(mat4xNConstructorsTest);
-    RunTest(matAddTest);
-    RunTest(matSubTest);
-    RunTest(matMulTest);
-    RunTest(matMulVectorTest);
-    RunTest(matDeterminantTest);
-    RunTest(matIdentityTest);
-    RunTest(matTransposeTest);
-    RunTest(matInverseTest);
+    using namespace core::testing;
 
-    return 0;
+    i32 ret = 0;
+    TestInfo tInfo = createTestInfo();
+
+    tInfo.name = FN_NAME_TO_CPTR(matEqualsTest);
+    if (runTest(tInfo, matEqualsTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(mat2xNConstructorsTest);
+    if (runTest(tInfo, mat2xNConstructorsTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(mat3xNConstructorsTest);
+    if (runTest(tInfo, mat3xNConstructorsTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(mat4xNConstructorsTest);
+    if (runTest(tInfo, mat4xNConstructorsTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(matAddTest);
+    if (runTest(tInfo, matAddTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(matSubTest);
+    if (runTest(tInfo, matSubTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(matMulTest);
+    if (runTest(tInfo, matMulTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(matMulVectorTest);
+    if (runTest(tInfo, matMulVectorTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(matDeterminantTest);
+    if (runTest(tInfo, matDeterminantTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(matIdentityTest);
+    if (runTest(tInfo, matIdentityTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(matTransposeTest);
+    if (runTest(tInfo, matTransposeTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(matInverseTest);
+    if (runTest(tInfo, matInverseTest) != 0) { ret = -1; }
+
+    return ret;
 }
 
 constexpr i32 runCompiletimeMatrixTestsSuite() {

@@ -138,7 +138,7 @@ constexpr i32 vectorLengthTest() {
     return 0;
 }
 
-constexpr i32 VectorDotProductTest() {
+constexpr i32 vectorDotProductTest() {
     CT_CHECK(core::v(1, 2).dot(core::v(3, 4)) == 11.0);
     CT_CHECK(core::v(1, 2, 3).dot(core::v(3, 4, 5)) == 26.0);
     CT_CHECK(core::v(1, 2, 3, 4).dot(core::v(3, 4, 5, 6)) == 50.0);
@@ -196,7 +196,7 @@ constexpr i32 VectorDotProductTest() {
     return 0;
 }
 
-constexpr i32 VectorCrossProductTest() {
+constexpr i32 vectorCrossProductTest() {
     CT_CHECK(core::v(1, 2, 3).cross(core::v(3, 4, 5)).equals(core::v(-2, 4, -2)));
     CT_CHECK(core::v(1.0f, 2.0f, 3.0f).cross(core::v(3.0f, 4.0f, 5.0f)).equals(core::v(-2.0f, 4.0f, -2.0f)));
 
@@ -241,21 +241,31 @@ constexpr i32 VectorCrossProductTest() {
 }
 
 i32 runVecTestsSuite() {
-    RunTest(vectorEqualsTest);
-    RunTest(vectorAddSubMulDivTest);
-    RunTest(vectorLengthTest);
-    RunTest(VectorDotProductTest);
-    RunTest(VectorCrossProductTest);
+    using namespace core::testing;
 
-    return 0;
+    i32 ret = 0;
+    TestInfo tInfo = createTestInfo();
+
+    tInfo.name = FN_NAME_TO_CPTR(vectorEqualsTest);
+    if (runTest(tInfo, vectorEqualsTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(vectorAddSubMulDivTest);
+    if (runTest(tInfo, vectorAddSubMulDivTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(vectorLengthTest);
+    if (runTest(tInfo, vectorLengthTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(vectorDotProductTest);
+    if (runTest(tInfo, vectorDotProductTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(vectorCrossProductTest);
+    if (runTest(tInfo, vectorCrossProductTest) != 0) { ret = -1; }
+
+    return ret;
 }
 
 constexpr i32 runCompiletimeVecTestsSuite() {
     RunTestCompileTime(vectorEqualsTest);
     RunTestCompileTime(vectorAddSubMulDivTest);
     RunTestCompileTime(vectorLengthTest);
-    RunTestCompileTime(VectorDotProductTest);
-    RunTestCompileTime(VectorCrossProductTest);
+    RunTestCompileTime(vectorDotProductTest);
+    RunTestCompileTime(vectorCrossProductTest);
 
     return 0;
 }

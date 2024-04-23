@@ -9,7 +9,7 @@ constexpr i32 expectedBasicCaseTest() {
     CT_CHECK(e1.hasValue());
     CT_CHECK(!e1.hasErr());
     CT_CHECK(e1.value() == 10);
-    auto v = core::Expect(std::move(e1));
+    auto v = core::Unpack(std::move(e1));
     CT_CHECK(v == 10);
 
     core::expected<i32, const char*> e2(core::unexpected("bad"));
@@ -59,7 +59,7 @@ i32 expectedWithDestructor() {
 
             {
                 // After this move, e1 will still call its destructor, but the value will have been moved.
-                auto v = core::Expect(std::move(e1));
+                auto v = core::Unpack(std::move(e1));
                 CT_CHECK(v.a == 90);
                 CT_CHECK(CT::moveCtorCalled() == 1);
                 CT_CHECK(CT::copyCtorCalled() == 0);
@@ -95,182 +95,106 @@ i32 expectedWithDestructor() {
     return 0;
 }
 
-// i32 expectedSizeofTest() {
-//     struct TestStruct {
-//         u64 a;
-//         u32 b;
-//         u16 c;
-//         i8 d;
-//         char test[18];
-//     };
+constexpr i32 expectedSizeofTest() {
+    struct TestStruct {
+        u64 a;
+        u32 b;
+        u16 c;
+        i8 d;
+        char test[18];
+    };
 
-//     core::expected<u64, TestStruct> e1(1);
-//     core::expected<u64, TestStruct> e2(core::unexpected(TestStruct{1,2,3,4,"123"}));
-//     core::expected<TestStruct, u64> e3(TestStruct{1,2,3,4,"123"});
-//     core::expected<TestStruct, u64> e4(core::unexpected(u64(1)));
+    core::expected<u64, TestStruct> e1(1);
+    core::expected<u64, TestStruct> e2(core::unexpected(TestStruct{1,2,3,4,"123"}));
+    core::expected<TestStruct, u64> e3(TestStruct{1,2,3,4,"123"});
+    core::expected<TestStruct, u64> e4(core::unexpected(u64(1)));
 
-//     CT_CHECK(sizeof(e1) == sizeof(e2));
-//     CT_CHECK(sizeof(e1) == sizeof(e3));
-//     CT_CHECK(sizeof(e1) == sizeof(e4));
+    CT_CHECK(sizeof(e1) == sizeof(e2));
+    CT_CHECK(sizeof(e1) == sizeof(e3));
+    CT_CHECK(sizeof(e1) == sizeof(e4));
 
-//     return 0;
-// }
+    core::expected<TestStruct> e5;
+    core::expected<TestStruct> e6(core::unexpected(TestStruct{1,2,3,4,"123"}));
 
-// i32 expectedWithSameTypeTest() {
-//     core::expected<i32, i32> e1(10);
-//     CT_CHECK(e1.hasValue());
-//     CT_CHECK(!e1.hasErr());
-//     CT_CHECK(e1.value() == 10);
-//     CT_CHECK(ValueOrDie(e1) == 10);
+    CT_CHECK(sizeof(e5) == sizeof(e6));
 
-//     struct TestStruct {
-//         u64 a;
-//         u32 b;
-//         u16 c;
-//         i8 d;
-//         char test[18];
-//     };
+    return 0;
+}
 
-//     core::expected<TestStruct, TestStruct> e2(TestStruct{1,2,3,4,"123"});
-//     CT_CHECK(e2.hasValue());
-//     CT_CHECK(!e2.hasErr());
+constexpr i32 expectedWithSameTypeTest() {
+    core::expected<i32, i32> e1(10);
+    CT_CHECK(e1.hasValue());
+    CT_CHECK(!e1.hasErr());
+    CT_CHECK(e1.value() == 10);
+    CT_CHECK(core::Unpack(std::move(e1)) == 10);
 
-//     core::expected<TestStruct, TestStruct> e3(core::unexpected(TestStruct{1,2,3,4,"123"}));
-//     CT_CHECK(!e3.hasValue());
-//     CT_CHECK(e3.hasErr());
+    struct TestStruct {
+        u64 a;
+        u32 b;
+        u16 c;
+        i8 d;
+        char test[18];
+    };
 
-//     return 0;
-// }
+    core::expected<TestStruct, TestStruct> e2(TestStruct{1,2,3,4,"123"});
+    CT_CHECK(e2.hasValue());
+    CT_CHECK(!e2.hasErr());
 
-// i32 expectedUsedInAFunctionTest() {
-//     constexpr const char* errMsg1 = "unexpected value less than 0";
-//     constexpr const char* errMsg2 = "unexpected value equals 0";
+    core::expected<TestStruct, TestStruct> e3(core::unexpected(TestStruct{1,2,3,4,"123"}));
+    CT_CHECK(!e3.hasValue());
+    CT_CHECK(e3.hasErr());
 
-//     auto f = [&](i32 v) -> core::expected<i32, const char*> {
-//         if (v < 0)       return core::unexpected(errMsg1);
-//         else if (v == 0) return core::unexpected(errMsg2);
-//         else             return v + 2;
-//     };
+    return 0;
+}
 
-//     CT_CHECK(ValueOrDie(f(5)) == 5 + 2);
-//     CT_CHECK(f(0).hasErr());
-//     CT_CHECK(core::cptrEq(f(0).err(), errMsg2, core::cptrLen(errMsg2)));
-//     CT_CHECK(f(-1).hasErr());
-//     CT_CHECK(core::cptrEq(f(-1).err(), errMsg1, core::cptrLen(errMsg1)));
+constexpr i32 expectedUsedInAFunctionTest() {
+    constexpr const char* errMsg1 = "unexpected value less than 0";
+    constexpr const char* errMsg2 = "unexpected value equals 0";
 
-//     return 0;
-// }
+    auto f = [&](i32 v) -> core::expected<i32, const char*> {
+        if (v < 0)       return core::unexpected(errMsg1);
+        else if (v == 0) return core::unexpected(errMsg2);
+        else             return v + 2;
+    };
 
-// i32 expectedWithDestructorsTest() {
-//     struct TestStruct {
-//         i32* counter;
-//         TestStruct(i32* _counter) : counter(_counter) {
-//             (*this->counter)++;
-//         }
-//         TestStruct(TestStruct&& other) : counter(other.counter) {
-//             (*this->counter)++;
-//         }
-//         ~TestStruct() { (*this->counter)--; }
-//     };
+    CT_CHECK(core::Unpack(f(5)) == 5 + 2);
+    CT_CHECK(f(0).hasErr());
+    CT_CHECK(core::cptrEq(f(0).err(), errMsg2, core::cptrLen(errMsg2)));
+    CT_CHECK(f(-1).hasErr());
+    CT_CHECK(core::cptrEq(f(-1).err(), errMsg1, core::cptrLen(errMsg1)));
 
-//     i32 counter = 0;
-//     CT_CHECK(counter == 0);
-//     {
-//         core::expected<TestStruct, TestStruct> e1(TestStruct{&counter});
-//         CT_CHECK(counter == 1);
-//         {
-//             core::expected<TestStruct, TestStruct> e2(core::unexpected(TestStruct{&counter}));
-//             CT_CHECK(counter == 2);
-//         }
-//         CT_CHECK(counter == 1);
-//     }
-//     CT_CHECK(counter == 0);
+    return 0;
+}
 
-//     return 0;
-// }
+i32 expectedWithDestructorsTest() {
+    struct TestStruct {
+        i32* counter;
+        TestStruct(i32* _counter) : counter(_counter) {
+            (*this->counter)++;
+        }
+        TestStruct(TestStruct&& other) : counter(other.counter) {
+            (*this->counter)++;
+        }
+        ~TestStruct() { (*this->counter)--; }
+    };
 
-// constexpr i32 staticExpectedBasicCaseTest() {
-//     core::sexpected<i32, const char*> e1(10);
-//     CT_CHECK(e1.hasValue());
-//     CT_CHECK(!e1.hasErr());
-//     CT_CHECK(e1.value() == 10);
-//     CT_CHECK(ValueOrDie(e1) == 10);
+    i32 counter = 0;
+    CT_CHECK(counter == 0);
+    {
+        core::expected<TestStruct, TestStruct> e1(TestStruct{&counter});
+        CT_CHECK(counter == 1);
+        {
+            core::expected<TestStruct, TestStruct> e2(core::unexpected(TestStruct{&counter}));
+            CT_CHECK(counter == 2);
+        }
+        CT_CHECK(counter == 1);
+    }
+    CT_CHECK(counter == 0);
 
-//     core::sexpected<i32, const char*> e2(core::unexpected("bad"));
-//     CT_CHECK(!e2.hasValue());
-//     CT_CHECK(e2.hasErr());
-//     CT_CHECK(core::cptrEq(e2.err(), "bad", core::cptrLen(e2.err())));
+    return 0;
+}
 
-//     return 0;
-// }
-
-// constexpr i32 staticExpectedSizeofTest() {
-//     struct TestStruct {
-//         u64 a;
-//         u32 b;
-//         u16 c;
-//         i8 d;
-//         char test[18];
-//     };
-
-//     core::sexpected<u64, TestStruct> e1(u64(1));
-//     core::sexpected<u64, TestStruct> e2(core::unexpected(TestStruct{1,2,3,4,"123"}));
-//     core::sexpected<TestStruct, u64> e3(TestStruct{1,2,3,4,"123"});
-//     core::sexpected<TestStruct, u64> e4(core::unexpected(u64(1)));
-
-//     CT_CHECK(sizeof(e1) == sizeof(e2));
-//     CT_CHECK(sizeof(e1) == sizeof(e3));
-//     CT_CHECK(sizeof(e1) == sizeof(e4));
-
-//     return 0;
-// }
-
-// constexpr i32 staticExpectedWithSameTypeTest() {
-//     core::sexpected<i32, i32> e1(10);
-//     CT_CHECK(e1.hasValue());
-//     CT_CHECK(!e1.hasErr());
-//     CT_CHECK(e1.value() == 10);
-//     CT_CHECK(ValueOrDie(e1) == 10);
-
-//     struct TestStruct {
-//         u64 a;
-//         u32 b;
-//         u16 c;
-//         i8 d;
-//         char test[18];
-//     };
-
-//     core::sexpected<TestStruct, TestStruct> e2(TestStruct{1,2,3,4,"123"});
-//     CT_CHECK(e2.hasValue());
-//     CT_CHECK(!e2.hasErr());
-
-//     core::sexpected<TestStruct, TestStruct> e3(core::unexpected(TestStruct{1,2,3,4,"123"}));
-//     CT_CHECK(!e3.hasValue());
-//     CT_CHECK(e3.hasErr());
-
-//     return 0;
-// }
-
-// constexpr i32 staticExpectedUsedInAFunctionTest() {
-//     constexpr const char* errMsg1 = "unexpected value less than 0";
-//     constexpr const char* errMsg2 = "unexpected value equals 0";
-
-//     auto f = [&](i32 v) -> core::sexpected<i32, const char*> {
-//         if (v < 0)       return core::unexpected(errMsg1);
-//         else if (v == 0) return core::unexpected(errMsg2);
-//         else             return v + 2;
-//     };
-
-//     CT_CHECK(ValueOrDie(f(5)) == 5 + 2);
-//     CT_CHECK(f(0).hasErr());
-//     CT_CHECK(core::cptrEq(f(0).err(), errMsg2, core::cptrLen(errMsg2)));
-//     CT_CHECK(f(-1).hasErr());
-//     CT_CHECK(core::cptrEq(f(-1).err(), errMsg1, core::cptrLen(errMsg1)));
-
-//     return 0;
-// }
-
-// PRAGMA_WARNING_POP
+PRAGMA_WARNING_POP
 
 i32 runExpectedTestsSuite() {
     using namespace core::testing;
@@ -282,23 +206,23 @@ i32 runExpectedTestsSuite() {
     if (runTest(tInfo, expectedBasicCaseTest) != 0) { ret = -1;}
     tInfo.name = FN_NAME_TO_CPTR(expectedWithDestructor);
     if (runTest(tInfo, expectedWithDestructor) != 0) { ret = -1;}
-    // tInfo.name = FN_NAME_TO_CPTR(expectedSizeofTest);
-    // if (runTest(tInfo, expectedSizeofTest) != 0) { ret = -1;}
-    // tInfo.name = FN_NAME_TO_CPTR(expectedWithSameTypeTest);
-    // if (runTest(tInfo, expectedWithSameTypeTest) != 0) { ret = -1;}
-    // tInfo.name = FN_NAME_TO_CPTR(expectedUsedInAFunctionTest);
-    // if (runTest(tInfo, expectedUsedInAFunctionTest) != 0) { ret = -1;}
-    // tInfo.name = FN_NAME_TO_CPTR(expectedWithDestructorsTest);
-    // if (runTest(tInfo, expectedWithDestructorsTest) != 0) { ret = -1;}
+    tInfo.name = FN_NAME_TO_CPTR(expectedSizeofTest);
+    if (runTest(tInfo, expectedSizeofTest) != 0) { ret = -1;}
+    tInfo.name = FN_NAME_TO_CPTR(expectedWithSameTypeTest);
+    if (runTest(tInfo, expectedWithSameTypeTest) != 0) { ret = -1;}
+    tInfo.name = FN_NAME_TO_CPTR(expectedUsedInAFunctionTest);
+    if (runTest(tInfo, expectedUsedInAFunctionTest) != 0) { ret = -1;}
+    tInfo.name = FN_NAME_TO_CPTR(expectedWithDestructorsTest);
+    if (runTest(tInfo, expectedWithDestructorsTest) != 0) { ret = -1;}
 
     return ret;
 }
 
 constexpr i32 runCompiletimeExpectedTestsSuite() {
     RunTestCompileTime(expectedBasicCaseTest);
-    // RunTestCompileTime(staticExpectedSizeofTest);
-    // RunTestCompileTime(staticExpectedWithSameTypeTest);
-    // RunTestCompileTime(staticExpectedUsedInAFunctionTest);
+    RunTestCompileTime(expectedSizeofTest);
+    RunTestCompileTime(expectedWithSameTypeTest);
+    RunTestCompileTime(expectedUsedInAFunctionTest);
 
     return 0;
 }

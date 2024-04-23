@@ -42,8 +42,8 @@ constexpr bool g_stopOnFirstFailure = false;
 
 constexpr inline core::testing::TestInfo createTestInfo() {
     core::testing::TestInfo tInfo = {};
-    tInfo.trackTicks = false;
-    tInfo.trackTime = false;
+    tInfo.trackTicks = true;
+    tInfo.trackTime = true;
     tInfo.trackMemory = false;
     tInfo.detectLeaks = false;
     tInfo.useAnsiColors = g_useAnsi;

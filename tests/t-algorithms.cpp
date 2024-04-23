@@ -33,10 +33,12 @@ i32 findAlgorithmTest() {
 }
 
 i32 basicpushUniqueTest() {
+    using namespace core::testing;
+
     {
         core::ArrList<i32> arr;
 
-        auto eqFn = [](const i32& curr, addr_off, const i32& el) -> bool { return curr == el; };
+        auto eqFn = [](const i32& curr, addr_size, const i32& el) -> bool { return curr == el; };
 
         core::pushUnique(arr, 1, eqFn);
         core::pushUnique(arr, 2, eqFn);
@@ -59,7 +61,7 @@ i32 basicpushUniqueTest() {
 
         core::ArrList<TestStruct> arr;
 
-        auto eqFn = [](const TestStruct& curr, addr_off, const TestStruct& el) -> bool { return curr.a == el.a; };
+        auto eqFn = [](const TestStruct& curr, addr_size, const TestStruct& el) -> bool { return curr.a == el.a; };
 
         core::pushUnique(arr, TestStruct{1, 2}, eqFn);
         core::pushUnique(arr, TestStruct{3, 4}, eqFn);
@@ -75,6 +77,28 @@ i32 basicpushUniqueTest() {
         CT_CHECK(arr[1].b == 4);
         CT_CHECK(arr[2].a == 5);
         CT_CHECK(arr[2].b == 6);
+    }
+
+    {
+        defer { CT::resetAll(); };
+
+        CT ct; ct.a = 12;
+        CT::resetAll(); // Disregard any ctors called by the code above.
+
+        {
+            core::ArrList<CT> arr(1);
+            core::pushUnique(arr, std::move(ct), [](const CT& curr, addr_size, const CT& el) -> bool { return curr.a == el.a; });
+            CT_CHECK(CT::totalCtorsCalled() == 1);
+            CT_CHECK(CT::moveCtorCalled() == 1);
+            CT_CHECK(CT::dtorsCalled() == 0);
+
+            CT::resetCtors();
+
+            CT_CHECK(arr.len() == 1);
+            CT_CHECK(arr[0].a == 12);
+        }
+        CT_CHECK(CT::dtorsCalled() == 1);
+        CT_CHECK(ct.a == CT::defaultValue);
     }
 
     return 0;
@@ -100,10 +124,10 @@ constexpr i32 constFindAlgorithmTest() {
     return 0;
 }
 
-constexpr i32 constBasicpushUniqueTest() {
+constexpr i32 constBasicPushUniqueTest() {
     core::ArrStatic<i32, 5> staticArr;
 
-    auto eqFn = [](const i32& curr, addr_off, const i32& el) -> bool { return curr == el; };
+    auto eqFn = [](const i32& curr, addr_size, const i32& el) -> bool { return curr == el; };
 
     core::pushUnique(staticArr, 1, eqFn);
     core::pushUnique(staticArr, 2, eqFn);
@@ -132,15 +156,15 @@ i32 runAlgorithmsTestsSuite() {
     if (runTest(tInfo, basicpushUniqueTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(constFindAlgorithmTest);
     if (runTest(tInfo, constFindAlgorithmTest) != 0) { ret = -1; }
-    tInfo.name = FN_NAME_TO_CPTR(constBasicpushUniqueTest);
-    if (runTest(tInfo, constBasicpushUniqueTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(constBasicPushUniqueTest);
+    if (runTest(tInfo, constBasicPushUniqueTest) != 0) { ret = -1; }
 
     return ret;
 }
 
 constexpr i32 runCompiletimeAlgorithmTestsSuite() {
     RunTestCompileTime(constFindAlgorithmTest);
-    RunTestCompileTime(constBasicpushUniqueTest);
+    RunTestCompileTime(constBasicPushUniqueTest);
 
     return 0;
 }

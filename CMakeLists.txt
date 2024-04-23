@@ -48,6 +48,7 @@ option(CORE_TESTS_STOP_ON_FIRST_FAILED "Stop running tests on first failure." OF
 option(CORE_RUN_COMPILETIME_TESTS "Run compile-time tests." OFF)
 option(CORE_USE_CPPCHECK "Use cppcheck. [WARNING] This makes compilation incredibly slow!" OFF)
 option(CORE_CODE_COVERAGE "Enable code coverage." OFF)
+option(CORE_SAVE_TEMPORARY_FILES "Save compiler temporary files. [WARNING] This down slows compilation." OFF)
 
 if(CORE_USE_CPPCHECK)
     find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
@@ -110,6 +111,7 @@ message(STATUS "[CORE] Use ANSI in Tests:         ${CORE_TESTS_USE_ANSI}")
 message(STATUS "[CORE] Stop on first failed test: ${CORE_TESTS_STOP_ON_FIRST_FAILED}")
 message(STATUS "[CORE] Run Compile Tests:         ${CORE_RUN_COMPILETIME_TESTS}")
 message(STATUS "[CORE] Code Coverage:             ${CORE_CODE_COVERAGE}")
+message(STATUS "[CORE] Save Temporary Files:      ${CORE_SAVE_TEMPORARY_FILES}")
 message(STATUS "[CORE] Use CppCheck:              ${CORE_USE_CPPCHECK}")
 
 # ---------------------------------------- End Options -----------------------------------------------------------------
@@ -209,6 +211,7 @@ target_compile_definitions(${executable_name} PUBLIC
 macro(target_set_default_flags target)
 
     if(OS STREQUAL "linux")
+        # TODO: Add some option for "-save-temps" "-g" to save temporary files for use with disassemly viewer.
         set(common_flags "-std=c++20" "-pthread")
         set(debug_flags "")
         set(release_flags "")
@@ -220,6 +223,16 @@ macro(target_set_default_flags target)
         set(common_flags "/std:c++20")
         set(debug_flags "")
         set(release_flags "")
+    endif()
+
+    if (CORE_SAVE_TEMPORARY_FILES)
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+            set(common_flags "${common_flags}" "-g" "-save-temps")
+        elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+            set(common_flags "${common_flags}" "-g" "-save-temps")
+        elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+            set(common_flags "${common_flags}" "/Fa${CMAKE_CURRENT_BINARY_DIR}")
+        endif()
     endif()
 
     generate_common_flags(
@@ -269,25 +282,25 @@ if(CORE_BUILD_TESTS)
         tests/t-expected.cpp
         tests/t-hash_map.cpp
         tests/t-hash.cpp
-        # tests/t-intrinsics.cpp
-        # tests/t-ints.cpp
-        # tests/t-mem.cpp
+        tests/t-intrinsics.cpp
+        tests/t-ints.cpp
+        tests/t-mem.cpp
         tests/t-rnd.cpp
         tests/t-sarr.cpp
         # tests/t-str_builder.cpp
         tests/t-tuple.cpp
         # tests/t-unique_ptr.cpp
-        # tests/t-utf.cpp
+        tests/t-utf.cpp
 
         tests/allocators/t-bump_allocator.cpp
         tests/allocators/t-std_allocator.cpp
         tests/allocators/t-std_arena_allocator.cpp
         tests/allocators/t-std_stats_allocator.cpp
 
-        # tests/math/t-math.cpp
-        # tests/math/t-matrix.cpp
-        # tests/math/t-transforms.cpp
-        # tests/math/t-vec.cpp
+        tests/math/t-math.cpp
+        tests/math/t-matrix.cpp
+        tests/math/t-transforms.cpp
+        tests/math/t-vec.cpp
 
         # tests/plt/t-pages.cpp
         # tests/plt/t-plt_err.cpp

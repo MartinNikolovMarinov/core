@@ -29,9 +29,11 @@ constexpr i32 pow10Test() {
         { 19, 10000000000000000000ULL },
     };
 
-    core::testing::executeTestTable("pow10 test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    i32 ret = core::testing::executeTestTable("pow10 test case failed at index: ", cases, [](auto& c, const char* cErr) {
         CT_CHECK(core::pow10(c.in) == c.expected, cErr);
+        return 0;
     });
+    CT_CHECK(ret == 0);
 
     return 0;
 }
@@ -109,9 +111,11 @@ constexpr i32 pow2Test() {
         { 63, 9223372036854775808ULL },
     };
 
-    core::testing::executeTestTable("pow2 test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    i32 ret = core::testing::executeTestTable("pow2 test case failed at index: ", cases, [](auto& c, const char* cErr) {
         CT_CHECK(core::pow2(c.in) == c.expected, cErr);
+        return 0;
     });
+    CT_CHECK(ret == 0);
 
     return 0;
 }
@@ -258,9 +262,11 @@ i32 floatNearlyEqExtreamCasesTest() {
         { -MIN_F32, 0.000000001f, defaultEpsilon, false },
     };
 
-        core::testing::executeTestTable("floatNearlyEqExtreamCasesTest test case failed at index: ", cases, [](auto& c, const char* cErr) {
+        i32 ret = core::testing::executeTestTable("floatNearlyEqExtreamCasesTest test case failed at index: ", cases, [](auto& c, const char* cErr) {
         CT_CHECK(core::nearlyEq(c.a, c.b, c.epsilon) == c.expected, cErr);
+        return 0;
     });
+    CT_CHECK(ret == 0);
 
     return 0;
 }
@@ -327,24 +333,39 @@ constexpr i32 floatNearlyEqTest() {
         { 0.0f, -1e-40f, 0.00000001f, false },
     };
 
-    core::testing::executeTestTable("float_nearlyEq test case failed at index: ", cases, [](auto& c, const char* cErr) {
+    i32 ret = core::testing::executeTestTable("float_nearlyEq test case failed at index: ", cases, [](auto& c, const char* cErr) {
         CT_CHECK(core::nearlyEq(c.a, c.b, c.epsilon) == c.expected, cErr);
+        return 0;
     });
+    CT_CHECK(ret == 0);
 
     return 0;
 }
 
 i32 runMathTestsSuite() {
-    RunTest(pow10Test);
-    RunTest(pow2Test);
-    RunTest(degreesTest);
-    RunTest(absTest);
-    RunTest(isPositiveTest);
-    RunTest(floatSafeEqTest);
-    RunTest(floatNearlyEqExtreamCasesTest);
-    RunTest(floatNearlyEqTest);
+    using namespace core::testing;
 
-    return 0;
+    i32 ret = 0;
+    TestInfo tInfo = createTestInfo();
+
+    tInfo.name = FN_NAME_TO_CPTR(pow10Test);
+    if (runTest(tInfo, pow10Test) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(pow2Test);
+    if (runTest(tInfo, pow2Test) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(degreesTest);
+    if (runTest(tInfo, degreesTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(absTest);
+    if (runTest(tInfo, absTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(isPositiveTest);
+    if (runTest(tInfo, isPositiveTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(floatSafeEqTest);
+    if (runTest(tInfo, floatSafeEqTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(floatNearlyEqExtreamCasesTest);
+    if (runTest(tInfo, floatNearlyEqExtreamCasesTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(floatNearlyEqTest);
+    if (runTest(tInfo, floatNearlyEqTest) != 0) { ret = -1; }
+
+    return ret;
 }
 
 constexpr i32 runCompiletimeMathTestsSuite() {

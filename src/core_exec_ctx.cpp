@@ -80,6 +80,12 @@ void setActiveAllocatorForThread(AllocatorContext* activeContext) {
     tl_activeAllocatorContext = activeContext;
 }
 
+void clearActiveAllocatorForThread() {
+    if (tl_activeAllocatorContext) {
+        tl_activeAllocatorContext->clear(tl_activeAllocatorContext->allocatorData);
+    }
+}
+
 namespace {
 
 inline AllocatorContext* getActiveAllocatorContext() {

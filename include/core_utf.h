@@ -88,7 +88,7 @@ constexpr rune runeFromBytesSkipCheck(const uchar* utf, u32 len) {
     return r;
 }
 
-constexpr core::sexpected<rune, bool> runeFromBytes(const uchar* utf, u32 len) {
+constexpr core::expected<rune, bool> runeFromBytes(const uchar* utf, u32 len) {
     Assert(utf != nullptr);
     if (isValidUtf8Encoding(utf, len) == false) {
         return core::unexpected(false);

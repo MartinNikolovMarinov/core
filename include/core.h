@@ -10,7 +10,7 @@
 #include "core_config.h"
 #include "core_cptr_conv.h"
 #include "core_cptr.h"
-#include "core_expected.h" // FIXME: Be careful with this one! Try to make it better, but don't break the API.
+#include "core_expected.h"
 #include "core_hash.h"
 #include "core_hash_map.h"
 #include "core_intrinsics.h"
@@ -24,7 +24,7 @@
 #include "core_tuple.h"
 #include "core_types.h"
 // #include "core_unique_ptr.h"
-// #include "core_utf.h" // FIXME: fix this later
+#include "core_utf.h"
 #include "core_utils.h"
 
 #include "math/core_bbox.h"

@@ -86,11 +86,19 @@ i32 rotate2dTest() {
 }
 
 i32 runTransformsTestsSuite() {
-    RunTest(translateTest);
-    RunTest(scaleTest);
-    RunTest(rotate2dTest);
+    using namespace core::testing;
 
-    return 0;
+    i32 ret = 0;
+    TestInfo tInfo = createTestInfo();
+
+    tInfo.name = FN_NAME_TO_CPTR(translateTest);
+    if (runTest(tInfo, translateTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(scaleTest);
+    if (runTest(tInfo, scaleTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(rotate2dTest);
+    if (runTest(tInfo, rotate2dTest) != 0) { ret = -1; }
+
+    return ret;
 }
 
 i32 runCompiletimeTransformsTestsSuite() {

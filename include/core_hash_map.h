@@ -42,17 +42,16 @@ struct HashMap {
 
     static constexpr f64 maxLoadFactor = detail::DEFAULT_MAX_LOAD_FACTOR;
 
-    static_assert(HashableConcept<key_type>, "TKey must be hashable");
-    static_assert(std::is_move_constructible_v<key_type>, "TKey must be move constructible");
-    static_assert(std::is_move_constructible_v<value_type>, "TValue must be move constructible");
-
     // IMPORTANT: Only a subset of the features can be used without a copy constructr, but it is allowed.
     //            On the other hand, without a move contructor this struct is useless.
+    static_assert(std::is_move_constructible_v<key_type>, "TKey must be move constructible");
+    static_assert(std::is_move_constructible_v<value_type>, "TValue must be move constructible");
+    static_assert(HashableConcept<key_type>, "TKey must be hashable");
 
     HashMap() : m_keys(nullptr), m_values(nullptr), m_occupied(nullptr), m_cap(0), m_len(0) {}
     HashMap(size_type cap) {
         cap = detail::addLoadFactor(cap, maxLoadFactor);
-        m_cap = detail::nextPowerOf2ForCap(cap);
+        m_cap = cap > 0 ? detail::nextPowerOf2ForCap(cap) : 0;
         m_len = 0;
         if (m_cap > 0) {
             m_keys        = reinterpret_cast<key_type*>(core::alloc(m_cap, sizeof(key_type)));
@@ -107,9 +106,9 @@ struct HashMap {
     }
 
     size_type cap()     const { return m_cap; }
-    size_type byteCap() const { return m_cap * sizeof(value_type) * sizeof(key_type) * sizeof(bool); }
+    size_type byteCap() const { return m_cap * core::align(sizeof(value_type) + sizeof(key_type) + sizeof(bool)); }
     size_type len()     const { return m_len; }
-    size_type byteLen() const { return m_len * sizeof(value_type) * sizeof(key_type) * sizeof(bool); }
+    size_type byteLen() const { return m_len * core::align(sizeof(value_type) + sizeof(key_type) + sizeof(bool)); }
     bool      empty()   const { return m_len == 0; }
 
     void clear() {
@@ -148,7 +147,7 @@ struct HashMap {
             copyKeys     = reinterpret_cast<key_type *>(core::alloc(m_cap, sizeof(key_type)));
             copyOccupied = reinterpret_cast<bool *>(core::alloc(m_cap, sizeof(bool)));
 
-            for (size_type i = 0; i < m_len; i++) {
+            for (size_type i = 0; i < m_cap; i++) {
                 new (&copyData[i]) value_type(m_values[i]);
                 new (&copyKeys[i]) key_type(m_keys[i]);
                 copyOccupied[i] = m_occupied[i];
@@ -177,17 +176,15 @@ struct HashMap {
         return const_cast<value_type*>(static_cast<const HashMap&>(*this).get(key));
     }
 
+    bool contains(const key_type& key) const {
+        return findIndex(key) < m_cap;
+    }
+
     value_type* put(const key_type& key, const value_type& val) {
-        return putImpl<const key_type&, const value_type&>(key, val);
+        return putImpl<const value_type&>(key, val);
     }
     value_type* put(const key_type& key, value_type&& val) {
-        return putImpl<const key_type&, value_type&&>(key, std::move(val));
-    }
-    value_type* put(key_type&& key, const value_type& val) {
-        return putImpl<key_type&&, const value_type&>(std::move(key), val);
-    }
-    value_type* put(key_type&& key, value_type&& val) {
-        return putImpl<key_type&&, value_type&&>(std::move(key), std::move(val));
+        return putImpl<value_type&&>(key, std::move(val));
     }
 
     bool remove(const key_type& key) {
@@ -223,10 +220,11 @@ struct HashMap {
         for (size_type i = 0; i < m_cap; i++) {
             if (m_occupied[i]) {
                 auto h         = core::hash(m_keys[i]);
-                size_type addr = size_type(h) & (newCap - 1);
+                size_type addr = size_type(h) & (newCap - 1); // re-hash the key and find a new slot.
 
-                // Find an empty slot.
+                // Find the first empty slot starting from the calculated slot.
                 while (newOccupied[addr]) {
+                    // This loop should be guaranteed to terminate because new cap is always larger than the old cap.
                     addr = (addr + 1) & (newCap - 1);
                 }
 
@@ -252,7 +250,9 @@ struct HashMap {
     void keys(TCallback cb) const {
         for (size_type i = 0; i < m_cap; i++) {
             if (m_occupied[i]) {
-                cb(m_keys[i]);
+                if (!cb(m_keys[i])) {
+                    return;
+                }
             }
         }
     }
@@ -261,7 +261,9 @@ struct HashMap {
     void values(TCallback cb) const {
         for (size_type i = 0; i < m_cap; i++) {
             if (m_occupied[i]) {
-                cb(m_values[i]);
+                if (!cb(m_values[i])) {
+                    return;
+                }
             }
         }
     }
@@ -275,16 +277,17 @@ struct HashMap {
     void entries(TCallback cb) const {
         for (size_type i = 0; i < m_cap; i++) {
             if (m_occupied[i]) {
-                cb(m_keys[i], m_values[i]);
+                if (!cb(m_keys[i], m_values[i])) {
+                    return;
+                }
             }
         }
     }
 
 private:
 
-    template <typename TTKey, typename TTVal>
-    inline value_type* putImpl(TTKey key, TTVal val) {
-        static_assert(std::is_reference_v<TTKey>, "Key must be a reference");
+    template <typename TTVal>
+    inline value_type* putImpl(const key_type& key, TTVal val) {
         static_assert(std::is_reference_v<TTVal>, "Value must be a reference");
 
         ensureCap(m_len + 1);
@@ -306,15 +309,12 @@ private:
             addr = (addr + 1) & (m_cap - 1);
         }
 
-        // Slot is empty, insert the key and value.
+        // Slot is empty
 
-        if constexpr (std::is_lvalue_reference_v<TTKey>) {
-            new (&m_keys[addr]) key_type(key);
-        }
-        else {
-            new (&m_keys[addr]) key_type(std::move(key));
-        }
+        // Insert key
+        new (&m_keys[addr]) key_type(key);
 
+        // Insert value
         if constexpr (std::is_lvalue_reference_v<TTVal>) {
             new (&m_values[addr]) value_type(val);
         }
@@ -322,6 +322,7 @@ private:
             new (&m_values[addr]) value_type(std::move(val));
         }
 
+        // Mark the slot as occupied
         m_occupied[addr] = true;
         m_len++;
 
@@ -343,10 +344,10 @@ private:
             }
 
             addr = (addr + 1) & (m_cap - 1);
-            if (addr == startAddr) {
+            if (addr == startAddr) [[unlikely]] {
                 // Full loop around the table.
                 // This happens when the table is filled to capacity and the loop goes forever.
-                // This is a problem only for small tables.
+                // This is a problem only when m_cap == m_len.
                 break;
             }
         }
@@ -360,5 +361,14 @@ private:
     size_type m_cap;
     size_type m_len;
 };
+
+template <typename TKey, typename TValue>
+HashMap<TKey, TValue> createHashMap() {
+    constexpr addr_size DEFAULT_CAP = 16;
+    return HashMap<TKey, TValue>(DEFAULT_CAP);
+}
+
+// TODO: Implement Hash Set.
+// TODO: Implement a static sized hash set for the cases where a exactly sized map is needed.
 
 } // namespace core

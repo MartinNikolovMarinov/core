@@ -210,7 +210,6 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
         if (isFirst) std::cout << " [ ";
         else std::cout << ", ";
         std::cout << "memory: {"
-                  << " total: " << memoryUsedToStr(buff, allocatedAfter)
                   << ", allocated: " << memoryUsedToStr(buff, deltaAllocatedMemory)
                   << ", in_use: " << memoryUsedToStr(buff, deltaInUseMemory)
                   << " }";
@@ -224,6 +223,7 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
         Panic(false, "Test failed, exiting...");
     }
 
+    core::clearActiveAllocatorForThread();
     std::cout << std::endl;
     return returnCode;
 }

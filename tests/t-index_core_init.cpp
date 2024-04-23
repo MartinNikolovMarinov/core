@@ -39,11 +39,11 @@ void asserHandler(const char* failedExpr, const char* file, i32 line, const char
 
 static core::StdStatsAllocator g_stdStatsAllocator;
 
-constexpr addr_size THREAD_LOCAL_GLOBAL_BUMP_ALLOCATOR_BUFFER_SIZE = core::CORE_KILOBYTE * 8;
+constexpr addr_size THREAD_LOCAL_GLOBAL_BUMP_ALLOCATOR_BUFFER_SIZE = core::CORE_MEGABYTE;
 thread_local u8 tl_bumpGlobalBuffer[THREAD_LOCAL_GLOBAL_BUMP_ALLOCATOR_BUFFER_SIZE];
 static auto g_bumpGlobalBufferAllocator = core::ThreadLocalBumpAllocator::create(tl_bumpGlobalBuffer, THREAD_LOCAL_GLOBAL_BUMP_ALLOCATOR_BUFFER_SIZE);
 
-constexpr addr_size THREAD_LOCAL_ARENA_ALLOCATOR_REGION_SIZE = core::CORE_KILOBYTE * 8;
+constexpr addr_size THREAD_LOCAL_ARENA_ALLOCATOR_REGION_SIZE = core::CORE_MEGABYTE;
 static auto g_arenaAllocator = core::ThreadLocalStdArenaAllocator::create(THREAD_LOCAL_ARENA_ALLOCATOR_REGION_SIZE);
 
 void coreInit() {
@@ -91,14 +91,22 @@ i32 runAllTests() {
     if (runTestSuite(sInfo, runHashMapTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runHashTestsSuite);
     if (runTestSuite(sInfo, runHashTestsSuite) != 0) { ret = -1; }
-    // RunTestSuite(runIntrinsicsTestsSuite); // FIXME:
-    // RunTestSuite(runUtfTestsSuite); // FIXME:
-    // RunTestSuite(runIntsTestsSuite); // FIXME:
-    // RunTestSuite(runMathTestsSuite); // FIXME:
-    // RunTestSuite(runVecTestsSuite); // FIXME:
-    // RunTestSuite(runMatrixTestsSuite); // FIXME:
-    // RunTestSuite(runMemTestsSuite); // FIXME:
-    // RunTestSuite(runTransformsTestsSuite); // FIXME:
+    sInfo.name = FN_NAME_TO_CPTR(runIntrinsicsTestsSuite);
+    if (runTestSuite(sInfo, runIntrinsicsTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runUtfTestsSuite);
+    if (runTestSuite(sInfo, runUtfTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runIntsTestsSuite);
+    if (runTestSuite(sInfo, runIntsTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runMathTestsSuite);
+    if (runTestSuite(sInfo, runMathTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runVecTestsSuite);
+    if (runTestSuite(sInfo, runVecTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runMatrixTestsSuite);
+    if (runTestSuite(sInfo, runMatrixTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runTransformsTestsSuite);
+    if (runTestSuite(sInfo, runTransformsTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runMemTestsSuite);
+    if (runTestSuite(sInfo, runMemTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runRndTestsSuite);
     if (runTestSuite(sInfo, runRndTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runStaticArrTestsSuite);

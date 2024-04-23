@@ -210,7 +210,7 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
         if (isFirst) std::cout << " [ ";
         else std::cout << ", ";
         std::cout << "memory: {"
-                  << ", allocated: " << memoryUsedToStr(buff, deltaAllocatedMemory)
+                  << " allocated: " << memoryUsedToStr(buff, deltaAllocatedMemory)
                   << ", in_use: " << memoryUsedToStr(buff, deltaInUseMemory)
                   << " }";
         isFirst = false;

@@ -5,22 +5,27 @@ i32 pltErrorDescribeWorksTest() {
     bool ok = core::pltErrorDescribe(0, buf);
     CT_CHECK(ok, "Platform failed to describe error code 0.");
 
-    i32 pltSpecificErrCode = 0;
-
 #if defined(OS_WIN) && OS_WIN == 1
-    pltSpecificErrCode = ERROR_FILE_NOT_FOUND;
+    i32 pltSpecificErrCode = ERROR_FILE_NOT_FOUND;
 #elif (defined(OS_LINUX) && OS_LINUX) || (defined(OS_MAC) && OS_MAC == 1)
-    pltSpecificErrCode = ENOENT;
+    i32 pltSpecificErrCode = ENOENT;
+#endif
+
     ok = core::pltErrorDescribe(pltSpecificErrCode, buf);
     CT_CHECK(ok);
     CT_CHECK(core::cptrLen(buf) > 0);
-#endif
 
     return 0;
 }
 
 i32 runPltErrorTestsSuite() {
-    RunTest(pltErrorDescribeWorksTest);
+    using namespace core::testing;
 
-    return 0;
+    i32 ret = 0;
+    TestInfo tInfo = createTestInfo();
+
+    tInfo.name = FN_NAME_TO_CPTR(pltErrorDescribeWorksTest);
+    if (runTest(tInfo, pltErrorDescribeWorksTest) != 0) { ret = -1; }
+
+    return ret;
 }

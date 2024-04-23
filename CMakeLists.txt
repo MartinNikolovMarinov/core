@@ -160,7 +160,7 @@ elseif(OS STREQUAL "windows")
         src/plt/win/win_threading.cpp
         src/plt/win/win_time.cpp
         src/plt/win/win_plt_error.cpp
-        # src/plt/win/win_pages.cpp
+        src/plt/win/win_pages.cpp
         # src/plt/win/win_fs.cpp
         src/plt/win/win_stacktrace.cpp
     )
@@ -289,7 +289,7 @@ if(CORE_BUILD_TESTS)
         tests/t-sarr.cpp
         # tests/t-str_builder.cpp
         tests/t-tuple.cpp
-        # tests/t-unique_ptr.cpp
+        tests/t-unique_ptr.cpp
         tests/t-utf.cpp
 
         tests/allocators/t-bump_allocator.cpp
@@ -302,11 +302,11 @@ if(CORE_BUILD_TESTS)
         tests/math/t-transforms.cpp
         tests/math/t-vec.cpp
 
-        # tests/plt/t-pages.cpp
-        # tests/plt/t-plt_err.cpp
+        tests/plt/t-pages.cpp
+        tests/plt/t-plt_err.cpp
         tests/plt/t-stacktrace.cpp
         # tests/plt/t-threading.cpp
-        # tests/plt/t-time.cpp
+        tests/plt/t-time.cpp
         # tests/plt/t-fs.cpp
     )
 

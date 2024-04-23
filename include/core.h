@@ -23,7 +23,7 @@
 #include "core_traits.h"
 #include "core_tuple.h"
 #include "core_types.h"
-// #include "core_unique_ptr.h"
+#include "core_unique_ptr.h"
 #include "core_utf.h"
 #include "core_utils.h"
 

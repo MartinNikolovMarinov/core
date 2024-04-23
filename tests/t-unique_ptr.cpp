@@ -1,32 +1,30 @@
 #include "t-index.h"
 
-template <typename TAllocator>
 i32 initializeUniquePtrTest() {
-    using CT = core::testing::CT;
+    using namespace core::testing;
 
     {
-        core::UniquePtr<i32, TAllocator> p;
-        CT_CHECK(p.get() == nullptr);
-        p = core::makeUnique<i32, TAllocator>(42);
+        core::UniquePtr<i32> p;
+        p = core::makeUnique<i32>(42);
         CT_CHECK(p.get() != nullptr);
         CT_CHECK(*p.get() == 42);
         CT_CHECK(*p == 42);
     }
     {
-        core::UniquePtr<i32, TAllocator> p(core::makeUnique<i32, TAllocator>(42));
+        core::UniquePtr<i32> p(core::makeUnique<i32>(42));
         CT_CHECK(p.get() != nullptr);
         CT_CHECK(*p.get() == 42);
         CT_CHECK(*p == 42);
     }
     {
-        core::UniquePtr<i32, TAllocator> p = core::makeUnique<i32, TAllocator>(42);
+        core::UniquePtr<i32> p = core::makeUnique<i32>(42);
         CT_CHECK(p.get() != nullptr);
         CT_CHECK(*p.get() == 42);
         CT_CHECK(*p == 42);
     }
     {
-        auto p1 = core::makeUnique<i32, TAllocator>(42);
-        auto p2 = core::makeUnique<i32, TAllocator>(24);
+        auto p1 = core::makeUnique<i32>(42);
+        auto p2 = core::makeUnique<i32>(24);
         CT_CHECK(p1.get() != nullptr);
         CT_CHECK(p2.get() != nullptr);
         CT_CHECK(*p1.get() == 42);
@@ -41,7 +39,7 @@ i32 initializeUniquePtrTest() {
         CT_CHECK(*p1 == 24);
     }
     {
-        core::expected<core::UniquePtr<i32, TAllocator>, i32> p = core::makeUnique<i32, TAllocator>(42);
+        core::expected<core::UniquePtr<i32>, i32> p = core::makeUnique<i32>(42);
         CT_CHECK(p.hasValue());
         CT_CHECK(p.value().get() != nullptr);
         CT_CHECK(*p.value().get() == 42);
@@ -50,7 +48,7 @@ i32 initializeUniquePtrTest() {
         defer { CT::resetAll(); };
 
         {
-            core::UniquePtr<CT, TAllocator> p;
+            core::UniquePtr<CT> p;
             CT_CHECK(CT::totalCtorsCalled() == 0);
             CT_CHECK(CT::assignmentsTotalCalled() == 0);
             CT_CHECK(CT::dtorsCalled() == 0);
@@ -58,7 +56,7 @@ i32 initializeUniquePtrTest() {
 
         CT::resetAll();
         {
-            auto p = core::makeUnique<CT, TAllocator>();
+            auto p = core::makeUnique<CT>();
             CT_CHECK(CT::totalCtorsCalled() == 1);
             CT_CHECK(CT::assignmentsTotalCalled() == 0);
             CT_CHECK(CT::dtorsCalled() == 0);
@@ -67,11 +65,11 @@ i32 initializeUniquePtrTest() {
 
         CT::resetAll();
         {
-            core::UniquePtr<CT, TAllocator> p;
+            core::UniquePtr<CT> p;
             CT_CHECK(CT::totalCtorsCalled() == 0);
             CT_CHECK(CT::assignmentsTotalCalled() == 0);
             CT_CHECK(CT::dtorsCalled() == 0);
-            p = core::makeUnique<CT, TAllocator>();
+            p = core::makeUnique<CT>();
             CT_CHECK(CT::totalCtorsCalled() == 1);
             CT_CHECK(CT::dtorsCalled() == 0);
         }
@@ -79,15 +77,15 @@ i32 initializeUniquePtrTest() {
 
         CT::resetAll();
         {
-            core::UniquePtr<CT, TAllocator> p;
+            core::UniquePtr<CT> p;
             CT_CHECK(CT::assignmentsTotalCalled() == 0);
             CT_CHECK(CT::totalCtorsCalled() == 0);
             CT_CHECK(CT::dtorsCalled() == 0);
-            p = core::makeUnique<CT, TAllocator>();
+            p = core::makeUnique<CT>();
             CT_CHECK(CT::assignmentsTotalCalled() == 0);
             CT_CHECK(CT::totalCtorsCalled() == 1);
             CT_CHECK(CT::dtorsCalled() == 0);
-            p = core::makeUnique<CT, TAllocator>();
+            p = core::makeUnique<CT>();
             CT_CHECK(CT::assignmentsTotalCalled() == 0);
             CT_CHECK(CT::totalCtorsCalled() == 2);
             CT_CHECK(CT::dtorsCalled() == 1);
@@ -96,18 +94,18 @@ i32 initializeUniquePtrTest() {
 
         CT::resetAll();
         {
-            CT* ct = TAllocator::template construct<CT>();
+            CT* ct = core::construct<CT>();
             CT_CHECK(CT::totalCtorsCalled() == 1);
             CT_CHECK(CT::assignmentsTotalCalled() == 0);
             CT_CHECK(CT::dtorsCalled() == 0);
 
-            core::UniquePtr<CT, TAllocator> p(ct);
+            core::UniquePtr<CT> p(ct);
             // Do not call the type's constructor when creating a UniquePtr from a raw pointer.
             CT_CHECK(CT::totalCtorsCalled() == 1);
             CT_CHECK(CT::assignmentsTotalCalled() == 0);
             CT_CHECK(CT::dtorsCalled() == 0);
 
-            core::UniquePtr<CT, TAllocator> p2;
+            core::UniquePtr<CT> p2;
 
             p2 = std::move(p);
             CT_CHECK(CT::totalCtorsCalled() == 1);
@@ -121,20 +119,18 @@ i32 initializeUniquePtrTest() {
     return 0;
 }
 
-template <typename TAllocator>
-i32 stealUniquePtrTest() {
-    core::UniquePtr<i32, TAllocator> p = core::makeUnique<i32, TAllocator>(42);
-    i32* raw = p.steal();
+i32 releaseUniquePtrTest() {
+    core::UniquePtr<i32> p = core::makeUnique<i32>(42);
+    i32* raw = p.release();
     CT_CHECK(raw != nullptr);
     CT_CHECK(*raw == 42);
     CT_CHECK(p.get() == nullptr);
-    TAllocator::free(raw, sizeof(i32));
+    core::free(raw, 1, sizeof(i32));
     return 0;
 }
 
-template <typename TAllocator>
 i32 resetUniquePtrTest() {
-    core::UniquePtr<i32, TAllocator> p = core::makeUnique<i32, TAllocator>(42);
+    core::UniquePtr<i32> p = core::makeUnique<i32>(42);
     CT_CHECK(p.get() != nullptr);
     CT_CHECK(*p.get() == 42);
     CT_CHECK(*p == 42);
@@ -143,13 +139,12 @@ i32 resetUniquePtrTest() {
     return 0;
 }
 
-template <typename TAllocator>
 i32 copyUniquePtrTest() {
-    core::UniquePtr<i32, TAllocator> p = core::makeUnique<i32, TAllocator>(42);
+    core::UniquePtr<i32> p = core::makeUnique<i32>(42);
     CT_CHECK(p.get() != nullptr);
     CT_CHECK(*p.get() == 42);
     CT_CHECK(*p == 42);
-    core::UniquePtr<i32, TAllocator> p2 = p.copy();
+    core::UniquePtr<i32> p2 = p.copy();
     CT_CHECK(p2.get() != nullptr);
     CT_CHECK(*p2.get() == 42);
     CT_CHECK(*p2 == 42);
@@ -157,10 +152,9 @@ i32 copyUniquePtrTest() {
     return 0;
 }
 
-template <typename TAllocator>
 i32 swapUniquePtrTest() {
-    core::UniquePtr<i32, TAllocator> p1 = core::makeUnique<i32, TAllocator>(42);
-    core::UniquePtr<i32, TAllocator> p2 = core::makeUnique<i32, TAllocator>(24);
+    core::UniquePtr<i32> p1 = core::makeUnique<i32>(42);
+    core::UniquePtr<i32> p2 = core::makeUnique<i32>(24);
     CT_CHECK(p1.get() != nullptr);
     CT_CHECK(p2.get() != nullptr);
     CT_CHECK(*p1.get() == 42);
@@ -179,55 +173,45 @@ i32 swapUniquePtrTest() {
 }
 
 i32 runUniquePtrTestsSuite() {
+    using namespace core::testing;
 
-    constexpr addr_size BUFF_SIZE = core::KILOBYTE;
-    char buf[BUFF_SIZE];
+    auto runTests = [] (TestInfo& tInfo, const char* description, i32& retCode) {
+        tInfo.description = description;
 
-    core::StdAllocator::init(nullptr);
-    core::StdStatsAllocator::init(nullptr);
-    core::BumpAllocator::init(nullptr, buf, BUFF_SIZE);
+        tInfo.name = FN_NAME_TO_CPTR(initializeUniquePtrTest);
+        if (runTest(tInfo, initializeUniquePtrTest) != 0) { retCode = -1; }
 
-    auto checkLeaks = []() {
-        CT_CHECK(core::StdAllocator::usedMem() == 0);
-        CT_CHECK(core::StdStatsAllocator::usedMem() == 0, "Memory leak detected!");
-        CT_CHECK(core::BumpAllocator::usedMem() == 0);
+        tInfo.name = FN_NAME_TO_CPTR(releaseUniquePtrTest);
+        if (runTest(tInfo, releaseUniquePtrTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(resetUniquePtrTest);
+        if (runTest(tInfo, resetUniquePtrTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(copyUniquePtrTest);
+        if (runTest(tInfo, copyUniquePtrTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(swapUniquePtrTest);
+        if (runTest(tInfo, swapUniquePtrTest) != 0) { retCode = -1; }
     };
 
+    i32 ret = 0;
+    runForAllGlobalAllocatorVariants(runTests, ret);
+
     {
-        RunTest_DisplayMemAllocs(initializeUniquePtrTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(initializeUniquePtrTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(initializeUniquePtrTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(stealUniquePtrTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(stealUniquePtrTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(stealUniquePtrTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(resetUniquePtrTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(resetUniquePtrTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(resetUniquePtrTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(copyUniquePtrTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(copyUniquePtrTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(copyUniquePtrTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(swapUniquePtrTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(swapUniquePtrTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(swapUniquePtrTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
+        constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE;
+        char buf[BUFFER_SIZE];
+        USE_STACK_BASED_BUMP_ALLOCATOR_FOR_BLOCK_SCOPE(buf, BUFFER_SIZE);
+
+        TestInfo tInfo = createTestInfo();
+        tInfo.trackMemory = true;
+        runTests(tInfo, "STACK BASED BUMP Allocator", ret);
     }
 
-    return 0;
+    {
+        constexpr u32 BUFFER_SIZE = 256; // intentially small to test overflow.
+        USE_CUSTOM_ARENA_ALLOCATOR_FOR_FOR_BLOCK_SCOPE(BUFFER_SIZE);
+
+        TestInfo tInfo = createTestInfo();
+        tInfo.trackMemory = true;
+        runTests(tInfo, "CUSTOM ARENA Allocator", ret);
+    }
+
+    return ret;
 }

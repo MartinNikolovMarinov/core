@@ -112,10 +112,10 @@ i32 runAllTests() {
     sInfo.name = FN_NAME_TO_CPTR(runStaticArrTestsSuite);
     if (runTestSuite(sInfo, runStaticArrTestsSuite) != 0) { ret = -1; }
     // RunTestSuite(runStrBuilderTestsSuite); // FIXME:
-    // FIXME: write tests for string view !
     sInfo.name = FN_NAME_TO_CPTR(runTupleTestsSuite);
     if (runTestSuite(sInfo, runTupleTestsSuite) != 0) { ret = -1; }
-    // RunTestSuite(runUniquePtrTestsSuite); // FIXME:
+    sInfo.name = FN_NAME_TO_CPTR(runUniquePtrTestsSuite);
+    if (runTestSuite(sInfo, runUniquePtrTestsSuite)) { ret = -1; }
 
     sInfo.name = FN_NAME_TO_CPTR(runBumpAllocatorTestsSuite);
     if (runTestSuite(sInfo, runBumpAllocatorTestsSuite) != 0) { ret = -1; }
@@ -133,10 +133,13 @@ i32 runAllTests() {
         sInfo.name = FN_NAME_TO_CPTR(runPltStacktraceTestsSuite);
         if (runTestSuite(sInfo, runPltStacktraceTestsSuite) != 0) { ret = -1; }
     #endif
+    sInfo.name = FN_NAME_TO_CPTR(runPltTimeTestsSuite);
+    if (runTestSuite(sInfo, runPltTimeTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runPltErrorTestsSuite);
+    if (runTestSuite(sInfo, runPltErrorTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runPltPagesTestsSuite);
+    if (runTestSuite(sInfo, runPltPagesTestsSuite) != 0) { ret = -1; }
     // RunTestSuite(runPltThreadingTestsSuite); // FIXME:
-    // RunTestSuite(runPltTimeTestsSuite); // FIXME:
-    // RunTestSuite(runPltErrorTestsSuite); // FIXME:
-    // RunTestSuite(runPltPagesTestsSuite); // FIXME:
     // RunTestSuite(runPltFileSystemTestsSuite); // FIXME:
 
     std::cout << '\n';

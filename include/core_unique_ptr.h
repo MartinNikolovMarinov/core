@@ -1,24 +1,25 @@
 #pragma once
 
+#include <core_exec_ctx.h>
 #include <core_types.h>
-#include <core_alloc.h>
-#include <core_traits.h>
+#include <core_utils.h>
 
 namespace core {
 
-template <typename T, typename TAllocator = CORE_DEFAULT_ALLOCATOR()>
+template <typename T>
 struct UniquePtr {
-    using DataType = T;
-    using AllocatorType = TAllocator;
-    using ContainerType = UniquePtr<T, TAllocator>;
+    using value_type = T;
+
+    NO_COPY(UniquePtr);
 
     UniquePtr() : m_ptr(nullptr) {}
-    UniquePtr(DataType* newPtr) : m_ptr(newPtr) {}
-    UniquePtr(ContainerType&& other) {
+    UniquePtr(value_type* newPtr) : m_ptr(newPtr) {}
+    UniquePtr(UniquePtr&& other) {
         m_ptr = other.m_ptr;
         other.m_ptr = nullptr;
     }
-    ContainerType& operator=(ContainerType&& other) {
+
+    UniquePtr& operator=(UniquePtr&& other) {
         if (this == &other) return *this;
         reset();
         m_ptr = other.m_ptr;
@@ -26,56 +27,51 @@ struct UniquePtr {
         return *this;
     }
 
-    // no copy
-    NO_COPY(UniquePtr);
-
     ~UniquePtr() { reset(); }
 
-    ContainerType copy() const {
-        ContainerType ret;
-        ret.m_ptr = AllocatorType::template construct<DataType>(*m_ptr);
+    UniquePtr copy() const {
+        UniquePtr ret;
+        ret.m_ptr = core::construct<value_type>(*m_ptr);
         return ret;
     }
 
-    void reset(DataType* newPtr = nullptr) {
+    void reset(value_type* newPtr = nullptr) {
         if (m_ptr) {
-            if constexpr (!std::is_destructible_v<DataType>) {
-                m_ptr->~T();
-            }
-            AllocatorType::free(m_ptr, sizeof(DataType));
+            m_ptr->~T();
+            core::free(m_ptr, 1, sizeof(value_type));
         }
         m_ptr = newPtr;
     }
 
-    DataType* steal() {
-        DataType* ret = m_ptr;
+    value_type* release() {
+        value_type* ret = m_ptr;
         m_ptr = nullptr;
         return ret;
     }
 
-    void swap(ContainerType& other) {
-        DataType* tmp = m_ptr;
+    void swap(UniquePtr& other) {
+        value_type* tmp = m_ptr;
         m_ptr = other.m_ptr;
         other.m_ptr = tmp;
     }
 
-    DataType* operator->() const { return m_ptr; }
-    DataType& operator*() const { return *m_ptr; }
+    value_type* operator->() const { return m_ptr; }
+    value_type& operator*() const { return *m_ptr; }
 
-    DataType* get() const { return m_ptr; }
+    value_type* get() const { return m_ptr; }
 
     explicit operator bool() const { return m_ptr != nullptr; }
 
-    DataType& operator[](addr_size idx) const { return m_ptr[idx]; }
+    value_type& operator[](addr_size idx) const { return m_ptr[idx]; }
 
 private:
-    DataType* m_ptr;
+    value_type* m_ptr;
 };
 
-template <typename T, typename TAllocator = CORE_DEFAULT_ALLOCATOR(), typename... Args>
-UniquePtr<T, TAllocator> makeUnique(Args&&... args) {
-    T* rawPtr = TAllocator::template construct<T>(args...);
-    UniquePtr<T, TAllocator> ret (rawPtr);
+template <typename T, typename... Args>
+UniquePtr<T> makeUnique(Args&&... args) {
+    T* rawPtr = core::construct<T>(args...);
+    UniquePtr<T> ret (rawPtr);
     return ret;
 }
 

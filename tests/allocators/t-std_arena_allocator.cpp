@@ -79,6 +79,7 @@ i32 arenaAllocatorMoveTest() {
     allocator.alloc(4, sizeof(u8));
 
     core::StdArenaAllocator allocator2 = std::move(allocator);
+    defer { allocator2.clear(); };
 
     CT_CHECK(allocator.inUseMemory() == 0);
     CT_CHECK(allocator.totalMemoryAllocated() == 0);

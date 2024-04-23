@@ -95,7 +95,7 @@ struct ArrList {
         m_len = 0;
     }
 
-    ArrList copy() {
+    ArrList copy() const {
         value_type* dataCopy = nullptr;
         if (m_cap > 0) {
             dataCopy = reinterpret_cast<value_type *>(core::alloc(m_cap, sizeof(value_type)));
@@ -108,6 +108,7 @@ struct ArrList {
                 }
             }
         }
+
         ArrList result;
         result.m_data = dataCopy;
         result.m_cap = m_cap;
@@ -117,7 +118,9 @@ struct ArrList {
 
     void free() {
         if (m_data == nullptr) return;
+
         clear();
+
         core::free(m_data, m_cap, sizeof(value_type));
         m_cap = 0;
         m_data = nullptr;
@@ -141,9 +144,11 @@ struct ArrList {
         value_type* res = m_data;
         cap = m_cap;
         len = m_len;
+
         m_data = nullptr;
         m_cap = 0;
         m_len = 0;
+
         return res;
     }
 

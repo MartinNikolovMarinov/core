@@ -3,6 +3,7 @@
 #include <core_API.h>
 #include <core_types.h>
 #include <core_cptr.h>
+#include <core_mem.h>
 
 namespace core {
 
@@ -28,13 +29,18 @@ struct CORE_API_EXPORT StrView {
 
     constexpr const char& operator[](size_type idx) const { return ptr[idx]; }
 
+    constexpr bool eq(const StrView& other) const {
+        bool areEqual = core::cptrCmp(ptr, length, other.ptr, other.length) == 0;
+        return areEqual;
+    }
+
     const char* ptr;
     size_type length;
 };
 
-constexpr StrView sv()                               { return {nullptr, 0}; }
-constexpr StrView sv(const char* str)                { return {str, core::cptrLen(str)}; }
-constexpr StrView sv(const char* str, addr_size len) { return {str, len}; }
+constexpr StrView sv()                               { return StrView{nullptr, 0}; }
+constexpr StrView sv(const char* str)                { return StrView{str, core::cptrLen(str)}; }
+constexpr StrView sv(const char* str, addr_size len) { return StrView{str, len}; }
 
 constexpr StrView operator""_sv(const char* str, size_t len) {
     return StrView(str, static_cast<StrView::size_type>(len));

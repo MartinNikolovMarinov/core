@@ -49,9 +49,9 @@ i32 stdStatsAllocatorBasicValidityTest() {
 i32 stdStatsAllocatorMoveTest() {
     core::StdStatsAllocator allocator;
 
-    allocator.alloc(4, sizeof(u8));
-
+    void* data = allocator.alloc(4, sizeof(u8));
     core::StdStatsAllocator allocator2 = std::move(allocator);
+    defer { allocator2.free(data, 4, sizeof(u8)); };
 
     CT_CHECK(allocator.inUseMemory() == 0);
     CT_CHECK(allocator.totalMemoryAllocated() == 0);
@@ -61,7 +61,6 @@ i32 stdStatsAllocatorMoveTest() {
 
     return 0;
 }
-
 
 i32 onOOMStdStatsAllocatorTest() {
     static i32 testOOMCount = 0;

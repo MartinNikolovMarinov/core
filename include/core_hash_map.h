@@ -137,7 +137,7 @@ struct HashMap {
         m_occupied = nullptr;
     }
 
-    HashMap copy() {
+    HashMap copy() const {
         value_type* copyData = nullptr;
         key_type* copyKeys = nullptr;
         bool* copyOccupied = nullptr;

@@ -25,7 +25,6 @@ constexpr i32 alignTest() {
     i32 ret = core::testing::executeTestTable("alignTest failed at index: ", cases, [](auto& c, const char* cErr) {
         auto got = core::align(c.in);
         CT_CHECK(got == c.expected, cErr);
-
         return 0;
     });
     CT_CHECK(ret == 0);

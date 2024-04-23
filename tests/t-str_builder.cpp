@@ -1,689 +1,408 @@
 #include "t-index.h"
 
-template<typename TAllocator>
-constexpr i32 initializeStrBuilderTest() {
-    using StrBuilder = core::StrBuilder<TAllocator>;
+[[nodiscard]]
+i32 sbIsUninitialized(const core::StrBuilder& sb) {
+    CT_CHECK(sb.empty());
+    CT_CHECK(sb.len() == 0);
+    CT_CHECK(sb.cap() == 0);
+    CT_CHECK(sb.byteLen() == 0);
+    CT_CHECK(sb.byteCap() == 0);
+    CT_CHECK(sb.view().len() == 0);
+    CT_CHECK(sb.view().data() == nullptr);
+    return 0;
+};
+
+i32 initializeStrBuilderTest() {
+    using core::StrBuilder;
+    using value_type = core::StrBuilder::value_type;
 
     {
-        StrBuilder s1;
-        CT_CHECK(s1.len() == 0);
-        CT_CHECK(s1.cap() == 0);
-        CT_CHECK(s1.byteLen() == 0);
-        CT_CHECK(s1.byteCap() == 0);
-        CT_CHECK(s1.empty());
-        CT_CHECK(s1.view().buff == nullptr);
+        // StrBuilder();
+        StrBuilder sb;
+        CT_CHECK(sbIsUninitialized(sb) == 0);
     }
 
     {
-        StrBuilder str(2);
-        CT_CHECK(str.len() == 2);
-        CT_CHECK(str.byteLen() == 2 * sizeof(typename StrBuilder::DataType));
-        CT_CHECK(str.cap() == 3);
-        CT_CHECK(str.byteCap() == 3 * sizeof(typename StrBuilder::DataType));
-        CT_CHECK(!str.empty());
-
-        CT_CHECK(str.first() == core::term_char);
-        CT_CHECK(str.last() == core::term_char);
-        CT_CHECK(str[0] == core::term_char);
-        CT_CHECK(str[1] == core::term_char);
-        CT_CHECK(str.at(0) == core::term_char);
-        CT_CHECK(str.at(1) == core::term_char);
+        // StrBuilder(size_type cap);
+        constexpr addr_size N = 5;
+        StrBuilder sb(N);
+        CT_CHECK(sb.empty());
+        CT_CHECK(sb.len() == 0);
+        CT_CHECK(sb.cap() == N + 1);
+        CT_CHECK(sb.byteLen() == 0);
+        CT_CHECK(sb.byteCap() == (N + 1) * sizeof(value_type));
+        CT_CHECK(sb.view().len() == 0);
+        CT_CHECK(sb.view().data() != nullptr);
     }
 
     {
-        StrBuilder str(2, 5);
-        CT_CHECK(str.len() == 2);
-        CT_CHECK(str.byteLen() == 2 * sizeof(typename StrBuilder::DataType));
-        CT_CHECK(str.cap() == 5);
-        CT_CHECK(str.byteCap() == 5 * sizeof(typename StrBuilder::DataType));
-        CT_CHECK(!str.empty());
-
-        CT_CHECK(str.first() == core::term_char);
-        CT_CHECK(str[0] == core::term_char);
-        CT_CHECK(str[1] == core::term_char);
-        CT_CHECK(str.at(0) == core::term_char);
-        CT_CHECK(str.at(1) == core::term_char);
+        // StrBuilder(size_type len, const value_type& val);
+        constexpr addr_size N = 5;
+        StrBuilder sb(N, 'a');
+        CT_CHECK(!sb.empty());
+        CT_CHECK(sb.len() == N);
+        CT_CHECK(sb.cap() == N + 1);
+        CT_CHECK(sb.byteLen() == N * sizeof(value_type));
+        CT_CHECK(sb.byteCap() == (N + 1) * sizeof(value_type));
+        CT_CHECK(sb.view().len() == N);
+        CT_CHECK(core::cptrCmp(sb.view().data(),
+                 core::cptrLen(sb.view().data()), // intentionally useing cptrLen here.
+                 "aaaaa", N) == 0);
     }
 
     {
-        StrBuilder str("hello");
+        // StrBuilder(const value_type* cptr);
+        // explicit StrBuilder(const StrView& view);
 
-        CT_CHECK(str.len() == 5);
-        CT_CHECK(str.byteLen() == 5 * sizeof(typename StrBuilder::DataType));
-        CT_CHECK(str.cap() == 6);
-        CT_CHECK(str.byteCap() == 6 * sizeof(typename StrBuilder::DataType));
+        constexpr const char* vv = "bbbbbb";
+        constexpr addr_size vvlen = core::cptrLen("bbbbbb");
 
-        CT_CHECK(str.first() == 'h');
-        CT_CHECK(str.last() == 'o');
-        CT_CHECK(str[0] == 'h');
-        CT_CHECK(str[1] == 'e');
-        CT_CHECK(str[2] == 'l');
-        CT_CHECK(str[3] == 'l');
-        CT_CHECK(str[4] == 'o');
-        CT_CHECK(str.at(0) == 'h');
-        CT_CHECK(str.at(1) == 'e');
-        CT_CHECK(str.at(2) == 'l');
-        CT_CHECK(str.at(3) == 'l');
-        CT_CHECK(str.at(4) == 'o');
+        auto check = [](StrBuilder& sb) {
+            CT_CHECK(!sb.empty());
+            CT_CHECK(sb.len() == vvlen);
+            CT_CHECK(sb.cap() == vvlen + 1);
+            CT_CHECK(sb.byteLen() == vvlen * sizeof(value_type));
+            CT_CHECK(sb.byteCap() == (vvlen + 1) * sizeof(value_type));
+            CT_CHECK(sb.view().len() == vvlen);
+            CT_CHECK(core::cptrCmp(sb.view().data(),
+                    core::cptrLen(sb.view().data()), // intentionally useing cptrLen here.
+                    vv, vvlen) == 0);
+            CT_CHECK(sb.eq(core::sv(vv)));
+            return 0;
+        };
 
-        auto sview = str.view();
-        CT_CHECK(core::cptrEq(sview.buff, "hello", sview.len()));
-    }
-
-    {
-        StrBuilder str;
-        auto prevCap = str.cap();
-
-        str = "hello";
-
-        CT_CHECK(str.len() == 5);
-        CT_CHECK(str.byteLen() == 5 * sizeof(typename StrBuilder::DataType));
-        CT_CHECK(str.cap() == prevCap*2 + core::cptrLen("hello") + 1);
-        CT_CHECK(str.byteCap() == (prevCap*2 + core::cptrLen("hello") + 1) * sizeof(typename StrBuilder::DataType));
-
-        CT_CHECK(str.first() == 'h');
-        CT_CHECK(str.last() == 'o');
-        CT_CHECK(str[0] == 'h');
-        CT_CHECK(str[1] == 'e');
-        CT_CHECK(str[2] == 'l');
-        CT_CHECK(str[3] == 'l');
-        CT_CHECK(str[4] == 'o');
-        CT_CHECK(str.at(0) == 'h');
-        CT_CHECK(str.at(1) == 'e');
-        CT_CHECK(str.at(2) == 'l');
-        CT_CHECK(str.at(3) == 'l');
-        CT_CHECK(str.at(4) == 'o');
-
-        auto sview = str.view();
-        CT_CHECK(core::cptrEq(sview.buff, "hello", sview.len()));
-        CT_CHECK(core::cptrLen(sview.buff) == sview.len(), "string view should be correctly null terminated");
-
-        constexpr const char* testMsg = "should not memory leak this";
-        prevCap = str.cap();
-        str = testMsg;
-        CT_CHECK(str.len() == 27);
-        CT_CHECK(str.byteLen() == 27 * sizeof(typename StrBuilder::DataType));
-        CT_CHECK(str.cap() == prevCap*2 + core::cptrLen(testMsg) + 1);
-        CT_CHECK(str.byteCap() == (prevCap*2 + core::cptrLen(testMsg) + 1) * sizeof(typename StrBuilder::DataType));
-
-        sview = str.view();
-        CT_CHECK(core::cptrEq(sview.buff, testMsg, sview.len()));
-        CT_CHECK(core::cptrLen(sview.buff) == sview.len(), "string view should be correctly null terminated");
+        StrBuilder sb1(vv); check(sb1);
+        StrBuilder sb2(core::sv(vv)); check(sb1);
     }
 
     return 0;
 }
 
-template<typename TAllocator>
-constexpr i32 moveAndCopyStrBuilderTest() {
-    using StrBuilder = core::StrBuilder<TAllocator>;
+i32 appendToStrBuilderTest() {
+    using core::StrBuilder;
+    using core::StrView;
+    using value_type = core::StrBuilder::value_type;
 
     {
-        StrBuilder str1("hello");
-        StrBuilder str2 = std::move(str1);
-        StrBuilder str3;
-        StrBuilder str4;
-
-        CT_CHECK(str1.len() == 0);
-        CT_CHECK(str1.byteLen() == 0);
-        CT_CHECK(str1.cap() == 0);
-        CT_CHECK(str1.byteCap() == 0);
-        CT_CHECK(str1.empty());
-        CT_CHECK(str1.view().buff == nullptr);
-
-        CT_CHECK(str2.len() == 5);
-        CT_CHECK(str2.byteLen() == 5 * sizeof(typename StrBuilder::DataType));
-        CT_CHECK(str2.cap() == 6);
-        CT_CHECK(str2.byteCap() == 6 * sizeof(typename StrBuilder::DataType));
-        CT_CHECK(!str2.empty());
-        CT_CHECK(core::cptrEq(str2.view().buff, "hello", str2.view().len()));
-        CT_CHECK(core::cptrLen(str2.view().buff) == str2.view().len(), "string view should be correctly null terminated");
-
-        str3 = std::move(str2);
-        str4 = str3.copy();
-
-        CT_CHECK(str2.len() == 0);
-        CT_CHECK(str2.byteLen() == 0);
-        CT_CHECK(str2.cap() == 0);
-        CT_CHECK(str2.byteCap() == 0);
-        CT_CHECK(str2.empty());
-        CT_CHECK(str2.view().buff == nullptr);
-
-        CT_CHECK(str3.len() == 5);
-        CT_CHECK(str3.byteLen() == 5 * sizeof(typename StrBuilder::DataType));
-        CT_CHECK(str3.cap() == 6);
-        CT_CHECK(str3.byteCap() == 6 * sizeof(typename StrBuilder::DataType));
-        CT_CHECK(!str3.empty());
-        CT_CHECK(core::cptrEq(str3.view().buff, "hello", str3.view().len()));
-        CT_CHECK(core::cptrLen(str3.view().buff) == str3.view().len(), "string view should be correctly null terminated");
-
-        CT_CHECK(str4.len() == 5);
-        CT_CHECK(str4.byteLen() == 5 * sizeof(typename StrBuilder::DataType));
-        CT_CHECK(str4.cap() == 6);
-        CT_CHECK(str4.byteCap() == 6 * sizeof(typename StrBuilder::DataType));
-        CT_CHECK(!str4.empty());
-        CT_CHECK(core::cptrEq(str4.view().buff, "hello", str4.view().len()));
-        CT_CHECK(core::cptrLen(str4.view().buff) == str4.view().len(), "string view should be correctly null terminated");
-
-        CT_CHECK(str3.view().buff != str4.view().buff);
-    }
-
-    {
-        // Move assignment of self.
-        StrBuilder a = "hello";
-        a = std::move(a);
-
-        CT_CHECK(a.len() == 5);
-        CT_CHECK(a.byteLen() == 5 * sizeof(typename StrBuilder::DataType));
-        CT_CHECK(a.cap() == 6);
-        CT_CHECK(a.byteCap() == 6 * sizeof(typename StrBuilder::DataType));
-        CT_CHECK(!a.empty());
-        CT_CHECK(core::cptrEq(a.view().buff, "hello", a.view().len()));
-    }
-
-    {
-        // Assigning char pointer when there is enough memory to fit it and when ther isn't.
-
-        constexpr const char* testMsg = "Hello world!";
         StrBuilder a;
-        auto prevCap = a.cap();
 
-        a = testMsg;
+        for (value_type c = 'a'; c <= 'z'; ++c) {
+            addr_size idx = addr_size(c - 'a');
+            a.append(c);
+            CT_CHECK(a.len() == idx + 1);
+            CT_CHECK(a.cap() > idx + 1);
+            CT_CHECK(a.view().len() == idx + 1);
+            CT_CHECK(a.view().data()[idx] == c);
+        }
 
-        CT_CHECK(a.len() == core::cptrLen(testMsg));
-        CT_CHECK(a.byteLen() == core::cptrLen(testMsg) * sizeof(typename StrBuilder::DataType));
-        CT_CHECK(a.cap() == prevCap*2 + core::cptrLen(testMsg) + 1);
-        CT_CHECK(a.byteCap() == (prevCap*2 + core::cptrLen(testMsg) + 1) * sizeof(typename StrBuilder::DataType));
+        a.clear();
+        CT_CHECK(a.len() == 0);
+        CT_CHECK(a.view().len() == 0);
+        // CT_CHECK(a.view().data() == nullptr); // NOTE: This is NOT guaranteed!
 
-        constexpr const char* testMsg2 = "This should fit!";
-        prevCap = a.cap();
-        a = testMsg2;
-        CT_CHECK(a.len() == core::cptrLen(testMsg2));
-        CT_CHECK(a.cap() == prevCap*2 + core::cptrLen(testMsg2) + 1, "should not resize when char ptr fits in current capacity");
-        CT_CHECK(a.byteCap() == (prevCap*2 + core::cptrLen(testMsg2) + 1) * sizeof(typename StrBuilder::DataType));
+        for (value_type c = 'a'; c <= 'z'; ++c) {
+            addr_size idx = addr_size(c - 'a');
+            a.append(c);
+            CT_CHECK(a.len() == idx + 1);
+            CT_CHECK(a.cap() > idx + 1);
+            CT_CHECK(a.view().len() == idx + 1);
+            CT_CHECK(a.view().data()[idx] == c);
+        }
+    }
+
+    {
+        auto check = [](StrBuilder& sb, auto appendFn) {
+            for (value_type c = 'a'; c <= 'z'; ++c) {
+                addr_size idx = addr_size(c - 'a');
+                appendFn(sb, c);
+                CT_CHECK(sb.len() == idx + 1);
+                CT_CHECK(sb.cap() > idx + 1);
+                CT_CHECK(sb.view().len() == idx + 1);
+                CT_CHECK(sb.view().data()[idx] == c);
+            }
+
+            return 0;
+        };
+
+        StrBuilder a1;
+        check(a1, [](StrBuilder& sb, value_type c) { sb.append(c); });
+        a1.clear();
+        check(a1, [](StrBuilder& sb, value_type c) { sb.append(&c, 1); });
+
+        StrBuilder a2;
+        check(a2, [](StrBuilder& sb, value_type c) { sb.append(&c, 1); });
+        a2.clear();
+        check(a2, [](StrBuilder& sb, value_type c) { sb.append(c); });
+    }
+
+    {
+        struct TestCase {
+            const char* start;
+            const char* in;
+            StrView expected;
+        };
+
+        TestCase cases[] = {
+            { nullptr, "123456789", "123456789"_sv },
+            { "", "123456789", "123456789"_sv },
+            { "1", "23456789", "123456789"_sv },
+            { "12", "3456789", "123456789"_sv },
+            { "123", "456789", "123456789"_sv },
+            { "1234", "56789", "123456789"_sv },
+            { "12345", "6789", "123456789"_sv },
+            { "123456", "789", "123456789"_sv },
+            { "1234567", "89", "123456789"_sv },
+            { "12345678", "9", "123456789"_sv },
+            { "123456789", "", "123456789"_sv },
+            { "123456789", nullptr, "123456789"_sv },
+        };
+
+        i32 ret = core::testing::executeTestTable("appendToStrBuilderTest failed at index: ", cases, [](auto& c, const char* cErr) {
+            {
+                StrBuilder sb (c.start);
+                sb.append(c.in, core::cptrLen(c.in));
+                CT_CHECK(sb.eq(c.expected), cErr);
+                CT_CHECK(sb.len() == c.expected.len(), cErr);
+            }
+            {
+                StrBuilder sb;
+                sb = core::sv(c.start);
+                sb.append(c.in, core::cptrLen(c.in));
+                CT_CHECK(sb.eq(c.expected), cErr);
+                CT_CHECK(sb.len() == c.expected.len(), cErr);
+
+                sb = c.start;
+                sb.append(c.in, core::cptrLen(c.in));
+                CT_CHECK(sb.eq(c.expected), cErr);
+                CT_CHECK(sb.len() == c.expected.len(), cErr);
+            }
+            {
+                StrBuilder sb (c.start);
+                sb.append(core::sv(c.in, core::cptrLen(c.in)));
+                CT_CHECK(sb.eq(c.expected), cErr);
+                CT_CHECK(sb.len() == c.expected.len(), cErr);
+            }
+            {
+                StrBuilder sb (c.start);
+                sb.append(c.in);
+                CT_CHECK(sb.eq(c.expected), cErr);
+                CT_CHECK(sb.len() == c.expected.len(), cErr);
+            }
+
+            return 0;
+        });
+        CT_CHECK(ret == 0);
     }
 
     return 0;
 }
 
-template<typename TAllocator>
+i32 moveAndCopyStrBuilderTest() {
+    using core::StrBuilder;
+    using core::StrView;
+
+    {
+        static constexpr StrView view = "testing"_sv;
+        static const StrBuilder checksb (view);
+
+        auto check = [](const StrBuilder& sb) {
+            CT_CHECK(sb.len() == view.len());
+            CT_CHECK(sb.cap() > sb.len());
+            CT_CHECK(sb.eq(view));
+            CT_CHECK(sb.eq(checksb));
+            return 0;
+        };
+
+        StrBuilder sb0; sb0.append("testing");       // StrBuilder();
+        StrBuilder sb1 = StrBuilder(std::move(sb0)); // StrBuilder(StrBuilder&& other);
+        StrBuilder sb2 = StrBuilder("testing");      // StrBuilder(const value_type* cptr);
+        StrBuilder sb3 = StrBuilder(view);           // StrBuilder(const StrView& view);
+        StrBuilder sb4 = StrBuilder("testing"_sv);   // StrBuilder(StrView&& view);
+
+        CT_CHECK(sbIsUninitialized(sb0) == 0);
+        CT_CHECK(check(sb1) == 0);
+        CT_CHECK(check(sb2) == 0);
+        CT_CHECK(check(sb3) == 0);
+        CT_CHECK(check(sb4) == 0);
+
+        StrView movableView (view.data());
+
+        StrBuilder sb5, sb6, sb7, sb8;
+        sb5 = std::move(sb1);         // StrBuilder& operator=(StrBuilder&& other);
+        sb6 = view.data();            // StrBuilder& operator=(const value_type* cptr);
+        sb7 = movableView;            // StrBuilder& operator=(const StrView& view);
+        sb8 = std::move(movableView); // StrBuilder& operator=(StrView&& view);
+
+        CT_CHECK(sbIsUninitialized(sb1) == 0);
+        CT_CHECK(movableView.data() == nullptr);
+        CT_CHECK(movableView.len() == 0);
+        CT_CHECK(check(sb5) == 0);
+        CT_CHECK(check(sb6) == 0);
+        CT_CHECK(check(sb7) == 0);
+        CT_CHECK(check(sb8) == 0);
+
+        StrBuilder sb9 = sb8.copy();
+        CT_CHECK(check(sb8) == 0);
+        CT_CHECK(check(sb9) == 0);
+    }
+
+    {
+        PRAGMA_WARNING_PUSH
+
+        DISABLE_CLANG_WARNING(-Wself-move) // this is what I am testing here. I know it's wrong to do.
+
+        StrBuilder sb("aaa");
+        sb = std::move(sb);
+
+        CT_CHECK(sb.len() == 3);
+        CT_CHECK(sb.cap() > 3);
+        CT_CHECK(sb.eq("aaa"_sv));
+
+        PRAGMA_WARNING_POP
+    }
+
+    return 0;
+}
+
+i32 resetAndReleaseStrBuilderTest() {
+    using core::StrBuilder;
+    using core::StrView;
+    using size_type = core::StrBuilder::size_type;
+    using value_type = core::StrBuilder::value_type;
+
+    {
+        StrBuilder sb ("some string"_sv);
+
+        size_type cap = 0;
+        size_type len = 0;
+        value_type* released = sb.release(len, cap);
+        defer {
+            core::free(released, cap, sizeof(value_type)); // memory leak will be detected if this function is not called;
+        };
+
+        CT_CHECK(sbIsUninitialized(sb) == 0);
+    }
+
+    {
+        StrBuilder sb ("some string"_sv);
+
+        size_type cap = 0;
+        size_type len = 0;
+        value_type* released = sb.release(len, cap);
+        core::memset(released + cap, 0, cap - len); // zero out the memory after len.
+
+        CT_CHECK(sbIsUninitialized(sb) == 0);
+
+        //  Giving the ownership back to the string builder should not leak memory!
+        sb.reset(released, len, cap);
+
+        CT_CHECK(sb.len() == len);
+        CT_CHECK(sb.cap() == cap);
+        CT_CHECK(sb.eq("some string"_sv));
+    }
+
+    return 0;
+}
+
 i32 ensureCapStrBuilderTest() {
-    using StrBuilder = core::StrBuilder<TAllocator>;
+    using core::StrBuilder;
+    using size_type = core::StrBuilder::size_type;
 
-    StrBuilder s;
-    CT_CHECK(s.len() == 0);
-    CT_CHECK(s.cap() == 0);
-    CT_CHECK(s.view().buff == nullptr);
-    CT_CHECK(s.empty());
-
-    s.ensureCap(10);
-    CT_CHECK(s.len() == 0);
-    CT_CHECK(s.cap() == 10);
-    CT_CHECK(s.view().buff != nullptr);
-    CT_CHECK(s.empty());
-
-    s.ensureCap(2);
-    CT_CHECK(s.len() == 0);
-    CT_CHECK(s.cap() == 10);
-    CT_CHECK(s.view().buff != nullptr);
-    CT_CHECK(s.empty());
-
-    return 0;
-}
-
-template<typename TAllocator>
-i32 fillStrBuilderTest() {
-    using StrBuilder = core::StrBuilder<TAllocator>;
-
+    // This test checks internal details, like the exact capcity, which might change in the future.
+    // It's still worth it to check that the growth algorithm is working as expected.
     {
-        StrBuilder s;
-        s.fill('a'); // should not crash
-        CT_CHECK(s.len() == 0);
-        CT_CHECK(s.cap() == 0);
-        CT_CHECK(s.view().buff == nullptr);
+        struct TestCase {
+            size_type start;
+            size_type in;
+            size_type expected;
+        };
+
+        TestCase cases[] = {
+            { 0, 0, 0 },
+            { 0, 1, 1 },
+            { 0, 2, 2 },
+            { 0, 3, 3 },
+            { 0, 4, 4 },
+
+            { 1, 0, 2 },
+            { 1, 1, 2 },
+            { 1, 2, 2 },
+            { 1, 3, 3 },
+            { 1, 4, 4 },
+
+            { 2, 0, 3 },
+            { 2, 1, 3 },
+            { 2, 2, 3 },
+            { 2, 3, 3 },
+            { 2, 4, 4 },
+        };
+
+        i32 ret = core::testing::executeTestTable("appendToStrBuilderTest failed at index: ", cases, [](auto& c, const char* cErr) {
+            auto check = [&](const StrBuilder& sb) -> i32 {
+                CT_CHECK(sb.cap() == c.expected, cErr);
+                CT_CHECK(sb.len() == 0, cErr);
+                CT_CHECK(sb.view().len() == 0, cErr);
+                return 0;
+            };
+
+            StrBuilder sb (c.start);
+
+            sb.ensureCap(c.in);
+            CT_CHECK(check(sb) == 0, cErr);
+
+            sb.ensureCap(c.in);
+            CT_CHECK(check(sb) == 0, cErr);
+
+            sb.ensureCap(core::core_min(addr_size(c.in - 5), addr_size(0)));
+            CT_CHECK(check(sb) == 0, cErr);
+
+            return 0;
+        });
+        CT_CHECK(ret == 0);
     }
-
-    {
-        StrBuilder s(10);
-
-        s.fill(0);
-        for (addr_size i = 0; i < s.len(); ++i) {
-            CT_CHECK(s[i] == 0);
-        }
-
-        s.fill('a');
-        for (addr_size i = 0; i < s.len(); ++i) {
-            CT_CHECK(s[i] == 'a');
-        }
-    }
-
-    {
-        StrBuilder s(1, 5);
-
-        s.fill(0);
-        for (addr_size i = 0; i < s.len(); ++i) {
-            CT_CHECK(s[i] == 0);
-            CT_CHECK(i < 1, "Fill should use the length of the string builder, not the capacity.");
-        }
-
-        s.fill(1);
-        for (addr_size i = 0; i < s.len(); ++i) {
-            CT_CHECK(s[i] == 1);
-            CT_CHECK(i < 1, "Fill should use the length of the string builder, not the capacity.");
-        }
-    }
-
-    return 0;
-}
-
-template<typename TAllocator>
-i32 appendStrBuilderTest() {
-    using StrBuilder = core::StrBuilder<TAllocator>;
-
-    {
-        StrBuilder s;
-        s.append('a'); // should not crash
-        CT_CHECK(s.len() == 1);
-        CT_CHECK(s.cap() == 2);
-        CT_CHECK(s.view().buff != nullptr);
-        CT_CHECK(s[0] == 'a');
-    }
-
-    {
-        StrBuilder s(2);
-
-        s.append('b');
-        CT_CHECK(s.len() == 3);
-        CT_CHECK(s.cap() == 6);
-        CT_CHECK(s.view().buff != nullptr);
-        CT_CHECK(s[0] == 0);
-        CT_CHECK(s[1] == 0);
-        CT_CHECK(s[2] == 'b');
-
-        s.append('a');
-        CT_CHECK(s.len() == 4);
-        CT_CHECK(s.cap() == 6);
-        CT_CHECK(s.view().buff != nullptr);
-        CT_CHECK(s[0] == 0);
-        CT_CHECK(s[1] == 0);
-        CT_CHECK(s[2] == 'b');
-        CT_CHECK(s[3] == 'a');
-    }
-
-    {
-        StrBuilder s(1, 5);
-
-        s.append('b');
-        CT_CHECK(s.len() == 2);
-        CT_CHECK(s.cap() == 5);
-        CT_CHECK(s.view().buff != nullptr);
-        CT_CHECK(s[0] == 0);
-        CT_CHECK(s[1] == 'b');
-
-        s.append('a');
-        CT_CHECK(s.len() == 3);
-        CT_CHECK(s.cap() == 5);
-        CT_CHECK(s.view().buff != nullptr);
-        CT_CHECK(s[0] == 0);
-        CT_CHECK(s[1] == 'b');
-        CT_CHECK(s[2] == 'a');
-    }
-
-    {
-        // Appending past the specified capacity.
-        StrBuilder s(0, 2);
-
-        s.append('a').append('b').append('c');
-
-        CT_CHECK(s.len() == 3);
-        CT_CHECK(s.cap() == 4);
-        CT_CHECK(s.view().buff != nullptr);
-        CT_CHECK(s[0] == 'a');
-        CT_CHECK(s[1] == 'b');
-        CT_CHECK(s[2] == 'c');
-
-        s.clear();
-
-        CT_CHECK(s.len() == 0);
-        CT_CHECK(s.cap() == 4);
-        CT_CHECK(s.view().buff != nullptr);
-
-        s.append('e').append('f').append('g');
-
-        CT_CHECK(s.len() == 3);
-        CT_CHECK(s.cap() == 4);
-        CT_CHECK(s.view().buff != nullptr);
-        CT_CHECK(s[0] == 'e');
-        CT_CHECK(s[1] == 'f');
-        CT_CHECK(s[2] == 'g');
-    }
-
-    {
-        // Append whole string.
-        StrBuilder s(0, 2);
-
-        {
-            auto prevCap = s.cap();
-            s.append("abc");
-            CT_CHECK(s.len() == 3);
-            CT_CHECK(s.cap() == prevCap * 2 + core::cptrLen("abc") + 1);
-            CT_CHECK(s.view().buff != nullptr);
-            CT_CHECK(s[0] == 'a');
-            CT_CHECK(s[1] == 'b');
-            CT_CHECK(s[2] == 'c');
-
-            s.clear();
-        }
-        {
-            auto prevCap = s.cap();
-            char buf[] = "efg";
-            s.append(buf);
-            CT_CHECK(s.len() == 3);
-            CT_CHECK(s.cap() == prevCap, "No need to resize, there is enough space.");
-            CT_CHECK(s.view().buff != buf);
-            CT_CHECK(s.view().len() == 3);
-            CT_CHECK(core::cptrEq(s.view().buff, buf, s.view().len()));
-
-            s.clear();
-
-            CT_CHECK(core::cptrEq(buf, "efg", 3), "clear must not affect the original buffer");
-        }
-        {
-            auto prevCap = s.cap();
-            const char buf[] = "higklmn";
-            s.append(buf, 5);
-
-            CT_CHECK(s.len() == 5);
-            CT_CHECK(s.cap() == prevCap, "No need to resize, there is enough space.");
-            CT_CHECK(s.view().buff != nullptr);
-            CT_CHECK(s.view().len() == 5);
-            CT_CHECK(core::cptrEq(s.view().buff, buf, s.view().len()));
-            CT_CHECK(core::cptrLen(s.view().buff) == core::cptrLen("higkl"), "string view should be null terminated");
-
-            s.append("opq");
-
-            CT_CHECK(s.len() == 8);
-            CT_CHECK(s.cap() == prevCap * 2, "Should just double the capacity.");
-            CT_CHECK(s.view().buff != nullptr);
-            CT_CHECK(s.view().len() == 8);
-            CT_CHECK(s[0] == 'h');
-            CT_CHECK(s[1] == 'i');
-            CT_CHECK(s[2] == 'g');
-            CT_CHECK(s[3] == 'k');
-            CT_CHECK(s[4] == 'l');
-            CT_CHECK(s[5] == 'o');
-            CT_CHECK(s[6] == 'p');
-            CT_CHECK(s[7] == 'q');
-            CT_CHECK(core::cptrLen(s.view().buff) == core::cptrLen("higklopq"), "string view should be null terminated");
-
-            CT_CHECK(core::cptrEq(buf, "higklmn", core::cptrLen(buf)), "append must not affect the original buffer");
-            s.clear();
-            CT_CHECK(core::cptrEq(buf, "higklmn", core::cptrLen(buf)), "clear must not affect the original buffer");
-        }
-    }
-
-    return 0;
-}
-
-template<typename TAllocator>
-i32 takeAndStealStrBuilderTest() {
-    using StrBuilder = core::StrBuilder<TAllocator>;
-
-    {
-        // Basic take ownership.
-
-        constexpr i32 allocatedSize = 25;
-        char* data = reinterpret_cast<char*>(TAllocator::alloc(allocatedSize * sizeof(char)));
-        core::memset(data, 0, allocatedSize);
-        core::memset(data, 'a', allocatedSize - 1);
-
-        StrBuilder s;
-        s.reset(&data);
-        CT_CHECK(data == nullptr);
-        CT_CHECK(s.len() == allocatedSize - 1);
-        CT_CHECK(s.cap() == allocatedSize);
-        CT_CHECK(s.view().buff != nullptr);
-        CT_CHECK(s.view().len() == allocatedSize - 1);
-
-        for (addr_size i = 0; i < allocatedSize - 1; ++i) { CT_CHECK(s[i] == 'a'); }
-    }
-
-    {
-        // Take ownership twice.
-
-        constexpr i32 allocatedSize = 17;
-        char* data = reinterpret_cast<char*>(TAllocator::alloc(allocatedSize * sizeof(char)));
-        core::memset(data, 0, allocatedSize);
-        core::memset(data, 'a', allocatedSize - 1);
-
-        StrBuilder s(0, 5);
-        s.reset(&data);
-        CT_CHECK(data == nullptr);
-        CT_CHECK(s.len() == allocatedSize - 1);
-        CT_CHECK(s.cap() == allocatedSize );
-        CT_CHECK(s.view().buff != nullptr);
-        CT_CHECK(s.view().len() == allocatedSize - 1);
-
-        for (addr_size i = 0; i < allocatedSize - 1; ++i) { CT_CHECK(s[i] == 'a'); }
-
-        char* data2 = reinterpret_cast<char*>(TAllocator::alloc(allocatedSize * 2 * sizeof(char)));
-        core::memset(data2, 0, allocatedSize * 2);
-        core::memset(data2, 'b', allocatedSize * 2 - 1);
-
-        s.reset(&data2);
-        CT_CHECK(data2 == nullptr);
-        CT_CHECK(s.len() == allocatedSize * 2 - 1);
-        CT_CHECK(s.cap() == allocatedSize * 2);
-        CT_CHECK(s.view().buff != nullptr);
-        CT_CHECK(s.view().len() == allocatedSize * 2 - 1);
-
-        for (addr_size i = 0; i < allocatedSize * 2 - 1; ++i) { CT_CHECK(s[i] == 'b'); }
-    }
-
-    {
-        // Basic steal ownership.
-
-        StrBuilder s(0, 5);
-        s.append("abcde");
-
-        addr_size dataLen = 0;
-        char* data = s.steal(dataLen);
-
-        CT_CHECK(data != nullptr);
-        CT_CHECK(core::cptrEq(data, "abcde", 5));
-
-        CT_CHECK(s.len() == 0);
-        CT_CHECK(s.cap() == 0);
-        CT_CHECK(s.view().buff == nullptr);
-        CT_CHECK(s.view().len() == 0);
-
-        // The user code is now responsible for freeing the data.
-        TAllocator::free(data, dataLen * sizeof(char));
-    }
-
-    return 0;
-}
-
-template<typename TAllocator>
-i32 specialCasesRelatedToNullTerminationStrBuilderTest() {
-    using StrBuilder = core::StrBuilder<TAllocator>;
-
-    {
-        StrBuilder s(0, 3);
-        CT_CHECK(core::cptrLen(s.view().buff) == 0);
-        s.append('a');
-        CT_CHECK(core::cptrLen(s.view().buff) == 1);
-        s.append('b');
-        CT_CHECK(core::cptrLen(s.view().buff) == 2);
-        s.append('c');
-        CT_CHECK(core::cptrLen(s.view().buff) == 3);
-        s.append('d');
-        CT_CHECK(core::cptrLen(s.view().buff) == 4);
-        s.append('e');
-        CT_CHECK(core::cptrLen(s.view().buff) == 5);
-        s.append('f');
-        CT_CHECK(core::cptrLen(s.view().buff) == 6);
-        s.append('g');
-        CT_CHECK(core::cptrLen(s.view().buff) == 7);
-    }
-
-    {
-        // Same length and cap. Cap should till be +1.
-        StrBuilder s(1, 1);
-        s[0] = 'b'; // set the first char.
-
-        CT_CHECK(s.len() == 1);
-        CT_CHECK(s.cap() == 2);
-        s.append('a');
-        CT_CHECK(s.len() == 2);
-        CT_CHECK(s.cap() == 4);
-        CT_CHECK(core::cptrLen(s.view().buff) == 2);
-        CT_CHECK(s[0] == 'b');
-        CT_CHECK(s[1] == 'a');
-    }
-
-    {
-        // Appending strings that have a larger length than the capacity.
-        constexpr const char* msg1 = "large-ish volume of text";
-        StrBuilder s;
-        s.append(msg1, core::cptrLen(msg1));
-        CT_CHECK(s.len() == core::cptrLen(msg1));
-        CT_CHECK(s.cap() == core::cptrLen(msg1) + 1, "Should resize with the length of the large-ish string.");
-        addr_size currCap = s.cap();
-
-        constexpr const char* msg2 = "small msg";
-        s.append(msg2);
-        CT_CHECK(s.len() == core::cptrLen(msg1) + core::cptrLen(msg2));
-        CT_CHECK(s.cap() == currCap * 2);
-    }
-
-    {
-        // Appending after clearing. Should be cheap and should maintain null termination.
-        StrBuilder s;
-        s.append("abc");
-        CT_CHECK(s.len() == 3);
-        CT_CHECK(s.cap() == 4);
-
-        s.clear();
-        CT_CHECK(s.len() == 0);
-        CT_CHECK(s.cap() == 4);
-
-        s.append('d');
-        CT_CHECK(s.len() == 1);
-        CT_CHECK(s.cap() == 4);
-        CT_CHECK(core::cptrLen(s.view().buff) == 1);
-
-        s.clear();
-        CT_CHECK(s.len() == 0);
-        CT_CHECK(s.cap() == 4);
-
-        s.append("ab");
-        CT_CHECK(s.len() == 2);
-        CT_CHECK(s.cap() == 4);
-        CT_CHECK(core::cptrLen(s.view().buff) == 2);
-    }
-
-    return 0;
-}
-
-template <typename TAllocator>
-i32 runStrBuilderInArrayAppendRValueBUGTest() {
-    using Sb = core::StrBuilder<TAllocator>;
-    using SbArr = core::Arr<Sb, TAllocator>;
-
-    SbArr arr;
-
-    arr.append(Sb("hello"));
-
-    Sb& rFromArr = arr[0];
-    Sb newValue = rFromArr.copy();
-    newValue.append(" world!");
-    newValue[0] = 'H';
-
-    arr.append(std::move(newValue));
-
-    // NOTE: Remember that after this append the array will be reallocated and the rFromArr reference will become invalid.
-
-    CT_CHECK(arr.len() == 2);
-    CT_CHECK(arr[0].len() == 5);
-    CT_CHECK(arr[1].len() == 12);
-
-    CT_CHECK(core::cptrEq(arr[0].view().buff, "hello", 5));
-    CT_CHECK(core::cptrEq(arr[1].view().buff, "Hello world!", 12));
 
     return 0;
 }
 
 i32 runStrBuilderTestsSuite() {
-    constexpr addr_size BUFF_SIZE = core::KILOBYTE;
-    char buf[BUFF_SIZE];
+    using namespace core::testing;
 
-    core::StdAllocator::init(nullptr);
-    core::StdStatsAllocator::init(nullptr);
-    core::BumpAllocator::init(nullptr, buf, BUFF_SIZE);
+    auto runTests = [] (TestInfo& tInfo, const char* description, i32& retCode) {
+        tInfo.description = description;
 
-    auto checkLeaks = []() {
-        CT_CHECK(core::StdAllocator::usedMem() == 0);
-        CT_CHECK(core::StdStatsAllocator::usedMem() == 0, "Memory leak detected!");
-        CT_CHECK(core::BumpAllocator::usedMem() == 0);
+        tInfo.name = FN_NAME_TO_CPTR(initializeStrBuilderTest);
+        if (runTest(tInfo, initializeStrBuilderTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(appendToStrBuilderTest);
+        if (runTest(tInfo, appendToStrBuilderTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(moveAndCopyStrBuilderTest);
+        if (runTest(tInfo, moveAndCopyStrBuilderTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(resetAndReleaseStrBuilderTest);
+        if (runTest(tInfo, resetAndReleaseStrBuilderTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(ensureCapStrBuilderTest);
+        if (runTest(tInfo, ensureCapStrBuilderTest) != 0) { retCode = -1; }
     };
 
+    i32 ret = 0;
+    runForAllGlobalAllocatorVariants(runTests, ret);
+
     {
-        RunTest_DisplayMemAllocs(initializeStrBuilderTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(initializeStrBuilderTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(initializeStrBuilderTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(moveAndCopyStrBuilderTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(moveAndCopyStrBuilderTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(moveAndCopyStrBuilderTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(ensureCapStrBuilderTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(ensureCapStrBuilderTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(ensureCapStrBuilderTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(fillStrBuilderTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(fillStrBuilderTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(fillStrBuilderTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(appendStrBuilderTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(appendStrBuilderTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(appendStrBuilderTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(takeAndStealStrBuilderTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(takeAndStealStrBuilderTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(takeAndStealStrBuilderTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(specialCasesRelatedToNullTerminationStrBuilderTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(specialCasesRelatedToNullTerminationStrBuilderTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(specialCasesRelatedToNullTerminationStrBuilderTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(runStrBuilderInArrayAppendRValueBUGTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(runStrBuilderInArrayAppendRValueBUGTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(runStrBuilderInArrayAppendRValueBUGTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
+        constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE * 3;
+        char buf[BUFFER_SIZE];
+        USE_STACK_BASED_BUMP_ALLOCATOR_FOR_BLOCK_SCOPE(buf, BUFFER_SIZE);
+
+        TestInfo tInfo = createTestInfo();
+        tInfo.trackMemory = true;
+        runTests(tInfo, "STACK BASED BUMP Allocator", ret);
     }
 
-    return 0;
+    {
+        constexpr u32 BUFFER_SIZE = 256; // intentially small to test overflow.
+        USE_CUSTOM_ARENA_ALLOCATOR_FOR_FOR_BLOCK_SCOPE(BUFFER_SIZE);
+
+        TestInfo tInfo = createTestInfo();
+        tInfo.trackMemory = true;
+        runTests(tInfo, "CUSTOM ARENA Allocator", ret);
+    }
+
+    return ret;
 }

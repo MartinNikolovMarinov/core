@@ -126,6 +126,7 @@ set(src_files
     src/core_rnd.cpp
     src/core_utils.cpp
     src/core_alloc.cpp
+    src/core_str_builder.cpp
 
     src/allocators/bump_allocator.cpp
     src/allocators/std_allocator.cpp
@@ -287,7 +288,7 @@ if(CORE_BUILD_TESTS)
         tests/t-mem.cpp
         tests/t-rnd.cpp
         tests/t-sarr.cpp
-        # tests/t-str_builder.cpp
+        tests/t-str_builder.cpp
         tests/t-tuple.cpp
         tests/t-unique_ptr.cpp
         tests/t-utf.cpp

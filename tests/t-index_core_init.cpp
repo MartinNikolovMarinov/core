@@ -111,7 +111,8 @@ i32 runAllTests() {
     if (runTestSuite(sInfo, runRndTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runStaticArrTestsSuite);
     if (runTestSuite(sInfo, runStaticArrTestsSuite) != 0) { ret = -1; }
-    // RunTestSuite(runStrBuilderTestsSuite); // FIXME:
+    sInfo.name = FN_NAME_TO_CPTR(runStrBuilderTestsSuite);
+    if (runTestSuite(sInfo, runStrBuilderTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runTupleTestsSuite);
     if (runTestSuite(sInfo, runTupleTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runUniquePtrTestsSuite);

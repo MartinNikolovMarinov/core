@@ -18,7 +18,7 @@
 #include "core_mem.h"
 #include "core_rnd.h"
 #include "core_str_view.h"
-// #include "core_str_builder.h"
+#include "core_str_builder.h"
 #include "core_system_checks.h"
 #include "core_traits.h"
 #include "core_tuple.h"

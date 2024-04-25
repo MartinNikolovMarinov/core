@@ -25,6 +25,7 @@ constexpr PltErrCode ERR_PLT_NONE = 0;
 constexpr PltErrCode ERR_ALLOCATOR_DEFAULT_NO_MEMORY = detail::ERR_MISC_CUSTOM_ERROR_START + 0;
 
 constexpr PltErrCode ERR_PASSED_INVALID_FILE_DESCRIPTOR = detail::ERR_OS_CUSTOM_ERROR_START + 0;
+constexpr PltErrCode ERR_CLOSING_AN_INVALID_FILE_DESCRIPTOR = detail::ERR_OS_CUSTOM_ERROR_START + 1;
 
 constexpr PltErrCode ERR_THREADING_INVALID_THREAD_NAME = detail::ERR_THREAD_CUSTOM_ERROR_START + 0;
 constexpr PltErrCode ERR_THREADING_STARTING_AN_ALREADY_RUNNING_THREAD = detail::ERR_THREAD_CUSTOM_ERROR_START + 1;
@@ -41,6 +42,7 @@ constexpr char const* customPltErrorDescribe(PltErrCode err) {
         case ERR_ALLOCATOR_DEFAULT_NO_MEMORY:                  return "Default allocator ran out of memory";
 
         case ERR_PASSED_INVALID_FILE_DESCRIPTOR:               return "Passed invalid file descriptor";
+        case ERR_CLOSING_AN_INVALID_FILE_DESCRIPTOR:           return "Closing an invalid file descriptor";
 
         case ERR_THREADING_INVALID_THREAD_NAME:                return "Invalid thread name";
         case ERR_THREADING_STARTING_AN_ALREADY_RUNNING_THREAD: return "Starting an already running thread";

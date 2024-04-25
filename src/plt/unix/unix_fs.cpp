@@ -297,7 +297,8 @@ core::expected<PltErrCode> dirWalk(const char* path, DirWalkCallback cb, void* u
             break;
         }
 
-        bool shouldSkip = core::cptrEq(entry->d_name, ".", 1) || core::cptrEq(entry->d_name, "..", 2);
+        bool shouldSkip = (core::cptrCmp(entry->d_name, core::cptrLen(entry->d_name), ".", 1) == 0) ||
+                          (core::cptrCmp(entry->d_name, core::cptrLen(entry->d_name), "..", 2) == 0);
         if (shouldSkip) {
             continue;
         }
@@ -317,6 +318,5 @@ core::expected<PltErrCode> dirWalk(const char* path, DirWalkCallback cb, void* u
 
     return {};
 }
-
 
 } // namespace core

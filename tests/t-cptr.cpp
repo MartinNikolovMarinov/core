@@ -127,41 +127,13 @@ constexpr i32 cptrCmpTests() {
     return ret;
 }
 
-constexpr i32 cptrEqTest() {
-    struct TestCase {
-        const char* a;
-        const char* b;
-        addr_size len;
-        bool expected;
-    };
-
-    TestCase cases[] = {
-        { nullptr, nullptr, 0, true },
-        { nullptr, "",      0, false },
-        { "",      nullptr, 0, false },
-        { "",      "",      0, true },
-        { "a",     "a",     1, true },
-        { "a",     "b",     1, false },
-        { "abc",   "abc",   3, true },
-        { "abd",   "ab9",   2, true },
-        { "a\0c",  "a\0c",  3, true },
-    };
-
-    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        CT_CHECK(core::cptrEq(c.a, c.b, c.len) == c.expected, cErr);
-        return 0;
-    });
-
-    return ret;
-}
-
 constexpr i32 cptrCopyTest() {
     const char* src = "1234567890";
     char dst[20] = {};
     core::cptrCopy(dst, src, core::cptrLen(src));
 
     CT_CHECK(core::cptrLen(src) == core::cptrLen(dst));
-    CT_CHECK(core::cptrEq(src, dst, core::cptrLen(dst)));
+    CT_CHECK(core::cptrCmp(src, core::cptrLen(src), dst, core::cptrLen(dst)) == 0);
     CT_CHECK(dst[0] == '1');
     CT_CHECK(dst[1] == '2');
     CT_CHECK(dst[2] == '3');
@@ -177,7 +149,7 @@ constexpr i32 cptrCopyTest() {
     for (u32 i = 0; i < 20; ++i) dst[i] = 0;
     core::cptrCopy(dst, src, 5);
 
-    CT_CHECK(core::cptrEq(dst, "12345", core::cptrLen("12345")));
+    CT_CHECK(core::cptrCmp(dst, core::cptrLen(dst), "12345", core::cptrLen("12345")) == 0);
     CT_CHECK(dst[0] == '1');
     CT_CHECK(dst[1] == '2');
     CT_CHECK(dst[2] == '3');
@@ -272,7 +244,7 @@ constexpr i32 cptrSkipWhiteSpaceTest() {
 
     i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         const char* res = core::cptrSkipSpace(c.src);
-        CT_CHECK(core::cptrEq(res, c.expected, core::cptrLen(c.expected)), cErr);
+        CT_CHECK(core::cptrCmp(res, core::cptrLen(res), c.expected, core::cptrLen(c.expected)) == 0, cErr);
         return 0;
     });
 
@@ -293,8 +265,6 @@ i32 runCptrTestsSuite() {
     if (runTest(tInfo, cptrLenTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(cptrCmpTests);
     if (runTest(tInfo, cptrCmpTests) != 0) { ret = -1; }
-    tInfo.name = FN_NAME_TO_CPTR(cptrEqTest);
-    if (runTest(tInfo, cptrEqTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(cptrCopyTest);
     if (runTest(tInfo, cptrCopyTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(cptrIdxOfCharTest);
@@ -312,7 +282,6 @@ constexpr i32 runCompiletimeCptrTestsSuite() {
     RunTestCompileTime(isWhiteSpaceTest);
     RunTestCompileTime(cptrLenTest);
     RunTestCompileTime(cptrCmpTests);
-    RunTestCompileTime(cptrEqTest);
     RunTestCompileTime(cptrCopyTest);
     RunTestCompileTime(cptrIdxOfCharTest);
     RunTestCompileTime(cptrIdxOfTest);

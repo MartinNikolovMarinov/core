@@ -12,7 +12,7 @@ core::AllocatorContext* getAllocatorCtx(AllocatorId id) {
 namespace {
 
 void asserHandler(const char* failedExpr, const char* file, i32 line, const char* funcName, const char* errMsg) {
-    constexpr u32 stackFramesToSkip = 3;
+    constexpr u32 stackFramesToSkip = 2;
     constexpr addr_size stackTraceBufferSize = core::CORE_KILOBYTE * 8;
     char trace[stackTraceBufferSize] = {};
     addr_size traceLen = 0;
@@ -140,8 +140,8 @@ i32 runAllTests() {
     if (runTestSuite(sInfo, runPltErrorTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runPltPagesTestsSuite);
     if (runTestSuite(sInfo, runPltPagesTestsSuite) != 0) { ret = -1; }
-    // sInfo.name = FN_NAME_TO_CPTR(runPltFileSystemTestsSuite);
-    // if (runTestSuite(sInfo, runPltFileSystemTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runPltFileSystemTestsSuite);
+    if (runTestSuite(sInfo, runPltFileSystemTestsSuite) != 0) { ret = -1; }
     // RunTestSuite(runPltThreadingTestsSuite); // FIXME:
 
     std::cout << '\n';

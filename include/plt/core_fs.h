@@ -108,10 +108,11 @@ CORE_API_EXPORT expected<addr_size, PltErrCode> fileSize(FileDesc& file);
 CORE_API_EXPORT expected<PltErrCode> fileReadEntire(const char* path, ArrList<u8>& out);
 CORE_API_EXPORT expected<PltErrCode> fileWriteEntire(const char* path, const ArrList<u8>& in);
 
-CORE_API_EXPORT expected<PltErrCode> dirCreate(const char* path);
-CORE_API_EXPORT expected<PltErrCode> dirDelete(const char* path);
-CORE_API_EXPORT expected<PltErrCode> dirDeleteRec(const char* path);
-CORE_API_EXPORT expected<PltErrCode> dirRename(const char* path, const char* newPath);
-CORE_API_EXPORT expected<PltErrCode> dirWalk(const char* path, DirWalkCallback cb, void* userData = nullptr);
+CORE_API_EXPORT expected<PltErrCode>       dirCreate(const char* path);
+CORE_API_EXPORT expected<PltErrCode>       dirDelete(const char* path);
+CORE_API_EXPORT expected<PltErrCode>       dirDeleteRec(const char* path);
+CORE_API_EXPORT expected<PltErrCode>       dirRename(const char* path, const char* newPath);
+CORE_API_EXPORT expected<PltErrCode>       dirWalk(const char* path, DirWalkCallback cb, void* userData = nullptr);
+CORE_API_EXPORT expected<bool, PltErrCode> dirIsEmpty(const char* path);
 
 } // namespace core

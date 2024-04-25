@@ -94,7 +94,7 @@ constexpr i32 intToCptrTest() {
             char buf[12] = {};
             core::intToCptr(c.in, buf, c.digitCount);
             CT_CHECK(core::cptrLen(buf) == core::cptrLen(c.expected));
-            CT_CHECK(core::cptrEq(buf, c.expected, core::cptrLen(c.expected)), cErr);
+            CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);
@@ -126,7 +126,7 @@ constexpr i32 intToCptrTest() {
             char buf[21] = {};
             core::intToCptr(c.in, buf, c.digitCount);
             CT_CHECK(core::cptrLen(buf) == core::cptrLen(c.expected));
-            CT_CHECK(core::cptrEq(buf, c.expected, core::cptrLen(c.expected)), cErr);
+            CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);
@@ -153,7 +153,7 @@ constexpr i32 intToCptrTest() {
             char buf[11] = {};
             core::intToCptr(c.in, buf, c.digitCount);
             CT_CHECK(core::cptrLen(buf) == core::cptrLen(c.expected));
-            CT_CHECK(core::cptrEq(buf, c.expected, core::cptrLen(c.expected)), cErr);
+            CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);
@@ -182,7 +182,7 @@ constexpr i32 intToCptrTest() {
             char buf[20] = {};
             core::intToCptr(c.in, buf, c.digitCount);
             CT_CHECK(core::cptrLen(buf) == core::cptrLen(c.expected));
-            CT_CHECK(core::cptrEq(buf, c.expected, core::cptrLen(c.expected)), cErr);
+            CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);

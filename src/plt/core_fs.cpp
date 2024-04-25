@@ -13,6 +13,9 @@ expected<PltErrCode> fileReadEntire(const char* path, ArrList<u8>& out) {
         }
         file = std::move(res.value());
     }
+    defer {
+        fileClose(file);
+    };
 
     addr_size size = 0;
     {
@@ -52,6 +55,9 @@ core::expected<PltErrCode> fileWriteEntire(const char* path, const core::ArrList
         }
         file = std::move(res.value());
     }
+    defer {
+        fileClose(file);
+    };
 
     {
         auto res = fileWrite(file, in.data(), in.len());
@@ -138,6 +144,26 @@ core::expected<PltErrCode> dirDeleteRec(const char* path) {
     }
 
     return {};
+}
+
+expected<bool, PltErrCode> dirIsEmpty(const char* path) {
+    struct Closure {
+        bool isEmpty;
+    };
+
+    Closure c = {true};
+    auto emtpyDirWalk = [](const DirEntry&, addr_size, void* closure) {
+        Closure* c = reinterpret_cast<Closure*>(closure);
+        c->isEmpty = false;
+        return false;
+    };
+    auto res = dirWalk(path, emtpyDirWalk, reinterpret_cast<void*>(&c));
+
+    if (res.hasErr()) {
+        return core::unexpected(res.err());
+    }
+
+    return std::move(c.isEmpty);
 }
 
 } // namespace core

@@ -1,6 +1,6 @@
 #include "../t-index.h"
 
-constexpr const char* testDirectory = PATH_TO_TEST_DATA;
+constexpr const char* testDirectory = PATH_TO_TEST_DATA "/testing_directory";
 
 constexpr const char* testNamesTable[] = {
     "File Name With Spaces.txt",
@@ -260,6 +260,31 @@ i32 tryOpenFileWithMostCommonModeCombinations(const char* path) {
     return 0;
 };
 
+bool createTestDirecotry() {
+    TestPathBuilder pb;
+    pb.setDirPath(testDirectory);
+
+    auto res = core::dirCreate(pb.path());
+    if (res.hasErr()) {
+        return false;
+    }
+
+    return true;
+}
+
+bool checkTestDirecotryIsCleanned() {
+    TestPathBuilder pb;
+    pb.setDirPath(testDirectory);
+
+    auto res = core::dirIsEmpty(pb.path());
+    if (res.hasErr()) {
+        return false;
+    }
+
+    bool result = res.value();
+    return result;
+}
+
 // ------------------------------- Tests start from here ---------------------------------------------------------------
 
 i32 createAndDeleteFileTest() {
@@ -515,6 +540,38 @@ i32 edgeErrorCasesTest() {
         }
     }
 
+    // Delete the file
+    {
+        {
+            auto res = core::fileDelete(pb.path());
+            CT_CHECK(!res.hasErr());
+        }
+        {
+            auto res = core::fileDelete(pb.path()); // No crashes on double delete.
+            CT_CHECK(res.hasErr());
+        }
+    }
+
+    // Using a nullptr buffer with a valid descriptor.
+    {
+        core::FileDesc f;
+        {
+            auto res = core::fileOpen(pb.path(), core::OpenMode::Read | core::OpenMode::Write | core::OpenMode::Create);
+            CT_CHECK(!res.hasErr());
+            f = std::move(res.value());
+        }
+        {
+            auto res = core::fileWrite(f, nullptr, 50);
+            CT_CHECK(res.hasErr());
+        }
+        {
+            auto res = core::fileRead(f, nullptr, 50);
+            CT_CHECK(res.hasErr());
+        }
+
+        CT_CHECK(closeAndDeleteFile(std::move(f), pb.path()) == 0);
+    }
+
     return 0;
 }
 
@@ -528,27 +585,32 @@ i32 directoriesCreateRenameAndDeleteTest() {
 
         // Create directory
         {
+            core::dirCreate(nullptr);
             auto res = core::dirCreate(pb.path());
             CT_CHECK(!res.hasErr(), cErr);
         }
 
+        TestPathBuilder renamedpb;
+        renamedpb.setDirPath(testDirectory);
+        renamedpb.setFileName("renamed");
+
         // Rename It
         {
-            auto res = core::dirRename(pb.path(), "renamed");
+            auto res = core::dirRename(pb.path(), renamedpb.path());
             CT_CHECK(!res.hasErr(), cErr);
         }
 
         // Stat It
         {
             core::FileStat stat;
-            auto res = core::fileStat("renamed", stat);
+            auto res = core::fileStat(renamedpb.path(), stat);
             CT_CHECK(!res.hasErr(), cErr);
             CT_CHECK(stat.type == core::FileType::Directory, cErr);
         }
 
         // Delete It
         {
-            auto res = core::dirDelete("renamed");
+            auto res = core::dirDelete(renamedpb.path());
             CT_CHECK(!res.hasErr(), cErr);
         }
 
@@ -591,7 +653,7 @@ i32 mostBasicReadAndWriteTest() {
         auto res = core::fileRead(f, buff, 5);
         CT_CHECK(!res.hasErr());
         CT_CHECK(res.value() == 5);
-        CT_CHECK(core::cptrEq(buff, "hello", 5));
+        CT_CHECK(core::cptrCmp(buff, core::cptrLen(buff), "hello", 5) == 0);
     }
 
     CT_CHECK(closeAndDeleteFile(std::move(f), pb.path()) == 0);
@@ -846,7 +908,7 @@ i32 seekWriteAndReadTest() {
         char buff[10] = {};
         auto res2 = core::fileRead(f, buff, 9);
         CT_CHECK(!res2.hasErr());
-        CT_CHECK(core::cptrEq(buff, "123456789", 9));
+        CT_CHECK(core::cptrCmp(buff, core::cptrLen(buff), "123456789", 9) == 0);
     }
 
     CT_CHECK(closeAndDeleteFile(std::move(f), pb.path()) == 0);
@@ -860,26 +922,50 @@ i32 runPltFileSystemTestsSuite() {
     auto runTests = [] (TestInfo& tInfo, const char* description, i32& retCode) {
         tInfo.description = description;
 
+        if (!createTestDirecotry()) {
+            retCode = -1;
+            return;
+        }
+
         tInfo.name = FN_NAME_TO_CPTR(createAndDeleteFileTest);
         if (runTest(tInfo, createAndDeleteFileTest) != 0) { retCode = -1; }
+        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
+
         tInfo.name = FN_NAME_TO_CPTR(createFilesAndCheckIfTheyExistTest);
         if (runTest(tInfo, createFilesAndCheckIfTheyExistTest) != 0) { retCode = -1; }
+        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
+
         tInfo.name = FN_NAME_TO_CPTR(checkFileStatsTest);
         if (runTest(tInfo, checkFileStatsTest) != 0) { retCode = -1; }
+        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
+
         tInfo.name = FN_NAME_TO_CPTR(commonErrorsTest);
         if (runTest(tInfo, commonErrorsTest) != 0) { retCode = -1; }
+        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
+
         tInfo.name = FN_NAME_TO_CPTR(edgeErrorCasesTest);
         if (runTest(tInfo, edgeErrorCasesTest) != 0) { retCode = -1; }
+        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
+
         tInfo.name = FN_NAME_TO_CPTR(directoriesCreateRenameAndDeleteTest);
         if (runTest(tInfo, directoriesCreateRenameAndDeleteTest) != 0) { retCode = -1; }
+        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
+
         tInfo.name = FN_NAME_TO_CPTR(mostBasicReadAndWriteTest);
         if (runTest(tInfo, mostBasicReadAndWriteTest) != 0) { retCode = -1; }
+        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
+
         tInfo.name = FN_NAME_TO_CPTR(basicListDirectoryContentsTest);
         if (runTest(tInfo, basicListDirectoryContentsTest) != 0) { retCode = -1; }
+        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
+
         tInfo.name = FN_NAME_TO_CPTR(readAndWriteEntireFileTest);
         if (runTest(tInfo, readAndWriteEntireFileTest) != 0) { retCode = -1; }
+        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
+
         tInfo.name = FN_NAME_TO_CPTR(seekWriteAndReadTest);
         if (runTest(tInfo, seekWriteAndReadTest) != 0) { retCode = -1; }
+        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
     };
 
 

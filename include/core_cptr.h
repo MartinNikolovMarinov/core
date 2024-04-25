@@ -41,10 +41,6 @@ constexpr i32 cptrCmp(const TChar* a, addr_size lena, const TChar* b, addr_size 
     return 0;
 }
 
-constexpr bool cptrEq(const char* a, const char* b, addr_size len) {
-    return cptrCmp(a, len, b, len) == 0;
-}
-
 constexpr char* cptrCopy(char *dst, const char *src, addr_size len) {
     if (dst == nullptr || src == nullptr) return dst;
     /**

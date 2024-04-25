@@ -9,21 +9,21 @@
 
 namespace core {
 
-FileDesc::FileDesc() : handle(nullptr) {}
+FileDesc::FileDesc() : handle(INVALID_HANDLE_VALUE) {}
 
 FileDesc::FileDesc(FileDesc&& other) {
     handle = other.handle;
-    other.handle = nullptr;
+    other.handle = INVALID_HANDLE_VALUE;
 }
 
 FileDesc& FileDesc::operator=(FileDesc&& other) {
     handle = other.handle;
-    other.handle = nullptr;
+    other.handle = INVALID_HANDLE_VALUE;
     return *this;
 }
 
 bool FileDesc::isValid() const {
-    return handle != nullptr;
+    return handle != INVALID_HANDLE_VALUE;
 }
 
 namespace {
@@ -72,7 +72,36 @@ DWORD toCreationDisposition(OpenMode mode) {
     return dwDisposition;
 }
 
+FileType toFileType(DWORD dwFileAttributes) {
+    switch (dwFileAttributes) {
+        case FILE_ATTRIBUTE_NORMAL:
+        case FILE_ATTRIBUTE_ARCHIVE:
+        case FILE_ATTRIBUTE_COMPRESSED:
+        case FILE_ATTRIBUTE_DEVICE:
+        case FILE_ATTRIBUTE_ENCRYPTED:
+        case FILE_ATTRIBUTE_HIDDEN:
+        case FILE_ATTRIBUTE_INTEGRITY_STREAM:
+        case FILE_ATTRIBUTE_NOT_CONTENT_INDEXED:
+        case FILE_ATTRIBUTE_NO_SCRUB_DATA:
+        case FILE_ATTRIBUTE_OFFLINE:
+        case FILE_ATTRIBUTE_READONLY:
+        case FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS:
+        case FILE_ATTRIBUTE_RECALL_ON_OPEN:
+        case FILE_ATTRIBUTE_SPARSE_FILE:
+        case FILE_ATTRIBUTE_SYSTEM:
+        case FILE_ATTRIBUTE_TEMPORARY:
+        case FILE_ATTRIBUTE_VIRTUAL:
+            return FileType::Regular;
+
+        case FILE_ATTRIBUTE_DIRECTORY:     return FileType::Directory;
+        case FILE_ATTRIBUTE_REPARSE_POINT: return FileType::Symlink;
+    }
+
+    return FileType::Other;
+}
+
 void convertCharPtrToWCharPtr(const char* src, wchar_t* dst, size_t size) {
+    // TODO2: This function can be useful for supporting unicode paths.
     [[maybe_unused]] size_t ignored = 0;
     mbstowcs_s(&ignored, dst, size, src, size);
 }
@@ -99,10 +128,21 @@ core::expected<FileDesc, PltErrCode> fileOpen(const char* path, OpenMode mode) {
 }
 
 core::expected<PltErrCode> fileClose(FileDesc& file) {
-    if (!CloseHandle(file.handle)) {
-        return core::unexpected(PltErrCode(GetLastError()));
+    if (!file.isValid()) {
+        return core::unexpected(ERR_PASSED_INVALID_FILE_DESCRIPTOR);
     }
-    file.handle = nullptr;
+
+    __try {
+        if (!CloseHandle(file.handle)) {
+            return core::unexpected(PltErrCode(GetLastError()));
+        }
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER) {
+        // Commonly happens when trying to close an already closed handle.
+        return core::unexpected(ERR_CLOSING_AN_INVALID_FILE_DESCRIPTOR);
+    }
+
+    file.handle = INVALID_HANDLE_VALUE;
     return {};
 }
 
@@ -110,6 +150,7 @@ core::expected<PltErrCode> fileDelete(const char* path) {
     if (!DeleteFile(path)) {
         return core::unexpected(PltErrCode(GetLastError()));
     }
+
     return {};
 }
 
@@ -117,26 +158,41 @@ core::expected<PltErrCode> fileRename(const char* path, const char* newPath) {
     if (!MoveFile(path, newPath)) {
         return core::unexpected(PltErrCode(GetLastError()));
     }
+
     return {};
 }
 
 core::expected<addr_size, PltErrCode> fileWrite(FileDesc& file, const void* in, addr_size size) {
+    if (!file.isValid()) {
+        return core::unexpected(ERR_PASSED_INVALID_FILE_DESCRIPTOR);
+    }
+
     DWORD bytesWritten = 0;
     if (!WriteFile(reinterpret_cast<HANDLE>(file.handle), in, DWORD(size), &bytesWritten, nullptr)) {
         return core::unexpected(PltErrCode(GetLastError()));
     }
+
     return addr_size(bytesWritten);
 }
 
 core::expected<addr_size, PltErrCode> fileRead(FileDesc& file, void* out, addr_size size) {
+    if (!file.isValid()) {
+        return core::unexpected(ERR_PASSED_INVALID_FILE_DESCRIPTOR);
+    }
+
     DWORD bytesRead = 0;
     if (!ReadFile(reinterpret_cast<HANDLE>(file.handle), out, DWORD(size), &bytesRead, nullptr)) {
         return core::unexpected(PltErrCode(GetLastError()));
     }
+
     return addr_size(bytesRead);
 }
 
 core::expected<addr_off, PltErrCode> fileSeek(FileDesc& file, addr_off offset, SeekMode mode) {
+    if (!file.isValid()) {
+        return core::unexpected(ERR_PASSED_INVALID_FILE_DESCRIPTOR);
+    }
+
     DWORD dwMoveMethod = 0;
     switch (mode) {
         case SeekMode::Begin:   dwMoveMethod = FILE_BEGIN;   break;
@@ -162,36 +218,32 @@ core::expected<PltErrCode> fileStat(const char* path, FileStat& out) {
     }
 
     out.size = (u64(data.nFileSizeHigh) << 32) | data.nFileSizeLow;
-
-    if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-        out.type = FileType::Directory;
-    }
-    else if (data.dwFileAttributes & FILE_ATTRIBUTE_NORMAL) {
-        out.type = FileType::Regular;
-    }
-    else if (data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
-        out.type = FileType::Symlink;
-    }
-    else {
-        out.type = FileType::Other;
-    }
-
+    out.type = toFileType(data.dwFileAttributes);
     return {};
 }
 
 core::expected<addr_size, PltErrCode> fileSize(FileDesc& file) {
+    if (!file.isValid()) {
+        return core::unexpected(ERR_PASSED_INVALID_FILE_DESCRIPTOR);
+    }
+
     LARGE_INTEGER liFileSize;
     if (!GetFileSizeEx(reinterpret_cast<HANDLE>(file.handle), &liFileSize)) {
         return core::unexpected(PltErrCode(GetLastError()));
     }
+
     addr_size res = addr_size(liFileSize.QuadPart);
     return res;
 }
 
 core::expected<PltErrCode> dirCreate(const char* path) {
     if (!CreateDirectory(path, nullptr)) {
+        if (GetLastError() == ERROR_ALREADY_EXISTS) {
+            return {};
+        }
         return core::unexpected(PltErrCode(GetLastError()));
     }
+
     return {};
 }
 
@@ -199,6 +251,7 @@ core::expected<PltErrCode> dirDelete(const char* path) {
     if (!RemoveDirectory(path)) {
         return core::unexpected(PltErrCode(GetLastError()));
     }
+
     return {};
 }
 
@@ -206,6 +259,7 @@ core::expected<PltErrCode> dirRename(const char* path, const char* newPath) {
     if (!MoveFile(path, newPath)) {
         return core::unexpected(PltErrCode(GetLastError()));
     }
+
     return {};
 }
 
@@ -214,37 +268,7 @@ namespace {
 inline DirEntry toDirEntry(const WIN32_FIND_DATAA& findData) {
     DirEntry de = {};
     de.name = findData.cFileName;
-    switch (findData.dwFileAttributes) {
-        case FILE_ATTRIBUTE_NORMAL:
-        case FILE_ATTRIBUTE_ARCHIVE:
-        case FILE_ATTRIBUTE_COMPRESSED:
-        case FILE_ATTRIBUTE_DEVICE:
-        case FILE_ATTRIBUTE_ENCRYPTED:
-        case FILE_ATTRIBUTE_HIDDEN:
-        case FILE_ATTRIBUTE_INTEGRITY_STREAM:
-        case FILE_ATTRIBUTE_NOT_CONTENT_INDEXED:
-        case FILE_ATTRIBUTE_NO_SCRUB_DATA:
-        case FILE_ATTRIBUTE_OFFLINE:
-        case FILE_ATTRIBUTE_READONLY:
-        case FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS:
-        case FILE_ATTRIBUTE_RECALL_ON_OPEN:
-        case FILE_ATTRIBUTE_SPARSE_FILE:
-        case FILE_ATTRIBUTE_SYSTEM:
-        case FILE_ATTRIBUTE_TEMPORARY:
-        case FILE_ATTRIBUTE_VIRTUAL:
-            de.type = FileType::Regular;
-            break;
-        case FILE_ATTRIBUTE_DIRECTORY:
-            de.type = FileType::Directory;
-            break;
-        case FILE_ATTRIBUTE_REPARSE_POINT:
-            de.type = FileType::Symlink;
-            break;
-
-        default:
-            de.type = FileType::Other;
-    }
-
+    de.type = toFileType(findData.dwFileAttributes);
     return de;
 }
 
@@ -252,6 +276,10 @@ inline DirEntry toDirEntry(const WIN32_FIND_DATAA& findData) {
 
 expected<PltErrCode> dirWalk(const char* path, DirWalkCallback cb, void* userData) {
     using core::StrBuilder;
+
+    if (path == nullptr || cb == nullptr) {
+        return core::unexpected(PltErrCode(EINVAL));
+    }
 
     StrBuilder pathSb(core::sv(path));
     if (pathSb.empty()) {
@@ -261,7 +289,7 @@ expected<PltErrCode> dirWalk(const char* path, DirWalkCallback cb, void* userDat
     pathSb.append("/*"_sv);
 
     WIN32_FIND_DATAA findData;
-    HANDLE findHandle = FindFirstFileA(pathSb.view().data(), &findData);
+    HANDLE findHandle = FindFirstFile(pathSb.view().data(), &findData);
     if (findHandle == INVALID_HANDLE_VALUE) {
         return core::unexpected(PltErrCode(GetLastError()));
     }
@@ -270,7 +298,7 @@ expected<PltErrCode> dirWalk(const char* path, DirWalkCallback cb, void* userDat
     addr_size i = 0;
 
     while (true) {
-        if (!FindNextFileA(findHandle, &findData)) {
+        if (!FindNextFile(findHandle, &findData)) {
             if (GetLastError() != ERROR_NO_MORE_FILES) {
                 errCode = PltErrCode(GetLastError());
             }
@@ -278,7 +306,8 @@ expected<PltErrCode> dirWalk(const char* path, DirWalkCallback cb, void* userDat
             break;
         }
 
-        bool shouldSkip = core::cptrEq(findData.cFileName, ".", 1) || core::cptrEq(findData.cFileName, "..", 2);
+        bool shouldSkip = (core::cptrCmp(findData.cFileName, core::cptrLen(findData.cFileName), ".", 1) == 0) ||
+                          (core::cptrCmp(findData.cFileName, core::cptrLen(findData.cFileName), "..", 2) == 0) ;
         if (shouldSkip) {
             continue;
         }

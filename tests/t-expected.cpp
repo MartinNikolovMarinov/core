@@ -15,7 +15,7 @@ constexpr i32 expectedBasicCaseTest() {
     core::expected<i32, const char*> e2(core::unexpected("bad"));
     CT_CHECK(!e2.hasValue());
     CT_CHECK(e2.hasErr());
-    CT_CHECK(core::cptrEq(e2.err(), "bad", core::cptrLen(e2.err())));
+    CT_CHECK(core::cptrCmp(e2.err(), core::cptrLen(e2.err()), "bad", core::cptrLen(e2.err())) == 0);
 
     core::expected<i32> e3;
     CT_CHECK(!e3.hasErr());
@@ -159,9 +159,9 @@ constexpr i32 expectedUsedInAFunctionTest() {
 
     CT_CHECK(core::Unpack(f(5)) == 5 + 2);
     CT_CHECK(f(0).hasErr());
-    CT_CHECK(core::cptrEq(f(0).err(), errMsg2, core::cptrLen(errMsg2)));
+    CT_CHECK(core::cptrCmp(f(0).err(), core::cptrLen(f(0).err()), errMsg2, core::cptrLen(errMsg2)) == 0);
     CT_CHECK(f(-1).hasErr());
-    CT_CHECK(core::cptrEq(f(-1).err(), errMsg1, core::cptrLen(errMsg1)));
+    CT_CHECK(core::cptrCmp(f(-1).err(), core::cptrLen(f(-1).err()), errMsg1, core::cptrLen(errMsg1)) == 0);
 
     return 0;
 }

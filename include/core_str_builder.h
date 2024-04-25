@@ -11,7 +11,6 @@ namespace core {
 using namespace coretypes;
 
 // TODO2: [PERFORMANCE] Might want to do some small string optimization.
-//        Also, the JIT null termination seems a bit stupid now.
 
 struct CORE_API_EXPORT StrBuilder {
     using value_type = char;
@@ -62,7 +61,7 @@ struct CORE_API_EXPORT StrBuilder {
     value_type& last()              { return at(m_len - 1); }
     const value_type& last()  const { return at(m_len - 1); }
 
-    void reset(value_type* ptr, addr_size len, addr_size cap);
+    void reset(value_type** ptr, addr_size len, addr_size cap);
     value_type* release(addr_size& len, addr_size& cap);
 
     StrBuilder& append(const value_type& val);

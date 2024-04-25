@@ -11,8 +11,8 @@ using namespace coretypes;
 
 // Find element in raw pointer.
 template <typename T, typename TPredicate>
-inline constexpr addr_off find(const T* arr, addr_off len, TPredicate pred) {
-    for (addr_off i = 0; i < len; ++i) {
+inline constexpr addr_off find(const T* arr, addr_size len, TPredicate pred) {
+    for (addr_off i = 0; i < addr_off(len); ++i) {
         auto& v = arr[addr_size(i)];
         if (pred(v, i)) return i;
     }
@@ -21,12 +21,12 @@ inline constexpr addr_off find(const T* arr, addr_off len, TPredicate pred) {
 // Find element in ArrList.
 template <typename T, typename TPredicate>
 inline addr_off find(const ArrList<T>& arr, TPredicate pred) {
-    return find(arr.data(), addr_off(arr.len()), pred);
+    return find(arr.data(), arr.len(), pred);
 }
 // Find element in ArrStatic.
 template <typename T, addr_size N, typename TPredicate>
 inline constexpr addr_off find(const ArrStatic<T, N>& arr, TPredicate pred) {
-    return find(arr.data(), addr_off(arr.len()), pred);
+    return find(arr.data(), arr.len(), pred);
 }
 
 namespace detail {

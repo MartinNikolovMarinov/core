@@ -157,7 +157,7 @@ i32 appendToStrBuilderTest() {
             { "123456789", nullptr, "123456789"_sv },
         };
 
-        i32 ret = core::testing::executeTestTable("appendToStrBuilderTest failed at index: ", cases, [](auto& c, const char* cErr) {
+        i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             {
                 StrBuilder sb (c.start);
                 sb.append(c.in, core::cptrLen(c.in));
@@ -294,11 +294,12 @@ i32 resetAndReleaseStrBuilderTest() {
         CT_CHECK(sbIsUninitialized(sb) == 0);
 
         //  Giving the ownership back to the string builder should not leak memory!
-        sb.reset(released, len, cap);
+        sb.reset(&released, len, cap);
 
         CT_CHECK(sb.len() == len);
         CT_CHECK(sb.cap() == cap);
         CT_CHECK(sb.eq("some string"_sv));
+        CT_CHECK(released == nullptr);
     }
 
     return 0;
@@ -337,7 +338,7 @@ i32 ensureCapStrBuilderTest() {
             { 2, 4, 4 },
         };
 
-        i32 ret = core::testing::executeTestTable("appendToStrBuilderTest failed at index: ", cases, [](auto& c, const char* cErr) {
+        i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             auto check = [&](const StrBuilder& sb) -> i32 {
                 CT_CHECK(sb.cap() == c.expected, cErr);
                 CT_CHECK(sb.len() == 0, cErr);

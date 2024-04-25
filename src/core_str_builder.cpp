@@ -124,9 +124,17 @@ StrBuilder StrBuilder::copy() const {
     return cpy;
 }
 
-void StrBuilder::reset(value_type* ptr, addr_size len, addr_size cap) {
+void StrBuilder::reset(value_type** ptr, addr_size len, addr_size cap) {
     free();
-    m_data = ptr;
+
+    if (ptr) {
+        m_data = *ptr;
+        *ptr = nullptr;
+    }
+    else {
+        m_data = nullptr;
+    }
+
     m_len = len;
     m_cap = cap;
 }

@@ -144,7 +144,7 @@ if(OS STREQUAL "linux")
         src/plt/unix/unix_time.cpp
         src/plt/unix/unix_plt_error.cpp
         src/plt/unix/unix_pages.cpp
-        # src/plt/unix/unix_fs.cpp
+        src/plt/unix/unix_fs.cpp
         src/plt/unix/unix_stacktrace.cpp
     )
 elseif(OS STREQUAL "darwin")
@@ -153,7 +153,7 @@ elseif(OS STREQUAL "darwin")
         src/plt/unix/unix_time.cpp
         src/plt/unix/unix_plt_error.cpp
         src/plt/unix/unix_pages.cpp
-        # src/plt/unix/unix_fs.cpp
+        src/plt/unix/unix_fs.cpp
         src/plt/unix/unix_stacktrace.cpp
     )
 elseif(OS STREQUAL "windows")
@@ -162,7 +162,7 @@ elseif(OS STREQUAL "windows")
         src/plt/win/win_time.cpp
         src/plt/win/win_plt_error.cpp
         src/plt/win/win_pages.cpp
-        # src/plt/win/win_fs.cpp
+        src/plt/win/win_fs.cpp
         src/plt/win/win_stacktrace.cpp
     )
 endif()
@@ -308,7 +308,7 @@ if(CORE_BUILD_TESTS)
         tests/plt/t-stacktrace.cpp
         # tests/plt/t-threading.cpp
         tests/plt/t-time.cpp
-        # tests/plt/t-fs.cpp
+        tests/plt/t-fs.cpp
     )
 
     # Link core

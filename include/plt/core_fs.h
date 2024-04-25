@@ -59,6 +59,11 @@ constexpr const char* fileTypeToCptr(FileType type) {
     return "None";
 }
 
+struct DirEntry {
+    FileType type;
+    const char* name;
+};
+
 struct CORE_API_EXPORT FileStat {
     FileType  type;
     addr_size size;
@@ -88,171 +93,25 @@ enum struct SeekMode : u8 {
     End
 };
 
-CORE_API_EXPORT core::expected<FileDesc, PltErrCode>  fileOpen(const char* path, OpenMode mode = OpenMode::Default);
-CORE_API_EXPORT core::expected<PltErrCode>            fileClose(FileDesc& file);
-CORE_API_EXPORT core::expected<PltErrCode>            fileDelete(const char* path);
-CORE_API_EXPORT core::expected<PltErrCode>            fileRename(const char* path, const char* newPath);
-CORE_API_EXPORT core::expected<addr_size, PltErrCode> fileWrite(FileDesc& file, const void* in, addr_size size);
-CORE_API_EXPORT core::expected<addr_size, PltErrCode> fileRead(FileDesc& file, void* out, addr_size size);
-CORE_API_EXPORT core::expected<addr_off, PltErrCode>  fileSeek(FileDesc& file, addr_off offset, SeekMode mode = SeekMode::Begin);
-CORE_API_EXPORT core::expected<PltErrCode>            fileStat(const char* path, FileStat& out);
-CORE_API_EXPORT core::expected<addr_size, PltErrCode> fileSize(FileDesc& file);
+using DirWalkCallback = bool (*)(const DirEntry& entry, addr_size idx, void* userData);
 
-CORE_API_EXPORT core::expected<PltErrCode> dirCreate(const char* path);
-CORE_API_EXPORT core::expected<PltErrCode> dirDelete(const char* path);
-CORE_API_EXPORT core::expected<PltErrCode> dirRename(const char* path, const char* newPath);
+CORE_API_EXPORT expected<FileDesc, PltErrCode>  fileOpen(const char* path, OpenMode mode = OpenMode::Default);
+CORE_API_EXPORT expected<PltErrCode>            fileClose(FileDesc& file);
+CORE_API_EXPORT expected<PltErrCode>            fileDelete(const char* path);
+CORE_API_EXPORT expected<PltErrCode>            fileRename(const char* path, const char* newPath);
+CORE_API_EXPORT expected<addr_size, PltErrCode> fileWrite(FileDesc& file, const void* in, addr_size size);
+CORE_API_EXPORT expected<addr_size, PltErrCode> fileRead(FileDesc& file, void* out, addr_size size);
+CORE_API_EXPORT expected<addr_off, PltErrCode>  fileSeek(FileDesc& file, addr_off offset, SeekMode mode = SeekMode::Begin);
+CORE_API_EXPORT expected<PltErrCode>            fileStat(const char* path, FileStat& out);
+CORE_API_EXPORT expected<addr_size, PltErrCode> fileSize(FileDesc& file);
 
-// TODO2: [PERFORMANCE] The read and write entire file functions are NOT an attempt on doing performant file I/O!
-//        They are just a simple way to read/write a file in one go.
-//        At some point I might revisit them, and use some kind of memory mapped file I/O, or at lest do block-sized
-//        read/write operations.
+CORE_API_EXPORT expected<PltErrCode> fileReadEntire(const char* path, ArrList<u8>& out);
+CORE_API_EXPORT expected<PltErrCode> fileWriteEntire(const char* path, const ArrList<u8>& in);
 
-template <typename TAlloc>
-core::expected<PltErrCode> fileReadEntire(const char* path, core::Arr<u8, TAlloc>& out) {
-    using DataTypePtr = typename core::Arr<u8, TAlloc>::DataType*;
-
-    FileDesc file;
-    {
-        auto res = fileOpen(path, OpenMode::Read);
-        if (res.hasErr()) {
-            return core::unexpected(res.err());
-        }
-        file = std::move(res.value());
-    }
-
-    addr_size size = 0;
-    {
-        auto res = fileSize(file);
-        if (res.hasErr()) {
-            return core::unexpected(res.err());
-        }
-        size = res.value();
-    }
-
-    if (size == 0) return {};
-
-    if (out.len() < size) {
-        // Deliberately avoiding zeroing out memory here!
-        auto data = reinterpret_cast<DataTypePtr>(TAlloc::alloc(size * sizeof(u8)));
-        out.reset(data, size);
-    }
-    else {
-        out.clear();
-    }
-
-    {
-        auto res = fileRead(file, out.data(), out.len());
-        if (res.hasErr()) {
-            return core::unexpected(res.err());
-        }
-    }
-
-    return {};
-}
-
-template <typename TAlloc>
-core::expected<PltErrCode> fileWriteEntire(const char* path, const core::Arr<u8, TAlloc>& in) {
-    if (in.len() == 0) return {};
-
-    FileDesc file;
-    {
-        auto res = fileOpen(path, OpenMode::Write | OpenMode::Create | OpenMode::Truncate);
-        if (res.hasErr()) {
-            return core::unexpected(res.err());
-        }
-        file = std::move(res.value());
-    }
-
-    {
-        auto res = fileWrite(file, in.data(), in.len());
-        if (res.hasErr()) {
-            return core::unexpected(res.err());
-        }
-    }
-
-    return {};
-}
-
-struct DirEntry {
-    FileType type;
-    const char* name;
-};
-
-template <typename TCallback>
-core::expected<PltErrCode> dirWalk(const char* path, TCallback cb);
-
-template <typename TAlloc>
-core::expected<PltErrCode> dirDeleteRec(const char* path) {
-    // TODO: [File/Directory Lock] When deleting a directory it is not a bad idea to lock it first,
-    //       or a quick rename of the top level directory before deletion starts to prevent other
-    //       processes from accessing it.
-
-    using Sb = core::StrBuilder<TAlloc>;
-    using DirectoryNames = core::Arr<Sb, TAlloc>;
-
-    Sb fileNameTmpSb;
-    DirectoryNames dirNames;
-    dirNames.append(Sb(path));
-    addr_size workIdx = 0;
-
-    // Delete all files in the directory tree.
-    while (workIdx < dirNames.len()) {
-        PltErrCode fileDelErrCode = ERR_PLT_NONE;
-
-        // NOTE: Using dirNames[workIdx] instead of a reference to it, because the array might be reallocated inside the
-        //       walk callback.
-        auto res = dirWalk(dirNames[workIdx].view().data(), [&](const DirEntry& entry, addr_size) {
-            const auto& curr = dirNames[workIdx];
-
-            if (entry.type == FileType::Directory) {
-                Sb newDirName = curr.copy();
-                newDirName.append(PATH_SEPARATOR);
-                newDirName.append(entry.name);
-                dirNames.append(std::move(newDirName));
-            }
-            else {
-                fileNameTmpSb.clear();
-                fileNameTmpSb.append(curr.view());
-                fileNameTmpSb.append(PATH_SEPARATOR);
-                fileNameTmpSb.append(entry.name);
-                const char* fullFilePath = fileNameTmpSb.view().data();
-                if (auto dres = fileDelete(fullFilePath); dres.hasErr()) {
-                    fileDelErrCode = std::move(dres.err());
-                    return false;
-                }
-            }
-
-            return true;
-        });
-
-        if (res.hasErr()) {
-            return core::unexpected(res.err());
-        }
-
-        if (fileDelErrCode != ERR_PLT_NONE) {
-            return core::unexpected(fileDelErrCode);
-        }
-
-        workIdx++;
-    }
-
-    // All directories should be empty by now, and thus deletable.
-    for (addr_size i = dirNames.len(); i > 0; i--) {
-        const char* dirPath = dirNames[i - 1].view().data();
-        if (auto dres = dirDelete(dirPath); dres.hasErr()) {
-            return core::unexpected(dres.err());
-        }
-    }
-
-    return {};
-}
+CORE_API_EXPORT expected<PltErrCode> dirCreate(const char* path);
+CORE_API_EXPORT expected<PltErrCode> dirDelete(const char* path);
+CORE_API_EXPORT expected<PltErrCode> dirDeleteRec(const char* path);
+CORE_API_EXPORT expected<PltErrCode> dirRename(const char* path, const char* newPath);
+CORE_API_EXPORT expected<PltErrCode> dirWalk(const char* path, DirWalkCallback cb, void* userData = nullptr);
 
 } // namespace core
-
-#if defined(OS_WIN) && OS_WIN == 1
-    #include <plt/win/win_fs.h>
-#elif defined(OS_LINUX) && OS_LINUX == 1
-    #include <plt/unix/unix_fs.h>
-#elif defined(OS_MAC) && OS_MAC == 1
-    #include <plt/unix/unix_fs.h>
-#endif

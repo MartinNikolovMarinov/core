@@ -140,8 +140,9 @@ i32 runAllTests() {
     if (runTestSuite(sInfo, runPltErrorTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runPltPagesTestsSuite);
     if (runTestSuite(sInfo, runPltPagesTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runPltFileSystemTestsSuite);
+    if (runTestSuite(sInfo, runPltFileSystemTestsSuite) != 0) { ret = -1; }
     // RunTestSuite(runPltThreadingTestsSuite); // FIXME:
-    // RunTestSuite(runPltFileSystemTestsSuite); // FIXME:
 
     std::cout << '\n';
     if (ret == 0) {

@@ -22,7 +22,7 @@ constexpr i32 alignTest() {
         { 25, 32 }
     };
 
-    i32 ret = core::testing::executeTestTable("alignTest failed at index: ", cases, [](auto& c, const char* cErr) {
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         auto got = core::align(c.in);
         CT_CHECK(got == c.expected, cErr);
         return 0;
@@ -177,7 +177,7 @@ i32 memcmpTest() {
         { "abc123", "abc000", 4, TestCase::positive },
     };
 
-    i32 ret = core::testing::executeTestTable("memcmpTest failed at index: ", cases, [](auto& c, const char* cErr) {
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         switch (c.expected) {
             case 1:  CT_CHECK(core::memcmp(c.a, c.b, c.n) > 0, cErr);  break;
             case -1: CT_CHECK(core::memcmp(c.a, c.b, c.n) < 0, cErr);  break;

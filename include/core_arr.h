@@ -128,9 +128,17 @@ struct ArrList {
 
     // This is the "I know what I am doing" method. Gives ownership of data to the array. The array's destructor will
     // free it, so if a different allocator was used to allocate the data the results are undefined.
-    void reset(value_type* data, size_type len) {
+    void reset(value_type** data, size_type len) {
         free();
-        m_data = data;
+
+        if (data) {
+            m_data = reinterpret_cast<value_type *>(*data);
+            *data = nullptr;
+        }
+        else {
+            m_data = nullptr;
+        }
+
         m_cap = len;
         m_len = len;
     }

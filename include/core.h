@@ -36,7 +36,7 @@
 #include "math/core_vec.h"
 
 #include "plt/core_atomics.h"
-// #include "plt/core_fs.h"
+#include "plt/core_fs.h"
 #include "plt/core_pages.h"
 #include "plt/core_path.h"
 #include "plt/core_plt_error.h"

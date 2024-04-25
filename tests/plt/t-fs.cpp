@@ -26,7 +26,8 @@ constexpr const char* testNamesTable[] = {
     "ƒîlèNäméŵîthŠpecîålČhåråčterš.txt", // (Mixed accented characters)
 };
 
-void closeAndDeleteFile(core::FileDesc&& fd, const char* path) {
+[[nodiscard]]
+i32 closeAndDeleteFile(core::FileDesc&& fd, const char* path) {
     {
         auto res = core::fileClose(fd);
         CT_CHECK(!res.hasErr(), "File closing failed");
@@ -35,6 +36,7 @@ void closeAndDeleteFile(core::FileDesc&& fd, const char* path) {
         auto res = core::fileDelete(path);
         CT_CHECK(!res.hasErr(), "File deletion failed");
     }
+    return 0;
 }
 
 struct TestPathBuilder {
@@ -89,8 +91,8 @@ struct TestPathBuilder {
     }
 };
 
-
-void tryOpenFileWithMostCommonModeCombinations(const char* path) {
+[[nodiscard]]
+i32 tryOpenFileWithMostCommonModeCombinations(const char* path) {
     //  With Default Mode:
     {
         core::FileDesc f;
@@ -98,10 +100,12 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
             auto res = core::fileOpen(path);
             CT_CHECK(!res.hasErr());
             f = std::move(res.value());
+            CT_CHECK(f.isValid());
         }
         {
             auto res = core::fileClose(f);
             CT_CHECK(!res.hasErr());
+            CT_CHECK(!f.isValid());
         }
     }
 
@@ -112,10 +116,12 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
             auto res = core::fileOpen(path, core::OpenMode::Read);
             CT_CHECK(!res.hasErr());
             f = std::move(res.value());
+            CT_CHECK(f.isValid());
         }
         {
             auto res = core::fileClose(f);
             CT_CHECK(!res.hasErr());
+            CT_CHECK(!f.isValid());
         }
     }
 
@@ -126,10 +132,12 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
             auto res = core::fileOpen(path, core::OpenMode::Write);
             CT_CHECK(!res.hasErr());
             f = std::move(res.value());
+            CT_CHECK(f.isValid());
         }
         {
             auto res = core::fileClose(f);
             CT_CHECK(!res.hasErr());
+            CT_CHECK(!f.isValid());
         }
     }
 
@@ -140,10 +148,12 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
             auto res = core::fileOpen(path, core::OpenMode::Read | core::OpenMode::Write);
             CT_CHECK(!res.hasErr());
             f = std::move(res.value());
+            CT_CHECK(f.isValid());
         }
         {
             auto res = core::fileClose(f);
             CT_CHECK(!res.hasErr());
+            CT_CHECK(!f.isValid());
         }
     }
 
@@ -154,10 +164,12 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
             auto res = core::fileOpen(path, core::OpenMode::Append);
             CT_CHECK(!res.hasErr());
             f = std::move(res.value());
+            CT_CHECK(f.isValid());
         }
         {
             auto res = core::fileClose(f);
             CT_CHECK(!res.hasErr());
+            CT_CHECK(!f.isValid());
         }
     }
 
@@ -168,10 +180,12 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
             auto res = core::fileOpen(path, core::OpenMode::Append | core::OpenMode::Read);
             CT_CHECK(!res.hasErr());
             f = std::move(res.value());
+            CT_CHECK(f.isValid());
         }
         {
             auto res = core::fileClose(f);
             CT_CHECK(!res.hasErr());
+            CT_CHECK(!f.isValid());
         }
     }
 
@@ -182,10 +196,12 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
             auto res = core::fileOpen(path, core::OpenMode::Append | core::OpenMode::Write);
             CT_CHECK(!res.hasErr());
             f = std::move(res.value());
+            CT_CHECK(f.isValid());
         }
         {
             auto res = core::fileClose(f);
             CT_CHECK(!res.hasErr());
+            CT_CHECK(!f.isValid());
         }
     }
 
@@ -196,10 +212,12 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
             auto res = core::fileOpen(path, core::OpenMode::Create);
             CT_CHECK(!res.hasErr());
             f = std::move(res.value());
+            CT_CHECK(f.isValid());
         }
         {
             auto res = core::fileClose(f);
             CT_CHECK(!res.hasErr());
+            CT_CHECK(!f.isValid());
         }
     }
 
@@ -210,10 +228,12 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
             auto res = core::fileOpen(path, core::OpenMode::Truncate);
             CT_CHECK(!res.hasErr());
             f = std::move(res.value());
+            CT_CHECK(f.isValid());
         }
         {
             auto res = core::fileClose(f);
             CT_CHECK(!res.hasErr());
+            CT_CHECK(!f.isValid());
         }
     }
 
@@ -228,15 +248,19 @@ void tryOpenFileWithMostCommonModeCombinations(const char* path) {
                                             core::OpenMode::Truncate);
             CT_CHECK(!res.hasErr());
             f = std::move(res.value());
+            CT_CHECK(f.isValid());
         }
         {
             auto res = core::fileClose(f);
             CT_CHECK(!res.hasErr());
+            CT_CHECK(!f.isValid());
         }
     }
+
+    return 0;
 };
 
-// ############################### Tests start from here ###############################################################
+// ------------------------------- Tests start from here ---------------------------------------------------------------
 
 i32 createAndDeleteFileTest() {
     core::FileDesc f;
@@ -253,16 +277,16 @@ i32 createAndDeleteFileTest() {
         f = std::move(res.value());
     }
 
-    closeAndDeleteFile(std::move(f), pb.path());
+    CT_CHECK(closeAndDeleteFile(std::move(f), pb.path()) == 0);
 
     return 0;
 }
 
-i32 createFilesAndCT_CHECKTheyExistTest() {
+i32 createFilesAndCheckIfTheyExistTest() {
     TestPathBuilder pb;
     pb.setDirPath(testDirectory);
 
-    core::testing::executeTestTable("alignTest failed at index: ", testNamesTable, [&](auto& c, const char* cErr) {
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", testNamesTable, [&](auto& c, const char* cErr) {
         pb.resetFilePart();
         pb.setFileName(c);
 
@@ -281,39 +305,155 @@ i32 createFilesAndCT_CHECKTheyExistTest() {
             CT_CHECK(!res.hasErr(), cErr);
         }
 
-        tryOpenFileWithMostCommonModeCombinations(pb.path());
+        CT_CHECK(tryOpenFileWithMostCommonModeCombinations(pb.path()) == 0);
 
         // Delete
         {
             auto res = core::fileDelete(pb.path());
             CT_CHECK(!res.hasErr(), cErr);
         }
+
+        return 0;
     });
+    CT_CHECK(ret == 0);
 
     return 0;
 }
 
-i32 commonOpenErrorsTest() {
+i32 checkFileStatsTest() {
+    TestPathBuilder pb;
+    pb.setDirPath(testDirectory);
+
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", testNamesTable, [&](auto& c, const char* cErr) {
+        pb.resetFilePart();
+        pb.setFileName(c);
+
+        core::FileDesc f;
+
+        // Open with create
+        {
+            auto res = core::fileOpen(pb.path(), core::OpenMode::Create);
+            CT_CHECK(!res.hasErr(), cErr);
+            f = std::move(res.value());
+        }
+
+        // Size
+        {
+            auto res = core::fileSize(f);
+            CT_CHECK(!res.hasErr(), cErr);
+            CT_CHECK(res.value() == 0, cErr);
+        }
+
+        // Close
+        {
+            auto res = core::fileClose(f);
+            CT_CHECK(!res.hasErr(), cErr);
+        }
+
+        // Stat
+        {
+            core::FileStat stat;
+            auto res = core::fileStat(pb.path(), stat);
+            CT_CHECK(!res.hasErr(), cErr);
+            CT_CHECK(stat.size == 0, cErr);
+            CT_CHECK(stat.type == core::FileType::Regular, cErr);
+        }
+
+        // Delete
+        {
+            auto res = core::fileDelete(pb.path());
+            CT_CHECK(!res.hasErr(), cErr);
+        }
+
+        return 0;
+    });
+    CT_CHECK(ret == 0);
+
+    return 0;
+}
+
+i32 commonErrorsTest() {
+
+    // Test operations on non-existent files
     {
-        auto res = core::fileOpen("does not exist");
-        CT_CHECK(res.hasErr(), "File should not exist");
+        struct TestCase {
+            const char* path;
+            core::OpenMode mode;
+        };
+
+        TestCase testCases[] = {
+            {nullptr, core::OpenMode::Default},
+            {"./does/not/exist and can't create 1", core::OpenMode::Create},
+        };
+
+        for (auto& tc : testCases) {
+            {
+                auto res = core::fileOpen(tc.path, tc.mode);
+                CT_CHECK(res.hasErr());
+            }
+            {
+                auto res = core::fileDelete(tc.path);
+                CT_CHECK(res.hasErr());
+            }
+            {
+                auto res = core::fileRename(tc.path, "new name");
+                CT_CHECK(res.hasErr());
+            }
+            {
+                [[maybe_unused]] core::FileStat unused;
+                auto res = core::fileStat(tc.path, unused);
+                CT_CHECK(res.hasErr());
+            }
+            {
+                [[maybe_unused]] core::ArrList<u8> unused;
+                auto res = core::fileReadEntire(tc.path, unused);
+                CT_CHECK(res.hasErr());
+            }
+            {
+                [[maybe_unused]] core::ArrList<u8> unused(5, 0);
+                auto res = core::fileWriteEntire(tc.path, unused);
+                CT_CHECK(res.hasErr());
+            }
+            {
+                auto res = core::dirCreate(tc.path);
+                CT_CHECK(res.hasErr());
+            }
+            {
+                auto res = core::dirRename(tc.path, "new name");
+                CT_CHECK(res.hasErr());
+            }
+            {
+                core::DirWalkCallback cb = [](const core::DirEntry&, addr_size, void*) -> bool { return true; };
+                auto res = core::dirWalk(tc.path, cb, nullptr);
+                CT_CHECK(res.hasErr());
+            }
+            {
+                auto res = core::dirDelete(tc.path);
+                CT_CHECK(res.hasErr());
+            }
+            {
+                auto res = core::dirDeleteRec(tc.path);
+                CT_CHECK(res.hasErr());
+            }
+        }
     }
+
+    // Test operations on invalid file descriptor
     {
-        auto res = core::fileOpen("does not exist", core::OpenMode::Read);
-        CT_CHECK(res.hasErr(), "File should not exist");
+        auto check = [](const auto& r) {
+            CT_CHECK(r.hasErr());
+            CT_CHECK(r.err() == core::ERR_PASSED_INVALID_FILE_DESCRIPTOR);
+            return 0;
+        };
+
+        core::FileDesc f;
+        CT_CHECK(check(core::fileClose(f)) == 0);
+        CT_CHECK(check(core::fileWrite(f, nullptr, 0)) == 0);
+        CT_CHECK(check(core::fileRead(f, nullptr, 0)) == 0);
+        CT_CHECK(check(core::fileSeek(f, 0)) == 0);
+        CT_CHECK(check(core::fileSize(f)) == 0);
     }
-    {
-        auto res = core::fileOpen("does not exist", core::OpenMode::Write);
-        CT_CHECK(res.hasErr(), "File should not exist");
-    }
-    {
-        auto res = core::fileOpen("does not exist", core::OpenMode::Append);
-        CT_CHECK(res.hasErr(), "File should not exist");
-    }
-    {
-        auto res = core::fileOpen("does not exist", core::OpenMode::Truncate);
-        CT_CHECK(res.hasErr(), "File should not exist");
-    }
+
     return 0;
 }
 
@@ -334,7 +474,7 @@ i32 edgeErrorCasesTest() {
             auto res = core::fileWrite(f, "should fail", core::cptrLen("should fail"));
             CT_CHECK(res.hasErr());
         }
-        closeAndDeleteFile(std::move(f), pb.path());
+        CT_CHECK(closeAndDeleteFile(std::move(f), pb.path()) == 0);
     }
 
     // Files oppned for writing should fail to read
@@ -350,7 +490,29 @@ i32 edgeErrorCasesTest() {
             auto res = core::fileRead(f, buff, 256);
             CT_CHECK(res.hasErr());
         }
-        closeAndDeleteFile(std::move(f), pb.path());
+        CT_CHECK(closeAndDeleteFile(std::move(f), pb.path()) == 0);
+    }
+
+    // Double closing a file
+    {
+        core::FileDesc f;
+        {
+            auto res = core::fileOpen(pb.path(), core::OpenMode::Create);
+            CT_CHECK(!res.hasErr());
+            f = std::move(res.value());
+        }
+
+        void* ptrToRawHandle = f.handle;
+
+        {
+            auto res = core::fileClose(f);
+            CT_CHECK(!res.hasErr());
+        }
+        {
+            f.handle = ptrToRawHandle; // This is completely invalid usecase, but the API should still handle it.
+            auto res = core::fileClose(f);
+            CT_CHECK(res.hasErr(), "closing a closed file should fail");
+        }
     }
 
     return 0;
@@ -360,7 +522,7 @@ i32 directoriesCreateRenameAndDeleteTest() {
     TestPathBuilder pb;
     pb.setDirPath(testDirectory);
 
-    core::testing::executeTestTable("alignTest failed at index: ", testNamesTable, [&](auto& c, const char* cErr) {
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", testNamesTable, [&](auto& c, const char* cErr) {
         pb.resetFilePart();
         pb.setFileName(c);
 
@@ -376,12 +538,23 @@ i32 directoriesCreateRenameAndDeleteTest() {
             CT_CHECK(!res.hasErr(), cErr);
         }
 
+        // Stat It
+        {
+            core::FileStat stat;
+            auto res = core::fileStat("renamed", stat);
+            CT_CHECK(!res.hasErr(), cErr);
+            CT_CHECK(stat.type == core::FileType::Directory, cErr);
+        }
+
         // Delete It
         {
             auto res = core::dirDelete("renamed");
             CT_CHECK(!res.hasErr(), cErr);
         }
+
+        return 0;
     });
+    CT_CHECK(ret == 0);
 
     return 0;
 }
@@ -421,7 +594,7 @@ i32 mostBasicReadAndWriteTest() {
         CT_CHECK(core::cptrEq(buff, "hello", 5));
     }
 
-    closeAndDeleteFile(std::move(f), pb.path());
+    CT_CHECK(closeAndDeleteFile(std::move(f), pb.path()) == 0);
 
     return 0;
 }
@@ -482,21 +655,43 @@ i32 basicListDirectoryContentsTest() {
 
     // List directory contents
     {
-        addr_size fileCount = 0;
-        addr_size dirCount = 0;
-        auto res = core::dirWalk(pb.path(), [&](const core::DirEntry& de, addr_size) -> bool {
+        struct Closure {
+            const char** fileNames;
+            addr_size fileNamesLen;
+            const char** dirNames;
+            addr_size dirNamesLen;
+
+            addr_size& fileCount;
+            addr_size& dirCount;
+        };
+
+        core::DirWalkCallback listWalk = [](const core::DirEntry& de, addr_size, void* userData) -> bool {
+            Closure* c = reinterpret_cast<Closure*>(userData);
+
+            const char** fileNames = c->fileNames;
+            addr_size fileNamesLen = c->fileNamesLen;
+            addr_size& fileCount = c->fileCount;
+
+            const char** dirNames = c->dirNames;
+            addr_size dirNamesLen = c->dirNamesLen;
+            addr_size& dirCount = c->dirCount;
+
             const char* got = de.name;
 
             if (de.type == core::FileType::Regular) {
-                addr_off foundIdx = core::find(basicFileNames, basicFileNamesLen,
-                    [&] (const char* elem, addr_off) -> bool { return core::cptrEq(elem, got, core::cptrLen(elem)); });
-                CT_CHECK(foundIdx != -1, "File not found");
+                addr_off foundIdx = core::find(fileNames, fileNamesLen, [&] (const char* elem, addr_off) -> bool {
+                    bool ret = core::cptrCmp(elem, core::cptrLen(elem), got, core::cptrLen(got)) == 0;
+                    return ret;
+                });
+                if (foundIdx == -1) return false;
                 fileCount++;
             }
             else if (de.type == core::FileType::Directory) {
-                addr_off foundIdx = core::find(basicDirNames, basicDirNamesLen,
-                    [&] (const char* elem, addr_off) -> bool { return core::cptrEq(elem, got, core::cptrLen(elem)); });
-                CT_CHECK(foundIdx != -1, "Directory not found");
+                addr_off foundIdx = core::find(dirNames, dirNamesLen, [&] (const char* elem, addr_off) -> bool {
+                    bool ret = core::cptrCmp(elem, core::cptrLen(elem), got, core::cptrLen(got)) == 0;
+                    return ret;
+                });
+                if (foundIdx == -1) return false;
                 dirCount++;
             }
             else {
@@ -504,7 +699,16 @@ i32 basicListDirectoryContentsTest() {
             }
 
             return true;
-        });
+        };
+
+        addr_size fileCount = 0;
+        addr_size dirCount = 0;
+        Closure closure = {
+            basicFileNames, basicFileNamesLen,
+            basicDirNames, basicDirNamesLen,
+            fileCount, dirCount
+        };
+        auto res = core::dirWalk(pb.path(), listWalk,  reinterpret_cast<void*>(&closure));
 
         CT_CHECK(!res.hasErr());
         CT_CHECK(fileCount == basicFileNamesLen);
@@ -513,31 +717,193 @@ i32 basicListDirectoryContentsTest() {
 
     // Delete directory
     {
-        constexpr addr_size BUF_SIZE = core::KILOBYTE;
-        char buff[BUF_SIZE];
-        core::BumpAllocator::init(nullptr, buff, BUF_SIZE);
-        auto res = core::dirDeleteRec<core::BumpAllocator>(pb.path());
+        auto res = core::dirDeleteRec(pb.path());
         CT_CHECK(!res.hasErr());
     }
 
     return 0;
 }
 
-// TODO: Create a table test for fileReadEntire and fileWriteEntire with stat and size checks.
-//        This will make sure that the API works on a basic level.
+i32 readAndWriteEntireFileTest() {
+    struct TestCase {
+        const char* path;
+        const char* content;
+    };
 
-i32 runPltFileSystemTestsSuite() {
-    // TODO: At some point I should create a test folder and check if it is empty after every one of these tests.
-    //       Somthing like the memory leak tests I do elsewhere.
-    //       Also on starting the test suite this directory should be cleaned.
+    TestCase testCases[] = {
+        {"test0.txt", "123456789"},
+        {"test1.txt", "123456789 1"},
+        {"test1.txt", "123456789 12"},
+        {"test2.txt", "123456789 123"},
+        {"test3.txt", "123456789 1234"},
+        {"test4.txt", "123456789 12345"},
+        {"test5.txt", "123456789 123456"},
+        {"test6.txt", "123456789 1234567"},
+        {"test7.txt", "123456789 12345678"},
+        {"test8.txt", "123456789 123456789"},
+        {"test9.txt", "123456789 123456789"},
 
-    RunTest(createAndDeleteFileTest);
-    RunTest(createFilesAndCT_CHECKTheyExistTest);
-    RunTest(commonOpenErrorsTest);
-    RunTest(edgeErrorCasesTest);
-    RunTest(directoriesCreateRenameAndDeleteTest);
-    RunTest(mostBasicReadAndWriteTest);
-    RunTest(basicListDirectoryContentsTest);
+        {"test10.txt", "123456789 123456789 123456789"},
+        {"test11.txt", "123456789 123456789 123456789 123456789"},
+        {"test12.txt", "123456789 123456789 123456789 123456789 123456789"},
+        {"test13.txt", "123456789 123456789 123456789 123456789 123456789 123456789"},
+        {"test14.txt", "123456789 123456789 123456789 123456789 123456789 123456789 123456789"},
+        {"test15.txt", "123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789"}
+    };
+
+    TestPathBuilder pb;
+    pb.setDirPath(testDirectory);
+
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", testCases, [&](auto& c, const char* cErr) {
+        pb.resetFilePart();
+        pb.setFileName(c.path);
+
+        core::ArrList<u8> content(core::cptrLen(c.content));
+        for (addr_size i = 0; i < core::cptrLen(c.content); ++i) {
+            content.push(u8(c.content[i]));
+        }
+
+        // Write the file
+        {
+            auto res = core::fileWriteEntire(pb.path(), content);
+            CT_CHECK(!res.hasErr(), cErr);
+        }
+
+        // Read the file
+        {
+            core::ArrList<u8> readBuffer;
+            i32 counter = 5;
+            while (counter-- > 0) {
+                // Read the entire file a couple of times with the same buffer.
+                auto res = core::fileReadEntire(pb.path(), readBuffer);
+                CT_CHECK(!res.hasErr(), cErr);
+                CT_CHECK(content.len() == readBuffer.len(), cErr);
+                for (addr_size i = 0; i < content.len(); ++i) {
+                    CT_CHECK(content[i] == readBuffer[i], cErr);
+                }
+            }
+        }
+
+        // Delete the file
+        {
+            auto res = core::fileDelete(pb.path());
+            CT_CHECK(!res.hasErr(), cErr);
+        }
+
+        return 0;
+    });
+    CT_CHECK(ret == 0);
 
     return 0;
+}
+
+i32 seekWriteAndReadTest() {
+    TestPathBuilder pb;
+    pb.setDirPath(testDirectory);
+    pb.setFileName("test.txt");
+
+    core::FileDesc f;
+
+    {
+        auto res = core::fileOpen(pb.path(), core::OpenMode::Write | core::OpenMode::Read | core::OpenMode::Create);
+        CT_CHECK(!res.hasErr());
+        f = std::move(res.value());
+    }
+
+    {
+        auto res = core::fileWrite(f, "000456000", 9);
+        CT_CHECK(!res.hasErr());
+    }
+
+    {
+        auto res = core::fileSeek(f, 0, core::SeekMode::Begin);
+        CT_CHECK(!res.hasErr());
+
+        auto res2 = core::fileWrite(f, "123", 3);
+        CT_CHECK(!res2.hasErr());
+    }
+
+    {
+        auto res = core::fileSeek(f, 3, core::SeekMode::Current);
+        CT_CHECK(!res.hasErr());
+
+        auto res2 = core::fileWrite(f, "78", 2);
+        CT_CHECK(!res2.hasErr());
+    }
+
+    {
+        auto res = core::fileSeek(f, -1, core::SeekMode::End);
+        CT_CHECK(!res.hasErr());
+
+        auto res2 = core::fileWrite(f, "9", 1);
+        CT_CHECK(!res2.hasErr());
+    }
+
+    {
+        auto res = core::fileSeek(f, 0, core::SeekMode::Begin);
+        CT_CHECK(!res.hasErr());
+
+        char buff[10] = {};
+        auto res2 = core::fileRead(f, buff, 9);
+        CT_CHECK(!res2.hasErr());
+        CT_CHECK(core::cptrEq(buff, "123456789", 9));
+    }
+
+    CT_CHECK(closeAndDeleteFile(std::move(f), pb.path()) == 0);
+
+    return 0;
+}
+
+i32 runPltFileSystemTestsSuite() {
+    using namespace core::testing;
+
+    auto runTests = [] (TestInfo& tInfo, const char* description, i32& retCode) {
+        tInfo.description = description;
+
+        tInfo.name = FN_NAME_TO_CPTR(createAndDeleteFileTest);
+        if (runTest(tInfo, createAndDeleteFileTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(createFilesAndCheckIfTheyExistTest);
+        if (runTest(tInfo, createFilesAndCheckIfTheyExistTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(checkFileStatsTest);
+        if (runTest(tInfo, checkFileStatsTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(commonErrorsTest);
+        if (runTest(tInfo, commonErrorsTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(edgeErrorCasesTest);
+        if (runTest(tInfo, edgeErrorCasesTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(directoriesCreateRenameAndDeleteTest);
+        if (runTest(tInfo, directoriesCreateRenameAndDeleteTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(mostBasicReadAndWriteTest);
+        if (runTest(tInfo, mostBasicReadAndWriteTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(basicListDirectoryContentsTest);
+        if (runTest(tInfo, basicListDirectoryContentsTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(readAndWriteEntireFileTest);
+        if (runTest(tInfo, readAndWriteEntireFileTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(seekWriteAndReadTest);
+        if (runTest(tInfo, seekWriteAndReadTest) != 0) { retCode = -1; }
+    };
+
+
+    i32 ret = 0;
+    runForAllGlobalAllocatorVariants(runTests, ret);
+
+    {
+        constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE * 3;
+        char buf[BUFFER_SIZE];
+        USE_STACK_BASED_BUMP_ALLOCATOR_FOR_BLOCK_SCOPE(buf, BUFFER_SIZE);
+
+        TestInfo tInfo = createTestInfo();
+        tInfo.trackMemory = true;
+        runTests(tInfo, "STACK BASED BUMP Allocator", ret);
+    }
+
+    {
+        constexpr u32 BUFFER_SIZE = 256; // intentially small to test overflow.
+        USE_CUSTOM_ARENA_ALLOCATOR_FOR_FOR_BLOCK_SCOPE(BUFFER_SIZE);
+
+        TestInfo tInfo = createTestInfo();
+        tInfo.trackMemory = true;
+        runTests(tInfo, "CUSTOM ARENA Allocator", ret);
+    }
+
+    return ret;
 }

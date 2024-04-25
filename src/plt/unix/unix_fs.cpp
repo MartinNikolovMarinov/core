@@ -1,11 +1,12 @@
 #include <plt/core_fs.h>
 
-#include <fcntl.h>
-#include <unistd.h>
+#include <dirent.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
-#include <sys/types.h>
+#include <unistd.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 namespace core {
 
@@ -36,31 +37,31 @@ inline i32 fromHandle(void* handle) {
     return ret;
 }
 
-constexpr inline i32 toOsFlags(OpenMode mode) {
-    if (mode == OpenMode::Default) {
+constexpr inline i32 toOsFlags(OpenMode m) {
+    if (m == OpenMode::Default) {
         return O_RDWR;
     }
 
     i32 flag = 0;
 
-    if (i8(mode) & i8(OpenMode::Read) && i8(mode) & i8(OpenMode::Write)) {
+    if (i8(m) & i8(OpenMode::Read) && i8(m) & i8(OpenMode::Write)) {
         flag |= O_RDWR;
     }
-    else if (i8(mode) & i8(OpenMode::Read)) {
+    else if (i8(m) & i8(OpenMode::Read)) {
         flag |= O_RDONLY;
     }
-    else if (i8(mode) & i8(OpenMode::Write)) {
+    else if (i8(m) & i8(OpenMode::Write)) {
         flag |= O_WRONLY;
     }
 
-    if (i8(mode) & i8(OpenMode::Truncate)) {
+    if (i8(m) & i8(OpenMode::Truncate)) {
         flag |= O_TRUNC;
     }
-    else if (i8(mode) & i8(OpenMode::Append)) {
+    else if (i8(m) & i8(OpenMode::Append)) {
         flag |= O_APPEND;
     }
 
-    if (i8(mode) & i8(OpenMode::Create)) {
+    if (i8(m) & i8(OpenMode::Create)) {
         flag |= O_CREAT;
     }
 
@@ -68,22 +69,22 @@ constexpr inline i32 toOsFlags(OpenMode mode) {
 }
 
 // Default access mode for files is "-rw-rw-r--"
-static constexpr mode_t DEFAULT_FILE_MODE = (S_IRUSR | S_IWUSR) |
-                                            (S_IRGRP | S_IWGRP) |
-                                            (S_IROTH);
+static constexpr mode_t DEFAULT_FILE_ACCESS_MODE = (S_IRUSR | S_IWUSR) |
+                                                   (S_IRGRP | S_IWGRP) |
+                                                   (S_IROTH);
 
 // Default access mode for directories is "drwxrwxr-x"
-static constexpr mode_t DEFAULT_DIR_MODE = (S_IRUSR | S_IWUSR | S_IXUSR) |
-                                           (S_IRGRP | S_IWGRP | S_IXGRP) |
-                                           (S_IROTH | S_IXOTH);
+static constexpr mode_t DEFAULT_DIR_ACCESS_MODE = (S_IRUSR | S_IWUSR | S_IXUSR) |
+                                                  (S_IRGRP | S_IWGRP | S_IXGRP) |
+                                                  (S_IROTH | S_IXOTH);
 
 } // namespace
 
 core::expected<FileDesc, PltErrCode> fileOpen(const char* path, OpenMode openMode) {
     i32 flags = toOsFlags(openMode);
-    mode_t mode = DEFAULT_FILE_MODE;
+    mode_t accessMode = DEFAULT_FILE_ACCESS_MODE;
 
-    i32 res = open(path, flags, mode);
+    i32 res = open(path, flags, accessMode);
     if (res < 0) {
         return core::unexpected(PltErrCode(errno));
     }
@@ -94,6 +95,10 @@ core::expected<FileDesc, PltErrCode> fileOpen(const char* path, OpenMode openMod
 }
 
 core::expected<PltErrCode> fileClose(FileDesc& file) {
+    if (!file.isValid()) {
+        return core::unexpected(core::ERR_PASSED_INVALID_FILE_DESCRIPTOR);
+    }
+
     i32 res = close(fromHandle(file.handle));
     if (res < 0) {
         return core::unexpected(PltErrCode(errno));
@@ -122,6 +127,10 @@ core::expected<PltErrCode> fileRename(const char* path, const char* newPath) {
 }
 
 core::expected<addr_size, PltErrCode> fileWrite(FileDesc& file, const void* in, addr_size size) {
+    if (!file.isValid()) {
+        return core::unexpected(core::ERR_PASSED_INVALID_FILE_DESCRIPTOR);
+    }
+
     auto res = write(fromHandle(file.handle), in, size);
     if (res < 0) {
         return core::unexpected(PltErrCode(errno));
@@ -131,6 +140,10 @@ core::expected<addr_size, PltErrCode> fileWrite(FileDesc& file, const void* in, 
 }
 
 core::expected<addr_size, PltErrCode> fileRead(FileDesc& file, void* out, addr_size size) {
+    if (!file.isValid()) {
+        return core::unexpected(core::ERR_PASSED_INVALID_FILE_DESCRIPTOR);
+    }
+
     auto res = read(fromHandle(file.handle), out, size);
     if (res < 0) {
         return core::unexpected(PltErrCode(errno));
@@ -139,9 +152,13 @@ core::expected<addr_size, PltErrCode> fileRead(FileDesc& file, void* out, addr_s
     return addr_size(res);
 }
 
-core::expected<addr_off, PltErrCode> fileSeek(FileDesc& file, addr_off offset, SeekMode mode) {
+core::expected<addr_off, PltErrCode> fileSeek(FileDesc& file, addr_off offset, SeekMode seekMode) {
+    if (!file.isValid()) {
+        return core::unexpected(core::ERR_PASSED_INVALID_FILE_DESCRIPTOR);
+    }
+
     i32 whence = 0;
-    switch (mode) {
+    switch (seekMode) {
         case SeekMode::Begin:   whence = SEEK_SET; break;
         case SeekMode::Current: whence = SEEK_CUR; break;
         case SeekMode::End:     whence = SEEK_END; break;
@@ -181,6 +198,10 @@ core::expected<PltErrCode> fileStat(const char* path, FileStat& out) {
 }
 
 core::expected<addr_size, PltErrCode> fileSize(FileDesc& file) {
+    if (!file.isValid()) {
+        return core::unexpected(core::ERR_PASSED_INVALID_FILE_DESCRIPTOR);
+    }
+
     struct stat statbuf;
     i32 res = fstat(fromHandle(file.handle), &statbuf);
     if (res < 0) {
@@ -190,10 +211,71 @@ core::expected<addr_size, PltErrCode> fileSize(FileDesc& file) {
     return addr_size(statbuf.st_size);
 }
 
-core::expected<PltErrCode> dirCreate(const char* path) {
-    mode_t mode = DEFAULT_DIR_MODE;
+expected<PltErrCode> fileReadEntire(const char* path, ArrList<u8>& out) {
+    using value_type = typename core::ArrList<u8>::value_type;
 
-    i32 res = mkdir(path, mode);
+    FileDesc file;
+    {
+        auto res = fileOpen(path, OpenMode::Read);
+        if (res.hasErr()) {
+            return core::unexpected(res.err());
+        }
+        file = std::move(res.value());
+    }
+
+    addr_size size = 0;
+    {
+        auto res = fileSize(file);
+        if (res.hasErr()) {
+            return core::unexpected(res.err());
+        }
+        size = res.value();
+    }
+
+    if (size == 0) return {};
+
+    if (out.len() < size) {
+        // Deliberately avoiding zeroing out memory here!
+        auto data = reinterpret_cast<value_type*>(core::alloc(size, sizeof(u8)));
+        out.reset(&data, size);
+    }
+
+    {
+        auto res = fileRead(file, out.data(), out.len());
+        if (res.hasErr()) {
+            return core::unexpected(res.err());
+        }
+    }
+
+    return {};
+}
+
+core::expected<PltErrCode> fileWriteEntire(const char* path, const core::ArrList<u8>& in) {
+    if (in.len() == 0) return {};
+
+    FileDesc file;
+    {
+        auto res = fileOpen(path, OpenMode::Write | OpenMode::Create | OpenMode::Truncate);
+        if (res.hasErr()) {
+            return core::unexpected(res.err());
+        }
+        file = std::move(res.value());
+    }
+
+    {
+        auto res = fileWrite(file, in.data(), in.len());
+        if (res.hasErr()) {
+            return core::unexpected(res.err());
+        }
+    }
+
+    return {};
+}
+
+core::expected<PltErrCode> dirCreate(const char* path) {
+    mode_t accessMode = DEFAULT_DIR_ACCESS_MODE;
+
+    i32 res = mkdir(path, accessMode);
     if (res < 0) {
         return core::unexpected(PltErrCode(errno));
     }
@@ -210,6 +292,83 @@ core::expected<PltErrCode> dirDelete(const char* path) {
     return {};
 }
 
+core::expected<PltErrCode> dirDeleteRec(const char* path) {
+    using core::StrBuilder;
+    using DirectoryNames = core::ArrList<core::StrBuilder>;
+
+    StrBuilder fileNameTmpSb;
+    DirectoryNames dirNames;
+    dirNames.push(StrBuilder(path));
+    addr_size workIdx = 0;
+
+    struct Closure {
+        DirectoryNames& dirNames;
+        StrBuilder& fileNameBufferSb;
+        PltErrCode& errCode;
+        addr_size idx;
+    };
+
+    // Delete all files in the directory tree.
+    while (workIdx < dirNames.len()) {
+        PltErrCode fileDelErrCode = ERR_PLT_NONE;
+
+        DirWalkCallback deleteWalk = [](const DirEntry& entry, addr_size, void* userData) -> bool {
+            Closure& d = *static_cast<Closure*>(userData);
+            auto& _dirNames = d.dirNames;
+            auto& _fileNameBufferSb = d.fileNameBufferSb;
+            auto& _workIdx = d.idx;
+            auto& _errCode = d.errCode;
+
+            const auto& curr = _dirNames[_workIdx];
+
+            if (entry.type == FileType::Directory) {
+                // Found a directory, add it to the list of directories to delete later.
+                StrBuilder newDirName = curr.copy();
+                newDirName.append(PATH_SEPARATOR);
+                newDirName.append(entry.name);
+                _dirNames.push(std::move(newDirName));
+            }
+            else {
+                // Found a file, delete it.
+                _fileNameBufferSb.clear();
+                _fileNameBufferSb.append(curr.view());
+                _fileNameBufferSb.append(PATH_SEPARATOR);
+                _fileNameBufferSb.append(entry.name);
+                const char* fullFilePath = _fileNameBufferSb.view().data();
+                if (auto dres = fileDelete(fullFilePath); dres.hasErr()) {
+                    _errCode = std::move(dres.err());
+                    return false;
+                }
+            }
+
+            return true;
+        };
+
+        Closure closure = { dirNames, fileNameTmpSb, fileDelErrCode, workIdx };
+        auto res = dirWalk(dirNames[workIdx].view().data(), deleteWalk, reinterpret_cast<void*>(&closure));
+
+        if (res.hasErr()) {
+            return core::unexpected(res.err());
+        }
+
+        if (fileDelErrCode != ERR_PLT_NONE) {
+            return core::unexpected(fileDelErrCode);
+        }
+
+        workIdx++;
+    }
+
+    // All directories should be empty by now, and thus deletable.
+    for (addr_size i = dirNames.len(); i > 0; i--) {
+        const char* dirPath = dirNames[i - 1].view().data();
+        if (auto dres = dirDelete(dirPath); dres.hasErr()) {
+            return core::unexpected(dres.err());
+        }
+    }
+
+    return {};
+}
+
 core::expected<PltErrCode> dirRename(const char* path, const char* newPath) {
     i32 res = rename(path, newPath);
     if (res < 0) {
@@ -218,5 +377,84 @@ core::expected<PltErrCode> dirRename(const char* path, const char* newPath) {
 
     return {};
 }
+
+namespace detail {
+
+inline DirEntry toDirEntry(const dirent& d) {
+    DirEntry de = {};
+    de.name = d.d_name; // d.d_name should be null terminated according to documentation.
+    switch (d.d_type) {
+        case DT_REG:
+            de.type = FileType::Regular;
+            break;
+        case DT_DIR:
+            de.type = FileType::Directory;
+            break;
+        case DT_LNK:
+            de.type = FileType::Symlink;
+            break;
+
+        case DT_FIFO:
+        case DT_SOCK:
+        case DT_CHR:
+        case DT_BLK:
+        default:
+            de.type = FileType::Other;
+    }
+
+    return de;
+}
+
+};
+
+core::expected<PltErrCode> dirWalk(const char* path, DirWalkCallback cb, void* userData) {
+    if (path == nullptr || cb == nullptr) {
+        return core::unexpected(PltErrCode(EINVAL));
+    }
+
+    DIR* dir = opendir(path);
+    if (!dir) {
+        return core::unexpected(PltErrCode(errno));
+    }
+
+    PltErrCode errCode = 0;
+    struct dirent* entry;
+    addr_size i = 0;
+
+    errno = 0;
+
+    while (true) {
+        entry = readdir(dir);
+        if (!entry) {
+            // reached the last directory entry.
+            if (errno != 0) {
+                // or an error occurred.
+                errCode = PltErrCode(errno);
+            }
+
+            break;
+        }
+
+        bool shouldSkip = core::cptrEq(entry->d_name, ".", 1) || core::cptrEq(entry->d_name, "..", 2);
+        if (shouldSkip) {
+            continue;
+        }
+
+        DirEntry de = detail::toDirEntry(*entry);
+        if (!cb(de, i, userData)) break;
+        i++;
+    }
+
+    if (closedir(dir) < 0) {
+        return core::unexpected(PltErrCode(errno));
+    }
+
+    if (errCode != 0) {
+        return core::unexpected(errCode);
+    }
+
+    return {};
+}
+
 
 } // namespace core

@@ -136,6 +136,8 @@ set(src_files
     src/math/core_projections.cpp
 
     src/testing/testing_framework.cpp
+
+    src/plt/core_fs.cpp
 )
 
 if(OS STREQUAL "linux")

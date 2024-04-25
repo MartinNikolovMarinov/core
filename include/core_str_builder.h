@@ -23,7 +23,6 @@ struct CORE_API_EXPORT StrBuilder {
 
     explicit StrBuilder(size_type cap);
     explicit StrBuilder(size_type len, const value_type& val);
-    explicit StrBuilder(const value_type* cptr);
     explicit StrBuilder(const StrView& view);
     explicit StrBuilder(StrView&& view);
 
@@ -31,7 +30,6 @@ struct CORE_API_EXPORT StrBuilder {
 
     StrBuilder& operator=(size_type) = delete; // prevent len assignment
     StrBuilder& operator=(StrBuilder&& other);
-    StrBuilder& operator=(const value_type* cptr);
     StrBuilder& operator=(const StrView& view);
     StrBuilder& operator=(StrView&& view);
 
@@ -66,8 +64,7 @@ struct CORE_API_EXPORT StrBuilder {
 
     StrBuilder& append(const value_type& val);
     StrBuilder& append(const value_type* cptr, size_type len);
-    StrBuilder& append(const value_type* cptr);
-    StrBuilder& append(StrView view);
+    StrBuilder& append(const StrView& view);
 
     void ensureCap(size_type newCap);
 

@@ -71,7 +71,7 @@ i32 initializeStrBuilderTest() {
             return 0;
         };
 
-        StrBuilder sb1(vv); check(sb1);
+        StrBuilder sb1(core::sv(vv)); check(sb1);
         StrBuilder sb2(core::sv(vv)); check(sb1);
     }
 
@@ -159,7 +159,7 @@ i32 appendToStrBuilderTest() {
 
         i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             {
-                StrBuilder sb (c.start);
+                StrBuilder sb (core::sv(c.start));
                 sb.append(c.in, core::cptrLen(c.in));
                 CT_CHECK(sb.eq(c.expected), cErr);
                 CT_CHECK(sb.len() == c.expected.len(), cErr);
@@ -170,21 +170,10 @@ i32 appendToStrBuilderTest() {
                 sb.append(c.in, core::cptrLen(c.in));
                 CT_CHECK(sb.eq(c.expected), cErr);
                 CT_CHECK(sb.len() == c.expected.len(), cErr);
-
-                sb = c.start;
-                sb.append(c.in, core::cptrLen(c.in));
-                CT_CHECK(sb.eq(c.expected), cErr);
-                CT_CHECK(sb.len() == c.expected.len(), cErr);
             }
             {
-                StrBuilder sb (c.start);
+                StrBuilder sb (core::sv(c.start));
                 sb.append(core::sv(c.in, core::cptrLen(c.in)));
-                CT_CHECK(sb.eq(c.expected), cErr);
-                CT_CHECK(sb.len() == c.expected.len(), cErr);
-            }
-            {
-                StrBuilder sb (c.start);
-                sb.append(c.in);
                 CT_CHECK(sb.eq(c.expected), cErr);
                 CT_CHECK(sb.len() == c.expected.len(), cErr);
             }
@@ -213,23 +202,20 @@ i32 moveAndCopyStrBuilderTest() {
             return 0;
         };
 
-        StrBuilder sb0; sb0.append("testing");       // StrBuilder();
+        StrBuilder sb0; sb0.append("testing"_sv);       // StrBuilder();
         StrBuilder sb1 = StrBuilder(std::move(sb0)); // StrBuilder(StrBuilder&& other);
-        StrBuilder sb2 = StrBuilder("testing");      // StrBuilder(const value_type* cptr);
         StrBuilder sb3 = StrBuilder(view);           // StrBuilder(const StrView& view);
         StrBuilder sb4 = StrBuilder("testing"_sv);   // StrBuilder(StrView&& view);
 
         CT_CHECK(sbIsUninitialized(sb0) == 0);
         CT_CHECK(check(sb1) == 0);
-        CT_CHECK(check(sb2) == 0);
         CT_CHECK(check(sb3) == 0);
         CT_CHECK(check(sb4) == 0);
 
         StrView movableView (view.data());
 
-        StrBuilder sb5, sb6, sb7, sb8;
+        StrBuilder sb5, sb7, sb8;
         sb5 = std::move(sb1);         // StrBuilder& operator=(StrBuilder&& other);
-        sb6 = view.data();            // StrBuilder& operator=(const value_type* cptr);
         sb7 = movableView;            // StrBuilder& operator=(const StrView& view);
         sb8 = std::move(movableView); // StrBuilder& operator=(StrView&& view);
 
@@ -237,7 +223,6 @@ i32 moveAndCopyStrBuilderTest() {
         CT_CHECK(movableView.data() == nullptr);
         CT_CHECK(movableView.len() == 0);
         CT_CHECK(check(sb5) == 0);
-        CT_CHECK(check(sb6) == 0);
         CT_CHECK(check(sb7) == 0);
         CT_CHECK(check(sb8) == 0);
 
@@ -251,7 +236,7 @@ i32 moveAndCopyStrBuilderTest() {
 
         DISABLE_CLANG_WARNING(-Wself-move) // this is what I am testing here. I know it's wrong to do.
 
-        StrBuilder sb("aaa");
+        StrBuilder sb("aaa"_sv);
         sb = std::move(sb);
 
         CT_CHECK(sb.len() == 3);
@@ -289,7 +274,7 @@ i32 resetAndReleaseStrBuilderTest() {
         size_type cap = 0;
         size_type len = 0;
         value_type* released = sb.release(len, cap);
-        core::memset(released + cap, 0, cap - len); // zero out the memory after len.
+        core::memset(released + len, 0, cap - len); // zero out the memory after len.
 
         CT_CHECK(sbIsUninitialized(sb) == 0);
 

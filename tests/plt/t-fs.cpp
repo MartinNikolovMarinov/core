@@ -695,7 +695,7 @@ i32 basicListDirectoryContentsTest() {
                 dirCount++;
             }
             else {
-                CT_CHECK(false, "Unknown file type");
+                return false;
             }
 
             return true;

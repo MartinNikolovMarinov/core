@@ -12,11 +12,18 @@ namespace {
 
 void assignFromCptr(value_type** value, size_type& len, size_type& cap,
                     const char* cptr, size_type cptrLen) {
-    len = cptrLen;
-    cap = cptrLen + 1;
-    *value = reinterpret_cast<value_type*>(core::alloc(cap, sizeof(StrBuilder::value_type)));
-    core::memcopy(*value, cptr, len * sizeof(StrBuilder::value_type));
-    (*value)[len] = '\0';
+    if (cptrLen > 0) {
+        len = cptrLen;
+        cap = cptrLen + 1;
+        *value = reinterpret_cast<value_type*>(core::alloc(cap, sizeof(StrBuilder::value_type)));
+        core::memcopy(*value, cptr, len * sizeof(StrBuilder::value_type));
+        (*value)[len] = '\0';
+    }
+    else {
+        *value = nullptr;
+        len = 0;
+        cap = 0;
+    }
 }
 
 } // namespace
@@ -51,9 +58,6 @@ StrBuilder::StrBuilder(size_type len, const value_type& val) {
     core::memfill(m_data, m_len, val);
     m_data[m_len] = '\0';
 }
-StrBuilder::StrBuilder(const value_type* cptr) {
-    assignFromCptr(&this->m_data, this->m_len, this->m_cap, cptr, core::cptrLen(cptr));
-}
 StrBuilder::StrBuilder(const StrView& view) {
     assignFromCptr(&this->m_data, this->m_len, this->m_cap, view.data(), view.len());
 }
@@ -79,10 +83,6 @@ StrBuilder& StrBuilder::operator=(StrBuilder&& other) {
     other.m_len = 0;
 
     return *this;
-}
-StrBuilder& StrBuilder::operator=(const value_type* cptr) {
-    clear();
-    return append(cptr, core::cptrLen(cptr));
 }
 StrBuilder& StrBuilder::operator=(const StrView& view) {
     clear();
@@ -173,11 +173,7 @@ StrBuilder& StrBuilder::append(const value_type* cptr, size_type len) {
     return *this;
 }
 
-StrBuilder& StrBuilder::append(const value_type* cptr) {
-    return append(cptr, core::cptrLen(cptr));
-}
-
-StrBuilder& StrBuilder::append(StrView view) {
+StrBuilder& StrBuilder::append(const StrView& view) {
     return append(view.data(), view.len());
 }
 

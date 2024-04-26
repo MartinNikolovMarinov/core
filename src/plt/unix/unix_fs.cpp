@@ -143,6 +143,9 @@ core::expected<addr_size, PltErrCode> fileRead(FileDesc& file, void* out, addr_s
     if (!file.isValid()) {
         return core::unexpected(core::ERR_PASSED_INVALID_FILE_DESCRIPTOR);
     }
+    if (out == nullptr) {
+        return core::unexpected(PltErrCode(EINVAL));
+    }
 
     auto res = read(fromHandle(file.handle), out, size);
     if (res < 0) {
@@ -216,6 +219,9 @@ core::expected<PltErrCode> dirCreate(const char* path) {
 
     i32 res = mkdir(path, accessMode);
     if (res < 0) {
+        if (errno == EEXIST) {
+            return {};
+        }
         return core::unexpected(PltErrCode(errno));
     }
 

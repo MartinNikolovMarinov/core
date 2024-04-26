@@ -585,7 +585,6 @@ i32 directoriesCreateRenameAndDeleteTest() {
 
         // Create directory
         {
-            core::dirCreate(nullptr);
             auto res = core::dirCreate(pb.path());
             CT_CHECK(!res.hasErr(), cErr);
         }
@@ -712,7 +711,14 @@ i32 basicListDirectoryContentsTest() {
             CT_CHECK(!res.hasErr());
         }
 
-        pb.resetFilePart();
+        pb.resetFilePart(); // reset to the test direcotry
+
+        // Make sure the root test directory is no longer considered empty.
+        {
+            auto res = core::dirIsEmpty(pb.path());
+            CT_CHECK(!res.hasErr());
+            CT_CHECK(res.value() == false);
+        }
     }
 
     // List directory contents

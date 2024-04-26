@@ -151,12 +151,13 @@ expected<bool, PltErrCode> dirIsEmpty(const char* path) {
         bool isEmpty;
     };
 
-    Closure c = {true};
     auto emtpyDirWalk = [](const DirEntry&, addr_size, void* closure) {
         Closure* c = reinterpret_cast<Closure*>(closure);
         c->isEmpty = false;
         return false;
     };
+
+    Closure c = {true};
     auto res = dirWalk(path, emtpyDirWalk, reinterpret_cast<void*>(&c));
 
     if (res.hasErr()) {

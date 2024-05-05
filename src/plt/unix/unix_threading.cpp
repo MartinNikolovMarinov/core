@@ -277,8 +277,6 @@ expected<PltErrCode> threadJoin(Thread& t) noexcept {
         return core::unexpected(PltErrCode(res));
     }
 
-    // Destroy the thread state from here on:
-
     t.handle = pthread_t();
     t.isRunning = false;
 

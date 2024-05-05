@@ -22,7 +22,7 @@ void asserHandler(const char* failedExpr, const char* file, i32 line, const char
                 << "[ASSERTION]:\n  [EXPR]: " << failedExpr
                 << "\n  [FUNC]: " << funcName
                 << "\n  [FILE]: " << file << ":" << line
-                << "\n  [MSG]: " << errMsg
+                << "\n  [MSG]: " << (errMsg ? errMsg : "") // IMPORTANT: MSVC's std implementation will crash if errMsg is nullptr !
                 << ANSI_RESET()
                 << std::endl;
     std::cout << ANSI_BOLD_START() << "[TRACE]:\n" << trace << ANSI_RESET() << std::endl;

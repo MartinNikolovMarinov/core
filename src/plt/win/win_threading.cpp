@@ -1,8 +1,9 @@
 #include <plt/core_threading.h>
 #include <plt/win/win_threading.h>
 
-#include <core_cptr.h>
 #include <core_alloc.h>
+#include <core_cptr.h>
+#include <core_exec_ctx.h>
 
 #include <windows.h>
 
@@ -69,7 +70,7 @@ expected<PltErrCode> threadingGetCurrent(Thread& out) noexcept {
     HANDLE pseudoHandle = GetCurrentThread();
     bool ret = DuplicateHandle(GetCurrentProcess(), pseudoHandle, GetCurrentProcess(), &out.handle, 0, FALSE, DUPLICATE_SAME_ACCESS);
     if (!ret) {
-        out.handle = nullptr;
+        out.handle = INVALID_HANDLE_VALUE;
         return core::unexpected(PltErrCode(GetLastError()));
     }
     out.isRunning = true;
@@ -130,34 +131,100 @@ void threadingExit(i32 code) noexcept {
 }
 
 expected<PltErrCode> threadInit(Thread& t) noexcept {
-    if (t.canLock.load(std::memory_order_acquire)) {
-        return {};
-    }
+    t.handle = INVALID_HANDLE_VALUE;
+    t.isRunning = false;
     auto ret = mutexInit(t.mu);
     if (ret.hasErr()) {
         return core::unexpected(ret.err());
     }
-    t.canLock.store(true);
     return {};
 }
 
-bool threadIsRunning(const Thread& t) noexcept {
-    if (!t.canLock.load(std::memory_order_acquire)) {
-        return false;
-    }
+namespace {
 
-    Expect(mutexLock(t.mu));
-    defer { Expect(mutexUnlock(t.mu)); };
+struct ThreadInfo {
+    ThreadRoutine routine;
+    void* arg;
+    void (*destroy)(void*);
+};
 
-    if (t.handle == nullptr) {
+inline DWORD WINAPI proxy(void* arg) {
+
+    ThreadInfo* tinfo = reinterpret_cast<ThreadInfo*>(arg);
+    tinfo->routine(tinfo->arg);
+    tinfo->destroy(tinfo);
+
+    // NOTE: If the routine crashes or throws an unhandled exception the thread info will be leaked. It is better to
+    //       prevent such cases in the routine itself.
+
+    return 0;
+}
+
+bool threadIsRunningImpl(const Thread& t) noexcept {
+    if (t.handle == INVALID_HANDLE_VALUE) {
         return false;
     }
     DWORD exitCode = 0;
     if (GetExitCodeThread(t.handle, &exitCode)) {
         return (exitCode == STILL_ACTIVE);
     }
-
     return false; // If GetExitCodeThread fails, assume the thread is not running.
+}
+
+} // namspace
+
+expected<PltErrCode> threadStart(Thread& out, void* arg, ThreadRoutine routine) noexcept {
+    if (routine == nullptr) {
+        return core::unexpected(ERR_INVALID_ARGUMENT);
+    }
+
+    Expect(mutexLock(out.mu));
+    defer { Expect(mutexUnlock(out.mu)); };
+
+    if (out.isRunning) {
+        return core::unexpected(ERR_THREADING_STARTING_AN_ALREADY_RUNNING_THREAD);
+    }
+    if (threadIsRunningImpl(out)) {
+        return core::unexpected(ERR_THREADING_STARTING_AN_ALREADY_RUNNING_THREAD);
+    }
+
+    core::AllocatorContext* actx = core::getDefaultAllocatorContext();
+    Panic(actx && actx->alloc);
+
+    ThreadInfo* tinfo = reinterpret_cast<ThreadInfo*>(actx->alloc(actx->allocatorData, 1, sizeof(ThreadInfo)));
+    tinfo->routine = routine;
+    tinfo->arg = arg;
+    tinfo->destroy = [] (void* ptr) {
+        core::AllocatorContext* aactx = core::getDefaultAllocatorContext();
+        Panic(aactx && aactx->alloc);
+        ThreadInfo* info = reinterpret_cast<ThreadInfo*>(ptr);
+        aactx->free(aactx->allocatorData, info, 1, sizeof(ThreadInfo));
+    };
+    if (tinfo == nullptr) {
+        return core::unexpected(ERR_ALLOCATOR_DEFAULT_NO_MEMORY);
+    }
+
+    // If isRunning is set after the thread is actually created it is possible that the thread will be joined before
+    // the isRunning flag is set. So setting it here and in the exceptional case of pthread_create failing it will be
+    // set to false again.
+    out.isRunning = true;
+    out.handle = CreateThread(nullptr, 0, proxy, reinterpret_cast<void*>(tinfo), 0, nullptr);
+    if (out.handle == nullptr) { // CreateThread returns nullptr on error.
+        out.handle = INVALID_HANDLE_VALUE;
+        out.isRunning = false;
+        actx->free(actx->allocatorData, tinfo, 1, sizeof(ThreadInfo));
+        return core::unexpected(PltErrCode(GetLastError()));
+    }
+
+    return {};
+}
+
+bool threadIsRunning(const Thread& t) noexcept {
+    if (!t.isRunning) return false;
+    Expect(mutexLock(t.mu));
+    defer { Expect(mutexUnlock(t.mu)); };
+    if (!t.isRunning) return false; // looks schizophrenic, but it is possible that the thread was joined in the meantime.
+    return threadIsRunningImpl(t);
 }
 
 expected<bool, PltErrCode> threadEq(const Thread& t1, const Thread& t2) noexcept {
@@ -166,10 +233,6 @@ expected<bool, PltErrCode> threadEq(const Thread& t1, const Thread& t2) noexcept
 }
 
 expected<PltErrCode> threadJoin(Thread& t) noexcept {
-    if (!t.canLock.load(std::memory_order_acquire)) {
-        return core::unexpected(ERR_THREAD_FAILED_TO_ACQUIRE_LOCK);
-    }
-
     Expect(mutexLock(t.mu));
 
     if (!t.isRunning) {
@@ -184,10 +247,8 @@ expected<PltErrCode> threadJoin(Thread& t) noexcept {
     }
 
     CloseHandle(t.handle);
-    t.handle = nullptr;
+    t.handle = INVALID_HANDLE_VALUE;
     t.isRunning = false;
-
-    t.canLock.store(false);
 
     Expect(mutexUnlock(t.mu));
     Expect(mutexDestroy(t.mu));
@@ -196,10 +257,6 @@ expected<PltErrCode> threadJoin(Thread& t) noexcept {
 }
 
 expected<PltErrCode> threadDetach(Thread& t) noexcept {
-    if (!t.canLock.load(std::memory_order_acquire)) {
-        return core::unexpected(ERR_THREAD_FAILED_TO_ACQUIRE_LOCK);
-    }
-
     Expect(mutexLock(t.mu));
 
     if (!t.isRunning) {
@@ -207,15 +264,20 @@ expected<PltErrCode> threadDetach(Thread& t) noexcept {
         return core::unexpected(ERR_THREAD_IS_NOT_JOINABLE_OR_DETACHABLE);
     }
 
+    // NOTE:
+    // From Microsoft:
+    //    "Closing a thread handle does not terminate the associated thread or remove the thread object.
+    //     To remove a thread object, you must terminate the thread, then close all handles to the thread."
+    //
+    // So just closing the handle practically detaches the thread from the current thread.
+
     if (!CloseHandle(t.handle)) {
         Expect(mutexUnlock(t.mu));
         return core::unexpected(PltErrCode(GetLastError()));
     }
 
-    t.handle = nullptr;
+    t.handle = INVALID_HANDLE_VALUE;
     t.isRunning = false;
-
-    t.canLock.store(false);
 
     Expect(mutexUnlock(t.mu));
     Expect(mutexDestroy(t.mu));

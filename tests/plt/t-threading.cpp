@@ -57,7 +57,7 @@ i32 threadStartingARunningThreadReturnsErrorTest() {
         CT_CHECK(err.err() == core::ERR_THREADING_STARTING_AN_ALREADY_RUNNING_THREAD, "Invalid error code.");
     }
 
-    // NOTE: No point in joining the thread.
+    Expect(core::threadJoin(t));
 
     return 0;
 }
@@ -80,13 +80,12 @@ i32 threadDetachDoesNotBreakTest() {
         CT_CHECK(!res.hasErr(), "Failed to detach thread.");
     }
 
-    // NOTE: No point in joining the thread.
-
     return 0;
 }
 
 i32 getCurrentThreadTest() {
     core::Thread t;
+    Expect(core::threadInit(t));
     Expect(core::threadingGetCurrent(t));
     CT_CHECK(core::threadIsRunning(t));
     return 0;

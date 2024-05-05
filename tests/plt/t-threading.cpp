@@ -92,59 +92,64 @@ i32 getCurrentThreadTest() {
 }
 
 i32 start2ThreadsAndJoinThemTest() {
-    core::Thread t1;
-    core::Thread t2;
-    bool t1Done = false;
-    bool t2Done = false;
+    i32 iterations = 10;
 
-    struct Args {
-        bool* done;
-    };
+    while (iterations--) {
 
-    // auto res = core::threadStart(t1, nullptr, [](void*) {}); // NOTE: Starting a thread that is not initialized is undefined behavior.
+        core::Thread t1;
+        core::Thread t2;
+        bool t1Done = false;
+        bool t2Done = false;
 
-    Expect(core::threadInit(t1));
-    Expect(core::threadInit(t2));
+        struct Args {
+            bool* done;
+        };
 
-    CT_CHECK(core::threadIsRunning(t1) == false);
-    CT_CHECK(core::threadIsRunning(t2) == false);
+        // auto res = core::threadStart(t1, nullptr, [](void*) {}); // NOTE: Starting a thread that is not initialized is undefined behavior.
 
-    // IMPORTANT:
-    // In this case arguments could be on the stack, because the threads are joined before the function returns, but
-    // in general started threads will outlive the current stack frame, dus the lifetime of the arguments must be
-    // managed on the heap.
-    Args* t1Args = reinterpret_cast<Args*>(core::alloc(1, sizeof(Args)));
-    CT_CHECK(t1Args != nullptr);
-    *t1Args = {&t1Done};
-    defer { core::free(t1Args, 1, sizeof(Args)); };
-    Args* t2Args = reinterpret_cast<Args*>(core::alloc(1, sizeof(Args)));
-    CT_CHECK(t2Args != nullptr);
-    *t2Args = {&t2Done};
-    defer { core::free(t2Args, 1, sizeof(Args)); };
+        Expect(core::threadInit(t1));
+        Expect(core::threadInit(t2));
 
-    {
-        auto res = core::threadStart(t1, reinterpret_cast<void*>(t1Args), [](void* arg) {
-            Args* args = reinterpret_cast<Args*>(arg);
-            *args->done = true;
-        });
-        CT_CHECK(!res.hasErr());
+        CT_CHECK(core::threadIsRunning(t1) == false);
+        CT_CHECK(core::threadIsRunning(t2) == false);
+
+        // IMPORTANT:
+        // In this case arguments could be on the stack, because the threads are joined before the function returns, but
+        // in general started threads will outlive the current stack frame, dus the lifetime of the arguments must be
+        // managed on the heap.
+        Args* t1Args = reinterpret_cast<Args*>(core::alloc(1, sizeof(Args)));
+        CT_CHECK(t1Args != nullptr);
+        *t1Args = {&t1Done};
+        defer { core::free(t1Args, 1, sizeof(Args)); };
+        Args* t2Args = reinterpret_cast<Args*>(core::alloc(1, sizeof(Args)));
+        CT_CHECK(t2Args != nullptr);
+        *t2Args = {&t2Done};
+        defer { core::free(t2Args, 1, sizeof(Args)); };
+
+        {
+            auto res = core::threadStart(t1, reinterpret_cast<void*>(t1Args), [](void* arg) {
+                Args* args = reinterpret_cast<Args*>(arg);
+                *args->done = true;
+            });
+            CT_CHECK(!res.hasErr());
+        }
+
+        {
+            auto res = core::threadStart(t2, reinterpret_cast<void*>(t2Args), [](void* arg) {
+                Args* args = reinterpret_cast<Args*>(arg);
+                *args->done = true;
+            });
+            CT_CHECK(!res.hasErr());
+        }
+
+        Expect(core::threadJoin(t1));
+        CT_CHECK(core::threadIsRunning(t1) == false);
+        CT_CHECK(t1Done == true);
+
+        Expect(core::threadJoin(t2));
+        CT_CHECK(core::threadIsRunning(t2) == false);
+        CT_CHECK(t2Done == true);
     }
-
-    {
-        auto res = core::threadStart(t2, reinterpret_cast<void*>(t2Args), [](void* arg) {
-            Args* args = reinterpret_cast<Args*>(arg);
-            *args->done = true;
-        });
-        CT_CHECK(!res.hasErr());
-    }
-
-    Expect(core::threadJoin(t1));
-    CT_CHECK(core::threadIsRunning(t1) == false);
-    CT_CHECK(t1Done == true);
-
-    Expect(core::threadJoin(t2));
-    CT_CHECK(core::threadIsRunning(t2) == false);
-    CT_CHECK(t2Done == true);
 
     return 0;
 }
@@ -287,52 +292,32 @@ i32 condVarSignalThreadToContinueWorkTest() {
 i32 runPltThreadingTestsSuite() {
     using namespace core::testing;
 
-    auto runTests = [] (TestInfo& tInfo, const char* description, i32& retCode) {
-        tInfo.description = description;
-
-        tInfo.name = FN_NAME_TO_CPTR(getNumberOfCoresTest);
-        if (runTest(tInfo, getNumberOfCoresTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(threadSleepFor5msTest);
-        if (runTest(tInfo, threadSleepFor5msTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(threadNameingTest);
-        if (runTest(tInfo, threadNameingTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(threadStartingARunningThreadReturnsErrorTest);
-        if (runTest(tInfo, threadStartingARunningThreadReturnsErrorTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(threadDetachDoesNotBreakTest);
-        if (runTest(tInfo, threadDetachDoesNotBreakTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(getCurrentThreadTest);
-        if (runTest(tInfo, getCurrentThreadTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(start2ThreadsAndJoinThemTest);
-        if (runTest(tInfo, start2ThreadsAndJoinThemTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(mutexPreventsRaceConditionsTest);
-        if (runTest(tInfo, mutexPreventsRaceConditionsTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(arrayOfMutexesAndThreadsTest);
-        if (runTest(tInfo, arrayOfMutexesAndThreadsTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(condVarSignalThreadToContinueWorkTest);
-        if (runTest(tInfo, condVarSignalThreadToContinueWorkTest) != 0) { retCode = -1; }
-    };
+    // NOTE: Not using other memory allocators here because these tests take a bit of time, but more importantly they
+    //       override the active context based allocator mechanism and use the default allocator.
 
     i32 ret = 0;
-    runForAllGlobalAllocatorVariants(runTests, ret);
+    TestInfo tInfo = createTestInfo();
 
-    {
-        constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE * 2;
-        char buf[BUFFER_SIZE];
-        USE_STACK_BASED_BUMP_ALLOCATOR_FOR_BLOCK_SCOPE(buf, BUFFER_SIZE);
-
-        TestInfo tInfo = createTestInfo();
-        tInfo.trackMemory = true;
-        runTests(tInfo, "STACK BASED BUMP Allocator", ret);
-    }
-
-    {
-        constexpr u32 BUFFER_SIZE = 256; // intentially small to test overflow.
-        USE_CUSTOM_ARENA_ALLOCATOR_FOR_FOR_BLOCK_SCOPE(BUFFER_SIZE);
-
-        TestInfo tInfo = createTestInfo();
-        tInfo.trackMemory = true;
-        runTests(tInfo, "CUSTOM ARENA Allocator", ret);
-    }
+    tInfo.name = FN_NAME_TO_CPTR(getNumberOfCoresTest);
+    if (runTest(tInfo, getNumberOfCoresTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(threadSleepFor5msTest);
+    if (runTest(tInfo, threadSleepFor5msTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(threadNameingTest);
+    if (runTest(tInfo, threadNameingTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(threadStartingARunningThreadReturnsErrorTest);
+    if (runTest(tInfo, threadStartingARunningThreadReturnsErrorTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(threadDetachDoesNotBreakTest);
+    if (runTest(tInfo, threadDetachDoesNotBreakTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(getCurrentThreadTest);
+    if (runTest(tInfo, getCurrentThreadTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(start2ThreadsAndJoinThemTest);
+    if (runTest(tInfo, start2ThreadsAndJoinThemTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(mutexPreventsRaceConditionsTest);
+    if (runTest(tInfo, mutexPreventsRaceConditionsTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(arrayOfMutexesAndThreadsTest);
+    if (runTest(tInfo, arrayOfMutexesAndThreadsTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(condVarSignalThreadToContinueWorkTest);
+    if (runTest(tInfo, condVarSignalThreadToContinueWorkTest) != 0) { ret = -1; }
 
     return ret;
 }

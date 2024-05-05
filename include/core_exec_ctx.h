@@ -80,6 +80,7 @@ CORE_API_EXPORT void initProgramCtx(GlobalAssertHandlerFn assertHandler,
 */
 CORE_API_EXPORT void destroyProgramCtx();
 
+CORE_API_EXPORT AllocatorContext* getDefaultAllocatorContext();
 CORE_API_EXPORT void setActiveAllocatorForThread(AllocatorContext* activeContext);
 CORE_API_EXPORT void clearActiveAllocatorForThread();
 

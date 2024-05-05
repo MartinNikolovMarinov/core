@@ -72,6 +72,7 @@ expected<PltErrCode> threadingGetCurrent(Thread& out) noexcept {
         out.handle = nullptr;
         return core::unexpected(PltErrCode(GetLastError()));
     }
+    out.isRunning = true;
     return {};
 }
 

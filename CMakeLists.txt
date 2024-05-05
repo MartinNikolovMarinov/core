@@ -213,8 +213,10 @@ target_compile_definitions(${executable_name} PUBLIC
 
 macro(target_set_default_flags target)
 
+    # FIXME: Add support for thread sanitizer, address sanitizer, memory sanitizer, undefined behavior sanitizer, etc.
+    # FIXME: Add possible sanitizers for msvc as well.
+
     if(OS STREQUAL "linux")
-        # TODO: Add some option for "-save-temps" "-g" to save temporary files for use with disassemly viewer.
         set(common_flags "-std=c++20" "-pthread")
         set(debug_flags "")
         set(release_flags "")
@@ -308,7 +310,7 @@ if(CORE_BUILD_TESTS)
         tests/plt/t-pages.cpp
         tests/plt/t-plt_err.cpp
         tests/plt/t-stacktrace.cpp
-        # tests/plt/t-threading.cpp
+        tests/plt/t-threading.cpp
         tests/plt/t-time.cpp
         tests/plt/t-fs.cpp
     )

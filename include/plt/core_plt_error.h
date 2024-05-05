@@ -23,6 +23,7 @@ constexpr PltErrCode ERR_THREAD_CUSTOM_ERROR_START = detail::ERR_START_OF_CUSTOM
 constexpr PltErrCode ERR_PLT_NONE = 0;
 
 constexpr PltErrCode ERR_ALLOCATOR_DEFAULT_NO_MEMORY = detail::ERR_MISC_CUSTOM_ERROR_START + 0;
+constexpr PltErrCode ERR_INVALID_ARGUMENT = detail::ERR_MISC_CUSTOM_ERROR_START + 1;
 
 constexpr PltErrCode ERR_PASSED_INVALID_FILE_DESCRIPTOR = detail::ERR_OS_CUSTOM_ERROR_START + 0;
 constexpr PltErrCode ERR_CLOSING_AN_INVALID_FILE_DESCRIPTOR = detail::ERR_OS_CUSTOM_ERROR_START + 1;
@@ -40,6 +41,7 @@ constexpr char const* customPltErrorDescribe(PltErrCode err) {
 
     switch (err) {
         case ERR_ALLOCATOR_DEFAULT_NO_MEMORY:                  return "Default allocator ran out of memory";
+        case ERR_INVALID_ARGUMENT:                             return "Invalid argument";
 
         case ERR_PASSED_INVALID_FILE_DESCRIPTOR:               return "Passed invalid file descriptor";
         case ERR_CLOSING_AN_INVALID_FILE_DESCRIPTOR:           return "Closing an invalid file descriptor";

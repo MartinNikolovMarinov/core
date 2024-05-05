@@ -1,8 +1,9 @@
 #include <plt/core_threading.h>
 #include <plt/unix/unix_threading.h>
 
-#include <core_system_checks.h>
 #include <core_cptr.h>
+#include <core_exec_ctx.h>
+#include <core_system_checks.h>
 
 #include <unistd.h>
 #include <signal.h>
@@ -101,7 +102,7 @@ expected<PltErrCode> threadingGetCurrent(Thread& out) noexcept {
     }
 
     out.handle = pthread_self();
-    out.isRunning = false;
+    out.isRunning = true;
     return {};
 }
 
@@ -164,30 +165,97 @@ void threadingExit(i32 code) noexcept {
 }
 
 core::expected<PltErrCode> threadInit(Thread& t) noexcept {
-    if (t.canLock.load(std::memory_order_acquire)) {
-        return {};
-    }
+    t.handle = pthread_t();
+    t.isRunning = false;
     auto ret = mutexInit(t.mu);
     if (ret.hasErr()) {
         return core::unexpected(ret.err());
     }
-    t.canLock.store(true);
-    return {};
+    return ret;
 }
 
-bool threadIsRunning(const Thread& t) noexcept {
-    if (!t.canLock.load(std::memory_order_acquire)) {
-        return false;
-    }
+namespace {
 
-    Expect(mutexLock(t.mu));
-    defer { Expect(mutexUnlock(t.mu)); };
+struct ThreadInfo {
+    ThreadRoutine routine;
+    void* arg;
+    void (*destroy)(void*);
+};
 
+inline void* proxy(void* arg) {
+
+    ThreadInfo* tinfo = reinterpret_cast<ThreadInfo*>(arg);
+    tinfo->routine(tinfo->arg);
+    tinfo->destroy(tinfo);
+
+    // NOTE: If the routine crashes or throws an unhandled exception the thread info will be leaked. It is better to
+    //       prevent such cases in the routine itself.
+
+    return nullptr;
+}
+
+bool threadIsRunningImpl(const Thread& t) noexcept {
     if (t.handle == pthread_t()) {
         return false;
     }
     i32 res = pthread_kill(t.handle, 0);
     return res == 0;
+}
+
+} // namespace
+
+expected<PltErrCode> threadStart(Thread& out, void* arg, ThreadRoutine routine) noexcept {
+    if (routine == nullptr) {
+        return core::unexpected(ERR_INVALID_ARGUMENT);
+    }
+
+    Expect(mutexLock(out.mu));
+    defer { Expect(mutexUnlock(out.mu)); };
+
+    if (out.isRunning) {
+        return core::unexpected(ERR_THREADING_STARTING_AN_ALREADY_RUNNING_THREAD);
+    }
+    if (threadIsRunningImpl(out)) {
+        return core::unexpected(ERR_THREADING_STARTING_AN_ALREADY_RUNNING_THREAD);
+    }
+
+    core::AllocatorContext* actx = core::getDefaultAllocatorContext();
+    Panic(actx && actx->alloc);
+
+    ThreadInfo* tinfo = reinterpret_cast<ThreadInfo*>(actx->alloc(actx->allocatorData, 1, sizeof(ThreadInfo)));
+    tinfo->routine = routine;
+    tinfo->arg = arg;
+    tinfo->destroy = [] (void* ptr) {
+        core::AllocatorContext* aactx = core::getDefaultAllocatorContext();
+        Panic(aactx && aactx->alloc);
+        ThreadInfo* info = reinterpret_cast<ThreadInfo*>(ptr);
+        aactx->free(aactx->allocatorData, info, 1, sizeof(ThreadInfo));
+    };
+    if (tinfo == nullptr) {
+        return core::unexpected(ERR_ALLOCATOR_DEFAULT_NO_MEMORY);
+    }
+
+    // If isRunning is set after the thread is actually created it is possible that the thread will be joined before
+    // the isRunning flag is set. So setting it here and in the exceptional case of pthread_create failing it will be
+    // set to false again.
+    out.isRunning = true;
+    i32 res = pthread_create(&out.handle, nullptr, proxy, reinterpret_cast<void*>(tinfo));
+    if (res != 0) {
+        out.handle = pthread_t();
+        out.isRunning = false;
+        actx->free(actx->allocatorData, tinfo, 1, sizeof(ThreadInfo));
+        return core::unexpected(PltErrCode(res));
+    }
+
+    return {};
+}
+
+bool threadIsRunning(const Thread& t) noexcept {
+    if (!t.isRunning) return false;
+    Expect(mutexLock(t.mu));
+    defer { Expect(mutexUnlock(t.mu)); };
+    if (!t.isRunning) return false; // looks schizophrenic, but it is possible that the thread was joined in the meantime.
+    return threadIsRunningImpl(t);
 }
 
 expected<bool, PltErrCode> threadEq(const Thread& t1, const Thread& t2) noexcept {
@@ -196,10 +264,6 @@ expected<bool, PltErrCode> threadEq(const Thread& t1, const Thread& t2) noexcept
 }
 
 expected<PltErrCode> threadJoin(Thread& t) noexcept {
-    if (!t.canLock.load(std::memory_order_acquire)) {
-        return core::unexpected(ERR_THREAD_FAILED_TO_ACQUIRE_LOCK);
-    }
-
     Expect(mutexLock(t.mu));
 
     if (!t.isRunning) {
@@ -213,10 +277,10 @@ expected<PltErrCode> threadJoin(Thread& t) noexcept {
         return core::unexpected(PltErrCode(res));
     }
 
+    // Destroy the thread state from here on:
+
     t.handle = pthread_t();
     t.isRunning = false;
-
-    t.canLock.store(false);
 
     Expect(mutexUnlock(t.mu));
     Expect(mutexDestroy(t.mu));
@@ -225,10 +289,6 @@ expected<PltErrCode> threadJoin(Thread& t) noexcept {
 }
 
 expected<PltErrCode> threadDetach(Thread& t) noexcept {
-    if (!t.canLock.load(std::memory_order_acquire)) {
-        return core::unexpected(ERR_THREAD_FAILED_TO_ACQUIRE_LOCK);
-    }
-
     Expect(mutexLock(t.mu));
 
     if (!t.isRunning) {
@@ -244,8 +304,6 @@ expected<PltErrCode> threadDetach(Thread& t) noexcept {
 
     t.handle = pthread_t();
     t.isRunning = false;
-
-    t.canLock.store(false);
 
     Expect(mutexUnlock(t.mu));
     Expect(mutexDestroy(t.mu));

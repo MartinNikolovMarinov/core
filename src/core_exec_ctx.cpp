@@ -76,6 +76,10 @@ void destroyProgramCtx() {
     core::setGlobalAssertHandler(nullptr);
 }
 
+AllocatorContext* getDefaultAllocatorContext() {
+    return &g_defaultAllocatorContext;
+}
+
 void setActiveAllocatorForThread(AllocatorContext* activeContext) {
     tl_activeAllocatorContext = activeContext;
 }

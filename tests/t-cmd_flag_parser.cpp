@@ -9,7 +9,7 @@ const char* __cmd_flag_test_input_1[] = {
     "--bb",
     "--zz"
 };
-const addr_size __cmd_flag_test_input_1_len = sizeof(__cmd_flag_test_input_1) / sizeof(__cmd_flag_test_input_1[0]);
+constexpr addr_size __cmd_flag_test_input_1_len = sizeof(__cmd_flag_test_input_1) / sizeof(__cmd_flag_test_input_1[0]);
 
 const char* __cmd_flag_test_input_2[] = {
     "name_of_program",
@@ -38,11 +38,10 @@ const char* __cmd_flag_test_input_2[] = {
     "-float64-7", "-1.2",
     "-float64-8", "00012.000005",
 };
-const addr_size __cmd_flag_test_input_2_len = sizeof(__cmd_flag_test_input_2) / sizeof(__cmd_flag_test_input_2[0]);
+constexpr addr_size __cmd_flag_test_input_2_len = sizeof(__cmd_flag_test_input_2) / sizeof(__cmd_flag_test_input_2[0]);
 
-template <typename TAllocator>
 i32 cmdFlagParserSymbolParsingTest() {
-    using CmdFlagParser = core::CmdFlagParser<TAllocator>;
+    using CmdFlagParser = core::CmdFlagParser;
     using core::sv;
 
     CmdFlagParser parser;
@@ -154,9 +153,8 @@ i32 cmdFlagParserSymbolParsingTest() {
     return 0;
 }
 
-template <typename TAllocator>
 i32 cmdFlagParserSymbolParsingLongerTest() {
-    using CmdFlagParser = core::CmdFlagParser<TAllocator>;
+    using CmdFlagParser = core::CmdFlagParser;
     using core::sv;
 
     CmdFlagParser parser;
@@ -276,9 +274,8 @@ i32 cmdFlagParserSymbolParsingLongerTest() {
     return 0;
 }
 
-template <typename TAllocator>
 i32 cmdFlagParserBasicErrorsTest() {
-    using CmdFlagParser = core::CmdFlagParser<TAllocator>;
+    using CmdFlagParser = core::CmdFlagParser;
 
     CmdFlagParser parser;
 
@@ -356,9 +353,8 @@ i32 cmdFlagParserBasicErrorsTest() {
     return 0;
 }
 
-template <typename TAllocator>
 i32 cmdFlagParserDoubleParsingTest() {
-    using CmdFlagParser = core::CmdFlagParser<TAllocator>;
+    using CmdFlagParser = core::CmdFlagParser;
 
     CmdFlagParser parser;
 
@@ -378,9 +374,8 @@ i32 cmdFlagParserDoubleParsingTest() {
     return 0;
 }
 
-template <typename TAllocator>
 i32 cmdFlagParserFriendlyInputMatchingTest() {
-    using CmdFlagParser = core::CmdFlagParser<TAllocator>;
+    using CmdFlagParser = core::CmdFlagParser;
     using core::sv;
 
     CmdFlagParser parser;
@@ -395,7 +390,7 @@ i32 cmdFlagParserFriendlyInputMatchingTest() {
     parser.setFlagUint32(&c, sv("uint32"));
     parser.setFlagUint64(&d, sv("uint64"));
 
-    core::StrBuilder<TAllocator> sbArg = nullptr;
+    core::StrBuilder sbArg;
     parser.setFlagString(&sbArg, sv("string"));
 
     bool bool_1 = false;
@@ -447,7 +442,7 @@ i32 cmdFlagParserFriendlyInputMatchingTest() {
     // Check string parsing:
     {
         CT_CHECK(!sbArg.empty());
-        CT_CHECK(core::cptrEq(sbArg.view().data(), "banicata   fsa", core::cptrLen("banicata   fsa")));
+        CT_CHECK(core::cptrCmp(sbArg.view().data(), sbArg.view().len(), "banicata   fsa", core::cptrLen("banicata   fsa")) == 0);
     }
 
     // Check boolean parsing:
@@ -478,9 +473,8 @@ i32 cmdFlagParserFriendlyInputMatchingTest() {
     return 0;
 }
 
-template <typename TAllocator>
 i32 cmdFlagParserMatchingEdgecasesTest() {
-    using CmdFlagParser = core::CmdFlagParser<TAllocator>;
+    using CmdFlagParser = core::CmdFlagParser;
     using core::sv;
 
     {
@@ -582,9 +576,8 @@ i32 cmdFlagParserMatchingEdgecasesTest() {
     return 0;
 }
 
-template <typename TAllocator>
 i32 cmdParserValidationRulesTest() {
-    using CmdFlagParser = core::CmdFlagParser<TAllocator>;
+    using CmdFlagParser = core::CmdFlagParser;
     using core::sv;
 
     CmdFlagParser parser;
@@ -646,9 +639,8 @@ i32 cmdParserValidationRulesTest() {
     return 0;
 }
 
-template <typename TAllocator>
 i32 cmdParserAliasTest() {
-    using CmdFlagParser = core::CmdFlagParser<TAllocator>;
+    using CmdFlagParser = core::CmdFlagParser;
     using core::sv;
 
     // Basic aliasing:
@@ -674,7 +666,7 @@ i32 cmdParserAliasTest() {
     // Multiple aliases to the same flag:
     {
         CmdFlagParser parser;
-        core::StrBuilder<TAllocator> doubleAliased = nullptr;
+        core::StrBuilder doubleAliased;
 
         parser.setFlagString(&doubleAliased, core::sv("full_name"));
 
@@ -686,82 +678,57 @@ i32 cmdParserAliasTest() {
         Expect(parser.parse(len, input));
         Expect(parser.matchFlags());
 
-        CT_CHECK(core::cptrEq(doubleAliased.view().data(), "override", core::cptrLen("override")));
+        CT_CHECK(core::cptrCmp(doubleAliased.view().data(), doubleAliased.view().len(), "override", core::cptrLen("override")) == 0);
     }
 
     return 0;
 }
 
 i32 runCmdParserTestsSuite() {
-    constexpr addr_size BUFF_SIZE = KILOBYTE * 10;
-    char buf[BUFF_SIZE];
+    using namespace core::testing;
 
-    core::StdAllocator::init(nullptr);
-    core::StdStatsAllocator::init(nullptr);
-    core::BumpAllocator::init(nullptr, buf, BUFF_SIZE);
+    auto runTests = [] (TestInfo& tInfo, const char* description, i32& retCode) {
+        tInfo.description = description;
 
-    auto checkLeaks = []() {
-        CT_CHECK(core::StdAllocator::usedMem() == 0);
-        CT_CHECK(core::StdStatsAllocator::usedMem() == 0, "Memory leak detected!");
-        CT_CHECK(core::BumpAllocator::usedMem() == 0);
+        tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserSymbolParsingTest);
+        if (runTest(tInfo, cmdFlagParserSymbolParsingTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserSymbolParsingLongerTest);
+        if (runTest(tInfo, cmdFlagParserSymbolParsingLongerTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserBasicErrorsTest);
+        if (runTest(tInfo, cmdFlagParserBasicErrorsTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserDoubleParsingTest);
+        if (runTest(tInfo, cmdFlagParserDoubleParsingTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserFriendlyInputMatchingTest);
+        if (runTest(tInfo, cmdFlagParserFriendlyInputMatchingTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserMatchingEdgecasesTest);
+        if (runTest(tInfo, cmdFlagParserMatchingEdgecasesTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(cmdParserValidationRulesTest);
+        if (runTest(tInfo, cmdParserValidationRulesTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(cmdParserAliasTest);
+        if (runTest(tInfo, cmdParserAliasTest) != 0) { retCode = -1; }
     };
 
+    i32 ret = 0;
+    runForAllGlobalAllocatorVariants(runTests, ret);
+
     {
-        RunTest_DisplayMemAllocs(cmdFlagParserSymbolParsingTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(cmdFlagParserSymbolParsingTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(cmdFlagParserSymbolParsingTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(cmdFlagParserSymbolParsingLongerTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(cmdFlagParserSymbolParsingLongerTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(cmdFlagParserSymbolParsingLongerTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(cmdFlagParserBasicErrorsTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(cmdFlagParserBasicErrorsTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(cmdFlagParserBasicErrorsTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(cmdFlagParserDoubleParsingTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(cmdFlagParserDoubleParsingTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(cmdFlagParserDoubleParsingTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(cmdFlagParserFriendlyInputMatchingTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(cmdFlagParserFriendlyInputMatchingTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(cmdFlagParserFriendlyInputMatchingTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(cmdFlagParserMatchingEdgecasesTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(cmdFlagParserMatchingEdgecasesTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(cmdFlagParserMatchingEdgecasesTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(cmdParserValidationRulesTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(cmdParserValidationRulesTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(cmdParserValidationRulesTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
-    }
-    {
-        RunTest_DisplayMemAllocs(cmdParserAliasTest<core::StdAllocator>, core::StdAllocator);
-        RunTest_DisplayMemAllocs(cmdParserAliasTest<core::StdStatsAllocator>, core::StdStatsAllocator);
-        RunTest_DisplayMemAllocs(cmdParserAliasTest<core::BumpAllocator>, core::BumpAllocator);
-        core::BumpAllocator::clear();
-        checkLeaks();
+        constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE * 15;
+        char buf[BUFFER_SIZE];
+        USE_STACK_BASED_BUMP_ALLOCATOR_FOR_BLOCK_SCOPE(buf, BUFFER_SIZE);
+
+        TestInfo tInfo = createTestInfo();
+        tInfo.trackMemory = true;
+        runTests(tInfo, "STACK BASED BUMP Allocator", ret);
     }
 
-    return 0;
+    {
+        constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE * 8;
+        USE_CUSTOM_ARENA_ALLOCATOR_FOR_FOR_BLOCK_SCOPE(BUFFER_SIZE);
+
+        TestInfo tInfo = createTestInfo();
+        tInfo.trackMemory = true;
+        runTests(tInfo, "CUSTOM ARENA Allocator", ret);
+    }
+
+    return ret;
 }

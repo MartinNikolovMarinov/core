@@ -5,7 +5,7 @@
 #include "core_arr.h"
 #include "core_exec_ctx.h"
 #include "core_bits.h"
-// #include "core_cmd_flag_parser.h"
+#include "core_cmd_flag_parser.h"
 #include "core_compiler.h"
 #include "core_config.h"
 #include "core_cptr_conv.h"

@@ -127,6 +127,7 @@ set(src_files
     src/core_utils.cpp
     src/core_alloc.cpp
     src/core_str_builder.cpp
+    src/core_cmd_flag_parser.cpp
 
     src/allocators/bump_allocator.cpp
     src/allocators/std_allocator.cpp
@@ -280,7 +281,7 @@ if(CORE_BUILD_TESTS)
         tests/t-algorithms.cpp
         tests/t-arr.cpp
         tests/t-bits.cpp
-        # tests/t-cmd_flag_parser.cpp
+        tests/t-cmd_flag_parser.cpp
         tests/t-cptr_conv.cpp
         tests/t-cptr.cpp
         tests/t-defer.cpp

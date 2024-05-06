@@ -127,7 +127,6 @@ set(src_files
     src/core_utils.cpp
     src/core_alloc.cpp
     src/core_str_builder.cpp
-    src/core_cmd_flag_parser.cpp
 
     src/allocators/bump_allocator.cpp
     src/allocators/std_allocator.cpp

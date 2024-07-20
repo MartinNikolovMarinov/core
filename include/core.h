@@ -15,6 +15,7 @@
 #include "core_hash.h"
 #include "core_intrinsics.h"
 #include "core_ints.h"
+#include "core_logger.h"
 #include "core_mem.h"
 #include "core_rnd.h"
 #include "core_str_builder.h"

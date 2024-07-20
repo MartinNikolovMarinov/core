@@ -131,6 +131,7 @@ i32 runHashMapTestsSuite();
 i32 runHashTestsSuite();
 i32 runIntrinsicsTestsSuite();
 i32 runIntsTestsSuite();
+i32 runLoggerTestsSuite();
 i32 runMathTestsSuite();
 i32 runMatrixTestsSuite();
 i32 runMemTestsSuite();

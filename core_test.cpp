@@ -28,9 +28,6 @@ i32 main() {
         std::cout << "[MODE] RELEASE" << std::endl;
     }
 
-    // Print CPU architecture
-    std::cout << "[CPU ARCH] " << CPU_ARCH << std::endl;
-
     i32 exitCode = runAllTests();
 
     return exitCode;

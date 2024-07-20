@@ -11,17 +11,33 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Generates compile_commands.json
 
+# Download and update git submodules:
+
+function(update_git_submodules)
+    find_package(Git QUIET)
+    if (GIT_FOUND)
+        message(STATUS "[CORE] Submodule update")
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            RESULT_VARIABLE GIT_SUBMOD_RESULT
+        )
+        if (NOT GIT_SUBMOD_RESULT EQUAL "0")
+            message(FATAL_ERROR "[CORE] git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+        endif()
+    else()
+        message(FATAL_ERROR "[CORE] Git is not found. It is required to update submodules.")
+    endif()
+endfunction()
+
+update_git_submodules()
+
 # Includes:
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 include(DetectOS)
 include(CompilerOptions)
-include(UpdateGitSubmodules)
-
-# Download and update git submodules:
-
-update_git_submodules()
 
 # ---------------------------------------- Begin Options ---------------------------------------------------------------
 
@@ -111,6 +127,7 @@ set(src_files
     src/core_utils.cpp
     src/core_alloc.cpp
     src/core_str_builder.cpp
+    src/core_logger.cpp
 
     src/allocators/bump_allocator.cpp
     src/allocators/std_allocator.cpp
@@ -273,6 +290,7 @@ if(CORE_BUILD_TESTS)
         tests/t-hash.cpp
         tests/t-intrinsics.cpp
         tests/t-ints.cpp
+        tests/t-logger.cpp
         tests/t-mem.cpp
         tests/t-rnd.cpp
         tests/t-sarr.cpp
@@ -317,7 +335,7 @@ if(CORE_BUILD_TESTS)
             append_coverage_compiler_flags_to_target(${test_executable})
             append_coverage_compiler_flags_to_target(${executable_name})
             setup_target_for_coverage_lcov(
-                NAME ${test_executable}_coverage
+                NAME ${test_executable}_coverage # NOTE: make ${test_executable}_coverage to run this
                 EXECUTABLE ${test_executable}
                 DEPENDENCIES ${test_executable}
             )

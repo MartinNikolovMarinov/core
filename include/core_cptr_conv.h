@@ -5,6 +5,7 @@
 #include <core_traits.h>
 #include <core_types.h>
 #include <core_utils.h>
+
 #include <math/core_math.h>
 
 // TODO2: [PERFORMACE] Everything in this file can be much faster.
@@ -28,22 +29,33 @@ constexpr char digitToChar(TInt digit) {
 namespace detail {
 
 template<typename TInt>
-constexpr void intToCptr(TInt n, char* out, u32 digits) {
+constexpr u32 intToCptr(TInt n, char* out, addr_size outMax, u32 digits) {
     static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
-    Assert(out != nullptr);
+    Assert(out);
+
+    u32 idx = 0;
+
+    auto safeAppend = [&idx, out, outMax](char c) {
+        Assert(addr_size(idx) < outMax);
+        out[idx++] = c;
+    };
+
     if constexpr (core::is_signed_v<TInt>) {
         if (n < 0) {
-            *out++ = '-';
+            safeAppend('-');
             n = -n;
         }
     }
+
     i32 dc = (digits == 0) ? i32(digitCount(n)) : i32(digits);
     for (i32 i = dc - 1; i >= 0; i--) {
         // There is a lot of believe in all this static casting, but it 'should not' be dangerous.
         TInt curr = static_cast<TInt>((n / static_cast<TInt>(pow10(u32(i))))) % 10;
-        *out++ = digitToChar(curr);
+        safeAppend(digitToChar(curr));
         dc--;
     }
+
+    return idx;
 }
 
 } // detail namespace
@@ -55,11 +67,88 @@ constexpr void intToCptr(TInt n, char* out, u32 digits) {
  * \param n The integer to convert.
  * \param out The output buffer.
  * \param digitCount The number of digits to convert, if 0 then the number of digits is calculated.
+ *
+ * \return The number of characters written to the buffer.
 */
-constexpr void intToCptr(u32 n, char* out, u32 digits = 0) { detail::intToCptr(n, out, digits); }
-constexpr void intToCptr(u64 n, char* out, u32 digits = 0) { detail::intToCptr(n, out, digits); }
-constexpr void intToCptr(i32 n, char* out, u32 digits = 0) { detail::intToCptr(n, out, digits); }
-constexpr void intToCptr(i64 n, char* out, u32 digits = 0) { detail::intToCptr(n, out, digits); }
+constexpr u32 intToCptr(u32 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCptr(n, out, outMax, digits); }
+constexpr u32 intToCptr(u64 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCptr(n, out, outMax, digits); }
+constexpr u32 intToCptr(i32 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCptr(n, out, outMax, digits); }
+constexpr u32 intToCptr(i64 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCptr(n, out, outMax, digits); }
+
+namespace detail {
+
+template <typename TFloat>
+constexpr u32 floatToCptr(TFloat n, char* out, addr_size outMax, u32 precision) {
+    static_assert(core::is_float_v<TFloat>, "TFloat must be a floating point type.");
+    Assert(out);
+
+    if constexpr (sizeof(TFloat) == 4) {
+        Assert(precision < 8, "Precision must be less than 8 for float.");
+    }
+    else {
+        Assert(precision < 16, "Precision must be less than 16 for double.");
+    }
+
+    u32 idx = 0;
+
+    const auto safeAppend = [&idx, out, outMax](char c) {
+        Assert(addr_size(idx) < outMax);
+        out[idx++] = c;
+    };
+
+    if (core::isnan(n)) {
+        safeAppend('N');
+        safeAppend('a');
+        safeAppend('N');
+        return idx;
+    }
+
+    if (core::isinf(n)) {
+        if (n < 0) safeAppend('-');
+        safeAppend('I');
+        safeAppend('n');
+        safeAppend('f');
+        return idx;
+    }
+
+    if (n < 0) {
+        safeAppend('-');
+        n = -n;
+    }
+
+    i32 intPart = i32(n);
+    u64 fracMultiplier =  core::pow10(precision);
+    i64 fracPart = i64((n - TFloat(intPart)) * TFloat(fracMultiplier) + TFloat(0.5)); // +0.5 for rounding.
+
+    // Convert:
+    idx += detail::intToCptr(intPart, out + idx, outMax, 0);
+    if (precision > 0) {
+        safeAppend('.');
+
+        u32 zeroesToPrepend = precision - core::digitCount(fracPart);
+        u32 i = 0;
+        for (i = 0; i < zeroesToPrepend; i++) {
+            safeAppend('0');
+        }
+
+        u32 prev = idx;
+        idx += detail::intToCptr(fracPart, out + idx, outMax, 0);
+        u32 currentPrecision = i + (idx - prev);
+
+        u32 zerosToAppend = precision - currentPrecision;
+
+        for (i = 0; i < zerosToAppend; i++) {
+            safeAppend('0');
+        }
+    }
+
+    return idx;
+}
+
+} // detail
+
+constexpr u32 floatToCptr(f32 n, char* out, addr_size outMax, u32 precision = 6) { return detail::floatToCptr(n, out, outMax, precision); }
+constexpr u32 floatToCptr(f64 n, char* out, addr_size outMax, u32 precision = 6) { return detail::floatToCptr(n, out, outMax, precision); }
 
 // This function does not handle TInt overflows!
 template <typename TInt>
@@ -154,7 +243,7 @@ template <typename TInt>
 constexpr char* cptrAppendInt(char *dst, TInt v) {
     constexpr addr_size maxValueDigitCount = core::digitCount(core::limitMax<TInt>()) + 1; // +1 for the null terminator.
     char buf[maxValueDigitCount] = {};
-    core::intToCptr(v, buf);
+    core::intToCptr(v, buf, maxValueDigitCount);
     return cptrCopy(dst, buf, cptrLen(buf));
 }
 

@@ -92,7 +92,8 @@ constexpr i32 intToCptrTest() {
 
         i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             char buf[12] = {};
-            core::intToCptr(c.in, buf, c.digitCount);
+            auto res = core::intToCptr(c.in, buf, 12, c.digitCount);
+            CT_CHECK(core::cptrLen(buf) == res, cErr);
             CT_CHECK(core::cptrLen(buf) == core::cptrLen(c.expected));
             CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
             return 0;
@@ -124,7 +125,8 @@ constexpr i32 intToCptrTest() {
 
         i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             char buf[21] = {};
-            core::intToCptr(c.in, buf, c.digitCount);
+            auto res = core::intToCptr(c.in, buf, 21, c.digitCount);
+            CT_CHECK(core::cptrLen(buf) == res, cErr);
             CT_CHECK(core::cptrLen(buf) == core::cptrLen(c.expected));
             CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
             return 0;
@@ -151,7 +153,8 @@ constexpr i32 intToCptrTest() {
 
         i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             char buf[11] = {};
-            core::intToCptr(c.in, buf, c.digitCount);
+            auto res = core::intToCptr(c.in, buf, 11, c.digitCount);
+            CT_CHECK(core::cptrLen(buf) == res, cErr);
             CT_CHECK(core::cptrLen(buf) == core::cptrLen(c.expected));
             CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
             return 0;
@@ -180,7 +183,8 @@ constexpr i32 intToCptrTest() {
 
         i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             char buf[20] = {};
-            core::intToCptr(c.in, buf, c.digitCount);
+            auto res = core::intToCptr(c.in, buf, 20, c.digitCount);
+            CT_CHECK(core::cptrLen(buf) == res, cErr);
             CT_CHECK(core::cptrLen(buf) == core::cptrLen(c.expected));
             CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
             return 0;
@@ -682,6 +686,163 @@ constexpr i32 intHexTest() {
     return 0;
 }
 
+constexpr i32 floatToCptrTest() {
+    {
+        struct TestCase { f32 in; const char* expected; u32 precision; };
+        constexpr TestCase cases[] = {
+            { 0.f, "0", 0 },
+            { 0.f, "0.0", 1 },
+            { 0.f, "0.00", 2 },
+            { 0.f, "0.000", 3 },
+            { 0.f, "0.0000", 4 },
+            { 0.f, "0.00000", 5 },
+            { 0.f, "0.000000", 6 },
+            { 0.f, "0.0000000", 7 },
+
+            { 0.11111111f, "0", 0 },
+            { 0.11111111f, "0.1", 1 },
+            { 0.11111111f, "0.11", 2 },
+            { 0.11111111f, "0.111", 3 },
+            { 0.11111111f, "0.1111", 4 },
+            { 0.11111111f, "0.11111", 5 },
+            { 0.11111111f, "0.111111", 6 },
+            { 0.11111111f, "0.1111111", 7 },
+
+            // { 123.567f, "124", 0 }, // FIXME: Round the whole part !
+            { 123.567f, "123.6", 1 },
+            { 123.567f, "123.57", 2 },
+            { 123.567f, "123.567", 3 },
+            { 123.567f, "123.5670", 4 },
+            { 123.567f, "123.56700", 5 },
+            { 123.567f, "123.567001", 6 },
+            { 123.567f, "123.5670014", 7 },
+
+            // { 892.0055501f, "892", 0 }, // FIXME: Round the whole part !
+            { 0.00102f, "0.0", 1 },
+            { 0.00102f, "0.00", 2 },
+            { 0.00102f, "0.001", 3 },
+            { 0.00102f, "0.0010", 4 },
+            { 0.00102f, "0.00102", 5 },
+            { 0.00102f, "0.001020", 6 },
+            { 0.00102f, "0.0010200", 7 },
+        };
+        i32 ret = core::testing::executeTestTable("test case failed for f64 at index: ", cases, [&](auto& c, const char* cErr) {
+            char buf[20] = {};
+
+            u32 res = core::floatToCptr(c.in, buf, 20, c.precision);
+            addr_size bufLen = core::cptrLen(buf);
+
+            CT_CHECK(bufLen == addr_size(res), cErr);
+            CT_CHECK(bufLen == core::cptrLen(c.expected));
+            CT_CHECK(core::cptrCmp(buf, bufLen, c.expected, core::cptrLen(c.expected)) == 0, cErr);
+
+            // NOTE: snprintf promotes the input to f64 so it can't be used to verify the result here.
+
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
+    {
+        struct TestCase { f64 in; const char* expected; u32 precision; };
+        constexpr TestCase cases[] = {
+            { 0., "0", 0 },
+            { 0., "0.0", 1 },
+            { 0., "0.00", 2 },
+            { 0., "0.000", 3 },
+            { 0., "0.0000", 4 },
+            { 0., "0.00000", 5 },
+            { 0., "0.000000", 6 },
+            { 0., "0.0000000", 7 },
+            { 0., "0.00000000", 8 },
+            { 0., "0.000000000", 9 },
+            { 0., "0.0000000000", 10 },
+            { 0., "0.00000000000", 11 },
+            { 0., "0.000000000000", 12 },
+            { 0., "0.0000000000000", 13 },
+            { 0., "0.00000000000000", 14 },
+            { 0., "0.000000000000000", 15 },
+
+            { 0.1111111111111111, "0", 0 },
+            { 0.1111111111111111, "0.1", 1 },
+            { 0.1111111111111111, "0.11", 2 },
+            { 0.1111111111111111, "0.111", 3 },
+            { 0.1111111111111111, "0.1111", 4 },
+            { 0.1111111111111111, "0.11111", 5 },
+            { 0.1111111111111111, "0.111111", 6 },
+            { 0.1111111111111111, "0.1111111", 7 },
+            { 0.1111111111111111, "0.11111111", 8 },
+            { 0.1111111111111111, "0.111111111", 9 },
+            { 0.1111111111111111, "0.1111111111", 10 },
+            { 0.1111111111111111, "0.11111111111", 11 },
+            { 0.1111111111111111, "0.111111111111", 12 },
+            { 0.1111111111111111, "0.1111111111111", 13 },
+            { 0.1111111111111111, "0.11111111111111", 14 },
+            { 0.1111111111111111, "0.111111111111111", 15 },
+
+            // { 123.567f, "124", 0 }, // FIXME: Round the whole part !
+            { 123.567, "123.6", 1 },
+            { 123.567, "123.57", 2 },
+            { 123.567, "123.567", 3 },
+            { 123.567, "123.5670", 4 },
+            { 123.567, "123.56700", 5 },
+            { 123.567, "123.567000", 6 },
+            { 123.567, "123.5670000", 7 },
+            { 123.567, "123.56700000", 8 },
+            { 123.567, "123.567000000", 9 },
+            { 123.567, "123.5670000000", 10 },
+            { 123.567, "123.56700000000", 11 },
+            { 123.567, "123.567000000000", 12 },
+            { 123.567, "123.5670000000000", 13 },
+            { 123.567, "123.56699999999999", 14 },
+            { 123.567, "123.566999999999993", 15 },
+
+            { 0.00102, "0.0", 1 },
+            { 0.00102, "0.00", 2 },
+            { 0.00102, "0.001", 3 },
+            { 0.00102, "0.0010", 4 },
+            { 0.00102, "0.00102", 5 },
+            { 0.00102, "0.001020", 6 },
+            { 0.00102, "0.0010200", 7 },
+            { 0.00102, "0.00102000", 8 },
+            { 0.00102, "0.001020000", 9 },
+            { 0.00102, "0.0010200000", 10 },
+            { 0.00102, "0.00102000000", 11 },
+            { 0.00102, "0.001020000000", 12 },
+            { 0.00102, "0.0010200000000", 13 },
+            { 0.00102, "0.00102000000000", 14 },
+            { 0.00102, "0.001020000000000", 15 },
+        };
+        i32 ret = core::testing::executeTestTable("test case failed for f64 at index: ", cases, [&](auto& c, const char* cErr) {
+            char buf[20] = {};
+
+            u32 res = core::floatToCptr(c.in, buf, 20, c.precision);
+            addr_size bufLen = core::cptrLen(buf);
+
+            CT_CHECK(bufLen == addr_size(res), cErr);
+            CT_CHECK(bufLen == core::cptrLen(c.expected));
+            CT_CHECK(core::cptrCmp(buf, bufLen, c.expected, core::cptrLen(c.expected)) == 0, cErr);
+
+            IS_NOT_CONST_EVALUATED {
+                // Verify result to snprintf
+                char expectedBuf[20] = {};
+                i32 expectedRes = snprintf(expectedBuf, 20, "%.*f", c.precision, c.in);
+                CT_CHECK(bufLen == addr_size(res), cErr);
+                CT_CHECK(bufLen == addr_size(expectedRes), cErr);
+                CT_CHECK(core::cptrCmp(buf, addr_size(bufLen), expectedBuf, addr_size(expectedRes)) == 0, cErr);
+            }
+
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
+    // FIXME: test nan and infinity
+    // FIXME: more tests are needed
+
+    return 0;
+}
+
 i32 runCptrConvTestsSuite() {
     using namespace core::testing;
 
@@ -696,6 +857,8 @@ i32 runCptrConvTestsSuite() {
     if (runTest(tInfo, intToCptrTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(intHexTest);
     if (runTest(tInfo, intHexTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(floatToCptrTest);
+    if (runTest(tInfo, floatToCptrTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(cptrToIntTest);
     if (runTest(tInfo, cptrToIntTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(cptrToFloatTest);
@@ -709,6 +872,7 @@ constexpr i32 runCompiletimeCptrConvTestsSuite() {
     RunTestCompileTime(digitToCharTest);
     RunTestCompileTime(intToCptrTest);
     RunTestCompileTime(intHexTest);
+    // RunTestCompileTime(floatToCptrTest);
     RunTestCompileTime(cptrToIntTest);
     RunTestCompileTime(cptrToFloatTest);
 

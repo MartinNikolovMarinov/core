@@ -31,7 +31,7 @@ PrintFunction printHandler = defaultPrint;
 
 } // namespace
 
-bool initLogger(LoggerCreateInfo& createInfo) {
+bool initLogger(const LoggerCreateInfo& createInfo) {
     auto tagsToIgnore = createInfo.tagsToIgnore;
     auto tagsToIgnoreCount = createInfo.tagsToIgnoreCount;
 
@@ -54,7 +54,6 @@ bool addTag(core::StrView tag) {
     core::memcopy(tagTranslationTable + tagTranslationTableCount, tag.data(), tag.len());
     ++tagTranslationTableCount;
     return true;
-
 }
 
 void setLogLevel(LogLevel level) {

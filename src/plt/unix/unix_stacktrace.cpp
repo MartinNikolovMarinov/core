@@ -112,8 +112,9 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten, i32 nStackFr
                 if (!writeToBuf(beginOffset))                      return false;
                 if (!writeToBuf(" <demangling failed: status = ")) return false;
                 {
-                    char strStatus[20] = {};
-                    core::intToCptr(status, strStatus);
+                    constexpr addr_size strStatusLen = 20;
+                    char strStatus[strStatusLen] = {};
+                    core::intToCptr(status, strStatus, strStatusLen);
                     if (!writeToBuf(strStatus)) return false;
                 }
                 if (!writeToBuf(">\n")) return false;

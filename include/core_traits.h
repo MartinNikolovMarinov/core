@@ -68,6 +68,7 @@ constexpr bool is_const_evaluated() noexcept { return __builtin_is_constant_eval
 
 // Using a macro here to avoid mistakes where I put is_const_evaluated() in a constexpr if statement.
 #define IS_CONST_EVALUATED if (core::detail::is_const_evaluated())
+#define IS_NOT_CONST_EVALUATED if (!core::detail::is_const_evaluated())
 
 template <auto V>
 constexpr auto force_consteval = V;

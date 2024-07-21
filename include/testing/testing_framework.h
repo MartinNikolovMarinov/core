@@ -108,7 +108,7 @@ template <addr_size PLen, typename TCase, addr_size NCases, typename Afunc>
     }
     char* appendIdx = &errMsg[PLen - 1];
     for (auto& c : cases) {
-        core::intToCptr(i, appendIdx, 2);
+        core::intToCptr(i, appendIdx, PLen - 1, 2);
         if (assertionFn(c, errMsg) != 0) return -1;
         i++;
     }

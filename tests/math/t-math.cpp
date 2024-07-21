@@ -221,7 +221,7 @@ constexpr i32 floatSafeEqTest() {
     for (i32 j = 0; j < i32(iterAsCptrFmtLen); ++j) iterAsCptr[j] = iterAsCptrFmt[j];
     char* appendIdx = &iterAsCptr[iterAsCptrFmtLen];
     for (auto& c : cases) {
-        core::intToCptr(i++, appendIdx, 2);
+        core::intToCptr(i++, appendIdx, iterAsCptrFmtLen, 2);
         for (i32 j = 0; j < c.iterations; ++j) {
             CT_CHECK(core::safeEq(c.startA, c.startB, c.epsilon) == c.expected, iterAsCptr);
             c.startA += c.step;

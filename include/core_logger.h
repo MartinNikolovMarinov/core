@@ -40,7 +40,7 @@ struct LoggerCreateInfo {
     PrintFunction print;
 };
 
-CORE_API_EXPORT bool initLogger(LoggerCreateInfo& createInfo);
+CORE_API_EXPORT bool initLogger(const LoggerCreateInfo& createInfo);
 CORE_API_EXPORT bool addTag(core::StrView tag);
 CORE_API_EXPORT void setLogLevel(LogLevel level);
 CORE_API_EXPORT void muteLogger(bool mute);

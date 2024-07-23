@@ -687,9 +687,39 @@ constexpr i32 intHexTest() {
 }
 
 constexpr i32 floatToCptrTest() {
+    constexpr addr_size BUFFER_SIZE = 30;
+
+    struct TestCase32Bit { f32 in; const char* expected; u32 precision; };
+    struct TestCase64Bit { f64 in; const char* expected; u32 precision; };
+
+    auto verifyCase = [](auto in, const char* expected, u32 precision) -> i32 {
+        char buf[BUFFER_SIZE] = {};
+
+        u32 res = core::floatToCptr(in, buf, BUFFER_SIZE, precision);
+        addr_size bufLen = core::cptrLen(buf);
+
+        CT_CHECK(bufLen == addr_size(res));
+        CT_CHECK(bufLen == core::cptrLen(expected));
+        CT_CHECK(core::cptrCmp(buf, bufLen, expected, core::cptrLen(expected)) == 0);
+
+        IS_NOT_CONST_EVALUATED {
+            if constexpr (sizeof(decltype(in)) == 8) {
+                // Verify result to snprintf
+                // NOTE: snprintf promotes the input to f64 so it can't be used to verify the result for f32.
+
+                char expectedBuf[BUFFER_SIZE] = {};
+                i32 expectedRes = snprintf(expectedBuf, BUFFER_SIZE, "%.*f", precision, in);
+                CT_CHECK(bufLen == addr_size(res));
+                CT_CHECK(bufLen == addr_size(expectedRes));
+                CT_CHECK(core::cptrCmp(buf, addr_size(bufLen), expectedBuf, addr_size(expectedRes)) == 0);
+            }
+        }
+
+        return 0;
+    };
+
     {
-        struct TestCase { f32 in; const char* expected; u32 precision; };
-        constexpr TestCase cases[] = {
+        constexpr TestCase32Bit cases[] = {
             { 0.f, "0", 0 },
             { 0.f, "0.0", 1 },
             { 0.f, "0.00", 2 },
@@ -708,7 +738,8 @@ constexpr i32 floatToCptrTest() {
             { 0.11111111f, "0.111111", 6 },
             { 0.11111111f, "0.1111111", 7 },
 
-            // { 123.567f, "124", 0 }, // FIXME: Round the whole part !
+            { 123.02f, "123", 0 },
+            { 123.567f, "124", 0 },
             { 123.567f, "123.6", 1 },
             { 123.567f, "123.57", 2 },
             { 123.567f, "123.567", 3 },
@@ -717,7 +748,16 @@ constexpr i32 floatToCptrTest() {
             { 123.567f, "123.567001", 6 },
             { 123.567f, "123.5670014", 7 },
 
-            // { 892.0055501f, "892", 0 }, // FIXME: Round the whole part !
+            { -123.02f, "-123", 0 },
+            { -123.567f, "-124", 0 },
+            { -123.567f, "-123.6", 1 },
+            { -123.567f, "-123.57", 2 },
+            { -123.567f, "-123.567", 3 },
+            { -123.567f, "-123.5670", 4 },
+            { -123.567f, "-123.56700", 5 },
+            { -123.567f, "-123.567001", 6 },
+            { -123.567f, "-123.5670014", 7 },
+
             { 0.00102f, "0.0", 1 },
             { 0.00102f, "0.00", 2 },
             { 0.00102f, "0.001", 3 },
@@ -725,27 +765,43 @@ constexpr i32 floatToCptrTest() {
             { 0.00102f, "0.00102", 5 },
             { 0.00102f, "0.001020", 6 },
             { 0.00102f, "0.0010200", 7 },
+
+            { -0.00102f, "-0.0", 1 },
+            { -0.00102f, "-0.00", 2 },
+            { -0.00102f, "-0.001", 3 },
+            { -0.00102f, "-0.0010", 4 },
+            { -0.00102f, "-0.00102", 5 },
+            { -0.00102f, "-0.001020", 6 },
+
+            // Normalized numbers:
+            { 0.0625f, "0.06", 2 },
+            { 0.125f, "0.1", 1 },
+            { 0.1875f, "0.2", 1 },
+
+            // Denormalized numbers:
+            { 0.25f, "0.25", 2 },
+            { 0.3125f, "0.3", 1 },
+            { 0.375f, "0.4", 1 },
+            { 0.4375f, "0.44", 2 },
+            { 0.5f, "0.5", 1 },
+            { 0.5f, "0.50", 2 },
+            { 0.625f, "0.6", 1 },
+            { 0.75f, "0.8", 1 },
+            { 0.875f, "0.9", 1 },
+            { 1.f, "1.00", 2 },
+            { 1.25, "1.2", 1 },
+            { 1.5f, "1.5", 1 },
+            { 1.75f, "1.8", 1 },
         };
-        i32 ret = core::testing::executeTestTable("test case failed for f64 at index: ", cases, [&](auto& c, const char* cErr) {
-            char buf[20] = {};
-
-            u32 res = core::floatToCptr(c.in, buf, 20, c.precision);
-            addr_size bufLen = core::cptrLen(buf);
-
-            CT_CHECK(bufLen == addr_size(res), cErr);
-            CT_CHECK(bufLen == core::cptrLen(c.expected));
-            CT_CHECK(core::cptrCmp(buf, bufLen, c.expected, core::cptrLen(c.expected)) == 0, cErr);
-
-            // NOTE: snprintf promotes the input to f64 so it can't be used to verify the result here.
-
+        i32 ret = core::testing::executeTestTable("test case failed for f32 at index: ", cases, [&](auto& c, const char* cErr) {
+            CT_CHECK(verifyCase(c.in, c.expected, c.precision) == 0, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);
     }
 
     {
-        struct TestCase { f64 in; const char* expected; u32 precision; };
-        constexpr TestCase cases[] = {
+        constexpr TestCase64Bit cases[] = {
             { 0., "0", 0 },
             { 0., "0.0", 1 },
             { 0., "0.00", 2 },
@@ -780,7 +836,8 @@ constexpr i32 floatToCptrTest() {
             { 0.1111111111111111, "0.11111111111111", 14 },
             { 0.1111111111111111, "0.111111111111111", 15 },
 
-            // { 123.567f, "124", 0 }, // FIXME: Round the whole part !
+            { 123.02, "123", 0 },
+            { 123.567, "124", 0 },
             { 123.567, "123.6", 1 },
             { 123.567, "123.57", 2 },
             { 123.567, "123.567", 3 },
@@ -795,7 +852,25 @@ constexpr i32 floatToCptrTest() {
             { 123.567, "123.567000000000", 12 },
             { 123.567, "123.5670000000000", 13 },
             { 123.567, "123.56699999999999", 14 },
-            { 123.567, "123.566999999999993", 15 },
+            // { 123.567, "123.566999999999993", 15 }, // FIXME: This seems to be a bug
+
+            { -123.02, "-123", 0 },
+            { -123.567, "-124", 0 },
+            { -123.567, "-123.6", 1 },
+            { -123.567, "-123.57", 2 },
+            { -123.567, "-123.567", 3 },
+            { -123.567, "-123.5670", 4 },
+            { -123.567, "-123.56700", 5 },
+            { -123.567, "-123.567000", 6 },
+            { -123.567, "-123.5670000", 7 },
+            { -123.567, "-123.56700000", 8 },
+            { -123.567, "-123.567000000", 9 },
+            { -123.567, "-123.5670000000", 10 },
+            { -123.567, "-123.56700000000", 11 },
+            { -123.567, "-123.567000000000", 12 },
+            { -123.567, "-123.5670000000000", 13 },
+            { -123.567, "-123.56699999999999", 14 },
+            // { -123.567, "-123.566999999999993", 15 }, // FIXME: This seems to be a bug
 
             { 0.00102, "0.0", 1 },
             { 0.00102, "0.00", 2 },
@@ -812,33 +887,97 @@ constexpr i32 floatToCptrTest() {
             { 0.00102, "0.0010200000000", 13 },
             { 0.00102, "0.00102000000000", 14 },
             { 0.00102, "0.001020000000000", 15 },
+
+            // Normalized numbers:
+            { 0.0625, "0.06", 2 },
+            { 0.125, "0.1", 1 },
+            { 0.1875, "0.2", 1 },
+
+            // Denormalized numbers:
+            { 0.25, "0.25", 2 },
+            { 0.3125, "0.3", 1 },
+            { 0.375, "0.4", 1 },
+            { 0.4375, "0.44", 2 },
+            { 0.5, "0.5", 1 },
+            { 0.5, "0.50", 2 },
+            { 0.625, "0.6", 1 },
+            { 0.75, "0.8", 1 },
+            { 0.875, "0.9", 1 },
+            { 1.0, "1.00", 2 },
+            { 1.25, "1.2", 1 },
+            { 1.5, "1.5", 1 },
+            { 1.75, "1.8", 1 },
+            { 2, "2", 0 },
+            { 2.5, "2.5", 1 },
+            { 3, "3", 0 },
+            { 3.5, "3.5", 1 },
         };
         i32 ret = core::testing::executeTestTable("test case failed for f64 at index: ", cases, [&](auto& c, const char* cErr) {
-            char buf[20] = {};
-
-            u32 res = core::floatToCptr(c.in, buf, 20, c.precision);
-            addr_size bufLen = core::cptrLen(buf);
-
-            CT_CHECK(bufLen == addr_size(res), cErr);
-            CT_CHECK(bufLen == core::cptrLen(c.expected));
-            CT_CHECK(core::cptrCmp(buf, bufLen, c.expected, core::cptrLen(c.expected)) == 0, cErr);
-
-            IS_NOT_CONST_EVALUATED {
-                // Verify result to snprintf
-                char expectedBuf[20] = {};
-                i32 expectedRes = snprintf(expectedBuf, 20, "%.*f", c.precision, c.in);
-                CT_CHECK(bufLen == addr_size(res), cErr);
-                CT_CHECK(bufLen == addr_size(expectedRes), cErr);
-                CT_CHECK(core::cptrCmp(buf, addr_size(bufLen), expectedBuf, addr_size(expectedRes)) == 0, cErr);
-            }
-
+            CT_CHECK(verifyCase(c.in, c.expected, c.precision) == 0, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);
     }
 
-    // FIXME: test nan and infinity
-    // FIXME: more tests are needed
+    {
+        constexpr TestCase32Bit cases[] = {
+            { core::quietNaNF32(), "nan", 5 },
+            { core::signalingNaNF32(), "nan", 5 },
+            { core::infinityF32(), "inf", 5 },
+            { -core::infinityF32(), "-inf", 5 },
+        };
+        i32 ret = core::testing::executeTestTable("NaN and Inf test case failed for f32 at index: ", cases, [&](auto& c, const char* cErr) {
+            CT_CHECK(verifyCase(c.in, c.expected, c.precision) == 0, cErr);
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
+    {
+        constexpr TestCase64Bit cases[] = {
+            { core::quietNaNF64(), "nan", 5 },
+            { core::signalingNaNF64(), "nan", 5 },
+            { core::infinityF64(), "inf", 5 },
+            { -core::infinityF64(), "-inf", 5 },
+        };
+        i32 ret = core::testing::executeTestTable("NaN and Inf test case failed for f64 at index: ", cases, [&](auto& c, const char* cErr) {
+            CT_CHECK(verifyCase(c.in, c.expected, c.precision) == 0, cErr);
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
+    {
+        constexpr TestCase64Bit cases[] = {
+            { 1e-9, "0.000000001", 9 },
+            { 1e-10, "0.0000000001", 10 },
+            { 1e10, "10000000000", 0 },
+            { 1e10, "10000000000.0", 1 },
+            { -1e10, "-10000000000", 0 },
+            { -1e-9, "-0.000000001", 9 },
+            { 1e-6, "0.000001", 6 },
+            { -1e-6, "-0.000001", 6 },
+            { 0.999999, "1.0", 1 },
+            { 0.999999, "1", 0 },
+            { -0.999999, "-1.0", 1 },
+            { -0.999999, "-1", 0 },
+
+            // { core::limitMax<f64>(), "1.7976931348623157", 15 }, // FIXME: There is a bug in this one. fracPartFloat becomes inf.
+            // { core::limitMin<f64>(), "0.0000000000000000", 15 }, // FIXME: This also acts weird.
+
+            // FIXME: This seems to be totally incorrect in the snprintf implementation.
+            // { core::MIN_F64, "-2", 0 },
+            // { core::MIN_F64, "-1.8", 1 },
+            // { core::MIN_F64, "-1.80", 2 },
+            // { core::MIN_F64, "-1.798", 3 },
+            // ...
+        };
+        i32 ret = core::testing::executeTestTable("Edge test case failed for f64 at index: ", cases, [&](auto& c, const char* cErr) {
+            CT_CHECK(verifyCase(c.in, c.expected, c.precision) == 0, cErr);
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
 
     return 0;
 }

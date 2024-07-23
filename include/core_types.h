@@ -52,8 +52,9 @@ static constexpr i8  MIN_I8  = static_cast<i8>((MAX_U8 >> 1) ^ MAX_U8);    // -1
 static constexpr f64 MAX_F64 = static_cast<f64>(1.79769313486231570814527423731704357e+308L);
 static constexpr f32 MAX_F32 = static_cast<f32>(3.40282346638528859811704183484516925e+38f);
 
+
 // Min floating point constants
-static constexpr f64 MIN_F64        = static_cast<f64>(MAX_F64);
+static constexpr f64 MIN_F64        = static_cast<f64>(-MAX_F64);
 static constexpr f64 MIN_NORMAL_F64 = static_cast<f64>(2.2250738585072014e-308);
 static constexpr f32 MIN_F32        = static_cast<f32>(-MAX_F32);
 static constexpr f32 MIN_NORMAL_F32 = static_cast<f32>(1.175494351e-38f);

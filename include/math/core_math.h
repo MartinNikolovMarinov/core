@@ -315,7 +315,7 @@ template <typename TFloat>
 constexpr TFloat modfCompiletimeImpl(TFloat x, TFloat* iptr) {
     if (detail::isnanCompiletimeImpl(x)) return modfNanImpl(x, iptr);
     if (detail::isinfCompiletimeImpl(x)) return modfErrorImpl(x, iptr);
-    if (core::abs(x) == TFloat(0))         return modfErrorImpl(x, iptr);
+    if (core::abs(x) == TFloat(0))       return modfErrorImpl(x, iptr);
 
     *iptr = core::detail::truncCompiletimeImpl(x);
     return (x - *iptr);
@@ -342,7 +342,7 @@ template <typename TFloat>
 constexpr TFloat roundCompiletimeImpl(TFloat x) {
     if (detail::isnanCompiletimeImpl(x)) return x;
     if (detail::isinfCompiletimeImpl(x)) return x;
-    if (core::abs(x) == TFloat(0))         return x;
+    if (core::abs(x) == TFloat(0))       return x;
 
     TFloat iptr = 0;
     const TFloat modx = core::detail::modfCompiletimeImpl(x, &iptr);

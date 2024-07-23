@@ -6,7 +6,7 @@
                 "${default}",
                 "${workspaceFolder}/**"
             ],
-            "compilerPath": "/usr/bin/gcc",
+            // "compilerPath": "/usr/bin/gcc",
             // "intelliSenseMode": "gcc-x64",
             "intelliSenseMode": "${default}",
             "compileCommands": "${workspaceFolder}/build/compile_commands.json",

@@ -97,15 +97,15 @@ constexpr u32 floatToCptr(TFloat n, char* out, addr_size outMax, u32 precision) 
     };
 
     if (core::isnan(n)) {
-        safeAppend('N');
+        safeAppend('n');
         safeAppend('a');
-        safeAppend('N');
+        safeAppend('n');
         return idx;
     }
 
     if (core::isinf(n)) {
         if (n < 0) safeAppend('-');
-        safeAppend('I');
+        safeAppend('i');
         safeAppend('n');
         safeAppend('f');
         return idx;
@@ -116,28 +116,50 @@ constexpr u32 floatToCptr(TFloat n, char* out, addr_size outMax, u32 precision) 
         n = -n;
     }
 
-    i32 intPart = i32(n);
+    i64 intPart = i64(n);
     u64 fracMultiplier =  core::pow10(precision);
-    i64 fracPart = i64((n - TFloat(intPart)) * TFloat(fracMultiplier) + TFloat(0.5)); // +0.5 for rounding.
+    TFloat fracPartFloat = (n - TFloat(intPart)) * TFloat(fracMultiplier);
 
-    // Convert:
+    // Banker's rounding:
+    i64 fracPart;
+    TFloat roundPart = fracPartFloat - TFloat(i64(fracPartFloat));
+    if (roundPart > TFloat(0.5)) {
+        fracPart = i64(fracPartFloat) + 1;
+    }
+    else if (roundPart < TFloat(0.5)) {
+        fracPart = i64(fracPartFloat);
+    }
+    else { // roundPart == 0.5, tie breaker.
+        fracPart = i64(fracPartFloat);
+        if (fracPart & 1) {
+            fracPart++;
+        }
+    }
+
+    // Handle overflow from rounding.
+    if (fracPart >= i64(fracMultiplier)) {
+        intPart++;
+        fracPart = 0;
+    }
+
+    // Convert the integer part.
     idx += detail::intToCptr(intPart, out + idx, outMax, 0);
     if (precision > 0) {
         safeAppend('.');
 
+        // Prepend zeroes if the fractional part is less than the precision.
         u32 zeroesToPrepend = precision - core::digitCount(fracPart);
-        u32 i = 0;
-        for (i = 0; i < zeroesToPrepend; i++) {
+        for (u32 i = 0; i < zeroesToPrepend; i++) {
             safeAppend('0');
         }
 
+        // Convert the fractional part.
         u32 prev = idx;
         idx += detail::intToCptr(fracPart, out + idx, outMax, 0);
-        u32 currentPrecision = i + (idx - prev);
+        u32 currentPrecision = (idx - prev) + zeroesToPrepend;
 
-        u32 zerosToAppend = precision - currentPrecision;
-
-        for (i = 0; i < zerosToAppend; i++) {
+        // Add trailing zeroes if the precision is not reached.
+        for (u32 i = currentPrecision; i < precision; i++) {
             safeAppend('0');
         }
     }

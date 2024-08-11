@@ -106,6 +106,7 @@ CORE_API_EXPORT expected<PltErrCode>            fileStat(const char* path, FileS
 CORE_API_EXPORT expected<addr_size, PltErrCode> fileSize(FileDesc& file);
 
 CORE_API_EXPORT expected<PltErrCode> fileReadEntire(const char* path, ArrList<u8>& out);
+CORE_API_EXPORT expected<PltErrCode> fileWriteEntire(const char* path, const u8* data, addr_size size);
 CORE_API_EXPORT expected<PltErrCode> fileWriteEntire(const char* path, const ArrList<u8>& in);
 
 CORE_API_EXPORT expected<PltErrCode>       dirCreate(const char* path);

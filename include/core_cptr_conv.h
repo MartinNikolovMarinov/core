@@ -60,16 +60,6 @@ constexpr u32 intToCptr(TInt n, char* out, addr_size outMax, u32 digits) {
 
 } // detail namespace
 
-/**
- * \brief Converts an integer to a string.
- *        If the buffer is too small, or the digit count is incorrect, the result is undefined.
- *
- * \param n The integer to convert.
- * \param out The output buffer.
- * \param digitCount The number of digits to convert, if 0 then the number of digits is calculated.
- *
- * \return The number of characters written to the buffer.
-*/
 constexpr u32 intToCptr(u32 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCptr(n, out, outMax, digits); }
 constexpr u32 intToCptr(u64 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCptr(n, out, outMax, digits); }
 constexpr u32 intToCptr(i32 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCptr(n, out, outMax, digits); }
@@ -258,22 +248,5 @@ constexpr void intToHex(i8 v, char* out, u64 hexLen = (sizeof(i8) << 1))   { det
 constexpr void intToHex(i16 v, char* out, u64 hexLen = (sizeof(i16) << 1)) { detail::intToHex(v, out, hexLen); }
 constexpr void intToHex(i32 v, char* out, u64 hexLen = (sizeof(i32) << 1)) { detail::intToHex(v, out, hexLen); }
 constexpr void intToHex(i64 v, char* out, u64 hexLen = (sizeof(i64) << 1)) { detail::intToHex(v, out, hexLen); }
-
-namespace detail {
-
-template <typename TInt>
-constexpr char* cptrAppendInt(char *dst, TInt v) {
-    constexpr addr_size maxValueDigitCount = core::digitCount(core::limitMax<TInt>()) + 1; // +1 for the null terminator.
-    char buf[maxValueDigitCount] = {};
-    core::intToCptr(v, buf, maxValueDigitCount);
-    return cptrCopy(dst, buf, cptrLen(buf));
-}
-
-} // namespace detail
-
-constexpr char* cptrAppendInt(char *dst, i32 x) { return detail::cptrAppendInt(dst, x); }
-constexpr char* cptrAppendInt(char *dst, i64 x) { return detail::cptrAppendInt(dst, x); }
-constexpr char* cptrAppendInt(char *dst, u32 x) { return detail::cptrAppendInt(dst, x); }
-constexpr char* cptrAppendInt(char *dst, u64 x) { return detail::cptrAppendInt(dst, x); }
 
 } // namespace core

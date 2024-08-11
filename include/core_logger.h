@@ -46,6 +46,7 @@ CORE_API_EXPORT void setLogLevel(LogLevel level);
 CORE_API_EXPORT void muteLogger(bool mute);
 
 CORE_API_EXPORT bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, const char* format, ...);
+CORE_API_EXPORT bool logf(const char* format, ...);
 
 #define logTrace(format, ...) __log(0, core::LogLevel::L_TRACE,   core::LogSpecialMode::NONE, __func__, format, ##__VA_ARGS__)
 #define logDebug(format, ...) __log(0, core::LogLevel::L_DEBUG,   core::LogSpecialMode::NONE, __func__, format, ##__VA_ARGS__)

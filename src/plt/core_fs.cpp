@@ -44,8 +44,8 @@ expected<PltErrCode> fileReadEntire(const char* path, ArrList<u8>& out) {
     return {};
 }
 
-core::expected<PltErrCode> fileWriteEntire(const char* path, const core::ArrList<u8>& in) {
-    if (in.len() == 0) return {};
+core::expected<PltErrCode> fileWriteEntire(const char* path, const u8* data, addr_size size) {
+    if (size == 0) return {};
 
     FileDesc file;
     {
@@ -60,13 +60,17 @@ core::expected<PltErrCode> fileWriteEntire(const char* path, const core::ArrList
     };
 
     {
-        auto res = fileWrite(file, in.data(), in.len());
+        auto res = fileWrite(file, data, size);
         if (res.hasErr()) {
             return core::unexpected(res.err());
         }
     }
 
     return {};
+}
+
+core::expected<PltErrCode> fileWriteEntire(const char* path, const core::ArrList<u8>& in) {
+    return fileWriteEntire(path, in.data(), in.len());
 }
 
 core::expected<PltErrCode> dirDeleteRec(const char* path) {

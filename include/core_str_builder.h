@@ -22,7 +22,7 @@ struct CORE_API_EXPORT StrBuilder {
     StrBuilder(StrBuilder&& other);
 
     explicit StrBuilder(size_type cap);
-    explicit StrBuilder(size_type len, const value_type& val);
+    StrBuilder(size_type len, const value_type& val);
     explicit StrBuilder(const StrView& view);
     explicit StrBuilder(StrView&& view);
 

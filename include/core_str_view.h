@@ -14,7 +14,7 @@ struct CORE_API_EXPORT StrView {
 
     constexpr StrView() : ptr(nullptr), length(0) {}
     constexpr StrView(const char* _ptr, size_type _len) : ptr(_ptr), length(_len) {}
-    constexpr StrView(const char* _ptr) : ptr(_ptr), length(core::cptrLen(_ptr)) {}
+    explicit constexpr StrView(const char* _ptr) : ptr(_ptr), length(core::cptrLen(_ptr)) {}
     constexpr StrView(const StrView&) = default;
     constexpr StrView(StrView&&) = default;
 

@@ -1011,7 +1011,7 @@ constexpr i32 runCompiletimeCptrConvTestsSuite() {
     RunTestCompileTime(digitToCharTest);
     RunTestCompileTime(intToCptrTest);
     RunTestCompileTime(intHexTest);
-    // RunTestCompileTime(floatToCptrTest);
+    // RunTestCompileTime(floatToCptrTest); // FIXME: uncomment this when it's ready.
     RunTestCompileTime(cptrToIntTest);
     RunTestCompileTime(cptrToFloatTest);
 

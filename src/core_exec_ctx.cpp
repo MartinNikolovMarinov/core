@@ -1,7 +1,6 @@
 #include <core_exec_ctx.h>
 
 #include <core_alloc.h>
-#include <core_utils.h>
 #include <plt/core_threading.h>
 
 namespace core {

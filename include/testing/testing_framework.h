@@ -6,7 +6,6 @@
 #include <core_exec_ctx.h>
 #include <core_intrinsics.h>
 #include <core_types.h>
-#include <core_utils.h>
 #include <core_hash.h>
 
 #include <iostream>

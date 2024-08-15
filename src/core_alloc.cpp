@@ -1,4 +1,5 @@
 #include <core_alloc.h>
+#include <core_assert.h>
 
 namespace core {
 

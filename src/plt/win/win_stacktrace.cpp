@@ -5,7 +5,6 @@
 
 #if defined(CORE_DEBUG) && CORE_DEBUG == 1
 
-#include <core_utils.h>
 #include <core_cptr.h>
 #include <core_cptr_conv.h>
 

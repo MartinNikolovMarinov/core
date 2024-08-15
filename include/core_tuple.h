@@ -1,7 +1,6 @@
 #pragma once
 
 #include <core_types.h>
-#include <core_utils.h>
 #include <core_traits.h>
 
 #include <utility>

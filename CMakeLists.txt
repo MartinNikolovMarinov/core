@@ -53,47 +53,8 @@ option(CORE_BUILD_TESTS "Build core tests." OFF)
 option(CORE_TESTS_USE_ANSI "Use ANSI escape codes in tests." OFF)
 option(CORE_TESTS_STOP_ON_FIRST_FAILED "Stop running tests on first failure." OFF)
 option(CORE_RUN_COMPILETIME_TESTS "Run compile-time tests." OFF)
-option(CORE_USE_CPPCHECK "Use cppcheck. [WARNING] This makes compilation incredibly slow!" OFF)
 option(CORE_CODE_COVERAGE "Enable code coverage." OFF)
 option(CORE_SAVE_TEMPORARY_FILES "Save compiler temporary files. [WARNING] This down slows compilation." OFF)
-
-if(CORE_USE_CPPCHECK)
-    find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
-    if(CMAKE_CXX_CPPCHECK)
-
-        # Generate a list of files in the include and src directories to use with cppcheck:
-
-        set(fdfind_error)
-        execute_process(
-            COMMAND bash -c "fdfind . ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src -e cpp -e h > CppCheckFilesToCheck.txt"
-            WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-            ERROR_VARIABLE fdfind_error
-        )
-
-        if(NOT fdfind_error)
-
-            # Configure cppcheck:
-
-            message(STATUS "[CORE] generated cpp check file list")
-            list(APPEND CMAKE_CXX_CPPCHECK
-                    "--enable=style,performance,portability"
-                    "--inconclusive"
-                    "--inline-suppr"
-                    "--std=c++20"
-                    "--report-progress"
-                    "--check-level=exhaustive"
-                    "--output-file=${CMAKE_BINARY_DIR}/cppcheck.out.txt"
-                    "--suppressions-list=${CMAKE_SOURCE_DIR}/CppCheckSuppressions.txt"
-                    "--file-list=${PROJECT_BINARY_DIR}/CppCheckFilesToCheck.txt")
-        else()
-            message(WARNING "[CORE] failed to generate cpp check file list!")
-        endif()
-
-    else()
-        message(WARNING "[CORE] cppcheck not found!")
-    endif()
-
-endif()
 
 # Print Selected Options:
 
@@ -112,22 +73,21 @@ message(STATUS "[CORE] Stop on first failed test: ${CORE_TESTS_STOP_ON_FIRST_FAI
 message(STATUS "[CORE] Run Compile Tests:         ${CORE_RUN_COMPILETIME_TESTS}")
 message(STATUS "[CORE] Code Coverage:             ${CORE_CODE_COVERAGE}")
 message(STATUS "[CORE] Save Temporary Files:      ${CORE_SAVE_TEMPORARY_FILES}")
-message(STATUS "[CORE] Use CppCheck:              ${CORE_USE_CPPCHECK}")
 
 # ---------------------------------------- End Options -----------------------------------------------------------------
 
 # ---------------------------------------- Begin Declare Source Files --------------------------------------------------
 
 set(src_files
+    src/core_alloc.cpp
+    src/core_assert.cpp
     src/core_exec_ctx.cpp
     src/core_hash.cpp
     src/core_intrinsics.cpp
+    src/core_logger.cpp
     src/core_mem.cpp
     src/core_rnd.cpp
-    src/core_utils.cpp
-    src/core_alloc.cpp
     src/core_str_builder.cpp
-    src/core_logger.cpp
 
     src/allocators/bump_allocator.cpp
     src/allocators/std_allocator.cpp

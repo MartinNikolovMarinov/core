@@ -1,8 +1,8 @@
 #pragma once
 
 #include <core_exec_ctx.h>
+#include <core_macros.h>
 #include <core_types.h>
-#include <core_utils.h>
 
 namespace core {
 

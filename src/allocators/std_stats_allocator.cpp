@@ -1,4 +1,5 @@
 #include <core_alloc.h>
+#include <core_assert.h>
 #include <core_mem.h>
 
 #include <cstdlib>

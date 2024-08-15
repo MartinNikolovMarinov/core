@@ -7,37 +7,8 @@ namespace core {
 
 using namespace coretypes;
 
-/**
- * @brief Copies a memory region from src to dest. The function's return addres is not advanced it remains the same as
- *        the input dest pointer!
- *
- * @param dest The destination memory region.
- * @param src The source memory region.
- * @param len The length of the memory region.
- * @return The destination pointer.
-*/
 CORE_API_EXPORT void* memcopy(void* dest, const void* src, addr_size len);
-
-/**
- * @brief Sets a memory region to the given value. The function's return addres is not advanced it remains the same as
- *        the input dest pointer!
- *
- * @param dest The destination memory region.
- * @param c The value to set the memory region to.
- * @param n The length of the memory region.
- * @return The destination pointer.
-*/
 CORE_API_EXPORT void* memset(void* dest, u8 c, addr_size n);
-
-/**
- * @brief Compares two memory regions.
- *
- * @param s1 The first memory region.
- * @param s2 The second memory region.
- * @param n The length of the memory region.
- * @return 0 if the memory regions are equal, a negative value if s1 is less than s2, a positive value if s1 is greater
- *         than s2.
-*/
 CORE_API_EXPORT i32 memcmp(const void* s1, const void* s2, addr_size n);
 
 /**

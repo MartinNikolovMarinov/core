@@ -1,8 +1,9 @@
 #pragma once
 
-#include <core_API.h>
-#include <core_types.h>
 #include <core_alloc.h>
+#include <core_API.h>
+#include <core_assert.h>
+#include <core_types.h>
 
 #include <new>
 

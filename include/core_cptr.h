@@ -1,7 +1,6 @@
 #pragma once
 
 #include <core_types.h>
-#include <core_utils.h>
 #include <core_traits.h>
 
 // TODO2: [PERFORMANCE] Everything in this file can be much faster.
@@ -15,7 +14,7 @@ constexpr inline bool isWhiteSpace(char c) { return c == ' ' || c == '\t' || c =
 
 template<typename TChar>
 constexpr addr_size cptrLen(const TChar* p) {
-    static_assert(core::is_char_v<TChar>, "TChar must be a char type.");
+    static_assert(is_char_v<TChar>, "TChar must be a char type.");
     if (p == nullptr) return 0;
     const TChar* start = p;
     while(*p) p++;
@@ -24,7 +23,7 @@ constexpr addr_size cptrLen(const TChar* p) {
 
 template <typename TChar>
 constexpr i32 cptrCmp(const TChar* a, addr_size lena, const TChar* b, addr_size lenb) {
-    static_assert(core::is_char_v<TChar>, "TChar must be a char type.");
+    static_assert(is_char_v<TChar>, "TChar must be a char type.");
 
     if (a == nullptr && b == nullptr) return 0;
     else if (a == nullptr) return -1;

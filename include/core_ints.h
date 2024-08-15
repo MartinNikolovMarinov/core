@@ -3,7 +3,6 @@
 #include <core_API.h>
 #include <core_types.h>
 #include <core_intrinsics.h>
-#include <core_utils.h>
 
 namespace core {
 

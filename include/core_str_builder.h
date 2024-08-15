@@ -1,10 +1,10 @@
 #pragma once
 
 #include <core_API.h>
+#include <core_assert.h>
 #include <core_str_view.h>
 #include <core_traits.h>
 #include <core_types.h>
-#include <core_utils.h>
 
 namespace core {
 

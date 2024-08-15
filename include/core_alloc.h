@@ -1,9 +1,9 @@
 #pragma once
 
 #include <core_API.h>
+#include <core_macros.h>
 #include <core_traits.h>
 #include <core_types.h>
-#include <core_utils.h>
 
 #include <plt/core_atomics.h>
 

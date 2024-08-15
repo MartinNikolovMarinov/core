@@ -1,12 +1,12 @@
 #pragma once
 
 #include <core_API.h>
+#include <core_assert.h>
 #include <core_intrinsics.h>
 #include <core_system_checks.h>
 #include <core_traits.h>
 #include <core_tuple.h>
 #include <core_types.h>
-#include <core_utils.h>
 
 #include <cmath>
 

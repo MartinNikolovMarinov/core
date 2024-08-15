@@ -3,6 +3,7 @@
 #include "core_ansi_escape_codes.h"
 #include "core_API.h"
 #include "core_arr.h"
+#include "core_assert.h"
 #include "core_bits.h"
 #include "core_cmd_flag_parser.h"
 #include "core_compiler.h"
@@ -16,6 +17,7 @@
 #include "core_intrinsics.h"
 #include "core_ints.h"
 #include "core_logger.h"
+#include "core_macros.h"
 #include "core_mem.h"
 #include "core_rnd.h"
 #include "core_str_builder.h"
@@ -26,7 +28,6 @@
 #include "core_types.h"
 #include "core_unique_ptr.h"
 #include "core_utf.h"
-#include "core_utils.h"
 
 #include "math/core_bbox.h"
 #include "math/core_lines.h"

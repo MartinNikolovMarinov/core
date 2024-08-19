@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.2)
+project(core VERSION 0.4.0)
 
-set(executable_name core)
-string(TOUPPER ${executable_name} executable_name_uppercase)
-
-project(core VERSION 0.3.0)
+set(target_core core)
+set(target_core_upper CORE)
+set(target_test core_test)
 
 # Standard Requirements:
 
@@ -13,38 +13,30 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Generates compile_commands.json
 
 # Download and update git submodules:
 
-function(update_git_submodules)
-    find_package(Git QUIET)
-    if (GIT_FOUND)
-        message(STATUS "[CORE] Submodule update")
-        execute_process(
-            COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            RESULT_VARIABLE GIT_SUBMOD_RESULT
-        )
-        if (NOT GIT_SUBMOD_RESULT EQUAL "0")
-            message(FATAL_ERROR "[CORE] git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
-        endif()
-    else()
-        message(FATAL_ERROR "[CORE] Git is not found. It is required to update submodules.")
-    endif()
-endfunction()
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_local")
+
+include(UpdateGitSubmodules)
 
 update_git_submodules()
 
-# Includes:
+# Include cmake modules from git submodules:
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 include(DetectOS)
 include(CompilerOptions)
+include(Logger)
+include(DefaultFlags)
+
+init_logger("[CORE]")
 
 # ---------------------------------------- Begin Options ---------------------------------------------------------------
 
 if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(${executable_name_uppercase}_DEBUG OFF)
+    set(CORE_DEBUG OFF)
 else()
-    set(${executable_name_uppercase}_DEBUG ON)
+    set(CORE_DEBUG ON)
 endif()
 
 option(CORE_LIBRARY_SHARED "Build core as a shared library." OFF)
@@ -58,27 +50,27 @@ option(CORE_SAVE_TEMPORARY_FILES "Save compiler temporary files. [WARNING] This 
 
 # Print Selected Options:
 
-message(STATUS "[CORE] ---------------------------------------------")
-message(STATUS "[CORE] Version:                   ${PROJECT_VERSION}")
-message(STATUS "[CORE] Platform:                  ${OS}")
-message(STATUS "[CORE] Arch:                      ${CMAKE_HOST_SYSTEM_PROCESSOR}") # IMPORTANT: Do not relly on CMAKE_HOST_SYSTEM_PROCESSOR for anything serious !
-message(STATUS "[CORE] C++ Version:               ${CMAKE_CXX_STANDARD}")
-message(STATUS "[CORE] Compiler:                  ${CMAKE_CXX_COMPILER_ID}")
-message(STATUS "[CORE] Debug:                     ${${executable_name_uppercase}_DEBUG}")
-message(STATUS "[CORE] Assert:                    ${CORE_ASSERT_ENABLED}")
-message(STATUS "[CORE] Shared:                    ${CORE_LIBRARY_SHARED}")
-message(STATUS "[CORE] Build Tests:               ${CORE_BUILD_TESTS}")
-message(STATUS "[CORE] Use ANSI in Tests:         ${CORE_TESTS_USE_ANSI}")
-message(STATUS "[CORE] Stop on first failed test: ${CORE_TESTS_STOP_ON_FIRST_FAILED}")
-message(STATUS "[CORE] Run Compile Tests:         ${CORE_RUN_COMPILETIME_TESTS}")
-message(STATUS "[CORE] Code Coverage:             ${CORE_CODE_COVERAGE}")
-message(STATUS "[CORE] Save Temporary Files:      ${CORE_SAVE_TEMPORARY_FILES}")
+log_info("---------------------------------------------")
+log_info("Version:                   ${PROJECT_VERSION}")
+log_info("Platform:                  ${OS}")
+log_info("Arch:                      ${CMAKE_HOST_SYSTEM_PROCESSOR}") # IMPORTANT: Do not relly on CMAKE_HOST_SYSTEM_PROCESSOR for anything serious !
+log_info("C++ Version:               ${CMAKE_CXX_STANDARD}")
+log_info("Compiler:                  ${CMAKE_CXX_COMPILER_ID}")
+log_info("Debug:                     ${CORE_DEBUG}")
+log_info("Assert:                    ${CORE_ASSERT_ENABLED}")
+log_info("Shared:                    ${CORE_LIBRARY_SHARED}")
+log_info("Build Tests:               ${CORE_BUILD_TESTS}")
+log_info("Use ANSI in Tests:         ${CORE_TESTS_USE_ANSI}")
+log_info("Stop on first failed test: ${CORE_TESTS_STOP_ON_FIRST_FAILED}")
+log_info("Run Compile Tests:         ${CORE_RUN_COMPILETIME_TESTS}")
+log_info("Code Coverage:             ${CORE_CODE_COVERAGE}")
+log_info("Save Temporary Files:      ${CORE_SAVE_TEMPORARY_FILES}")
 
 # ---------------------------------------- End Options -----------------------------------------------------------------
 
 # ---------------------------------------- Begin Declare Source Files --------------------------------------------------
 
-set(src_files
+set(core_src
     src/core_alloc.cpp
     src/core_assert.cpp
     src/core_exec_ctx.cpp
@@ -101,7 +93,7 @@ set(src_files
 )
 
 if(OS STREQUAL "linux")
-    set(src_files ${src_files}
+    set(core_src ${core_src}
         src/plt/unix/unix_threading.cpp
         src/plt/unix/unix_time.cpp
         src/plt/unix/unix_plt_error.cpp
@@ -110,7 +102,7 @@ if(OS STREQUAL "linux")
         src/plt/unix/unix_stacktrace.cpp
     )
 elseif(OS STREQUAL "darwin")
-    set(src_files ${src_files}
+    set(core_src ${core_src}
         src/plt/unix/unix_threading.cpp
         src/plt/unix/unix_time.cpp
         src/plt/unix/unix_plt_error.cpp
@@ -119,7 +111,7 @@ elseif(OS STREQUAL "darwin")
         src/plt/unix/unix_stacktrace.cpp
     )
 elseif(OS STREQUAL "windows")
-    set(src_files ${src_files}
+    set(core_src ${core_src}
         src/plt/win/win_threading.cpp
         src/plt/win/win_time.cpp
         src/plt/win/win_plt_error.cpp
@@ -134,16 +126,16 @@ endif()
 # Add library:
 
 if(CORE_LIBRARY_SHARED)
-    add_library(${executable_name} SHARED ${src_files})
+    add_library(${target_core} SHARED ${core_src})
     # Set symbols visibility to be hidden by default. This is done to unify behaviour across platforms.
-    set_target_properties(${executable_name} PROPERTIES
+    set_target_properties(${target_core} PROPERTIES
         C_VISIBILITY_PRESET hidden
         C_VISIBILITY_INLINE_PRESET hidden
         CXX_VISIBILITY_PRESET hidden
         CXX_VISIBILITY_INLINE_PRESET hidden
     )
 else()
-    add_library(${executable_name} STATIC ${src_files})
+    add_library(${target_core} STATIC ${core_src})
 endif()
 
 # Set Configure File:
@@ -152,88 +144,34 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/core_config.h.in core_config.
 
 # Include Path:
 
-target_include_directories(${executable_name} PUBLIC
+target_include_directories(${target_core} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${PROJECT_BINARY_DIR} # for core_config.h
 )
 
 # Definitions:
 
-target_compile_definitions(${executable_name} PRIVATE
+target_compile_definitions(${target_core} PRIVATE
     "CORE_LIBRARY_SHARED=$<BOOL:${CORE_LIBRARY_SHARED}>" # turn CMake Boolean to 1 or 0
     -DCORE_LIBRARY_BUILD=1
 )
-target_compile_definitions(${executable_name} PUBLIC
-    "${executable_name_uppercase}_DEBUG=$<BOOL:${${executable_name_uppercase}_DEBUG}>"
+target_compile_definitions(${target_core} PUBLIC
+    "CORE_DEBUG=$<BOOL:${CORE_DEBUG}>"
     "CORE_ASSERT_ENABLED=$<BOOL:${CORE_ASSERT_ENABLED}>"
     "CORE_RUN_COMPILETIME_TESTS=$<BOOL:${CORE_RUN_COMPILETIME_TESTS}>"
 )
 
-# ---------------------------------------- Begin Compile Options -------------------------------------------------------
+# Set Default Flags:
 
-macro(target_set_default_flags target)
-
-    # FIXME: Add support for thread sanitizer, address sanitizer, memory sanitizer, undefined behavior sanitizer, etc.
-    # FIXME: Add possible sanitizers for msvc as well.
-
-    if(OS STREQUAL "linux")
-        set(common_flags "-std=c++20" "-pthread")
-        set(debug_flags "")
-        set(release_flags "")
-    elseif(OS STREQUAL "darwin")
-        set(common_flags "-std=c++20" "-pthread")
-        set(debug_flags "")
-        set(release_flags "")
-    elseif(OS STREQUAL "windows")
-        set(common_flags "/std:c++20")
-        set(debug_flags "")
-        set(release_flags "")
-    endif()
-
-    if (CORE_SAVE_TEMPORARY_FILES)
-        if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-            set(common_flags "${common_flags}" "-g" "-save-temps")
-        elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-            set(common_flags "${common_flags}" "-g" "-save-temps")
-        elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-            set(common_flags "${common_flags}" "/Fa${CMAKE_CURRENT_BINARY_DIR}")
-        endif()
-    endif()
-
-    generate_common_flags(
-        common_flags "${common_flags}"
-        debug_flags "${debug_flags}"
-        release_flags "${release_flags}"
-    )
-
-    if(${executable_name_uppercase}_DEBUG)
-        target_compile_options(${target} PRIVATE ${common_flags} ${debug_flags})
-    else()
-        target_compile_options(${target} PRIVATE ${common_flags} ${release_flags})
-    endif()
-
-endmacro()
-
-if (${executable_name_uppercase}_DEBUG AND OS STREQUAL "windows")
-    # DbgHelp.lib is required for stacktrace on Windows.
-    target_link_options(${executable_name} PRIVATE /INCREMENTAL:NO /OPT:REF)
-    target_link_libraries(${executable_name} PUBLIC DbgHelp.lib)
-endif()
-
-target_set_default_flags(${executable_name})
-
-# ---------------------------------------- End Compile Options ---------------------------------------------------------
+target_set_default_flags(${target_core} ${CORE_DEBUG} ${CORE_SAVE_TEMPORARY_FILES})
 
 if(CORE_BUILD_TESTS)
     # ------------------------------------- Begin Testing --------------------------------------------------------------
-    message(STATUS "[CORE] Configuring tests")
-
-    set(test_executable ${executable_name}_test)
-    # set(test_executable ${executable_name}_sandbox)
+    log_info("Configuring tests")
 
     # # Create test executable
-    add_executable(${test_executable}
-        ${test_executable}.cpp
+    add_executable(${target_test}
+        ${target_test}.cpp
 
         tests/t-index_core_init.cpp
 
@@ -277,37 +215,37 @@ if(CORE_BUILD_TESTS)
     )
 
     # Link core
-    target_link_libraries(${test_executable} PRIVATE ${executable_name})
+    target_link_libraries(${target_test} PRIVATE ${target_core})
 
     # Definitions
-    target_compile_definitions(${test_executable} PRIVATE
+    target_compile_definitions(${target_test} PRIVATE
         -DPATH_TO_TEST_DATA="${CMAKE_CURRENT_BINARY_DIR}"
         "CORE_TESTS_USE_ANSI=$<BOOL:${CORE_TESTS_USE_ANSI}>"
         "CORE_TESTS_STOP_ON_FIRST_FAILED=$<BOOL:${CORE_TESTS_STOP_ON_FIRST_FAILED}>"
     )
 
-    target_set_default_flags(${test_executable})
+    target_set_default_flags(${target_test} ${CORE_DEBUG} ${CORE_SAVE_TEMPORARY_FILES})
 
     if(CORE_CODE_COVERAGE)
         if (CMAKE_COMPILER_IS_GNUCXX)
             include(CodeCoverage)
-            append_coverage_compiler_flags_to_target(${test_executable})
-            append_coverage_compiler_flags_to_target(${executable_name})
+            append_coverage_compiler_flags_to_target(${target_test})
+            append_coverage_compiler_flags_to_target(${target_core})
             setup_target_for_coverage_lcov(
-                NAME ${test_executable}_coverage # NOTE: make ${test_executable}_coverage to run this
-                EXECUTABLE ${test_executable}
-                DEPENDENCIES ${test_executable}
+                NAME ${target_test}_coverage # NOTE: make ${target_test}_coverage to run this
+                EXECUTABLE ${target_test}
+                DEPENDENCIES ${target_test}
             )
         else()
-            message(WARNING "[CORE] Code coverage is not supported for ${CMAKE_CXX_COMPILER_ID} compiler.")
+            log_warning("Code coverage is not supported for ${CMAKE_CXX_COMPILER_ID} compiler.")
         endif()
     endif()
 
     # Add the test
     enable_testing()
-    add_test(NAME ${test_executable} COMMAND ${test_executable})
+    add_test(NAME ${target_test} COMMAND ${target_test})
 
     # ------------------------------------- End Testing ----------------------------------------------------------------
 endif()
 
-message(STATUS "[CORE] ---------------------------------------------")
+log_info("---------------------------------------------")

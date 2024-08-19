@@ -215,15 +215,15 @@ constexpr i32 floatSafeEqTest() {
     };
 
     i32 i = 0;
-    constexpr const char* iterAsCptrFmt = "floatSafeEq test case failed at index: ";
-    constexpr const addr_size iterAsCptrFmtLen = core::cptrLen(iterAsCptrFmt);
-    char iterAsCptr[iterAsCptrFmtLen + 20] = {};
-    for (i32 j = 0; j < i32(iterAsCptrFmtLen); ++j) iterAsCptr[j] = iterAsCptrFmt[j];
-    char* appendIdx = &iterAsCptr[iterAsCptrFmtLen];
+    constexpr const char* iterAsCstrFmt = "floatSafeEq test case failed at index: ";
+    constexpr const addr_size iterAsCstrFmtLen = core::cstrLen(iterAsCstrFmt);
+    char iterAsCstr[iterAsCstrFmtLen + 20] = {};
+    for (i32 j = 0; j < i32(iterAsCstrFmtLen); ++j) iterAsCstr[j] = iterAsCstrFmt[j];
+    char* appendIdx = &iterAsCstr[iterAsCstrFmtLen];
     for (auto& c : cases) {
-        core::intToCptr(i++, appendIdx, iterAsCptrFmtLen, 2);
+        core::intToCstr(i++, appendIdx, iterAsCstrFmtLen, 2);
         for (i32 j = 0; j < c.iterations; ++j) {
-            CT_CHECK(core::safeEq(c.startA, c.startB, c.epsilon) == c.expected, iterAsCptr);
+            CT_CHECK(core::safeEq(c.startA, c.startB, c.epsilon) == c.expected, iterAsCstr);
             c.startA += c.step;
             c.startB += c.step;
         }

@@ -33,6 +33,6 @@ CORE_API_EXPORT f32   rndF32();
 CORE_API_EXPORT f32   rndF32(f32 min, f32 max);
 CORE_API_EXPORT f64   rndF64();
 CORE_API_EXPORT f64   rndF64(f64 min, f64 max);
-CORE_API_EXPORT char* rndCptr(char* out, addr_size len);
+CORE_API_EXPORT char* rndCstr(char* out, addr_size len);
 
 } // namespace core

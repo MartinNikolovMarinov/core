@@ -442,7 +442,7 @@ i32 cmdFlagParserFriendlyInputMatchingTest() {
     // Check string parsing:
     {
         CT_CHECK(!sbArg.empty());
-        CT_CHECK(core::cptrCmp(sbArg.view().data(), sbArg.view().len(), "banicata   fsa", core::cptrLen("banicata   fsa")) == 0);
+        CT_CHECK(core::memcmp(sbArg.view().data(), sbArg.view().len(), "banicata   fsa", core::cstrLen("banicata   fsa")) == 0);
     }
 
     // Check boolean parsing:
@@ -678,7 +678,7 @@ i32 cmdParserAliasTest() {
         Expect(parser.parse(len, input));
         Expect(parser.matchFlags());
 
-        CT_CHECK(core::cptrCmp(doubleAliased.view().data(), doubleAliased.view().len(), "override", core::cptrLen("override")) == 0);
+        CT_CHECK(core::memcmp(doubleAliased.view().data(), doubleAliased.view().len(), "override", core::cstrLen("override")) == 0);
     }
 
     return 0;

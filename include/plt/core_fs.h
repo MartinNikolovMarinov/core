@@ -45,7 +45,7 @@ enum struct FileType : u8 {
     SENTINEL
 };
 
-constexpr const char* fileTypeToCptr(FileType type) {
+constexpr const char* fileTypeToCstr(FileType type) {
     switch (type) {
         case FileType::None:      return "None";
         case FileType::Regular:   return "Regular";

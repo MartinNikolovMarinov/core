@@ -1,7 +1,7 @@
 #pragma once
 
 #include <core_API.h>
-#include <core_cptr.h>
+#include <core_cstr.h>
 #include <core_traits.h>
 #include <core_types.h>
 
@@ -22,7 +22,7 @@ struct CORE_API_EXPORT ImmutablePath {
     const addr_size len;
 
     constexpr ImmutablePath(const char* p, addr_size l) : data(p), len(l) {}
-    constexpr ImmutablePath(const char* p) : data(p), len(core::cptrLen(p)) {}
+    constexpr ImmutablePath(const char* p) : data(p), len(core::cstrLen(p)) {}
 
     constexpr const char* filePart() const {
         const char* p = data + len - 1;

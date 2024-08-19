@@ -41,7 +41,7 @@ i32 rndRawStrTest() {
 
     for (i32 i = 0; i < testCount; i++) {
         for (i32 j = 0; j < testTable[i].itterCount; j++) {
-            core::rndCptr(buf, testTable[i].size);
+            core::rndCstr(buf, testTable[i].size);
             buf[max - 1] = core::term_char;
         }
     }

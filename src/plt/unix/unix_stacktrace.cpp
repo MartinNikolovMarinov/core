@@ -1,7 +1,7 @@
 #include <plt/core_stacktrace.h>
 #include <plt/core_threading.h>
 
-#include <core_cptr_conv.h>
+#include <core_cstr_conv.h>
 
 #include <cstdlib>
 #include <execinfo.h>
@@ -11,12 +11,12 @@ namespace core {
 
 bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten, i32 nStackFrames, i32 skipFrames) {
     auto writeToBuf = [&](const char* s) -> bool {
-        auto slen = core::cptrLen(s);
+        auto slen = core::cstrLen(s);
         if (bufWritten + slen >= bufMax) {
             return false;
         }
         bufWritten += slen;
-        buf = core::cptrCopy(buf, s, slen);
+        buf = core::memcopy(buf, s, slen);
         return true;
     };
 
@@ -114,7 +114,7 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten, i32 nStackFr
                 {
                     constexpr addr_size strStatusLen = 20;
                     char strStatus[strStatusLen] = {};
-                    core::intToCptr(status, strStatus, strStatusLen);
+                    core::intToCstr(status, strStatus, strStatusLen);
                     if (!writeToBuf(strStatus)) return false;
                 }
                 if (!writeToBuf(">\n")) return false;

@@ -2,7 +2,7 @@
 
 #include <core_hash.h>
 #include <core_str_view.h>
-#include <core_cptr.h>
+#include <core_cstr.h>
 
 namespace core {
 
@@ -46,7 +46,7 @@ template<> inline addr_size hash<StrView>(const StrView& key) {
 }
 
 template<> inline bool eq<StrView>(const StrView& a, const StrView& b) {
-    bool ret = core::cptrCmp(a.data(), a.len(), b.data(), b.len()) == 0;
+    bool ret = core::memcmp(a.data(), a.len(), b.data(), b.len()) == 0;
     return ret;
 }
 

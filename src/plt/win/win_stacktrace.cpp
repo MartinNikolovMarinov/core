@@ -5,8 +5,9 @@
 
 #if defined(CORE_DEBUG) && CORE_DEBUG == 1
 
-#include <core_cptr.h>
-#include <core_cptr_conv.h>
+#include <core_cstr_conv.h>
+#include <core_cstr.h>
+#include <core_mem.h>
 
 #include <cstdlib>
 #include <windows.h>
@@ -22,17 +23,17 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
                 i32 nStackFrames, i32 skipFrames) {
 
     auto writeToBuf = [&](const char* s) -> bool {
-        auto slen = core::cptrLen(s);
+        auto slen = core::cstrLen(s);
         if (bufWritten + slen >= bufMax) {
             return false;
         }
         bufWritten += slen;
-        buf = core::cptrCopy(buf, s, slen);
+        buf = core::memcopy(buf, s, slen);
         return true;
     };
     auto writeIntToBuf = [&](auto n) -> bool {
         char buf[50] = {};
-        core::intToCptr(n, buf);
+        core::intToCstr(n, buf);
         return writeToBuf(buf);
     };
 

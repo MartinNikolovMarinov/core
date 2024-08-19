@@ -45,17 +45,17 @@ i32 initializeStrBuilderTest() {
         CT_CHECK(sb.byteLen() == N * sizeof(value_type));
         CT_CHECK(sb.byteCap() == (N + 1) * sizeof(value_type));
         CT_CHECK(sb.view().len() == N);
-        CT_CHECK(core::cptrCmp(sb.view().data(),
-                 core::cptrLen(sb.view().data()), // intentionally useing cptrLen here.
+        CT_CHECK(core::memcmp(sb.view().data(),
+                 core::cstrLen(sb.view().data()), // intentionally useing cstrLen here.
                  "aaaaa", N) == 0);
     }
 
     {
-        // StrBuilder(const value_type* cptr);
+        // StrBuilder(const value_type* cstr);
         // explicit StrBuilder(const StrView& view);
 
         constexpr const char* vv = "bbbbbb";
-        constexpr addr_size vvlen = core::cptrLen("bbbbbb");
+        constexpr addr_size vvlen = core::cstrLen("bbbbbb");
 
         auto check = [](StrBuilder& sb) {
             CT_CHECK(!sb.empty());
@@ -64,8 +64,8 @@ i32 initializeStrBuilderTest() {
             CT_CHECK(sb.byteLen() == vvlen * sizeof(value_type));
             CT_CHECK(sb.byteCap() == (vvlen + 1) * sizeof(value_type));
             CT_CHECK(sb.view().len() == vvlen);
-            CT_CHECK(core::cptrCmp(sb.view().data(),
-                    core::cptrLen(sb.view().data()), // intentionally useing cptrLen here.
+            CT_CHECK(core::memcmp(sb.view().data(),
+                    core::cstrLen(sb.view().data()), // intentionally useing cstrLen here.
                     vv, vvlen) == 0);
             CT_CHECK(sb.eq(core::sv(vv)));
             return 0;
@@ -160,20 +160,20 @@ i32 appendToStrBuilderTest() {
         i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             {
                 StrBuilder sb (core::sv(c.start));
-                sb.append(c.in, core::cptrLen(c.in));
+                sb.append(c.in, core::cstrLen(c.in));
                 CT_CHECK(sb.eq(c.expected), cErr);
                 CT_CHECK(sb.len() == c.expected.len(), cErr);
             }
             {
                 StrBuilder sb;
                 sb = core::sv(c.start);
-                sb.append(c.in, core::cptrLen(c.in));
+                sb.append(c.in, core::cstrLen(c.in));
                 CT_CHECK(sb.eq(c.expected), cErr);
                 CT_CHECK(sb.len() == c.expected.len(), cErr);
             }
             {
                 StrBuilder sb (core::sv(c.start));
-                sb.append(core::sv(c.in, core::cptrLen(c.in)));
+                sb.append(core::sv(c.in, core::cstrLen(c.in)));
                 CT_CHECK(sb.eq(c.expected), cErr);
                 CT_CHECK(sb.len() == c.expected.len(), cErr);
             }

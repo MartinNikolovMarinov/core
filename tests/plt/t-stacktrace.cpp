@@ -10,7 +10,7 @@ i32 callingStacktraceDoesNotCrashTest() {
     CT_CHECK(bufWritten > 0);
     CT_CHECK(bufWritten < BUF_MAX);
     CT_CHECK(buf[0] != '\0');
-    CT_CHECK(core::cptrLen(buf) == bufWritten);
+    CT_CHECK(core::cstrLen(buf) == bufWritten);
 
     return 0;
 }
@@ -25,7 +25,7 @@ i32 testFn2() {
     CT_CHECK(bufWritten > 0);
     CT_CHECK(bufWritten < BUF_MAX);
     CT_CHECK(buf[0] != '\0');
-    CT_CHECK(core::cptrLen(buf) == bufWritten);
+    CT_CHECK(core::cstrLen(buf) == bufWritten);
 
     std::string traceStr(buf, bufWritten);
     CT_CHECK(traceStr.find("stacktraceFunctionCheckTest") != std::string::npos);
@@ -49,7 +49,7 @@ inline i32 testFn3() {
     CT_CHECK(bufWritten > 0);
     CT_CHECK(bufWritten < BUF_MAX);
     CT_CHECK(buf[0] != '\0');
-    CT_CHECK(core::cptrLen(buf) == bufWritten);
+    CT_CHECK(core::cstrLen(buf) == bufWritten);
 
     std::string traceStr(buf, bufWritten);
     CT_CHECK(traceStr.find("stacktraceOnInlinedTest") != std::string::npos);

@@ -9,7 +9,7 @@ template <typename TFloat>
 void floatToBinImpl(u8 bytes[sizeof(TFloat)], TFloat v) {
     union { TFloat a; u8 bytes[sizeof(TFloat)]; } floatUnion;
     floatUnion.a = v;
-    core::memcopy(bytes, floatUnion.bytes, sizeof(TFloat));
+    core::memcopy(bytes, floatUnion.bytes, 1);
 }
 
 } // namespace detail

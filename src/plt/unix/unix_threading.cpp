@@ -1,7 +1,7 @@
 #include <plt/core_threading.h>
 #include <plt/unix/unix_threading.h>
 
-#include <core_cptr.h>
+#include <core_cstr.h>
 #include <core_exec_ctx.h>
 #include <core_system_checks.h>
 
@@ -134,7 +134,7 @@ expected<PltErrCode> threadingSetName(const char* name) noexcept {
     if (name == nullptr) {
         return core::unexpected(ERR_THREADING_INVALID_THREAD_NAME);
     }
-    addr_size len = core::cptrLen(name);
+    addr_size len = core::cstrLen(name);
     if (len > MAX_THREAD_NAME_LENGTH) {
         return core::unexpected(ERR_THREADING_INVALID_THREAD_NAME);
     }

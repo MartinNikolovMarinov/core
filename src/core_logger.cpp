@@ -52,8 +52,8 @@ bool initLogger(const LoggerCreateInfo& createInfo) {
 bool addTag(core::StrView tag) {
     Panic(tagTranslationTableCount < i32(MAX_NUMBER_OF_TAGS), "Cannot add more tags to the logger.");
     Panic(tag.len() < MAX_TAG_LEN, "Tag is too long.");
-    core::memcopy(tagTranslationTable + tagTranslationTableCount, tag.data(), tag.len());
-    ++tagTranslationTableCount;
+    core::memcopy(tagTranslationTable[tagTranslationTableCount], tag.data(), tag.len());
+    tagTranslationTableCount++;
     return true;
 }
 

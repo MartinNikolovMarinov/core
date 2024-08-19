@@ -2,7 +2,7 @@
 #include <plt/win/win_threading.h>
 
 #include <core_alloc.h>
-#include <core_cptr.h>
+#include <core_cstr.h>
 #include <core_exec_ctx.h>
 
 #include <windows.h>
@@ -87,7 +87,7 @@ expected<PltErrCode> threadingSetName(const char* name) noexcept {
     if (name == nullptr) {
         return core::unexpected(ERR_THREADING_INVALID_THREAD_NAME);
     }
-    addr_size len = core::cptrLen(name);
+    addr_size len = core::cstrLen(name);
     if (len > MAX_THREAD_NAME_LENGTH) {
         return core::unexpected(ERR_THREADING_INVALID_THREAD_NAME);
     }

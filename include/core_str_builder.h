@@ -63,7 +63,7 @@ struct CORE_API_EXPORT StrBuilder {
     value_type* release(addr_size& len, addr_size& cap);
 
     StrBuilder& append(const value_type& val);
-    StrBuilder& append(const value_type* cptr, size_type len);
+    StrBuilder& append(const value_type* cstr, size_type len);
     StrBuilder& append(const StrView& view);
 
     void ensureCap(size_type newCap);

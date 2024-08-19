@@ -1,7 +1,7 @@
 #include <core_rnd.h>
 
 #include <core_intrinsics.h>
-#include <core_cptr.h>
+#include <core_cstr.h>
 
 namespace core {
 
@@ -79,7 +79,7 @@ f32 rndF32(f32 min, f32 max) { return min + (max - min) * rndF32(); }
 f64 rndF64()                 { return f64(rndU64()) / (f64(MAX_U64) + f64(1.0f)); }
 f64 rndF64(f64 min, f64 max) { return min + (max - min) * rndF64(); }
 
-char* rndCptr(char* out, addr_size len) {
+char* rndCstr(char* out, addr_size len) {
     for (addr_size i = 0; i < len; i++) {
         i32 randIndex = i32(rndU32() % alphaCharsLen);
         out[i] = alphaChars[randIndex];

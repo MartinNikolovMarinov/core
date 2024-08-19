@@ -13,7 +13,7 @@ i32 pltErrorDescribeWorksTest() {
 
     ok = core::pltErrorDescribe(pltSpecificErrCode, buf);
     CT_CHECK(ok);
-    CT_CHECK(core::cptrLen(buf) > 0);
+    CT_CHECK(core::cstrLen(buf) > 0);
 
     return 0;
 }

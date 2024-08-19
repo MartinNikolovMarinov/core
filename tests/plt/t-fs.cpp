@@ -48,14 +48,14 @@ struct TestPathBuilder {
     TestPathBuilder() : buff{}, dirPathLen(0) {}
 
     void setDirPath(const char* dirPath) {
-        dirPathLen = core::cptrLen(dirPath);
+        dirPathLen = core::cstrLen(dirPath);
         core::memcopy(buff, dirPath, dirPathLen);
     }
 
     void appendToDirPath(const char* dirPath) {
         buff[dirPathLen] = FILE_SEPARATOR;
         dirPathLen += 1;
-        addr_size len = core::cptrLen(dirPath);
+        addr_size len = core::cstrLen(dirPath);
         core::memcopy(buff + dirPathLen, dirPath, len);
         dirPathLen += len;
     }
@@ -66,17 +66,17 @@ struct TestPathBuilder {
 
     char* filePart() { return buff + dirPathLen; }
 
-    addr_size filePartLen() { return core::cptrLen(filePart()); }
+    addr_size filePartLen() { return core::cstrLen(filePart()); }
 
     void setFilePart(const char* fpath) {
-        addr_size len = core::cptrLen(fpath);
+        addr_size len = core::cstrLen(fpath);
         core::memcopy(filePart(), fpath, len);
         filePart()[len] = '\0';
     }
 
     void setFileName(const char* fname) {
         filePart()[0] = FILE_SEPARATOR;
-        addr_size len = core::cptrLen(fname);
+        addr_size len = core::cstrLen(fname);
         core::memcopy(filePart() + 1, fname, len);
         filePart()[len + 1] = '\0';
     }
@@ -496,7 +496,7 @@ i32 edgeErrorCasesTest() {
             f = std::move(res.value());
         }
         {
-            auto res = core::fileWrite(f, "should fail", core::cptrLen("should fail"));
+            auto res = core::fileWrite(f, "should fail", core::cstrLen("should fail"));
             CT_CHECK(res.hasErr());
         }
         CT_CHECK(closeAndDeleteFile(std::move(f), pb.path()) == 0);
@@ -652,7 +652,7 @@ i32 mostBasicReadAndWriteTest() {
         auto res = core::fileRead(f, buff, 5);
         CT_CHECK(!res.hasErr());
         CT_CHECK(res.value() == 5);
-        CT_CHECK(core::cptrCmp(buff, core::cptrLen(buff), "hello", 5) == 0);
+        CT_CHECK(core::memcmp(buff, core::cstrLen(buff), "hello", 5) == 0);
     }
 
     CT_CHECK(closeAndDeleteFile(std::move(f), pb.path()) == 0);
@@ -748,7 +748,7 @@ i32 basicListDirectoryContentsTest() {
 
             if (de.type == core::FileType::Regular) {
                 addr_off foundIdx = core::find(fileNames, fileNamesLen, [&] (const char* elem, addr_off) -> bool {
-                    bool ret = core::cptrCmp(elem, core::cptrLen(elem), got, core::cptrLen(got)) == 0;
+                    bool ret = core::memcmp(elem, core::cstrLen(elem), got, core::cstrLen(got)) == 0;
                     return ret;
                 });
                 if (foundIdx == -1) return false;
@@ -756,7 +756,7 @@ i32 basicListDirectoryContentsTest() {
             }
             else if (de.type == core::FileType::Directory) {
                 addr_off foundIdx = core::find(dirNames, dirNamesLen, [&] (const char* elem, addr_off) -> bool {
-                    bool ret = core::cptrCmp(elem, core::cptrLen(elem), got, core::cptrLen(got)) == 0;
+                    bool ret = core::memcmp(elem, core::cstrLen(elem), got, core::cstrLen(got)) == 0;
                     return ret;
                 });
                 if (foundIdx == -1) return false;
@@ -826,8 +826,8 @@ i32 readAndWriteEntireFileTest() {
         pb.resetFilePart();
         pb.setFileName(c.path);
 
-        core::ArrList<u8> content(core::cptrLen(c.content));
-        for (addr_size i = 0; i < core::cptrLen(c.content); ++i) {
+        core::ArrList<u8> content(core::cstrLen(c.content));
+        for (addr_size i = 0; i < core::cstrLen(c.content); ++i) {
             content.push(u8(c.content[i]));
         }
 
@@ -914,7 +914,7 @@ i32 seekWriteAndReadTest() {
         char buff[10] = {};
         auto res2 = core::fileRead(f, buff, 9);
         CT_CHECK(!res2.hasErr());
-        CT_CHECK(core::cptrCmp(buff, core::cptrLen(buff), "123456789", 9) == 0);
+        CT_CHECK(core::memcmp(buff, core::cstrLen(buff), "123456789", 9) == 0);
     }
 
     CT_CHECK(closeAndDeleteFile(std::move(f), pb.path()) == 0);

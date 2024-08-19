@@ -4,32 +4,32 @@ template <typename THash>
 i32 hashCorrectnessTest(THash calcHash) {
     {
         constexpr const char* msg = "Hello, world!";
-        u64 first = calcHash(msg, core::cptrLen(msg), u64(0));
-        u64 second = calcHash(msg, core::cptrLen(msg), u64(0));
+        u64 first = calcHash(msg, core::cstrLen(msg), u64(0));
+        u64 second = calcHash(msg, core::cstrLen(msg), u64(0));
         CT_CHECK(first == second);
     }
     {
         constexpr const char* msg = "";
-        u64 first = calcHash(msg, core::cptrLen(msg), u64(0));
-        u64 second = calcHash(msg, core::cptrLen(msg), u64(0));
+        u64 first = calcHash(msg, core::cstrLen(msg), u64(0));
+        u64 second = calcHash(msg, core::cstrLen(msg), u64(0));
         CT_CHECK(first == second);
     }
     {
         constexpr const char* msg = nullptr;
-        u64 first = calcHash(msg, core::cptrLen(msg), u64(0));
-        u64 second = calcHash(msg, core::cptrLen(msg), u64(0));
+        u64 first = calcHash(msg, core::cstrLen(msg), u64(0));
+        u64 second = calcHash(msg, core::cstrLen(msg), u64(0));
         CT_CHECK(first == second);
     }
     {
         constexpr const char* msg = nullptr;
-        u64 first = calcHash(msg, core::cptrLen(msg), u64(12));
-        u64 second = calcHash(msg, core::cptrLen(msg), u64(12));
+        u64 first = calcHash(msg, core::cstrLen(msg), u64(12));
+        u64 second = calcHash(msg, core::cstrLen(msg), u64(12));
         CT_CHECK(first == second);
     }
     {
         constexpr const char* msg = nullptr;
-        u64 first = calcHash(msg, core::cptrLen(msg), u64(0));
-        u64 second = calcHash(msg, core::cptrLen(msg), u64(1234));
+        u64 first = calcHash(msg, core::cstrLen(msg), u64(0));
+        u64 second = calcHash(msg, core::cstrLen(msg), u64(1234));
         CT_CHECK(first != second);
     }
     {
@@ -52,8 +52,8 @@ i32 hashCorrectnessTest(THash calcHash) {
                                     "consectetur. Proident fugiat et adipisicing qui ea veniam qui adipisicing ut ea. Qui"
                                     "officia in cillum magna commodo consectetur aute cillum ex et. Id tempor eiusmod"
                                     "commodo dolor enim sint eiusmod exercitation incididunt esse nulla.";
-        u64 first = calcHash(msg, core::cptrLen(msg), 0);
-        u64 second = calcHash(msg, core::cptrLen(msg), 0);
+        u64 first = calcHash(msg, core::cstrLen(msg), 0);
+        u64 second = calcHash(msg, core::cstrLen(msg), 0);
         CT_CHECK(first == second);
     }
     return 0;

@@ -27,14 +27,14 @@ i32 threadNameingTest() {
         Expect(core::threadingSetName("First Name"));
         core::memset(buff, 0, core::MAX_THREAD_NAME_LENGTH);
         Expect(core::threadingGetName(buff));
-        CT_CHECK(core::cptrCmp(buff, core::cptrLen(buff), "First Name", core::cptrLen("First Name")) == 0);
+        CT_CHECK(core::memcmp(buff, core::cstrLen(buff), "First Name", core::cstrLen("First Name")) == 0);
     }
 
     {
         Expect(core::threadingSetName("Name Change"));
         core::memset(buff, 0, core::MAX_THREAD_NAME_LENGTH);
         Expect(core::threadingGetName(buff));
-        CT_CHECK(core::cptrCmp(buff, core::cptrLen(buff), "Name Change", core::cptrLen("Name Change")) == 0);
+        CT_CHECK(core::memcmp(buff, core::cstrLen(buff), "Name Change", core::cstrLen("Name Change")) == 0);
     }
 
     return 0;

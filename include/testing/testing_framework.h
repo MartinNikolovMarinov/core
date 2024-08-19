@@ -2,7 +2,7 @@
 
 #include <core_ansi_escape_codes.h>
 #include <core_API.h>
-#include <core_cptr_conv.h>
+#include <core_cstr_conv.h>
 #include <core_exec_ctx.h>
 #include <core_intrinsics.h>
 #include <core_types.h>
@@ -107,7 +107,7 @@ template <addr_size PLen, typename TCase, addr_size NCases, typename Afunc>
     }
     char* appendIdx = &errMsg[PLen - 1];
     for (auto& c : cases) {
-        core::intToCptr(i, appendIdx, PLen - 1, 2);
+        core::intToCstr(i, appendIdx, PLen - 1, 2);
         if (assertionFn(c, errMsg) != 0) return -1;
         i++;
     }
@@ -263,7 +263,7 @@ i32 runTestSuite(const TestSuiteInfo& info, TSuite suite) {
 #define CT_CHECK2(expr, msg)                                                     \
     if (!(expr)) {                                                               \
         std::cerr << "\t\t[Test failed] ";                                       \
-        if (core::cptrLen((msg)) > 0) {                                          \
+        if (core::cstrLen((msg)) > 0) {                                          \
             std::cerr << "message: \"" << (msg) << "\" ";                        \
         }                                                                        \
         std::cerr << "at " << __FILE__ << ":" << __LINE__ << " in " << __func__; \

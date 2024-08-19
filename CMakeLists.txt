@@ -85,7 +85,6 @@ set(src_files
     src/core_hash.cpp
     src/core_intrinsics.cpp
     src/core_logger.cpp
-    src/core_mem.cpp
     src/core_rnd.cpp
     src/core_str_builder.cpp
 
@@ -242,8 +241,8 @@ if(CORE_BUILD_TESTS)
         tests/t-arr.cpp
         tests/t-bits.cpp
         tests/t-cmd_flag_parser.cpp
-        tests/t-cptr_conv.cpp
-        tests/t-cptr.cpp
+        tests/t-cstr_conv.cpp
+        tests/t-cstr.cpp
         tests/t-defer.cpp
         tests/t-expected.cpp
         tests/t-hash_map.cpp

@@ -70,7 +70,7 @@ constexpr i32 digitToCharTest() {
     return ret;
 };
 
-constexpr i32 intToCptrTest() {
+constexpr i32 intToCstrTest() {
     {
         struct TestCase {
             i32 in;
@@ -92,10 +92,10 @@ constexpr i32 intToCptrTest() {
 
         i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             char buf[12] = {};
-            auto res = core::intToCptr(c.in, buf, 12, c.digitCount);
-            CT_CHECK(core::cptrLen(buf) == res, cErr);
-            CT_CHECK(core::cptrLen(buf) == core::cptrLen(c.expected));
-            CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
+            auto res = core::intToCstr(c.in, buf, 12, c.digitCount);
+            CT_CHECK(core::cstrLen(buf) == res, cErr);
+            CT_CHECK(core::cstrLen(buf) == core::cstrLen(c.expected));
+            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);
@@ -125,10 +125,10 @@ constexpr i32 intToCptrTest() {
 
         i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             char buf[21] = {};
-            auto res = core::intToCptr(c.in, buf, 21, c.digitCount);
-            CT_CHECK(core::cptrLen(buf) == res, cErr);
-            CT_CHECK(core::cptrLen(buf) == core::cptrLen(c.expected));
-            CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
+            auto res = core::intToCstr(c.in, buf, 21, c.digitCount);
+            CT_CHECK(core::cstrLen(buf) == res, cErr);
+            CT_CHECK(core::cstrLen(buf) == core::cstrLen(c.expected));
+            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);
@@ -153,10 +153,10 @@ constexpr i32 intToCptrTest() {
 
         i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             char buf[11] = {};
-            auto res = core::intToCptr(c.in, buf, 11, c.digitCount);
-            CT_CHECK(core::cptrLen(buf) == res, cErr);
-            CT_CHECK(core::cptrLen(buf) == core::cptrLen(c.expected));
-            CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
+            auto res = core::intToCstr(c.in, buf, 11, c.digitCount);
+            CT_CHECK(core::cstrLen(buf) == res, cErr);
+            CT_CHECK(core::cstrLen(buf) == core::cstrLen(c.expected));
+            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);
@@ -183,10 +183,10 @@ constexpr i32 intToCptrTest() {
 
         i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             char buf[20] = {};
-            auto res = core::intToCptr(c.in, buf, 20, c.digitCount);
-            CT_CHECK(core::cptrLen(buf) == res, cErr);
-            CT_CHECK(core::cptrLen(buf) == core::cptrLen(c.expected));
-            CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
+            auto res = core::intToCstr(c.in, buf, 20, c.digitCount);
+            CT_CHECK(core::cstrLen(buf) == res, cErr);
+            CT_CHECK(core::cstrLen(buf) == core::cstrLen(c.expected));
+            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);
@@ -195,7 +195,7 @@ constexpr i32 intToCptrTest() {
     return 0;
 }
 
-constexpr i32 cptrToIntTest() {
+constexpr i32 cstrToIntTest() {
     {
         struct TestCase {
             const char* input;
@@ -226,7 +226,7 @@ constexpr i32 cptrToIntTest() {
 
         i32 ret = core::testing::executeTestTable("test case failed for i8 at index: ", cases, [](auto& c, const char* cErr) {
             IS_CONST_EVALUATED { if (c.skipAtCompileTime) return 0; }
-            auto v = core::cptrToInt<i8>(c.input);
+            auto v = core::cstrToInt<i8>(c.input);
             CT_CHECK(v == c.expected, cErr);
             return 0;
         });
@@ -254,7 +254,7 @@ constexpr i32 cptrToIntTest() {
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for u8 at index: ", cases, [](auto& c, const char* cErr) {
-            auto v = core::cptrToInt<u8>(c.input);
+            auto v = core::cstrToInt<u8>(c.input);
             CT_CHECK(v == c.expected, cErr);
             return 0;
         });
@@ -291,7 +291,7 @@ constexpr i32 cptrToIntTest() {
 
         i32 ret = core::testing::executeTestTable("test case failed for i16 at index: ", cases, [](auto& c, const char* cErr) {
             IS_CONST_EVALUATED { if (c.skipAtCompileTime) return 0; }
-            auto v = core::cptrToInt<i16>(c.input);
+            auto v = core::cstrToInt<i16>(c.input);
             CT_CHECK(v == c.expected, cErr);
             return 0;
         });
@@ -319,7 +319,7 @@ constexpr i32 cptrToIntTest() {
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for u16 at index: ", cases, [](auto& c, const char* cErr) {
-            auto v = core::cptrToInt<u16>(c.input);
+            auto v = core::cstrToInt<u16>(c.input);
             CT_CHECK(v == c.expected, cErr);
             return 0;
         });
@@ -355,7 +355,7 @@ constexpr i32 cptrToIntTest() {
 
         i32 ret = core::testing::executeTestTable("test case failed for i32 at index: ", cases, [](auto& c, const char* cErr) {
             IS_CONST_EVALUATED { if (c.skipAtCompileTime) return 0; }
-            auto v = core::cptrToInt<i32>(c.input);
+            auto v = core::cstrToInt<i32>(c.input);
             CT_CHECK(v == c.expected, cErr);
             return 0;
         });
@@ -383,7 +383,7 @@ constexpr i32 cptrToIntTest() {
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for u32 at index: ", cases, [](auto& c, const char* cErr) {
-            auto v = core::cptrToInt<u32>(c.input);
+            auto v = core::cstrToInt<u32>(c.input);
             CT_CHECK(v == c.expected, cErr);
             return 0;
         });
@@ -419,7 +419,7 @@ constexpr i32 cptrToIntTest() {
 
         i32 ret = core::testing::executeTestTable("test case failed for i64 at index: ", cases, [](auto& c, const char* cErr) {
             IS_CONST_EVALUATED { if (c.skipAtCompileTime) return 0; }
-            auto v = core::cptrToInt<i64>(c.input);
+            auto v = core::cstrToInt<i64>(c.input);
             CT_CHECK(v == c.expected, cErr);
             return 0;
         });
@@ -447,7 +447,7 @@ constexpr i32 cptrToIntTest() {
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for u64 at index: ", cases, [](auto& c, const char* cErr) {
-            auto v = core::cptrToInt<u64>(c.input);
+            auto v = core::cstrToInt<u64>(c.input);
             CT_CHECK(v == c.expected, cErr);
             return 0;
         });
@@ -457,7 +457,7 @@ constexpr i32 cptrToIntTest() {
     return 0;
 }
 
-constexpr i32 cptrToFloatTest() {
+constexpr i32 cstrToFloatTest() {
 
     {
         struct TestCase {
@@ -483,7 +483,7 @@ constexpr i32 cptrToFloatTest() {
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for f32 at index: ", cases, [](auto& c, const char* cErr) {
-            auto v = core::cptrToFloat<f32>(c.input);
+            auto v = core::cstrToFloat<f32>(c.input);
             CT_CHECK(core::safeEq(v, c.expected, 0.000001f), cErr);
             return 0;
         });
@@ -516,7 +516,7 @@ constexpr i32 cptrToFloatTest() {
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for f64 at index: ", cases, [](auto& c, const char* cErr) {
-            auto v = core::cptrToFloat<f64>(c.input);
+            auto v = core::cstrToFloat<f64>(c.input);
             CT_CHECK(core::safeEq(v, c.expected, 0.00000001), cErr);
             return 0;
         });
@@ -540,7 +540,7 @@ constexpr i32 intHexTest() {
         i32 ret = core::testing::executeTestTable("test case failed for i8 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::intToHex(c.in, buf);
-            CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
+            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);
@@ -561,7 +561,7 @@ constexpr i32 intHexTest() {
         i32 ret = core::testing::executeTestTable("test case failed for i16 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::intToHex(c.in, buf);
-            CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
+            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);
@@ -583,7 +583,7 @@ constexpr i32 intHexTest() {
         i32 ret = core::testing::executeTestTable("test case failed for i32 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::intToHex(c.in, buf);
-            CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
+            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);
@@ -604,7 +604,7 @@ constexpr i32 intHexTest() {
         i32 ret = core::testing::executeTestTable("test case failed for i64 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::intToHex(c.in, buf);
-            CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
+            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);
@@ -620,7 +620,7 @@ constexpr i32 intHexTest() {
         i32 ret = core::testing::executeTestTable("test case failed for u8 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::intToHex(c.in, buf);
-            CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
+            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);
@@ -638,7 +638,7 @@ constexpr i32 intHexTest() {
         i32 ret = core::testing::executeTestTable("test case failed for u16 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::intToHex(c.in, buf);
-            CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
+            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);
@@ -657,7 +657,7 @@ constexpr i32 intHexTest() {
         i32 ret = core::testing::executeTestTable("test case failed for u32 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::intToHex(c.in, buf);
-            CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
+            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);
@@ -677,7 +677,7 @@ constexpr i32 intHexTest() {
         i32 ret = core::testing::executeTestTable("test case failed for u64 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
             core::intToHex(c.in, buf);
-            CT_CHECK(core::cptrCmp(buf, core::cptrLen(buf), c.expected, core::cptrLen(c.expected)) == 0, cErr);
+            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);
@@ -686,7 +686,7 @@ constexpr i32 intHexTest() {
     return 0;
 }
 
-constexpr i32 floatToCptrTest() {
+constexpr i32 floatToCstrTest() {
     constexpr addr_size BUFFER_SIZE = 30;
 
     struct TestCase32Bit { f32 in; const char* expected; u32 precision; };
@@ -695,12 +695,12 @@ constexpr i32 floatToCptrTest() {
     auto verifyCase = [](auto in, const char* expected, u32 precision) -> i32 {
         char buf[BUFFER_SIZE] = {};
 
-        u32 res = core::floatToCptr(in, buf, BUFFER_SIZE, precision);
-        addr_size bufLen = core::cptrLen(buf);
+        u32 res = core::floatToCstr(in, buf, BUFFER_SIZE, precision);
+        addr_size bufLen = core::cstrLen(buf);
 
         CT_CHECK(bufLen == addr_size(res));
-        CT_CHECK(bufLen == core::cptrLen(expected));
-        CT_CHECK(core::cptrCmp(buf, bufLen, expected, core::cptrLen(expected)) == 0);
+        CT_CHECK(bufLen == core::cstrLen(expected));
+        CT_CHECK(core::memcmp(buf, bufLen, expected, core::cstrLen(expected)) == 0);
 
         IS_NOT_CONST_EVALUATED {
             if constexpr (sizeof(decltype(in)) == 8) {
@@ -711,7 +711,7 @@ constexpr i32 floatToCptrTest() {
                 i32 expectedRes = snprintf(expectedBuf, BUFFER_SIZE, "%.*f", precision, in);
                 CT_CHECK(bufLen == addr_size(res));
                 CT_CHECK(bufLen == addr_size(expectedRes));
-                CT_CHECK(core::cptrCmp(buf, addr_size(bufLen), expectedBuf, addr_size(expectedRes)) == 0);
+                CT_CHECK(core::memcmp(buf, addr_size(bufLen), expectedBuf, addr_size(expectedRes)) == 0);
             }
         }
 
@@ -982,7 +982,7 @@ constexpr i32 floatToCptrTest() {
     return 0;
 }
 
-i32 runCptrConvTestsSuite() {
+i32 runCstrConvTestsSuite() {
     using namespace core::testing;
 
     i32 ret = 0;
@@ -992,28 +992,28 @@ i32 runCptrConvTestsSuite() {
     if (runTest(tInfo, charToIntTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(digitToCharTest);
     if (runTest(tInfo, digitToCharTest) != 0) { ret = -1; }
-    tInfo.name = FN_NAME_TO_CPTR(intToCptrTest);
-    if (runTest(tInfo, intToCptrTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(intToCstrTest);
+    if (runTest(tInfo, intToCstrTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(intHexTest);
     if (runTest(tInfo, intHexTest) != 0) { ret = -1; }
-    tInfo.name = FN_NAME_TO_CPTR(floatToCptrTest);
-    if (runTest(tInfo, floatToCptrTest) != 0) { ret = -1; }
-    tInfo.name = FN_NAME_TO_CPTR(cptrToIntTest);
-    if (runTest(tInfo, cptrToIntTest) != 0) { ret = -1; }
-    tInfo.name = FN_NAME_TO_CPTR(cptrToFloatTest);
-    if (runTest(tInfo, cptrToFloatTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(floatToCstrTest);
+    if (runTest(tInfo, floatToCstrTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cstrToIntTest);
+    if (runTest(tInfo, cstrToIntTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cstrToFloatTest);
+    if (runTest(tInfo, cstrToFloatTest) != 0) { ret = -1; }
 
     return ret;
 }
 
-constexpr i32 runCompiletimeCptrConvTestsSuite() {
+constexpr i32 runCompiletimeCstrConvTestsSuite() {
     RunTestCompileTime(charToIntTest);
     RunTestCompileTime(digitToCharTest);
-    RunTestCompileTime(intToCptrTest);
+    RunTestCompileTime(intToCstrTest);
     RunTestCompileTime(intHexTest);
-    // RunTestCompileTime(floatToCptrTest); // FIXME: uncomment this when it's ready.
-    RunTestCompileTime(cptrToIntTest);
-    RunTestCompileTime(cptrToFloatTest);
+    // RunTestCompileTime(floatToCstrTest); // FIXME: uncomment this when it's ready.
+    RunTestCompileTime(cstrToIntTest);
+    RunTestCompileTime(cstrToFloatTest);
 
     return 0;
 }

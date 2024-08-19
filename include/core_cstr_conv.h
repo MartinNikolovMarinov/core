@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core_cptr.h>
+#include <core_cstr.h>
 #include <core_ints.h>
 #include <core_traits.h>
 #include <core_types.h>
@@ -28,7 +28,7 @@ constexpr char digitToChar(TInt digit) {
 namespace detail {
 
 template<typename TInt>
-constexpr u32 intToCptr(TInt n, char* out, addr_size outMax, u32 digits) {
+constexpr u32 intToCstr(TInt n, char* out, addr_size outMax, u32 digits) {
     static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
     Assert(out);
 
@@ -59,15 +59,15 @@ constexpr u32 intToCptr(TInt n, char* out, addr_size outMax, u32 digits) {
 
 } // detail namespace
 
-constexpr u32 intToCptr(u32 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCptr(n, out, outMax, digits); }
-constexpr u32 intToCptr(u64 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCptr(n, out, outMax, digits); }
-constexpr u32 intToCptr(i32 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCptr(n, out, outMax, digits); }
-constexpr u32 intToCptr(i64 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCptr(n, out, outMax, digits); }
+constexpr u32 intToCstr(u32 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCstr(n, out, outMax, digits); }
+constexpr u32 intToCstr(u64 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCstr(n, out, outMax, digits); }
+constexpr u32 intToCstr(i32 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCstr(n, out, outMax, digits); }
+constexpr u32 intToCstr(i64 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCstr(n, out, outMax, digits); }
 
 namespace detail {
 
 template <typename TFloat>
-constexpr u32 floatToCptr(TFloat n, char* out, addr_size outMax, u32 precision) {
+constexpr u32 floatToCstr(TFloat n, char* out, addr_size outMax, u32 precision) {
     static_assert(core::is_float_v<TFloat>, "TFloat must be a floating point type.");
     Assert(out);
 
@@ -132,7 +132,7 @@ constexpr u32 floatToCptr(TFloat n, char* out, addr_size outMax, u32 precision) 
     }
 
     // Convert the integer part.
-    idx += detail::intToCptr(intPart, out + idx, outMax, 0);
+    idx += detail::intToCstr(intPart, out + idx, outMax, 0);
     if (precision > 0) {
         safeAppend('.');
 
@@ -144,7 +144,7 @@ constexpr u32 floatToCptr(TFloat n, char* out, addr_size outMax, u32 precision) 
 
         // Convert the fractional part.
         u32 prev = idx;
-        idx += detail::intToCptr(fracPart, out + idx, outMax, 0);
+        idx += detail::intToCstr(fracPart, out + idx, outMax, 0);
         u32 currentPrecision = (idx - prev) + zeroesToPrepend;
 
         // Add trailing zeroes if the precision is not reached.
@@ -158,14 +158,14 @@ constexpr u32 floatToCptr(TFloat n, char* out, addr_size outMax, u32 precision) 
 
 } // detail
 
-constexpr u32 floatToCptr(f32 n, char* out, addr_size outMax, u32 precision = 6) { return detail::floatToCptr(n, out, outMax, precision); }
-constexpr u32 floatToCptr(f64 n, char* out, addr_size outMax, u32 precision = 6) { return detail::floatToCptr(n, out, outMax, precision); }
+constexpr u32 floatToCstr(f32 n, char* out, addr_size outMax, u32 precision = 6) { return detail::floatToCstr(n, out, outMax, precision); }
+constexpr u32 floatToCstr(f64 n, char* out, addr_size outMax, u32 precision = 6) { return detail::floatToCstr(n, out, outMax, precision); }
 
 // This function does not handle TInt overflows!
 template <typename TInt>
-constexpr TInt cptrToInt(const char* s) {
+constexpr TInt cstrToInt(const char* s) {
     static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
-    s = cptrSkipSpace(s);
+    s = cstrSkipSpace(s);
     if (s == nullptr || (s[0] != '-' && !isDigit(s[0]))) return 0;
 
     TInt res = 0;
@@ -193,9 +193,9 @@ constexpr TInt cptrToInt(const char* s) {
 
 // This function does not handle TFloat overflows!
 template <typename TFloat>
-constexpr TFloat cptrToFloat(const char* s) {
+constexpr TFloat cstrToFloat(const char* s) {
     static_assert(core::is_float_v<TFloat>, "TFloat must be a floating point type.");
-    s = cptrSkipSpace(s);
+    s = cstrSkipSpace(s);
     if (s == nullptr || ((s[0] != '-' && s[0] != '.') && !isDigit(s[0]))) return 0;
     TFloat res = 0;
     bool neg = s[0] == '-';

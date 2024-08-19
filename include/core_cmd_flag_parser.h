@@ -3,11 +3,12 @@
 #include <core_alloc.h>
 #include <core_API.h>
 #include <core_arr.h>
-#include <core_cptr_conv.h>
-#include <core_cptr.h>
+#include <core_cstr_conv.h>
+#include <core_cstr.h>
 #include <core_expected.h>
 #include <core_hash_map.h>
 #include <core_hash.h>
+#include <core_mem.h>
 #include <core_str_builder.h>
 #include <core_str_view.h>
 #include <core_types.h>
@@ -123,7 +124,7 @@ struct CORE_API_EXPORT CmdFlagParser {
             const char* chunk = argv[i];
             if (chunk == nullptr) return core::unexpected(ParseError::InvalidArgvElement);
 
-            chunk = core::cptrSkipSpace(chunk);
+            chunk = core::cstrSkipSpace(chunk);
 
             bool isFlag = false;
             bool isOption = false;
@@ -138,7 +139,7 @@ struct CORE_API_EXPORT CmdFlagParser {
                 }
             }
 
-            addr_size trailingIdx = trailingWhitespaceIdx(chunk, core::cptrLen(chunk));
+            addr_size trailingIdx = trailingWhitespaceIdx(chunk, core::cstrLen(chunk));
 
             switch (state) {
                 case 0: // in program name
@@ -283,9 +284,9 @@ struct CORE_API_EXPORT CmdFlagParser {
                         bool v = false;
 
                         if (vLen >= 4) {
-                            v = core::cptrCmp(value.data(), 4, "true", 4) == 0 ||
-                                core::cptrCmp(value.data(), 4, "True", 4) == 0 ||
-                                core::cptrCmp(value.data(), 4, "TRUE", 4) == 0;
+                            v = core::memcmp(value.data(), 4, "true", 4) == 0 ||
+                                core::memcmp(value.data(), 4, "True", 4) == 0 ||
+                                core::memcmp(value.data(), 4, "TRUE", 4) == 0;
                             if (vLen > 4) {
                                 // This checks that the words ['true', 'True', 'TRUE'] are not a prefix of a longer word.
                                 v &= core::isWhiteSpace(value[4]) || value[4] == '\0';
@@ -305,42 +306,42 @@ struct CORE_API_EXPORT CmdFlagParser {
                     }
                     case FlagType::Int32:
                     {
-                        i32 v = core::cptrToInt<i32>(value.data());
+                        i32 v = core::cstrToInt<i32>(value.data());
                         *reinterpret_cast<i32*>(fd->data) = v;
                         fd->isSet = true;
                         break;
                     }
                     case FlagType::Int64:
                     {
-                        i64 v = core::cptrToInt<i64>(value.data());
+                        i64 v = core::cstrToInt<i64>(value.data());
                         *reinterpret_cast<i64*>(fd->data) = v;
                         fd->isSet = true;
                         break;
                     }
                     case FlagType::Uint32:
                     {
-                        u32 v = core::cptrToInt<u32>(value.data());
+                        u32 v = core::cstrToInt<u32>(value.data());
                         *reinterpret_cast<u32*>(fd->data) = v;
                         fd->isSet = true;
                         break;
                     }
                     case FlagType::Uint64:
                     {
-                        u64 v = core::cptrToInt<u64>(value.data());
+                        u64 v = core::cstrToInt<u64>(value.data());
                         *reinterpret_cast<u64*>(fd->data) = v;
                         fd->isSet = true;
                         break;
                     }
                     case FlagType::Float32:
                     {
-                        f32 v = core::cptrToFloat<f32>(value.data());
+                        f32 v = core::cstrToFloat<f32>(value.data());
                         *reinterpret_cast<f32*>(fd->data) = v;
                         fd->isSet = true;
                         break;
                     }
                     case FlagType::Float64:
                     {
-                        f64 v = core::cptrToFloat<f64>(value.data());
+                        f64 v = core::cstrToFloat<f64>(value.data());
                         *reinterpret_cast<f64*>(fd->data) = v;
                         fd->isSet = true;
                         break;

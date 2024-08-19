@@ -1,3 +1,5 @@
+#include <core_mem.h>
+
 #include <plt/core_fs.h>
 
 #include <dirent.h>
@@ -303,8 +305,8 @@ core::expected<PltErrCode> dirWalk(const char* path, DirWalkCallback cb, void* u
             break;
         }
 
-        bool shouldSkip = (core::cptrCmp(entry->d_name, core::cptrLen(entry->d_name), ".", 1) == 0) ||
-                          (core::cptrCmp(entry->d_name, core::cptrLen(entry->d_name), "..", 2) == 0);
+        bool shouldSkip = (core::memcmp(entry->d_name, core::cstrLen(entry->d_name), ".", 1) == 0) ||
+                          (core::memcmp(entry->d_name, core::cstrLen(entry->d_name), "..", 2) == 0);
         if (shouldSkip) {
             continue;
         }

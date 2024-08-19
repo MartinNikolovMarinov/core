@@ -10,13 +10,13 @@ using size_type = StrBuilder::size_type;
 
 namespace {
 
-void assignFromCptr(value_type** value, size_type& len, size_type& cap,
-                    const char* cptr, size_type cptrLen) {
-    if (cptrLen > 0) {
-        len = cptrLen;
-        cap = cptrLen + 1;
+void assignFromCstr(value_type** value, size_type& len, size_type& cap,
+                    const char* cstr, size_type cstrLen) {
+    if (cstrLen > 0) {
+        len = cstrLen;
+        cap = cstrLen + 1;
         *value = reinterpret_cast<value_type*>(core::alloc(cap, sizeof(StrBuilder::value_type)));
-        core::memcopy(*value, cptr, len * sizeof(StrBuilder::value_type));
+        core::memcopy(*value, cstr, len);
         (*value)[len] = '\0';
     }
     else {
@@ -59,10 +59,10 @@ StrBuilder::StrBuilder(size_type len, const value_type& val) {
     m_data[m_len] = '\0';
 }
 StrBuilder::StrBuilder(const StrView& view) {
-    assignFromCptr(&this->m_data, this->m_len, this->m_cap, view.data(), view.len());
+    assignFromCstr(&this->m_data, this->m_len, this->m_cap, view.data(), view.len());
 }
 StrBuilder::StrBuilder(StrView&& view) {
-    assignFromCptr(&this->m_data, this->m_len, this->m_cap, view.data(), view.len());
+    assignFromCstr(&this->m_data, this->m_len, this->m_cap, view.data(), view.len());
     view.ptr = nullptr;
     view.length = 0;
 }
@@ -120,7 +120,7 @@ StrBuilder StrBuilder::copy() const {
     cpy.m_data = reinterpret_cast<value_type*>(core::alloc(m_cap, sizeof(value_type)));
     cpy.m_cap = m_cap;
     cpy.m_len = m_len;
-    core::memcopy(cpy.m_data, m_data, cpy.m_cap * sizeof(value_type));
+    core::memcopy(cpy.m_data, m_data, cpy.m_cap);
     return cpy;
 }
 
@@ -160,7 +160,7 @@ StrBuilder& StrBuilder::append(const value_type& val) {
     return *this;
 }
 
-StrBuilder& StrBuilder::append(const value_type* cptr, size_type len) {
+StrBuilder& StrBuilder::append(const value_type* cstr, size_type len) {
     if (len == 0) return *this;
 
     addr_size effectiveLen = m_len + len;
@@ -168,7 +168,7 @@ StrBuilder& StrBuilder::append(const value_type* cptr, size_type len) {
         ensureCap(effectiveLen + m_cap * 2 + 1);
     }
 
-    core::cptrCopy(m_data + m_len, cptr, len);
+    core::memcopy(m_data + m_len, cstr, len);
     m_len += len;
     return *this;
 }
@@ -184,7 +184,7 @@ void StrBuilder::ensureCap(size_type newCap) {
 
     value_type* newData = reinterpret_cast<value_type *>(core::zeroAlloc(newCap, sizeof(value_type)));
     if (m_data != nullptr) {
-        core::memcopy(newData, m_data, m_len * sizeof(value_type));
+        core::memcopy(newData, m_data, m_len);
         core::free(m_data, m_cap, sizeof(value_type));
     }
     m_data = newData;

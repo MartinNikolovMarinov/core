@@ -17,7 +17,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneOneBitTest() {
     CT_CHECK(r == 0);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 1);
-    CT_CHECK(core::cptrCmp(d, core::cptrLen(d), d2, core::cptrLen(d2)) == 0);
+    CT_CHECK(core::memcmp(d, core::cstrLen(d), d2, core::cstrLen(d2)) == 0);
 
     // 127 is DELETE, which is the the MAXIMUM 1 byte encoded character.
     d[0] = 127;
@@ -25,7 +25,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneOneBitTest() {
     CT_CHECK(r == 127);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 1);
-    CT_CHECK(core::cptrCmp(d, core::cptrLen(d), d2, core::cptrLen(d2)) == 0);
+    CT_CHECK(core::memcmp(d, core::cstrLen(d), d2, core::cstrLen(d2)) == 0);
 
     return 0;
 }
@@ -47,7 +47,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneTwoBitTest() {
     CT_CHECK(r == 128);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 2);
-    CT_CHECK(core::cptrCmp(d, core::cptrLen(d), d2, core::cptrLen(d2)) == 0);
+    CT_CHECK(core::memcmp(d, core::cstrLen(d), d2, core::cstrLen(d2)) == 0);
 
     // д symbol
     d[0] = 208;
@@ -56,7 +56,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneTwoBitTest() {
     CT_CHECK(r == 1076);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 2);
-    CT_CHECK(core::cptrCmp(d, core::cptrLen(d), d2, core::cptrLen(d2)) == 0);
+    CT_CHECK(core::memcmp(d, core::cstrLen(d), d2, core::cstrLen(d2)) == 0);
 
     // 223, 191 is ߿ , which is the MAXIMUM 2 byte encoded character.
     d[0] = 223;
@@ -65,7 +65,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneTwoBitTest() {
     CT_CHECK(r == 2047);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 2);
-    CT_CHECK(core::cptrCmp(d, core::cptrLen(d), d2, core::cptrLen(d2)) == 0);
+    CT_CHECK(core::memcmp(d, core::cstrLen(d), d2, core::cstrLen(d2)) == 0);
 
     return 0;
 }
@@ -88,7 +88,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneThreeBitTest() {
     CT_CHECK(r == 2048);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 3);
-    CT_CHECK(core::cptrCmp(d, core::cptrLen(d), d2, core::cptrLen(d2)) == 0);
+    CT_CHECK(core::memcmp(d, core::cstrLen(d), d2, core::cstrLen(d2)) == 0);
 
     // 239, 191, 191 is not used, but it is the MAXIMUM possible 3 byte encoding!
     d[0] = 239;
@@ -98,7 +98,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneThreeBitTest() {
     CT_CHECK(r == 65535);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 3);
-    CT_CHECK(core::cptrCmp(d, core::cptrLen(d), d2, core::cptrLen(d2)) == 0);
+    CT_CHECK(core::memcmp(d, core::cstrLen(d), d2, core::cstrLen(d2)) == 0);
 
     return 0;
 }
@@ -122,7 +122,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneFourBitTest() {
     CT_CHECK(r == 65536);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 4);
-    CT_CHECK(core::cptrCmp(d, core::cptrLen(d), d2, core::cptrLen(d2)) == 0);
+    CT_CHECK(core::memcmp(d, core::cstrLen(d), d2, core::cstrLen(d2)) == 0);
 
     // poop emoji:
     d[0] = 240;
@@ -133,7 +133,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneFourBitTest() {
     CT_CHECK(r == 128169);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 4);
-    CT_CHECK(core::cptrCmp(d, core::cptrLen(d), d2, core::cptrLen(d2)) == 0);
+    CT_CHECK(core::memcmp(d, core::cstrLen(d), d2, core::cstrLen(d2)) == 0);
 
     // 247, 191, 191, 191 is not used, but it is the MAXIMUM possible 4 byte encoding!
     d[0] = 247;
@@ -144,7 +144,7 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneFourBitTest() {
     CT_CHECK(r == 2097151);
     len = core::runeToBytes(r, d2);
     CT_CHECK(len == 4);
-    CT_CHECK(core::cptrCmp(d, core::cptrLen(d), d2, core::cptrLen(d2)) == 0);
+    CT_CHECK(core::memcmp(d, core::cstrLen(d), d2, core::cstrLen(d2)) == 0);
 
     return 0;
 }

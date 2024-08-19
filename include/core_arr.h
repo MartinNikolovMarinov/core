@@ -100,7 +100,7 @@ struct ArrList {
         if (m_cap > 0) {
             dataCopy = reinterpret_cast<value_type *>(core::alloc(m_cap, sizeof(value_type)));
             if constexpr (dataIsTrivial) {
-                core::memcopy(dataCopy, m_data, m_len * sizeof(value_type));
+                core::memcopy(dataCopy, m_data, m_len);
             }
             else {
                 for (size_type i = 0; i < m_len; i++) {
@@ -168,7 +168,7 @@ struct ArrList {
         // reallocate
         value_type* newData = reinterpret_cast<value_type *>(core::alloc(newCap, sizeof(value_type)));
         if (m_data != nullptr) {
-            core::memcopy(newData, m_data, m_len * sizeof(value_type));
+            core::memcopy(newData, m_data, m_len);
             core::free(m_data, m_cap, sizeof(value_type));
         }
 
@@ -201,7 +201,7 @@ struct ArrList {
         }
 
         if constexpr (dataIsTrivial) {
-            core::memcopy(m_data + m_len, val, len * sizeof(value_type));
+            core::memcopy(m_data + m_len, val, len);
         }
         else {
             for (size_type i = 0; i < len; i++) {

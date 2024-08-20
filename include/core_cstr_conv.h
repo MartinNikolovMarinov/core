@@ -13,6 +13,30 @@ namespace core {
 
 using namespace coretypes;
 
+template <typename Ta>     constexpr inline Ta  charToInt(char s);
+template<typename TInt>    constexpr char       digitToChar(TInt digit);
+
+                           constexpr u32        intToCstr(u32 n, char* out, addr_size outMax, u32 digits = 0);
+                           constexpr u32        intToCstr(u64 n, char* out, addr_size outMax, u32 digits = 0);
+                           constexpr u32        intToCstr(i32 n, char* out, addr_size outMax, u32 digits = 0);
+                           constexpr u32        intToCstr(i64 n, char* out, addr_size outMax, u32 digits = 0);
+
+                           constexpr u32        floatToCstr(f32 n, char* out, addr_size outMax, u32 precision = 6);
+                           constexpr u32        floatToCstr(f64 n, char* out, addr_size outMax, u32 precision = 6);
+
+template <typename TInt>   constexpr TInt       cstrToInt(const char* s);
+template <typename TFloat> constexpr TFloat     cstrToFloat(const char* s);
+
+                           constexpr void       intToHex(u8 v, char* out, u64 hexLen = (sizeof(u8) << 1));
+                           constexpr void       intToHex(u16 v, char* out, u64 hexLen = (sizeof(u16) << 1));
+                           constexpr void       intToHex(u32 v, char* out, u64 hexLen = (sizeof(u32) << 1));
+                           constexpr void       intToHex(u64 v, char* out, u64 hexLen = (sizeof(u64) << 1));
+                           constexpr void       intToHex(i8 v, char* out, u64 hexLen = (sizeof(i8) << 1));
+                           constexpr void       intToHex(i16 v, char* out, u64 hexLen = (sizeof(i16) << 1));
+                           constexpr void       intToHex(i32 v, char* out, u64 hexLen = (sizeof(i32) << 1));
+                           constexpr void       intToHex(i64 v, char* out, u64 hexLen = (sizeof(i64) << 1));
+
+
 template <typename Ta>
 constexpr inline Ta charToInt(char s) {
     static_assert(std::is_arithmetic_v<Ta>, "TInt must be an arithmetic type.");
@@ -59,10 +83,10 @@ constexpr u32 intToCstr(TInt n, char* out, addr_size outMax, u32 digits) {
 
 } // detail namespace
 
-constexpr u32 intToCstr(u32 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCstr(n, out, outMax, digits); }
-constexpr u32 intToCstr(u64 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCstr(n, out, outMax, digits); }
-constexpr u32 intToCstr(i32 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCstr(n, out, outMax, digits); }
-constexpr u32 intToCstr(i64 n, char* out, addr_size outMax, u32 digits = 0) { return detail::intToCstr(n, out, outMax, digits); }
+constexpr u32 intToCstr(u32 n, char* out, addr_size outMax, u32 digits) { return detail::intToCstr(n, out, outMax, digits); }
+constexpr u32 intToCstr(u64 n, char* out, addr_size outMax, u32 digits) { return detail::intToCstr(n, out, outMax, digits); }
+constexpr u32 intToCstr(i32 n, char* out, addr_size outMax, u32 digits) { return detail::intToCstr(n, out, outMax, digits); }
+constexpr u32 intToCstr(i64 n, char* out, addr_size outMax, u32 digits) { return detail::intToCstr(n, out, outMax, digits); }
 
 namespace detail {
 
@@ -158,8 +182,8 @@ constexpr u32 floatToCstr(TFloat n, char* out, addr_size outMax, u32 precision) 
 
 } // detail
 
-constexpr u32 floatToCstr(f32 n, char* out, addr_size outMax, u32 precision = 6) { return detail::floatToCstr(n, out, outMax, precision); }
-constexpr u32 floatToCstr(f64 n, char* out, addr_size outMax, u32 precision = 6) { return detail::floatToCstr(n, out, outMax, precision); }
+constexpr u32 floatToCstr(f32 n, char* out, addr_size outMax, u32 precision) { return detail::floatToCstr(n, out, outMax, precision); }
+constexpr u32 floatToCstr(f64 n, char* out, addr_size outMax, u32 precision) { return detail::floatToCstr(n, out, outMax, precision); }
 
 // This function does not handle TInt overflows!
 template <typename TInt>
@@ -239,13 +263,13 @@ constexpr void intToHex(TInt v, char* out, u64 hexLen) {
 
 } // namespace detail
 
-constexpr void intToHex(u8 v, char* out, u64 hexLen = (sizeof(u8) << 1))   { detail::intToHex(v, out, hexLen); }
-constexpr void intToHex(u16 v, char* out, u64 hexLen = (sizeof(u16) << 1)) { detail::intToHex(v, out, hexLen); }
-constexpr void intToHex(u32 v, char* out, u64 hexLen = (sizeof(u32) << 1)) { detail::intToHex(v, out, hexLen); }
-constexpr void intToHex(u64 v, char* out, u64 hexLen = (sizeof(u64) << 1)) { detail::intToHex(v, out, hexLen); }
-constexpr void intToHex(i8 v, char* out, u64 hexLen = (sizeof(i8) << 1))   { detail::intToHex(v, out, hexLen); }
-constexpr void intToHex(i16 v, char* out, u64 hexLen = (sizeof(i16) << 1)) { detail::intToHex(v, out, hexLen); }
-constexpr void intToHex(i32 v, char* out, u64 hexLen = (sizeof(i32) << 1)) { detail::intToHex(v, out, hexLen); }
-constexpr void intToHex(i64 v, char* out, u64 hexLen = (sizeof(i64) << 1)) { detail::intToHex(v, out, hexLen); }
+constexpr void intToHex(u8 v, char* out, u64 hexLen)  { detail::intToHex(v, out, hexLen); }
+constexpr void intToHex(u16 v, char* out, u64 hexLen) { detail::intToHex(v, out, hexLen); }
+constexpr void intToHex(u32 v, char* out, u64 hexLen) { detail::intToHex(v, out, hexLen); }
+constexpr void intToHex(u64 v, char* out, u64 hexLen) { detail::intToHex(v, out, hexLen); }
+constexpr void intToHex(i8 v, char* out, u64 hexLen)  { detail::intToHex(v, out, hexLen); }
+constexpr void intToHex(i16 v, char* out, u64 hexLen) { detail::intToHex(v, out, hexLen); }
+constexpr void intToHex(i32 v, char* out, u64 hexLen) { detail::intToHex(v, out, hexLen); }
+constexpr void intToHex(i64 v, char* out, u64 hexLen) { detail::intToHex(v, out, hexLen); }
 
 } // namespace core

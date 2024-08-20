@@ -9,6 +9,13 @@ namespace core {
 
 using namespace coretypes;
 
+struct CORE_API_EXPORT StrView;
+
+constexpr StrView sv();
+constexpr StrView sv(const char* str);
+constexpr StrView sv(const char* str, addr_size len);
+constexpr StrView operator""_sv(const char* str, size_t len);
+
 struct CORE_API_EXPORT StrView {
     using size_type = addr_size;
 

@@ -37,8 +37,8 @@ inline TFloat slope(const vec2<TFloat>& a, const vec2<TFloat>& b) {
  **/
 template <typename TFloat>
 constexpr inline bool lineToLineIntersection(const core::vec2<TFloat>& a, const core::vec2<TFloat>& b,
-                                                const core::vec2<TFloat>& c, const core::vec2<TFloat>& d,
-                                                core::vec2<TFloat>& out) {
+                                             const core::vec2<TFloat>& c, const core::vec2<TFloat>& d,
+                                             core::vec2<TFloat>& out) {
     static_assert(core::is_float_v<TFloat>, "Invalid TFloat type.");
     // Formula of line to line intersection.
     TFloat x1 = a.x(); TFloat y1 = a.y();
@@ -53,8 +53,8 @@ constexpr inline bool lineToLineIntersection(const core::vec2<TFloat>& a, const 
 }
 template <typename TFloat>
 constexpr inline bool lineToLineIntersection(const core::vec2<TFloat>& a, const core::vec2<TFloat>& b,
-                                                const core::vec2<TFloat>& c, const core::vec2<TFloat>& d,
-                                                TFloat& x, TFloat& y) {
+                                             const core::vec2<TFloat>& c, const core::vec2<TFloat>& d,
+                                             TFloat& x, TFloat& y) {
     auto t = core::v(x, y);
     bool ret = lineToLineIntersection(a, b, c, d, t);
     x = t.x();
@@ -63,8 +63,8 @@ constexpr inline bool lineToLineIntersection(const core::vec2<TFloat>& a, const 
 }
 template <typename TFloat>
 constexpr  inline bool lineToLineIntersection(TFloat x1, TFloat y1, TFloat x2, TFloat y2,
-                                                 TFloat x3, TFloat y3, TFloat x4, TFloat y4,
-                                                 TFloat& x, TFloat& y) {
+                                              TFloat x3, TFloat y3, TFloat x4, TFloat y4,
+                                              TFloat& x, TFloat& y) {
     auto t = core::v(x, y);
     bool ret = lineToLineIntersection(core::v(x1, y1), core::v(x2, y2), core::v(x3, y3), core::v(x4, y4), t);
     x = t.x();

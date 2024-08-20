@@ -17,6 +17,8 @@ namespace core {
 
 using namespace coretypes;
 
+struct CORE_API_EXPORT CmdFlagParser;
+
 template<> addr_size hash<StrView>(const StrView&);
 template<> bool eq<StrView>(const StrView&, const StrView&);
 

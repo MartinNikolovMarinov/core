@@ -9,7 +9,16 @@ namespace core {
 
 using namespace coretypes;
 
-template <typename...> struct tuple;
+template <typename...>                                        struct tuple;
+template <typename T1, typename T2>                           struct tuple<T1, T2>;
+template <typename T1, typename T2, typename T3>              struct tuple<T1, T2, T3>;
+template <typename T1, typename T2, typename T3, typename T4> struct tuple<T1, T2, T3, T4>;
+
+template <typename T> using pair   = tuple<T, T>;
+template <typename T> using triple = tuple<T, T, T>;
+template <typename T> using quad   = tuple<T, T, T, T>;
+
+template <typename...TArgs> constexpr tuple<TArgs...> createTuple(TArgs&&... args);
 
 template <typename T1, typename T2>
 struct tuple<T1, T2> {
@@ -164,10 +173,6 @@ constexpr tuple<TArgs...> createTuple(TArgs&&... args) {
     static_assert(1 < NArgs && NArgs <= 4, "tuples can only have 2, 3 or 4 elements");
     return tuple<TArgs...>{ std::forward<TArgs>(args)... };
 }
-
-template <typename T> using pair   = tuple<T, T>;
-template <typename T> using triple = tuple<T, T, T>;
-template <typename T> using quad   = tuple<T, T, T, T>;
 
 static_assert(std::is_standard_layout_v<pair<i32>> && std::is_trivial_v<pair<i32>>);
 static_assert(std::is_standard_layout_v<triple<i32>> && std::is_trivial_v<triple<i32>>);

@@ -17,6 +17,16 @@ namespace core {
 
 using namespace coretypes;
 
+template <typename E> struct unexpected_t;
+template <typename E> constexpr unexpected_t<E> unexpected(E&& e);
+
+template <typename...>               struct expected;
+template <typename T, typename TErr> struct expected<T, TErr>;
+template <typename TErr>             struct expected<TErr>;
+
+template <typename T, typename TErr> constexpr inline T&&  Unpack(expected<T, TErr>&& exp, [[maybe_unused]] const char* msg = nullptr);
+template <typename TErr>             constexpr inline void Expect(expected<TErr>&& expr, [[maybe_unused]] const char* msg = nullptr);
+
 // NOTE: Using an unexpected_t wrapper allows the expected struct to be used with the same type for both error and value.
 template <typename E>
 struct unexpected_t {
@@ -26,8 +36,6 @@ struct unexpected_t {
 
 template <typename E>
 constexpr unexpected_t<E> unexpected(E&& e) { return unexpected_t<E>(std::forward<E>(e)); }
-
-template <typename...> struct expected;
 
 template <typename T, typename TErr>
 struct expected<T, TErr> {
@@ -94,13 +102,13 @@ private:
 };
 
 template <typename T, typename TErr>
-constexpr inline T&& Unpack(expected<T, TErr>&& exp, [[maybe_unused]] const char* msg = nullptr) {
+constexpr inline T&& Unpack(expected<T, TErr>&& exp, [[maybe_unused]] const char* msg) {
     Panic(!exp.hasErr(), msg);
     return std::move(exp.value());
 }
 
 template <typename TErr>
-constexpr inline void Expect(expected<TErr>&& expr, [[maybe_unused]] const char* msg = nullptr) {
+constexpr inline void Expect(expected<TErr>&& expr, [[maybe_unused]] const char* msg) {
     Panic(!expr.hasErr(), msg);
 }
 

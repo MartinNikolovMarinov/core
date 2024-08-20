@@ -14,6 +14,105 @@ namespace core {
 
 using namespace coretypes;
 
+#pragma region Forward Declarations -----------------------------------------------------------------------------------
+
+struct radians;
+
+template <typename T>               constexpr T           limitMax();
+template <typename T>               constexpr T           limitMin();
+
+template <typename T>               constexpr i32         maxDigitsBase2();
+template <typename T>               constexpr i32         maxDigitsBase10();
+
+template <typename T>               constexpr T           absGeneric(T a);
+                                    constexpr f32         abs(f32 a);
+                                    constexpr f64         abs(f64 a);
+
+                                    constexpr f32         infinityF32();
+                                    constexpr f32         quietNaNF32();
+                                    constexpr f32         signalingNaNF32();
+                                    constexpr f64         infinityF64();
+                                    constexpr f64         quietNaNF64();
+                                    constexpr f64         signalingNaNF64();
+
+                                    constexpr bool        isinf(f32 x);
+                                    constexpr bool        isinf(f64 x);
+                                    constexpr bool        isnan(f32 x);
+                                    constexpr bool        isnan(f64 x);
+                                    constexpr bool        isnormal(f32 x);
+                                    constexpr bool        isnormal(f64 x);
+                                    constexpr i32         fpclassify(f32 x);
+                                    constexpr i32         fpclassify(f64 x);
+
+                                    constexpr f32         modf(f32 x, f32* iptr);
+                                    constexpr f64         modf(f64 x, f64* iptr);
+
+                                    constexpr f32         floor(f32 x);
+                                    constexpr f64         floor(f64 x);
+                                    constexpr f32         ceil(f32 x);
+                                    constexpr f64         ceil(f64 x);
+                                    constexpr f32         trunc(f32 x);
+                                    constexpr f64         trunc(f64 x);
+                                    constexpr f32         round(f32 x);
+                                    constexpr f64         round(f64 x);
+template <typename TFloat>          constexpr TFloat      roundTo(TFloat n, u32 to);
+
+                                    constexpr f32         sqrt(f32 x);
+                                    constexpr f64         sqrt(f64 x);
+                                    inline f32            pow(f32 x, f32 exp);
+                                    inline f64            pow(f64 x, f64 exp);
+                                    inline f32            sin(f32 x);
+                                    inline f64            sin(f64 x);
+                                    inline f32            cos(f32 x);
+                                    inline f64            cos(f64 x);
+                                    inline f32            tan(f32 x);
+                                    inline f64            tan(f64 x);
+                                    inline f32            asin(f32 x);
+                                    inline f64            asin(f64 x);
+                                    inline f32            acos(f32 x);
+                                    inline f64            acos(f64 x);
+                                    inline f32            atan(f32 x);
+                                    inline f64            atan(f64 x);
+                                    inline f32            atan2(f32 a, f32 b);
+                                    inline f64            atan2(f64 a, f64 b);
+                                    constexpr u64         pow10(u32 i);
+                                    constexpr u64         pow2(u32 i);
+
+                                    constexpr i8          alignToPow2(i8 v);
+                                    constexpr u8          alignToPow2(u8 v);
+                                    constexpr i16         alignToPow2(i16 v);
+                                    constexpr u16         alignToPow2(u16 v);
+                                    constexpr i32         alignToPow2(i32 v);
+                                    constexpr u32         alignToPow2(u32 v);
+                                    constexpr i64         alignToPow2(i64 v);
+                                    constexpr u64         alignToPow2(u64 v);
+
+                                    constexpr radians     degToRad(f32 n);
+                                    constexpr f32         radToDeg(const radians& n);
+
+template <typename T>               constexpr T           core_max(T a, T b);
+template <typename T>               constexpr T           core_min(T a, T b);
+template <typename T>               constexpr tuple<T, T> minmax(T a, T b);
+template <typename T>               constexpr T           clamp(T value, T min, T max);
+
+                                    constexpr bool        isPositive(f32 a);
+                                    constexpr bool        isPositive(f64 a);
+                                    constexpr bool        isPositive(i8 a);
+                                    constexpr bool        isPositive(i16 a);
+                                    constexpr bool        isPositive(i32 a);
+                                    constexpr bool        isPositive(i64 a);
+
+                                    constexpr bool        safeEq(f32 a, f32 b, f32 epsilon);
+                                    constexpr bool        safeEq(f64 a, f64 b, f64 epsilon);
+                                    constexpr bool        nearlyEq(f32 a, f32 b, f32 epsilon);
+                                    constexpr bool        nearlyEq(f64 a, f64 b, f64 epsilon);
+
+template <typename T>               constexpr T           affineMap(T v, T fromMin, T fromMax, T toMin, T toMax);
+template <typename T, typename T2>  constexpr T           lerp(T a, T b, T2 t);
+template <typename T, typename T2>  constexpr T           lerpFast(T a, T b, T2 t);
+
+#pragma endregion
+
 #pragma region Limit Helper Functions ---------------------------------------------------------------------------------
 
 template <typename T>
@@ -208,6 +307,48 @@ constexpr i32 fpclassify(f64 x) { return detail::fpclassify(x); }
 
 #pragma endregion
 
+#pragma region Modf --------------------------------------------------------------------------------------------------
+
+namespace detail {
+
+template <typename TFloat> constexpr TFloat truncCompiletimeImpl(TFloat x);
+
+template <typename TFloat>
+constexpr TFloat modfErrorImpl(TFloat x, TFloat* iptr) {
+    *iptr = x;
+    if (core::abs(x) == TFloat(0)) return x;
+    return x > TFloat(0) ? TFloat(0) : -TFloat(0);
+}
+
+template <typename TFloat>
+constexpr TFloat modfNanImpl(TFloat x, TFloat* iptr) {
+    *iptr = x;
+    return x;
+}
+
+template <typename TFloat>
+constexpr TFloat modfCompiletimeImpl(TFloat x, TFloat* iptr) {
+    if (detail::isnanCompiletimeImpl(x)) return modfNanImpl(x, iptr);
+    if (detail::isinfCompiletimeImpl(x)) return modfErrorImpl(x, iptr);
+    if (core::abs(x) == TFloat(0))       return modfErrorImpl(x, iptr);
+
+    *iptr = core::detail::truncCompiletimeImpl(x);
+    return (x - *iptr);
+}
+
+template <typename TFloat>
+constexpr TFloat modf(TFloat x, TFloat* iptr) {
+    IS_CONST_EVALUATED { return modfCompiletimeImpl(x, iptr); }
+    return std::modf(x, iptr);
+}
+
+} // namespace detail
+
+constexpr f32 modf(f32 x, f32* iptr) { return detail::modf(x, iptr); }
+constexpr f64 modf(f64 x, f64* iptr) { return detail::modf(x, iptr); }
+
+#pragma endregion
+
 #pragma region Floor -------------------------------------------------------------------------------------------------
 
 namespace detail {
@@ -291,46 +432,6 @@ constexpr TFloat trunc(TFloat x) {
 
 constexpr f32 trunc(f32 x) { return detail::trunc(x); }
 constexpr f64 trunc(f64 x) { return detail::trunc(x); }
-
-#pragma endregion
-
-#pragma region Modf --------------------------------------------------------------------------------------------------
-
-namespace detail {
-
-template <typename TFloat>
-constexpr TFloat modfErrorImpl(TFloat x, TFloat* iptr) {
-    *iptr = x;
-    if (core::abs(x) == TFloat(0)) return x;
-    return x > TFloat(0) ? TFloat(0) : -TFloat(0);
-}
-
-template <typename TFloat>
-constexpr TFloat modfNanImpl(TFloat x, TFloat* iptr) {
-    *iptr = x;
-    return x;
-}
-
-template <typename TFloat>
-constexpr TFloat modfCompiletimeImpl(TFloat x, TFloat* iptr) {
-    if (detail::isnanCompiletimeImpl(x)) return modfNanImpl(x, iptr);
-    if (detail::isinfCompiletimeImpl(x)) return modfErrorImpl(x, iptr);
-    if (core::abs(x) == TFloat(0))       return modfErrorImpl(x, iptr);
-
-    *iptr = core::detail::truncCompiletimeImpl(x);
-    return (x - *iptr);
-}
-
-template <typename TFloat>
-constexpr TFloat modf(TFloat x, TFloat* iptr) {
-    IS_CONST_EVALUATED { return modfCompiletimeImpl(x, iptr); }
-    return std::modf(x, iptr);
-}
-
-} // namespace detail
-
-constexpr f32 modf(f32 x, f32* iptr) { return detail::modf(x, iptr); }
-constexpr f64 modf(f64 x, f64* iptr) { return detail::modf(x, iptr); }
 
 #pragma endregion
 

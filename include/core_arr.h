@@ -11,6 +11,11 @@ namespace core {
 
 using namespace coretypes;
 
+template <typename T>              struct ArrList;
+template <typename T, addr_size N> struct ArrStatic;
+
+template<typename ...Args> constexpr auto createArrStatic(Args... args);
+
 template <typename T>
 struct ArrList {
     using value_type = T;

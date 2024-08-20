@@ -8,6 +8,11 @@ namespace core {
 
 using namespace coretypes;
 
+constexpr bool isValidUtf8Encoding(const uchar* utf, u32 len);
+constexpr rune runeFromBytesSkipCheck(const uchar* utf, u32 len);
+constexpr u32 runeToBytes(const rune r, uchar* utf);
+constexpr core::expected<rune, bool> runeFromBytes(const uchar* utf, u32 len);
+
 namespace detail {
 
 static constexpr u32 UTF8_2_BYTE_ENCODING_MASK = 0b11000000;

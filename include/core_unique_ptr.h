@@ -6,6 +6,9 @@
 
 namespace core {
 
+template <typename T> struct UniquePtr;
+template <typename T, typename... Args> UniquePtr<T> makeUnique(Args&&... args);
+
 template <typename T>
 struct UniquePtr {
     using value_type = T;

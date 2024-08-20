@@ -9,6 +9,9 @@
 
 namespace core {
 
+template <typename TKey, typename TValue> struct HashMap;
+template <typename TKey, typename TValue> HashMap<TKey, TValue> createHashMap();
+
 namespace detail {
 
 static constexpr f64 DEFAULT_MAX_LOAD_FACTOR = 0.8;

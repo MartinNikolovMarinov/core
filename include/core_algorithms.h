@@ -9,6 +9,22 @@ namespace core {
 
 using namespace coretypes;
 
+template <typename T, typename TPredicate>                    inline constexpr addr_off find(const T* arr, addr_size len, TPredicate pred);
+template <typename T, typename TPredicate>                    inline addr_off           find(const ArrList<T>& arr, TPredicate pred);
+template <typename T, addr_size N, typename TPredicate>       inline constexpr addr_off find(const ArrStatic<T, N>& arr, TPredicate pred);
+
+template <typename T, typename TEq>                           inline constexpr void     pushUnique(T* arr, addr_size len, const T& el, TEq eqFn);
+template <typename T, typename TEq>                           inline constexpr void     pushUnique(T* arr, addr_size len, T&& el, TEq eqFn);
+template <typename T, typename TEq>                           inline void               pushUnique(ArrList<T>& arr, const T& el, TEq eqFn);
+template <typename T, typename TEq>                           inline void               pushUnique(ArrList<T>& arr, T&& el, TEq eqFn);
+template <typename T, addr_size N, typename TEq>              inline constexpr void     pushUnique(ArrStatic<T, N>& arr, const T& el, TEq eqFn);
+template <typename T, addr_size N, typename TEq>              inline constexpr void     pushUnique(ArrStatic<T, N>& arr, T&& el, TEq eqFn);
+
+template <typename T, typename TPredicate>                    inline bool forAll(const T* arr, addr_size len, TPredicate pred);
+template <typename T, typename TPredicate>                    inline bool forAll(const core::ArrList<T>& arr, TPredicate pred);
+template <typename T, addr_size N, typename TPredicate>       inline bool forAll(const core::ArrStatic<T, N>& arr, TPredicate pred);
+template <typename TKey, typename TVal, typename TPredicate>  inline bool forAll(const core::HashMap<TKey, TVal>& a, const core::HashMap<TKey, TVal>& b, TPredicate pred);
+
 // Find element in raw pointer.
 template <typename T, typename TPredicate>
 inline constexpr addr_off find(const T* arr, addr_size len, TPredicate pred) {

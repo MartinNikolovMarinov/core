@@ -12,6 +12,8 @@ using namespace coretypes;
 
 // TODO2: [PERFORMANCE] Might want to do some small string optimization.
 
+struct CORE_API_EXPORT StrBuilder;
+
 struct CORE_API_EXPORT StrBuilder {
     using value_type = char;
     using size_type  = addr_size;

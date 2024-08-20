@@ -27,6 +27,13 @@ concept AllocatorConcept = requires(T a) {
     { a.inUseMemory() } -> core::same_as<addr_size>;
 };
 
+struct CORE_API_EXPORT StdAllocator;
+struct                 StdStatsAllocator;
+struct CORE_API_EXPORT BumpAllocator ;
+struct CORE_API_EXPORT ThreadLocalStdArenaAllocator;
+struct CORE_API_EXPORT ThreadLocalBumpAllocator;
+struct CORE_API_EXPORT StdArenaAllocator;
+
 struct CORE_API_EXPORT StdAllocator {
     OOMHandlerFn oomHandler = nullptr;
 
@@ -127,7 +134,7 @@ private:
 };
 static_assert(AllocatorConcept<ThreadLocalBumpAllocator>);
 
-struct CORE_API_EXPORT ArenaBlock {
+struct ArenaBlock {
     void* begin;
     void* curr;
 };

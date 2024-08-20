@@ -10,6 +10,16 @@ namespace core {
 
 using namespace coretypes;
 
+
+constexpr inline bool isDigit(char c);
+constexpr inline bool isWhiteSpace(char c);
+
+constexpr addr_size cstrLen(const char* p);
+constexpr addr_size cstrLen(const uchar* p);
+
+constexpr const char* cstrSkipSpace(const char* s);
+constexpr       char* cstrSkipSpace(char* s);
+
 constexpr inline bool isDigit(char c) { return c >= '0' && c <= '9'; }
 constexpr inline bool isWhiteSpace(char c) { return c == ' ' || c == '\t' || c == '\n' || c == '\r'; }
 

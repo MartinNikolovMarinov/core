@@ -8,6 +8,11 @@ namespace core {
 
 using namespace coretypes;
 
+constexpr u32 digitCount(u32 n);
+constexpr u32 digitCount(u64 n);
+constexpr u32 digitCount(i32 n);
+constexpr u32 digitCount(i64 n);
+
 namespace detail {
 
 // Lookup tables for DigitCount:

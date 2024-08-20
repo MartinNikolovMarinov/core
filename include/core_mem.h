@@ -48,7 +48,7 @@ inline void* memsetImpl(void* dest, u8 u, addr_size len) {
     char* pdest = reinterpret_cast<char*>(dest);
 
     for (addr_size i = 0; i < len; i++) {
-        *pdest++ = u;
+        *pdest++ = static_cast<char>(u);
     }
 
     return pdest;
@@ -91,8 +91,8 @@ template <typename T> addr_off memidxofImpl(const T* a, addr_size len, const T& 
     addr_off lena = addr_off(len * sizeof(T));
     addr_off lenv = addr_off(sizeof(val));
     for (addr_off i = 0; i <= lena - lenv; i += sizeof(T)) {
-        i32 cmpVal = memcmp(pa + i, lenv, pv, lenv);
-        if (cmpVal == 0) return i / sizeof(T);
+        i32 cmpVal = memcmp(pa + i, addr_size(lenv), pv, addr_size(lenv));
+        if (cmpVal == 0) return i / addr_off(sizeof(T));
     }
     return -1;
 }

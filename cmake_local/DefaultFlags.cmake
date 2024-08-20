@@ -1,4 +1,4 @@
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     include(ClangFlags)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     include(GCCFlags)

@@ -687,6 +687,8 @@ constexpr i32 intHexTest() {
 }
 
 constexpr i32 floatToCstrTest() {
+    // FIXME: Comparing with the standard library is kinda crazy. I need to rethink this and use ryu algorithm.
+
     constexpr addr_size BUFFER_SIZE = 30;
 
     struct TestCase32Bit { f32 in; const char* expected; u32 precision; };
@@ -936,7 +938,7 @@ constexpr i32 floatToCstrTest() {
     {
         constexpr TestCase64Bit cases[] = {
             { core::quietNaNF64(), "nan", 5 },
-            { core::signalingNaNF64(), "nan", 5 },
+            // { core::signalingNaNF64(), "nan", 5 }, // FIXME: windows standard library implementation returns nan(snan) here!
             { core::infinityF64(), "inf", 5 },
             { -core::infinityF64(), "-inf", 5 },
         };

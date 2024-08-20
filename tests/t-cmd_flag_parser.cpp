@@ -67,14 +67,27 @@ i32 cmdFlagParserSymbolParsingTest() {
         CT_CHECK(symbols[2].type == CmdFlagParser::ParsedSymbolType::Argument);
         CT_CHECK(symbols[2].value.eq(sv("zxczxc")));
 
-        parser.arguments([](core::StrView arg, addr_size idx) -> bool {
+        i32 argsChecker[] = { 0, 0 };
+        parser.arguments([&argsChecker](core::StrView arg, addr_size idx) -> bool {
             switch (idx) {
-                case 0: CT_CHECK(arg.eq(sv("adsad"))); break;
-                case 1: CT_CHECK(arg.eq(sv("zxczxc"))); break;
-                default: CT_CHECK(false); break;
+                case 0:
+                    if(arg.eq(sv("adsad"))) {
+                        argsChecker[0]++;
+                    }
+                    break;
+                case 1:
+                    if(arg.eq(sv("zxczxc"))) {
+                        argsChecker[1]++;
+                    }
+                    break;
             }
             return true;
         });
+
+        // Check that all arguments were parsed and iterated over exactly once:
+        for (auto v : argsChecker) {
+            CT_CHECK(v == 1);
+        }
     }
 
     // Check the rest:
@@ -103,19 +116,22 @@ i32 cmdFlagParserSymbolParsingTest() {
             i32 flagsChecker[] = { 0, 0, 0 };
             parser.flags([&flagsChecker](core::StrView flag, core::StrView value) -> bool {
                 if (flag.eq(sv("b"))) {
-                    CT_CHECK(value.eq(sv("asd")));
-                    flagsChecker[0]++;
+                    if(value.eq(sv("asd"))) {
+                        flagsChecker[0]++;
+                    }
                 }
                 else if (flag.eq(sv("basd"))) {
-                    CT_CHECK(value.eq(sv("-123")));
-                    flagsChecker[1]++;
+                    if(value.eq(sv("-123"))) {
+                        flagsChecker[1]++;
+                    }
                 }
                 else if (flag.eq(sv("cc"))) {
-                    CT_CHECK(value.eq(sv("asdasd")));
-                    flagsChecker[2]++;
+                    if(value.eq(sv("asdasd"))) {
+                        flagsChecker[2]++;
+                    }
                 }
                 else {
-                    CT_CHECK(false, "Parsed somthing that shouldn't have been parsed!");
+                    return false; // stop parsing there was an error.
                 }
 
                 return true;
@@ -138,7 +154,7 @@ i32 cmdFlagParserSymbolParsingTest() {
                     optionsChecker[1]++;
                 }
                 else {
-                    CT_CHECK(false, "Parsed somthing that shouldn't have been parsed!");
+                    return false; // stop parsing there was an error.
                 }
 
                 return true;

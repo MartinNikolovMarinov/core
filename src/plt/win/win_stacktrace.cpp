@@ -32,8 +32,9 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
         return true;
     };
     auto writeIntToBuf = [&](auto n) -> bool {
-        char buf[50] = {};
-        core::intToCstr(n, buf);
+        constexpr addr_size buffLen = 50;
+        char buf[buffLen] = {};
+        core::intToCstr(n, buf, buffLen);
         return writeToBuf(buf);
     };
 

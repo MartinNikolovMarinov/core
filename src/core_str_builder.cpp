@@ -34,6 +34,7 @@ StrBuilder::StrBuilder(StrBuilder&& other)
     : m_data(other.m_data)
     , m_cap(other.m_cap)
     , m_len(other.m_len) {
+        if (this == &other) return;
         other.m_data = nullptr;
         other.m_cap = 0;
         other.m_len = 0;

@@ -33,10 +33,13 @@ template <typename T>
 struct Memory {
     using size_type = addr_size;
 
+    // mFIXME: I should test this struct. Especially the slice boundary checking.
+
     constexpr Memory() : ptr(nullptr), length(0) {}
     constexpr Memory(T* _ptr, size_type _len) : ptr(_ptr), length(_len) {}
     constexpr Memory(const Memory&) = default;
     constexpr Memory(Memory&& other) {
+        if (this == &other) return;
         ptr = other.ptr;
         length = other.length;
         other.ptr = nullptr;
@@ -45,12 +48,12 @@ struct Memory {
 
     constexpr Memory& operator=(const Memory&) = default;
     constexpr Memory& operator=(Memory&& other) {
-        if (other != this) {
-            ptr = other.ptr;
-            length = other.length;
-            other.ptr = nullptr;
-            other.length = 0;
-        }
+        if (this == &other) return *this;
+        ptr = other.ptr;
+        length = other.length;
+        other.ptr = nullptr;
+        other.length = 0;
+        return *this;
     }
 
     constexpr T* data() const { return ptr; }
@@ -59,7 +62,7 @@ struct Memory {
     constexpr operator bool() const { return ptr != nullptr; }
 
     constexpr T& operator[](size_type idx) const { return ptr[idx]; }
-    constexpr T* atUnsafe(size_type idx) const { return ptr[idx]; }
+    constexpr T* atUnsafe(size_type idx) const { return ptr + idx; }
     constexpr T* at(size_type idx) const {
         if (idx < length) return atUnsafe(idx);
         else return nullptr;
@@ -71,7 +74,29 @@ struct Memory {
     }
 
     constexpr i32 cmp(const Memory& other) const {
-        return core::memcmp<T>(ptr, other.ptr, length);
+        return core::memcmp<T>(ptr, length, other.ptr, other.length);
+    }
+
+    constexpr bool contains(const T& v) const {
+        for (size_type i = 0; i < len(); i++) {
+            if (ptr[i] == v) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    constexpr Memory slice(size_type offset) {
+        Assert(offset < length, "offset for slice outside memory boundary");
+        return Memory(ptr + offset, length - offset);
+    }
+
+    constexpr Memory slice(size_type offset, size_type slen) {
+        if (slen == 0) return Memory(nullptr, 0);
+        Assert(offset < length, "offset for slice outside memory boundary");
+        Assert(slen <= length, "slen for slice outside memory boundary");
+        Assert(offset + slen <= length, "slice outside memory boundary.");
+        return Memory(ptr + offset, slen);
     }
 
     T* ptr;

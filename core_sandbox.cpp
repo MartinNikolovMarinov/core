@@ -40,40 +40,33 @@ struct FloatStream {
         NotADigit
     };
 
-    u8* data;
-    addr_size dataCap;
+    core::StrView slice;
     addr_size offset;
 
-    FloatStream() : data(nullptr), dataCap(0), offset(0) {}
-    FloatStream(u8* _data, addr_size _dataCap) : data(_data), dataCap(_dataCap), offset(0) {}
+    FloatStream() : slice(), offset(0) {}
+    FloatStream(core::StrView _slice) : slice(_slice), offset(0) {}
 
     void reset() { offset = 0; }
 
     addr_size len() {
-        if (offset > dataCap) return 0;
-        return dataCap - offset;
+        if (offset > slice.len()) return 0;
+        return slice.len() - offset;
     }
 
-    bool hasLenFor(addr_size n) { return offset + n <= dataCap; }
+    bool hasLen(addr_size n) { return offset + n <= slice.len(); }
 
-    u8 firstUnsafe() { return data[offset]; }
+    u8 firstUnsafe() { return slice[offset]; }
 
     core::expected<u8, Error> first() {
-        if (hasLenFor(1)) {
+        if (hasLen(1)) {
             return firstUnsafe();
         }
         return core::unexpected(Error::ReachedEndOfBuffer);
     }
 
-    bool firstIs(u8* s, addr_size slen) {
-        auto f = first();
-        if (f.hasErr()) {
-            u8 v = f.value();
-            for (addr_size i = 0; i < slen; i++) {
-                if (s[i] == v) {
-                    return true;
-                }
-            }
+    bool firstIsIn(core::StrView s) {
+        if (auto f = first(); f.hasValue()) {
+            return s.contains(f.value());
         }
         return false;
     }
@@ -96,8 +89,8 @@ struct FloatStream {
         offset += n;
     }
 
-    void skipChars(u8* s, addr_size slen) {
-        while (firstIs(s, slen)) {
+    void skipChars(core::StrView chars) {
+        while (firstIsIn(chars)) {
             advance(1);
         }
     }
@@ -133,8 +126,44 @@ struct Number {
     bool hex;
 };
 
-Number parseNumber(const char* s, addr_size slen, bool negative) {
+void tryParseDigits(FloatStream& floatStream, u64& x, bool isHex)  {
+    // Try to parse 8 digits at a time, using an optimized algorithm.
+    // This only supports decimal digits.
+    if (!isHex) {
+        // mFIXME: optimize to read 8 digits at a time!
+    }
 
+    while (true) {
+        if (auto res = floatStream.scanDigit(isHex); res.hasValue()) {
+            u8 digit = res.value();
+            x *= isHex ? 16 : 10;
+            x += digit;
+        }
+        else {
+            break;
+        }
+    }
+}
+
+Number parseNumber(core::StrView s, bool negative) {
+    bool isHex = s.len() >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X');
+    if (isHex) s = s.slice(2);
+
+    FloatStream floatStream(s);
+
+    // return parsePartialNumberBase(T, &stream, negative, n, .{
+    //         .base = 16,
+    //         .max_mantissa_digits = if (MantissaT == u64) 16 else 32,
+    //         .exp_char_lower = 'p',
+    //     });
+
+    // parse initial digits before dot
+    u64 mantissa = 0;
+    tryParseDigits(floatStream, mantissa, isHex);
+    const addr_size intEnd = floatStream.offset;
+    const addr_off nDigits = addr_off(floatStream.offset);
+
+    return {};
 }
 
 } // namespace

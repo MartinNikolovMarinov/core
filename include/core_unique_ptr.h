@@ -18,6 +18,7 @@ struct UniquePtr {
     UniquePtr() : m_ptr(nullptr) {}
     UniquePtr(value_type* newPtr) : m_ptr(newPtr) {}
     UniquePtr(UniquePtr&& other) {
+        if (this == &other) return;
         m_ptr = other.m_ptr;
         other.m_ptr = nullptr;
     }

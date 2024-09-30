@@ -21,10 +21,8 @@ struct radians;
 template <typename T>               constexpr T           limitMax();
 template <typename T>               constexpr T           limitMin();
 
-                                    constexpr u32         exponentBitsF32();
-                                    constexpr u32         exponentBitsF64();
-                                    constexpr u32         mantisaBitsF32();
-                                    constexpr u32         mantisaBitsF64();
+template <typename T>               constexpr u32         exponentBits();
+template <typename T>               constexpr u32         mantisaBits();
 
 template <typename T>               constexpr i32         maxDigitsBase2();
 template <typename T>               constexpr i32         maxDigitsBase10();
@@ -151,6 +149,22 @@ constexpr T limitMin() {
     else if constexpr (std::is_same_v<T, i64>) return i64(-0x8000000000000000); // -9223372036854775808
     else if constexpr (std::is_same_v<T, f32>) return f32(0x1.0p-126);          // Minimum positive normal float
     else if constexpr (std::is_same_v<T, f64>) return f64(0x1.0p-1022);         // Minimum positive normal double
+    else static_assert(core::always_false<T>, "Unsupported type");
+}
+
+#pragma endregion
+
+#pragma region Mantissa and Exponent
+
+template <typename T> constexpr u32 exponentBits() {
+    if constexpr (std::is_same_v<T, f32>) return 8;
+    else if constexpr (std::is_same_v<T, f64>) return 11;
+    else static_assert(core::always_false<T>, "Unsupported type");
+}
+
+template <typename T> constexpr u32 mantisaBits() {
+    if constexpr (std::is_same_v<T, f32>) return 23;
+    else if constexpr (std::is_same_v<T, f64>) return 52;
     else static_assert(core::always_false<T>, "Unsupported type");
 }
 

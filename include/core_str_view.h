@@ -9,41 +9,7 @@ namespace core {
 
 using namespace coretypes;
 
-struct CORE_API_EXPORT StrView;
-
-constexpr StrView sv();
-constexpr StrView sv(const char* str);
-constexpr StrView sv(const char* str, addr_size len);
-constexpr StrView operator""_sv(const char* str, size_t len);
-
-struct CORE_API_EXPORT StrView {
-    using size_type = addr_size;
-
-    constexpr StrView() : ptr(nullptr), length(0) {}
-    constexpr StrView(const char* _ptr, size_type _len) : ptr(_ptr), length(_len) {}
-    explicit constexpr StrView(const char* _ptr) : ptr(_ptr), length(core::cstrLen(_ptr)) {}
-    constexpr StrView(const StrView&) = default;
-    constexpr StrView(StrView&&) = default;
-
-    constexpr StrView& operator=(const char*) = delete;
-    constexpr StrView& operator=(const StrView&) = default;
-    constexpr StrView& operator=(StrView&&) = default;
-
-    constexpr const char* data() const { return ptr; }
-    constexpr size_type   len()  const { return length; }
-
-    constexpr operator bool() const { return ptr != nullptr; }
-
-    constexpr const char& operator[](size_type idx) const { return ptr[idx]; }
-
-    constexpr bool eq(const StrView& other) const {
-        bool areEqual = core::memcmp(ptr, length, other.ptr, other.length) == 0;
-        return areEqual;
-    }
-
-    const char* ptr;
-    size_type length;
-};
+using StrView = core::Memory<const char>;
 
 constexpr StrView sv()                               { return StrView{nullptr, 0}; }
 constexpr StrView sv(const char* str)                { return StrView{str, core::cstrLen(str)}; }

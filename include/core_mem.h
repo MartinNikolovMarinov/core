@@ -29,6 +29,55 @@ template <typename T> constexpr void      swap(T& a, T& b);
                       inline addr_size    ptrDiff(const void* a, const void* b);
                       inline void*        ptrAdvance(void* ptr, addr_size off);
 
+template <typename T>
+struct Memory {
+    using size_type = addr_size;
+
+    constexpr Memory() : ptr(nullptr), length(0) {}
+    constexpr Memory(T* _ptr, size_type _len) : ptr(_ptr), length(_len) {}
+    constexpr Memory(const Memory&) = default;
+    constexpr Memory(Memory&& other) {
+        ptr = other.ptr;
+        length = other.length;
+        other.ptr = nullptr;
+        other.length = 0;
+    }
+
+    constexpr Memory& operator=(const Memory&) = default;
+    constexpr Memory& operator=(Memory&& other) {
+        if (other != this) {
+            ptr = other.ptr;
+            length = other.length;
+            other.ptr = nullptr;
+            other.length = 0;
+        }
+    }
+
+    constexpr T* data() const { return ptr; }
+    constexpr size_type len() const { return length; }
+
+    constexpr operator bool() const { return ptr != nullptr; }
+
+    constexpr T& operator[](size_type idx) const { return ptr[idx]; }
+    constexpr T* atUnsafe(size_type idx) const { return ptr[idx]; }
+    constexpr T* at(size_type idx) const {
+        if (idx < length) return atUnsafe(idx);
+        else return nullptr;
+    }
+
+    constexpr bool eq(const Memory& other) const {
+        bool areEqual = other.length == length && this->cmp(other) == 0;
+        return areEqual;
+    }
+
+    constexpr i32 cmp(const Memory& other) const {
+        return core::memcmp<T>(ptr, other.ptr, length);
+    }
+
+    T* ptr;
+    size_type length;
+};
+
 namespace detail {
 
 inline void* memcopyImpl(void* dest, const void* src, addr_size len) {

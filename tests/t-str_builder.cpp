@@ -202,7 +202,7 @@ i32 moveAndCopyStrBuilderTest() {
             return 0;
         };
 
-        StrBuilder sb0; sb0.append("testing"_sv);       // StrBuilder();
+        StrBuilder sb0; sb0.append("testing"_sv);    // StrBuilder();
         StrBuilder sb1 = StrBuilder(std::move(sb0)); // StrBuilder(StrBuilder&& other);
         StrBuilder sb3 = StrBuilder(view);           // StrBuilder(const StrView& view);
         StrBuilder sb4 = StrBuilder("testing"_sv);   // StrBuilder(StrView&& view);
@@ -212,7 +212,7 @@ i32 moveAndCopyStrBuilderTest() {
         CT_CHECK(check(sb3) == 0);
         CT_CHECK(check(sb4) == 0);
 
-        StrView movableView (view.data());
+        StrView movableView (view.data(), view.len());
 
         StrBuilder sb5, sb7, sb8;
         sb5 = std::move(sb1);         // StrBuilder& operator=(StrBuilder&& other);

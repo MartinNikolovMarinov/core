@@ -9,10 +9,6 @@
 #include <new>
 #include <utility>
 
-// NOTE: Expected has 2 implementations for runtime and for compiletime. It's possible to use inheritance to avoid code
-//       duplication, but that will have a performance cost which I am not willing to pay. This code should be optimized
-//       to a simple if statement in most cases anything else is unacceptable.
-
 namespace core {
 
 using namespace coretypes;

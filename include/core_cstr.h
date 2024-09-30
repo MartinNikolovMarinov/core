@@ -10,9 +10,14 @@ namespace core {
 
 using namespace coretypes;
 
-
 constexpr inline bool isDigit(char c);
+constexpr inline bool isHexDigit(char c);
 constexpr inline bool isWhiteSpace(char c);
+
+constexpr inline bool toLowerCaseANSI(char c);
+constexpr inline bool toUpperCaseANSI(char c);
+constexpr inline bool isLowerCaseANSI(char c);
+constexpr inline bool isUpperCaseANSI(char c);
 
 constexpr addr_size cstrLen(const char* p);
 constexpr addr_size cstrLen(const uchar* p);
@@ -21,7 +26,14 @@ constexpr const char* cstrSkipSpace(const char* s);
 constexpr       char* cstrSkipSpace(char* s);
 
 constexpr inline bool isDigit(char c) { return c >= '0' && c <= '9'; }
+constexpr inline bool isHexDigit(char c) { return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F'); }
 constexpr inline bool isWhiteSpace(char c) { return c == ' ' || c == '\t' || c == '\n' || c == '\r'; }
+
+constexpr inline bool toLowerCaseANSI(char c) { return (c | 0x20); }
+constexpr inline bool toUpperCaseANSI(char c) { return (c & ~0x20); }
+
+constexpr inline bool isLowerCaseANSI(char c) { return c == toLowerCaseANSI(c); }
+constexpr inline bool isUpperCaseANSI(char c) { return c == toUpperCaseANSI(c); }
 
 namespace detail {
 

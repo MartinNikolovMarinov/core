@@ -21,6 +21,11 @@ struct radians;
 template <typename T>               constexpr T           limitMax();
 template <typename T>               constexpr T           limitMin();
 
+                                    constexpr u32         exponentBitsF32();
+                                    constexpr u32         exponentBitsF64();
+                                    constexpr u32         mantisaBitsF32();
+                                    constexpr u32         mantisaBitsF64();
+
 template <typename T>               constexpr i32         maxDigitsBase2();
 template <typename T>               constexpr i32         maxDigitsBase10();
 
@@ -87,6 +92,10 @@ template <typename TFloat>          constexpr TFloat      roundTo(TFloat n, u32 
                                     constexpr i64         alignToPow2(i64 v);
                                     constexpr u64         alignToPow2(u64 v);
 
+                                    constexpr f64         piF64();
+                                    constexpr f32         piF32();
+                                    constexpr f64         pi();
+
                                     constexpr radians     degToRad(f32 n);
                                     constexpr f32         radToDeg(const radians& n);
 
@@ -117,31 +126,31 @@ template <typename T, typename T2>  constexpr T           lerpFast(T a, T b, T2 
 
 template <typename T>
 constexpr T limitMax() {
-    if constexpr (std::is_same_v<T, u8>)       return core::MAX_U8;
-    else if constexpr (std::is_same_v<T, u16>) return core::MAX_U16;
-    else if constexpr (std::is_same_v<T, u32>) return core::MAX_U32;
-    else if constexpr (std::is_same_v<T, u64>) return core::MAX_U64;
-    else if constexpr (std::is_same_v<T, i8>)  return core::MAX_I8;
-    else if constexpr (std::is_same_v<T, i16>) return core::MAX_I16;
-    else if constexpr (std::is_same_v<T, i32>) return core::MAX_I32;
-    else if constexpr (std::is_same_v<T, i64>) return core::MAX_I64;
-    else if constexpr (std::is_same_v<T, f32>) return core::MAX_F32;
-    else if constexpr (std::is_same_v<T, f64>) return core::MAX_F64;
+    if constexpr (std::is_same_v<T, u8>)       return u8(0xFF);                     // 255
+    else if constexpr (std::is_same_v<T, u16>) return u16(0xFFFF);                  // 65535
+    else if constexpr (std::is_same_v<T, u32>) return u32(0xFFFFFFFF);              // 4294967295
+    else if constexpr (std::is_same_v<T, u64>) return u64(0xFFFFFFFFFFFFFFFF);      // 18446744073709551615
+    else if constexpr (std::is_same_v<T, i8>)  return i8(0x7F);                     // 127
+    else if constexpr (std::is_same_v<T, i16>) return i16(0x7FFF);                  // 32767
+    else if constexpr (std::is_same_v<T, i32>) return i32(0x7FFFFFFF);              // 2147483647
+    else if constexpr (std::is_same_v<T, i64>) return i64(0x7FFFFFFFFFFFFFFF);      // 9223372036854775807
+    else if constexpr (std::is_same_v<T, f32>) return f32(0x1.fffffep+127);         // Maximum positive finite value of float
+    else if constexpr (std::is_same_v<T, f64>) return f64(0x1.fffffffffffffp+1023); // Maximum positive finite value of double
     else static_assert(core::always_false<T>, "Unsupported type");
 }
 
 template <typename T>
 constexpr T limitMin() {
-    if constexpr (std::is_same_v<T, u8>)       return 0;
-    else if constexpr (std::is_same_v<T, u16>) return 0;
-    else if constexpr (std::is_same_v<T, u32>) return 0;
-    else if constexpr (std::is_same_v<T, u64>) return 0;
-    else if constexpr (std::is_same_v<T, i8>)  return core::MIN_I8;
-    else if constexpr (std::is_same_v<T, i16>) return core::MIN_I16;
-    else if constexpr (std::is_same_v<T, i32>) return core::MIN_I32;
-    else if constexpr (std::is_same_v<T, i64>) return core::MIN_I64;
-    else if constexpr (std::is_same_v<T, f32>) return core::MIN_NORMAL_F32;
-    else if constexpr (std::is_same_v<T, f64>) return core::MIN_NORMAL_F64;
+    if constexpr (std::is_same_v<T, u8>)       return u8(0x0);                  // 0
+    else if constexpr (std::is_same_v<T, u16>) return u16(0x0);                 // 0
+    else if constexpr (std::is_same_v<T, u32>) return u32(0x0);                 // 0
+    else if constexpr (std::is_same_v<T, u64>) return u64(0x0);                 // 0
+    else if constexpr (std::is_same_v<T, i8>)  return i8(-0x80);                // -128
+    else if constexpr (std::is_same_v<T, i16>) return i16(-0x8000);             // -32768
+    else if constexpr (std::is_same_v<T, i32>) return i32(-0x80000000);         // -2147483648
+    else if constexpr (std::is_same_v<T, i64>) return i64(-0x8000000000000000); // -9223372036854775808
+    else if constexpr (std::is_same_v<T, f32>) return f32(0x1.0p-126);          // Minimum positive normal float
+    else if constexpr (std::is_same_v<T, f64>) return f64(0x1.0p-1022);         // Minimum positive normal double
     else static_assert(core::always_false<T>, "Unsupported type");
 }
 
@@ -630,6 +639,14 @@ constexpr u64 alignToPow2(u64 v) { return detail::alignToPow2(v); }
 
 #pragma endregion
 
+#pragma region Pi
+
+constexpr f64 piF64() { return 3.14159265358979323846; }
+constexpr f32 piF32() { return 3.14159265358979323846f; }
+constexpr f64 pi()    { return piF64(); }
+
+#pragma endregion
+
 #pragma region Radians/Degrees ----------------------------------------------------------------------------------------
 
 struct radians {
@@ -646,11 +663,11 @@ static_assert(std::is_trivial_v<radians>);
 static_assert(sizeof(radians) == sizeof(f32));
 
 constexpr radians degToRad(f32 n) {
-    return radians(n * (PI / 180.0f));
+    return radians(n * (core::piF32() / 180.0f));
 }
 
 constexpr f32 radToDeg(const radians& n) {
-    return n.value * (180.0f / PI);
+    return n.value * (180.0f / core::piF32());
 }
 
 #pragma endregion
@@ -755,10 +772,10 @@ constexpr bool nearlyEq(f32 a, f32 b, f32 epsilon) {
     f32 absA = core::abs(a);
     f32 absB = core::abs(b);
     f32 diff = core::abs(absA - absB);
-    if (a == 0 || b == 0 || (absA + absB < MIN_NORMAL_F32)) {
-        return diff < (epsilon * MIN_NORMAL_F32);
+    if (a == 0 || b == 0 || (absA + absB < core::limitMin<f32>())) {
+        return diff < (epsilon * core::limitMin<f32>());
     }
-    return diff / core::core_min((absA + absB), MAX_F32) < epsilon;
+    return diff / core::core_min((absA + absB), core::limitMax<f32>()) < epsilon;
 }
 
 /**
@@ -772,10 +789,10 @@ constexpr bool nearlyEq(f64 a, f64 b, f64 epsilon) {
     f64 absA = core::abs(a);
     f64 absB = core::abs(b);
     f64 diff = core::abs(absA - absB);
-    if (a == 0 || b == 0 || (absA + absB < MIN_NORMAL_F64)) {
-        return diff < (epsilon * MIN_NORMAL_F64);
+    if (a == 0 || b == 0 || (absA + absB < core::limitMin<f64>())) {
+        return diff < (epsilon * core::limitMin<f64>());
     }
-    return diff / core::core_min((absA + absB), MAX_F64) < epsilon;
+    return diff / core::core_min((absA + absB), core::limitMax<f64>()) < epsilon;
 }
 
 #pragma endregion

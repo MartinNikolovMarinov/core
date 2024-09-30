@@ -414,7 +414,7 @@ constexpr i32 cstrToIntTest() {
             { "9223372036854775807", 9223372036854775807ll },
 
             { "-9223372036854775807", -9223372036854775807ll, true },
-            { "-9223372036854775808", core::MIN_I64, true },
+            { "-9223372036854775808", core::limitMin<i64>(), true },
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for i64 at index: ", cases, [](auto& c, const char* cErr) {
@@ -530,11 +530,11 @@ constexpr i32 intHexTest() {
     {
         struct TestCase { i8 in; const char* expected; };
         constexpr TestCase cases[] = {
-            { core::MIN_I8, "80" },
+            { core::limitMin<i8>(), "80" },
             { i8(0), "00" },
             { i8(0xF), "0F" },
             { i8(-1), "FF" },
-            { core::MAX_I8, "7F" },
+            { core::limitMax<i8>(), "7F" },
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for i8 at index: ", cases, [&](auto& c, const char* cErr) {
@@ -549,14 +549,14 @@ constexpr i32 intHexTest() {
     {
         struct TestCase { i16 in; const char* expected; };
         constexpr TestCase cases[] = {
-            { core::MIN_I16, "8000" },
+            { core::limitMin<i16>(), "8000" },
             { i16(0), "0000" },
             { i16(0xF), "000F" },
             { i16(0x1D49), "1D49" },
             { i16(0x0F0F), "0F0F" },
             { i16(-1), "FFFF" },
             { i16(-2), "FFFE" },
-            { core::MAX_I16, "7FFF" },
+            { core::limitMax<i16>(), "7FFF" },
         };
         i32 ret = core::testing::executeTestTable("test case failed for i16 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
@@ -570,7 +570,7 @@ constexpr i32 intHexTest() {
     {
         struct TestCase { i32 in; const char* expected; };
         constexpr TestCase cases[] = {
-            { core::MIN_I32, "80000000" },
+            { core::limitMin<i32>(), "80000000" },
             { i32(0), "00000000" },
             { i32(0xF), "0000000F" },
             { i32(0x1D49), "00001D49" },
@@ -578,7 +578,7 @@ constexpr i32 intHexTest() {
             { i32(0x12345678), "12345678" },
             { i32(-1), "FFFFFFFF" },
             { i32(-2), "FFFFFFFE" },
-            { core::MAX_I32, "7FFFFFFF" },
+            { core::limitMax<i32>(), "7FFFFFFF" },
         };
         i32 ret = core::testing::executeTestTable("test case failed for i32 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
@@ -592,14 +592,14 @@ constexpr i32 intHexTest() {
     {
         struct TestCase { i64 in; const char* expected; };
         constexpr TestCase cases[] = {
-            { core::MIN_I64, "8000000000000000" },
+            { core::limitMin<i64>(), "8000000000000000" },
             { i64(0), "0000000000000000" },
             { i64(0xF), "000000000000000F" },
             { i64(0x1D49), "0000000000001D49" },
             { i64(0x0F0F), "0000000000000F0F" },
             { i64(0x12345678), "0000000012345678" },
             { i64(0x123456789ABCDEF0), "123456789ABCDEF0" },
-            { core::MAX_I64, "7FFFFFFFFFFFFFFF" },
+            { core::limitMax<i64>(), "7FFFFFFFFFFFFFFF" },
         };
         i32 ret = core::testing::executeTestTable("test case failed for i64 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
@@ -615,7 +615,7 @@ constexpr i32 intHexTest() {
         constexpr TestCase cases[] = {
             { u8(0), "00" },
             { u8(0xF), "0F" },
-            { core::MAX_U8, "FF" },
+            { core::limitMax<u8>(), "FF" },
         };
         i32 ret = core::testing::executeTestTable("test case failed for u8 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
@@ -633,7 +633,7 @@ constexpr i32 intHexTest() {
             { u16(0xF), "000F" },
             { u16(0x1D49), "1D49" },
             { u16(0x0F0F), "0F0F" },
-            { core::MAX_U16, "FFFF" },
+            { core::limitMax<u16>(), "FFFF" },
         };
         i32 ret = core::testing::executeTestTable("test case failed for u16 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
@@ -652,7 +652,7 @@ constexpr i32 intHexTest() {
             { u32(0x1D49), "00001D49" },
             { u32(0x0F0F), "00000F0F" },
             { u32(0x12345678), "12345678" },
-            { core::MAX_U32, "FFFFFFFF" },
+            { core::limitMax<u32>(), "FFFFFFFF" },
         };
         i32 ret = core::testing::executeTestTable("test case failed for u32 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
@@ -672,7 +672,7 @@ constexpr i32 intHexTest() {
             { u64(0x0F0F), "0000000000000F0F" },
             { u64(0x12345678), "0000000012345678" },
             { u64(0x123456789ABCDEF0), "123456789ABCDEF0" },
-            { core::MAX_U64, "FFFFFFFFFFFFFFFF" },
+            { core::limitMax<u64>(), "FFFFFFFFFFFFFFFF" },
         };
         i32 ret = core::testing::executeTestTable("test case failed for u64 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
@@ -968,10 +968,10 @@ constexpr i32 floatToCstrTest() {
             // { core::limitMin<f64>(), "0.0000000000000000", 15 }, // FIXME: This also acts weird.
 
             // FIXME: This seems to be totally incorrect in the snprintf implementation.
-            // { core::MIN_F64, "-2", 0 },
-            // { core::MIN_F64, "-1.8", 1 },
-            // { core::MIN_F64, "-1.80", 2 },
-            // { core::MIN_F64, "-1.798", 3 },
+            // { core::core::limitMin<f64>(), "-2", 0 },
+            // { core::core::limitMin<f64>(), "-1.8", 1 },
+            // { core::core::limitMin<f64>(), "-1.80", 2 },
+            // { core::core::limitMin<f64>(), "-1.798", 3 },
             // ...
         };
         i32 ret = core::testing::executeTestTable("Edge test case failed for f64 at index: ", cases, [&](auto& c, const char* cErr) {

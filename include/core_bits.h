@@ -3,6 +3,8 @@
 #include <core_API.h>
 #include <core_types.h>
 
+#include <math/core_math.h>
+
 namespace core {
 
 using namespace coretypes;
@@ -15,7 +17,7 @@ CORE_API_EXPORT void           floatToBin(u8 bytes[sizeof(f64)], f64 v);
 
 // Least Significant N Bits are equal to bitSeq
 constexpr bool leastSignificantNBits(u8 v, u8 bitSeq, u8 n) {
-    u8 mask = ~u8(MAX_U8 << n);
+    u8 mask = ~u8(core::limitMax<u8>() << n);
     v = (v & mask);
     bool ret = (v == bitSeq);
     return ret;

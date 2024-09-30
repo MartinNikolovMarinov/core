@@ -2,11 +2,13 @@
 #include <core_assert.h>
 #include <core_mem.h>
 
+#include <math/core_math.h>
+
 namespace core {
 
 namespace {
 
-thread_local addr_size tl_capacity = core::MAX_U64;
+thread_local addr_size tl_capacity = core::limitMax<addr_size>();
 thread_local void* tl_startAddr = nullptr;
 thread_local void* tl_currentAddr = nullptr;
 
@@ -104,7 +106,7 @@ addr_size BumpAllocator::inUseMemory() {
 ThreadLocalBumpAllocator::ThreadLocalBumpAllocator() : oomHandler(getDefaultOOMHandler()) {}
 
 ThreadLocalBumpAllocator ThreadLocalBumpAllocator::create(void* data, addr_size cap) {
-    Panic(tl_capacity == core::MAX_U64, "ThreadLocalBumpAllocator::create() called twice in the same thread");
+    Panic(tl_capacity == core::limitMax<addr_size>(), "ThreadLocalBumpAllocator::create() called twice in the same thread");
     _setBuffer(&tl_startAddr, &tl_currentAddr, &tl_capacity, data, cap);
     return ThreadLocalBumpAllocator{};
 }

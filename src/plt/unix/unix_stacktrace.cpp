@@ -83,9 +83,9 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten, i32 nStackFr
         bool successfullyParsedLine = beginName && beginOffset && endOffset && beginName < beginOffset;
 
         if (successfullyParsedLine) {
-            *beginName++ = core::term_char;
-            *beginOffset++ = core::term_char;
-            *endOffset = core::term_char;
+            *beginName++ = '\0';
+            *beginOffset++ = '\0';
+            *endOffset = '\0';
 
             i32 status = 0;
             char* demangled = abi::__cxa_demangle(beginName, nullptr, nullptr, &status);

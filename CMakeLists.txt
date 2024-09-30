@@ -169,9 +169,11 @@ if(CORE_BUILD_TESTS)
     # ------------------------------------- Begin Testing --------------------------------------------------------------
     log_info("Configuring tests")
 
-    # # Create test executable
+    # Create test executable
     add_executable(${target_test}
-        ${target_test}.cpp
+        # ${target_test}.cpp
+
+        core_sandbox.cpp
 
         tests/t-index_core_init.cpp
 

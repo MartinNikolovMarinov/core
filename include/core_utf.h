@@ -37,7 +37,7 @@ constexpr bool isValidUtf8Encoding(const uchar* utf, u32 len) {
             res = true;
             break;
         case 1:
-            res = core::mostSignificantNBits(utf[0], 0, 1) && u8(utf[0]) <= MAX_I8;
+            res = core::mostSignificantNBits(utf[0], 0, 1) && u8(utf[0]) <= core::limitMax<i8>();
             break;
         case 2:
             res = core::mostSignificantNBits(utf[0], 0b110, 3) &&

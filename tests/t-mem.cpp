@@ -76,15 +76,15 @@ i32 memswapTest() {
             u8 c;
         };
 
-        A a1 = { core::MAX_I32, core::MAX_U64, core::MAX_U8 };
-        A a2 = { core::MIN_I32, 0, 0 };
+        A a1 = { core::limitMax<i32>(), core::limitMax<u64>(), core::limitMax<u8>() };
+        A a2 = { core::limitMin<i32>(), 0, 0 };
         core::memswap(&a1, &a2, sizeof(A));
-        CT_CHECK(a1.a == core::MIN_I32);
+        CT_CHECK(a1.a == core::limitMin<i32>());
         CT_CHECK(a1.b == 0);
         CT_CHECK(a1.c == 0);
-        CT_CHECK(a2.a == core::MAX_I32);
-        CT_CHECK(a2.b == core::MAX_U64);
-        CT_CHECK(a2.c == core::MAX_U8);
+        CT_CHECK(a2.a == core::limitMax<i32>());
+        CT_CHECK(a2.b == core::limitMax<u64>());
+        CT_CHECK(a2.c == core::limitMax<u8>());
     }
     {
         struct A {
@@ -325,9 +325,9 @@ i32 memidxofTest() {
 
     const i32 a1[] = {1};
     constexpr addr_size a1Len = sizeof(a1) / sizeof(a1[0]);
-    const i32 a2[] = {core::MIN_I32, 0, core::MAX_I32};
+    const i32 a2[] = {core::limitMin<i32>(), 0, core::limitMax<i32>()};
     constexpr addr_size a2Len = sizeof(a2) / sizeof(a2[0]);
-    const i32 a3[] = {core::MIN_I32, 0, core::MAX_I32, core::MAX_I32 / 2};
+    const i32 a3[] = {core::limitMin<i32>(), 0, core::limitMax<i32>(), core::limitMax<i32>() / 2};
     constexpr addr_size a3Len = sizeof(a3) / sizeof(a3[0]);
 
     TestCase cases[] = {
@@ -335,21 +335,21 @@ i32 memidxofTest() {
         { nullptr, 0, 0, -1 },
 
         { a1, a1Len, 2, -1 },
-        { a1, a1Len, core::MAX_I32, -1 },
+        { a1, a1Len, core::limitMax<i32>(), -1 },
         { a1, a1Len, 1, 0 },
 
-        { a2, a2Len, core::MIN_I32 + 1, -1 },
-        { a2, a2Len, core::MIN_I32, 0 },
+        { a2, a2Len, core::limitMin<i32>() + 1, -1 },
+        { a2, a2Len, core::limitMin<i32>(), 0 },
         { a2, a2Len, 0, 1 },
-        { a2, a2Len, core::MAX_I32, 2 },
-        { a2, a2Len, core::MAX_I32 - 1, -1 },
+        { a2, a2Len, core::limitMax<i32>(), 2 },
+        { a2, a2Len, core::limitMax<i32>() - 1, -1 },
 
-        { a3, a3Len, core::MIN_I32 + 1, -1 },
-        { a3, a3Len, core::MIN_I32, 0 },
+        { a3, a3Len, core::limitMin<i32>() + 1, -1 },
+        { a3, a3Len, core::limitMin<i32>(), 0 },
         { a3, a3Len, 0, 1 },
-        { a3, a3Len, core::MAX_I32, 2 },
-        { a3, a3Len, core::MAX_I32 / 2, 3 },
-        { a3, a3Len, core::MAX_I32 / 2 + 1, -1 },
+        { a3, a3Len, core::limitMax<i32>(), 2 },
+        { a3, a3Len, core::limitMax<i32>() / 2, 3 },
+        { a3, a3Len, core::limitMax<i32>() / 2 + 1, -1 },
     };
 
     i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {

@@ -78,7 +78,7 @@ expected<PltErrCode> threadingGetCurrent(Thread& out) noexcept {
 }
 
 expected<PltErrCode> threadingSleep(u64 ms) noexcept {
-    Panic(ms <= u64(core::MAX_I32) && "Sleep time is too large");
+    Panic(ms <= u64(core::limitMax<i32>()) && "Sleep time is too large");
     Sleep(DWORD(ms));
     return {};
 }

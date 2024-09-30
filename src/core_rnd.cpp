@@ -1,7 +1,9 @@
 #include <core_rnd.h>
 
-#include <core_intrinsics.h>
 #include <core_cstr.h>
+#include <core_intrinsics.h>
+
+#include <math/core_math.h>
 
 namespace core {
 
@@ -74,9 +76,9 @@ i32 rndI32(i32 min, i32 max) { return i32(rndU32(u32(min), u32(max))); }
 i64 rndI64()                 { return i64(rndU64()); }
 i64 rndI64(i64 min, i64 max) { return i64(rndU64(u64(min), u64(max))); }
 
-f32 rndF32()                 { return f32(rndU32()) / (f32(MAX_U32) + 1.0f); }
+f32 rndF32()                 { return f32(rndU32()) / (f32(core::limitMax<u32>()) + 1.0f); }
 f32 rndF32(f32 min, f32 max) { return min + (max - min) * rndF32(); }
-f64 rndF64()                 { return f64(rndU64()) / (f64(MAX_U64) + f64(1.0f)); }
+f64 rndF64()                 { return f64(rndU64()) / (f64(core::limitMax<u64>()) + f64(1.0f)); }
 f64 rndF64(f64 min, f64 max) { return min + (max - min) * rndF64(); }
 
 char* rndCstr(char* out, addr_size len) {

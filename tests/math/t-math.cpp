@@ -122,16 +122,16 @@ constexpr i32 pow2Test() {
 
 constexpr i32 degreesTest() {
     CT_CHECK(core::degToRad(0.0f).value == 0.0f);
-    CT_CHECK(core::degToRad(90.0f).value == core::PI / 2.0f);
-    CT_CHECK(core::degToRad(180.0f).value == core::PI);
-    CT_CHECK(core::degToRad(270.0f).value == core::PI * 1.5f);
-    CT_CHECK(core::degToRad(360.0f).value == core::PI * 2.0f);
+    CT_CHECK(core::degToRad(90.0f).value == core::piF32() / 2.0f);
+    CT_CHECK(core::degToRad(180.0f).value == core::piF32());
+    CT_CHECK(core::degToRad(270.0f).value == core::piF32() * 1.5f);
+    CT_CHECK(core::degToRad(360.0f).value == core::piF32() * 2.0f);
 
     CT_CHECK(core::radToDeg(core::radians(0.0f)) == 0.0f);
-    CT_CHECK(core::radToDeg(core::radians(core::PI / 2.0f)) == 90.0f);
-    CT_CHECK(core::radToDeg(core::radians(core::PI)) == 180.0f);
-    CT_CHECK(core::radToDeg(core::radians(core::PI * 1.5f)) == 270.0f);
-    CT_CHECK(core::radToDeg(core::radians(core::PI * 2.0f)) == 360.0f);
+    CT_CHECK(core::radToDeg(core::radians(core::piF32() / 2.0f)) == 90.0f);
+    CT_CHECK(core::radToDeg(core::radians(core::piF32())) == 180.0f);
+    CT_CHECK(core::radToDeg(core::radians(core::piF32() * 1.5f)) == 270.0f);
+    CT_CHECK(core::radToDeg(core::radians(core::piF32() * 2.0f)) == 360.0f);
 
     return 0;
 }
@@ -157,14 +157,14 @@ constexpr i32 absTest() {
     CT_CHECK(core::abs(f64(-1)) == 1.0);
 
     // check with max and min values
-    CT_CHECK(core::absGeneric(i8(core::MAX_I8))       == core::MAX_I8);
-    CT_CHECK(core::absGeneric(i8(core::MIN_I8 + 1))   == core::MAX_I8);
-    CT_CHECK(core::absGeneric(i16(core::MAX_I16))     == core::MAX_I16);
-    CT_CHECK(core::absGeneric(i16(core::MIN_I16 + 1)) == core::MAX_I16);
-    CT_CHECK(core::absGeneric(i32(core::MAX_I32))     == core::MAX_I32);
-    CT_CHECK(core::absGeneric(i32(core::MIN_I32 + 1)) == core::MAX_I32);
-    CT_CHECK(core::absGeneric(i64(core::MAX_I64))     == core::MAX_I64);
-    CT_CHECK(core::absGeneric(i64(core::MIN_I64 + 1)) == core::MAX_I64);
+    CT_CHECK(core::absGeneric(i8(core::limitMax<i8>()))       == core::limitMax<i8>());
+    CT_CHECK(core::absGeneric(i8(core::limitMin<i8>() + 1))   == core::limitMax<i8>());
+    CT_CHECK(core::absGeneric(i16(core::limitMax<i16>()))     == core::limitMax<i16>());
+    CT_CHECK(core::absGeneric(i16(core::limitMin<i16>() + 1)) == core::limitMax<i16>());
+    CT_CHECK(core::absGeneric(i32(core::limitMax<i32>()))     == core::limitMax<i32>());
+    CT_CHECK(core::absGeneric(i32(core::limitMin<i32>() + 1)) == core::limitMax<i32>());
+    CT_CHECK(core::absGeneric(i64(core::limitMax<i64>()))     == core::limitMax<i64>());
+    CT_CHECK(core::absGeneric(i64(core::limitMin<i64>() + 1)) == core::limitMax<i64>());
 
     return 0;
 }
@@ -242,24 +242,24 @@ i32 floatNearlyEqExtreamCasesTest() {
 
     constexpr f32 defaultEpsilon = 0.00001f;
     TestCase cases[] = {
-        { MAX_F32, MAX_F32, defaultEpsilon, true },
-        // { MAX_F32, -MAX_F32, defaultEpsilon, false }, // These 2 look like a bug, but I don't think I care.
-        // { -MAX_F32, MAX_F32, defaultEpsilon, false },
-        { MAX_F32, MAX_F32 / 2, defaultEpsilon, false },
-        { MAX_F32, -MAX_F32 / 2, defaultEpsilon, false },
-        { -MAX_F32, MAX_F32 / 2, defaultEpsilon, false },
+        { core::limitMax<f32>(), core::limitMax<f32>(), defaultEpsilon, true },
+        // { core::limitMax<f32>(), -core::limitMax<f32>(), defaultEpsilon, false }, // These 2 look like a bug, but I don't think I care.
+        // { -core::limitMax<f32>(), core::limitMax<f32>(), defaultEpsilon, false },
+        { core::limitMax<f32>(), core::limitMax<f32>() / 2, defaultEpsilon, false },
+        { core::limitMax<f32>(), -core::limitMax<f32>() / 2, defaultEpsilon, false },
+        { -core::limitMax<f32>(), core::limitMax<f32>() / 2, defaultEpsilon, false },
 
-        { MIN_F32, MIN_F32, defaultEpsilon, true },
-        { MIN_F32, -MIN_F32, defaultEpsilon, true },
-        { -MIN_F32, MIN_F32, defaultEpsilon, true },
-        { MIN_F32, 0, defaultEpsilon, false },
-        { 0, MIN_F32, defaultEpsilon, false },
-        { -MIN_F32, 0, defaultEpsilon, false },
-        { 0, -MIN_F32, defaultEpsilon, false },
-        { 0.000000001f, -MIN_F32, defaultEpsilon, false },
-        { 0.000000001f, MIN_F32, defaultEpsilon, false },
-        { MIN_F32, 0.000000001f, defaultEpsilon, false },
-        { -MIN_F32, 0.000000001f, defaultEpsilon, false },
+        { core::limitMin<f32>(), core::limitMin<f32>(), defaultEpsilon, true },
+        { core::limitMin<f32>(), -core::limitMin<f32>(), defaultEpsilon, true },
+        { -core::limitMin<f32>(), core::limitMin<f32>(), defaultEpsilon, true },
+        { core::limitMin<f32>(), 0, defaultEpsilon, false },
+        { 0, core::limitMin<f32>(), defaultEpsilon, false },
+        { -core::limitMin<f32>(), 0, defaultEpsilon, false },
+        { 0, -core::limitMin<f32>(), defaultEpsilon, false },
+        { 0.000000001f, -core::limitMin<f32>(), defaultEpsilon, false },
+        { 0.000000001f, core::limitMin<f32>(), defaultEpsilon, false },
+        { core::limitMin<f32>(), 0.000000001f, defaultEpsilon, false },
+        { -core::limitMin<f32>(), 0.000000001f, defaultEpsilon, false },
     };
 
         i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {

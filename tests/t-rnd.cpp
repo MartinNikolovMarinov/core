@@ -13,11 +13,11 @@ i32 rndSignedIntegersTest() {
     testTable[4] = { -11, -10, 5000 };
     testTable[5] = { -19, -19, 5000 };
     testTable[6] = { -1000, 1000, 5000 };
-    testTable[7] = { MIN_I32, MAX_I32, 5000 };
-    testTable[8] = { MAX_I32 - 500, MAX_I32, 5000 };
-    testTable[9] = { MIN_I32, MIN_I32 + 1, 5000 };
-    testTable[10] = { MIN_I32, MIN_I32, 5000 };
-    testTable[11] = { MAX_I32, MAX_I32, 5000 };
+    testTable[7] = { core::limitMin<i32>(), core::limitMax<i32>(), 5000 };
+    testTable[8] = { core::limitMax<i32>() - 500, core::limitMax<i32>(), 5000 };
+    testTable[9] = { core::limitMin<i32>(), core::limitMin<i32>() + 1, 5000 };
+    testTable[10] = { core::limitMin<i32>(), core::limitMin<i32>(), 5000 };
+    testTable[11] = { core::limitMax<i32>(), core::limitMax<i32>(), 5000 };
 
     for (i32 i = 0; i < testCount; i++) {
         for (i32 j = 0; j < testTable[i].itterCount; j++) {
@@ -42,7 +42,7 @@ i32 rndRawStrTest() {
     for (i32 i = 0; i < testCount; i++) {
         for (i32 j = 0; j < testTable[i].itterCount; j++) {
             core::rndCstr(buf, testTable[i].size);
-            buf[max - 1] = core::term_char;
+            buf[max - 1] = '\0';
         }
     }
 

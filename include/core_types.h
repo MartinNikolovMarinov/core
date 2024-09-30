@@ -30,43 +30,6 @@ using rune      = u32; // Runes represent a single UTF-32 encoded character.
 
 static constexpr i32 BYTE_SIZE = 8;
 
-// Max unsigned integer constants
-static constexpr u64 MAX_U64 = static_cast<u64>(0xFFFFFFFFFFFFFFFF);           // 18446744073709551615
-static constexpr u32 MAX_U32 = static_cast<u32>(MAX_U64 >> (sizeof(u32) * 8)); // 4294967295
-static constexpr u16 MAX_U16 = static_cast<u16>(MAX_U32 >> (sizeof(u16) * 8)); // 65535
-static constexpr u8  MAX_U8  = static_cast<u8>(MAX_U16 >> (sizeof(u8) * 8));   // 255
-
-// Max signed integer constants
-static constexpr i64 MAX_I64 = static_cast<i64>(MAX_U64 >> 1);                 // 9223372036854775807
-static constexpr i32 MAX_I32 = static_cast<i32>(MAX_I64 >> (sizeof(i32) * 8)); // 2147483647
-static constexpr i16 MAX_I16 = static_cast<i16>(MAX_I32 >> (sizeof(i16) * 8)); // 32767
-static constexpr i8  MAX_I8  = static_cast<i8>(MAX_I16 >> (sizeof(i8) * 8));   // 127
-
-// Min signed integer constants
-static constexpr i64 MIN_I64 = static_cast<i64>((MAX_U64 >> 1) ^ MAX_U64); // -9223372036854775808
-static constexpr i32 MIN_I32 = static_cast<i32>((MAX_U32 >> 1) ^ MAX_U32); // -2147483648
-static constexpr i16 MIN_I16 = static_cast<i16>((MAX_U16 >> 1) ^ MAX_U16); // -32768
-static constexpr i8  MIN_I8  = static_cast<i8>((MAX_U8 >> 1) ^ MAX_U8);    // -128
-
-// Max floating point constants
-static constexpr f64 MAX_F64 = static_cast<f64>(1.79769313486231570814527423731704357e+308L);
-static constexpr f32 MAX_F32 = static_cast<f32>(3.40282346638528859811704183484516925e+38f);
-
-
-// Min floating point constants
-static constexpr f64 MIN_F64        = static_cast<f64>(-MAX_F64);
-static constexpr f64 MIN_NORMAL_F64 = static_cast<f64>(2.2250738585072014e-308);
-static constexpr f32 MIN_F32        = static_cast<f32>(-MAX_F32);
-static constexpr f32 MIN_NORMAL_F32 = static_cast<f32>(1.175494351e-38f);
-
-// Special constants
-static constexpr char term_char = '\0';
-
-// Standard I/O
-static constexpr i32 STDIN  = 0;
-static constexpr i32 STDOUT = 1;
-static constexpr i32 STDERR = 2;
-
 // Storage Sizes
 static constexpr u64 CORE_BYTE     = static_cast<u64>(1);
 static constexpr u64 CORE_KILOBYTE = static_cast<u64>(1024 * CORE_BYTE);
@@ -81,8 +44,6 @@ static constexpr u64 CORE_MILLISECOND = static_cast<u64>(1000 * CORE_MICROSECOND
 static constexpr u64 CORE_SECOND      = static_cast<u64>(1000 * CORE_MILLISECOND); //     1_000_000_000ns
 static constexpr u64 CORE_MINUTE      = static_cast<u64>(60 * CORE_SECOND);        //    60_000_000_000ns
 static constexpr u64 CORE_HOUR        = static_cast<u64>(60 * CORE_MINUTE);        // 3_600_000_000_000ns
-
-static constexpr f32 PI = 3.14159265358979323846f;
 
 } // namespace coretypes
 

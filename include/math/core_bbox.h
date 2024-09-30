@@ -72,8 +72,8 @@ struct Bbox2D {
             return res;
         }
 
-        f32 tMin = core::MIN_F32;
-        f32 tMax = core::MAX_F32;
+        f32 tMin = core::limitMin<f32>();
+        f32 tMax = core::limitMax<f32>();
 
         if (dir.x() != 0) {
             const f32 invDirX = 1.0f / dir.x();

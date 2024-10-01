@@ -3,7 +3,8 @@ project(core VERSION 0.4.0)
 
 set(target_core core)
 set(target_core_upper CORE)
-set(target_test core_test)
+# set(target_test core_test)
+set(target_test core_sandbox)
 
 # Standard Requirements:
 
@@ -171,9 +172,7 @@ if(CORE_BUILD_TESTS)
 
     # Create test executable
     add_executable(${target_test}
-        # ${target_test}.cpp
-
-        core_sandbox.cpp
+        ${target_test}.cpp
 
         tests/t-index_core_init.cpp
 

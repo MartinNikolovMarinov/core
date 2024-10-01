@@ -11,7 +11,7 @@ core::AllocatorContext* getAllocatorCtx(AllocatorId id) {
 
 namespace {
 
-void asserHandler(const char* failedExpr, const char* file, i32 line, const char* funcName, const char* errMsg) {
+void assertHandler(const char* failedExpr, const char* file, i32 line, const char* funcName, const char* errMsg) {
     constexpr u32 stackFramesToSkip = 2;
     constexpr addr_size stackTraceBufferSize = core::CORE_KILOBYTE * 8;
     char trace[stackTraceBufferSize] = {};
@@ -47,7 +47,7 @@ constexpr addr_size THREAD_LOCAL_ARENA_ALLOCATOR_REGION_SIZE = core::CORE_MEGABY
 static auto g_arenaAllocator = core::ThreadLocalStdArenaAllocator::create(THREAD_LOCAL_ARENA_ALLOCATOR_REGION_SIZE);
 
 void coreInit() {
-    core::initProgramCtx(asserHandler, nullptr);
+    core::initProgramCtx(assertHandler, nullptr);
 
     g_allocators[AllocatorId::STD_STATS_ALLOCATOR] = core::createAllocatorCtx(&g_stdStatsAllocator);
     g_allocators[AllocatorId::BUMP_ALLOCATOR] = core::createAllocatorCtx(&g_bumpGlobalBufferAllocator);

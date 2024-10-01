@@ -122,22 +122,19 @@ struct Number {
     i64 exponent;
     u64 mantissa;
     bool negative;
-    bool manyDigits;
     bool hex;
 };
 
-void tryParseDigits(FloatStream& floatStream, u64& x, bool isHex)  {
-    // Try to parse 8 digits at a time, using an optimized algorithm.
-    // This only supports decimal digits.
-    if (!isHex) {
+void tryParseDigits(FloatStream& floatStream, u64& x, i32 base)  {
+    if (base == 10) {
+        // Try to parse 8 digits at a time.
         // mFIXME: optimize to read 8 digits at a time!
     }
 
     while (true) {
-        if (auto res = floatStream.scanDigit(isHex); res.hasValue()) {
+        if (auto res = floatStream.scanDigit(base == 16); res.hasValue()) {
             u8 digit = res.value();
-            x *= isHex ? 16 : 10;
-            x += digit;
+            x = x * u64(base) + digit;
         }
         else {
             break;
@@ -151,19 +148,16 @@ Number parseNumber(core::StrView s, bool negative) {
 
     FloatStream floatStream(s);
 
-    // return parsePartialNumberBase(T, &stream, negative, n, .{
-    //         .base = 16,
-    //         .max_mantissa_digits = if (MantissaT == u64) 16 else 32,
-    //         .exp_char_lower = 'p',
-    //     });
-
     // parse initial digits before dot
     u64 mantissa = 0;
     tryParseDigits(floatStream, mantissa, isHex);
     const addr_size intEnd = floatStream.offset;
     const addr_off nDigits = addr_off(floatStream.offset);
 
-    return {};
+    Number ret;
+    ret.negative = negative;
+    ret.mantissa = mantissa;
+    return ret;
 }
 
 } // namespace
@@ -197,7 +191,171 @@ ParseFloatErr parseFloat(const char* s, addr_size slen) {
     return ParseFloatErr::Ok;
 }
 
+#include <limits>
+
 i32 main() {
     parseFloat("123.2", core::cstrLen("123.2"));
+
+    // FIXME: Write these as tests
+
+    using core::safeAdd;
+    using core::safeSub;
+    using core::safeMul;
+    using core::safeDiv;
+
+    // add and sub test cases:
+    {
+        int result;
+
+        // 1. Normal Addition Within Bounds
+        Assert(safeAdd(10, 20, result) && result == 30);
+
+        // 2. Addition Causing Overflow (Signed)
+        Assert(!safeAdd(std::numeric_limits<int>::max(), 1, result));
+
+        // 3. Addition Causing Underflow (Signed)
+        Assert(!safeAdd(std::numeric_limits<int>::min(), -1, result));
+
+        // 4. Addition at Maximum Boundary (Unsigned)
+        unsigned int uResult;
+        Assert(safeAdd(std::numeric_limits<unsigned int>::max() - 1, 1u, uResult) &&
+            uResult == std::numeric_limits<unsigned int>::max());
+
+        // 5. Addition Causing Overflow (Unsigned)
+        Assert(!safeAdd(std::numeric_limits<unsigned int>::max(), 1u, uResult));
+
+        // 6. Zero Addition
+        Assert(safeAdd(0, 0, result) && result == 0);
+
+        // 7. Negative Addition Within Bounds
+        Assert(safeAdd(-10, -20, result) && result == -30);
+
+        // 8. Mixed Positive and Negative Addition Within Bounds
+        Assert(safeAdd(50, -30, result) && result == 20);
+
+        // 9. Large Positive and Negative Addition Cancelling Out
+        Assert(safeAdd(std::numeric_limits<int>::max(), std::numeric_limits<int>::min(), result) &&
+            result == -1);
+
+        // 10. Large Unsigned Addition Within Bounds
+        Assert(safeAdd(static_cast<unsigned int>(1000000), static_cast<unsigned int>(1000000), uResult) &&
+            uResult == 2000000);
+
+        std::cout << "All safeAdd test cases passed!" << std::endl;
+
+        // Test cases for safeSub
+        // 1. Normal Subtraction Within Bounds
+        Assert(safeSub(30, 20, result) && result == 10);
+
+        // 2. Subtraction Causing Underflow (Signed)
+        Assert(!safeSub(std::numeric_limits<int>::min(), 1, result));
+
+        // 3. Subtraction Causing Overflow (Signed)
+        Assert(!safeSub(std::numeric_limits<int>::max(), -1, result));
+
+        // 4. Subtraction at Minimum Boundary (Unsigned)
+        Assert(safeSub(static_cast<unsigned int>(1), static_cast<unsigned int>(1), uResult) && uResult == 0);
+
+        // 5. Subtraction Causing Underflow (Unsigned)
+        Assert(!safeSub(static_cast<unsigned int>(0), static_cast<unsigned int>(1), uResult));
+
+        // 6. Zero Subtraction
+        Assert(safeSub(0, 0, result) && result == 0);
+
+        // 7. Positive Minus Negative Within Bounds
+        Assert(safeSub(20, -10, result) && result == 30);
+
+        // 8. Negative Minus Positive Within Bounds
+        Assert(safeSub(-10, 20, result) && result == -30);
+
+        // 9. Subtraction That Stays Within Bounds
+        Assert(safeSub(std::numeric_limits<int>::max(), 100, result) &&
+            result == std::numeric_limits<int>::max() - 100);
+
+        // 10. Unsigned Subtraction Without Underflow
+        Assert(safeSub(static_cast<unsigned int>(1000000), static_cast<unsigned int>(500000), uResult) &&
+            uResult == 500000);
+
+        std::cout << "All safeSub test cases passed!" << std::endl;
+    }
+
+    // mul and div test cases:
+    {
+        int result;
+
+        // Test cases for safeMul
+        // 1. Normal Multiplication Within Bounds
+        Assert(safeMul(10, 20, result) && result == 200);
+
+        // 2. Multiplication Causing Overflow (Signed)
+        Assert(!safeMul(std::numeric_limits<int>::max(), 2, result));
+
+        // 3. Multiplication Causing Underflow (Signed)
+        Assert(!safeMul(std::numeric_limits<int>::min(), 2, result));
+
+        // 4. Multiplication by Zero
+        Assert(safeMul(0, 1000, result) && result == 0);
+        Assert(safeMul(1000, 0, result) && result == 0);
+
+        // 5. Positive and Negative Multiplication Within Bounds
+        Assert(safeMul(50, -2, result) && result == -100);
+
+        // 6. Negative Multiplication Within Bounds
+        Assert(safeMul(-10, -20, result) && result == 200);
+
+        // 7. Large Unsigned Multiplication Within Bounds
+        unsigned int uResult;
+        Assert(safeMul(static_cast<unsigned int>(1000000), static_cast<unsigned int>(1000), uResult) && uResult == 1000000000);
+
+        // 8. Unsigned Multiplication Causing Overflow
+        Assert(!safeMul(std::numeric_limits<unsigned int>::max(), 2u, uResult));
+
+        // 9. Small Multiplication with Minimum Signed Value (No Overflow)
+        Assert(safeMul(std::numeric_limits<int>::min() / 2, 2, result) &&
+            result == std::numeric_limits<int>::min());
+
+        // 10. Mixed Sign Multiplication Causing Overflow
+        Assert(!safeMul(std::numeric_limits<int>::min(), -1, result));
+
+        std::cout << "All safeMul test cases passed!" << std::endl;
+
+        // Test cases for safeDiv
+        // 1. Normal Division Within Bounds
+        Assert(safeDiv(100, 20, result) && result == 5);
+
+        // 2. Division by Zero
+        Assert(!safeDiv(100, 0, result));
+
+        // 3. Zero Divided by Any Number
+        Assert(safeDiv(0, 100, result) && result == 0);
+
+        // 4. Signed Overflow Division (min / -1)
+        Assert(!safeDiv(std::numeric_limits<int>::min(), -1, result));
+
+        // 5. Signed Positive Division Within Bounds
+        Assert(safeDiv(50, -2, result) && result == -25);
+
+        // 6. Signed Negative Division Within Bounds
+        Assert(safeDiv(-100, -20, result) && result == 5);
+
+        // 7. Unsigned Division by Non-zero
+        Assert(safeDiv(static_cast<unsigned int>(1000000), static_cast<unsigned int>(100), uResult) &&
+            uResult == 10000);
+
+        // 8. Unsigned Division by a Larger Number (Result is 0)
+        Assert(safeDiv(static_cast<unsigned int>(50), static_cast<unsigned int>(100), uResult) &&
+            uResult == 0);
+
+        // 9. Unsigned Division with Large Divisor
+        Assert(safeDiv(std::numeric_limits<unsigned int>::max(), static_cast<unsigned int>(2), uResult) &&
+            uResult == std::numeric_limits<unsigned int>::max() / 2);
+
+        // 10. Division of Maximum Signed by a Positive Number
+        Assert(safeDiv(std::numeric_limits<int>::max(), 2, result) &&
+            result == std::numeric_limits<int>::max() / 2);
+
+        std::cout << "All safeDiv test cases passed!" << std::endl;
+    }
+
     return 0;
 }

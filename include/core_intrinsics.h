@@ -104,17 +104,12 @@ constexpr u32 intrin_numberOfSetBits(TUint n) {
     IS_CONST_EVALUATED { return detail::numberOfSetBitsCompiletimeImpl(n); }
 
 #if COMPILER_CLANG == 1 || COMPILER_GCC == 1
-    #if defined(CORE_NO_STD) && CORE_NO_STD == 1
-        // The builtin popcount seems to be unavailable for clang and gcc when compiling with -nostdlib.
-        return detail::numberOfSetBitsCompiletimeImpl(n);
-    #else
-        if constexpr (sizeof(TUint) == 4) {
-            return u32(__builtin_popcount(TUint(n)));
-        }
-        else {
-            return u32(__builtin_popcountll(TUint(n)));
-        }
-    #endif
+    if constexpr (sizeof(TUint) == 4) {
+        return u32(__builtin_popcount(TUint(n)));
+    }
+    else {
+        return u32(__builtin_popcountll(TUint(n)));
+    }
 #elif COMPILER_MSVC == 1
     if constexpr (sizeof(TUint) == 4) {
         return u32(__popcnt(u32(n)));
@@ -167,5 +162,68 @@ constexpr inline TUint intrin_rotr(TUint x, i32 s) {
 // Right circular shift.
 constexpr inline u32 intrin_rotr(u32 x, i32 s) { return detail::intrin_rotr(x, s); }
 constexpr inline u64 intrin_rotr(u64 x, i32 s) { return detail::intrin_rotr(x, s); }
+
+namespace detail {
+
+template <typename T, T TMin, T TMax>
+constexpr bool safeAddComptimeImpl(T a, T b, T& out) {
+    static_assert(std::is_integral_v<T>, "Safe addition works for integral types only.");
+
+    if constexpr (std::is_signed_v<T>) {
+        if ((b > 0 && a > TMax - b) ||
+            (b < 0 && a < TMin - b)) {
+            return false;
+        }
+    }
+    else {
+        if (a > TMax - b) {
+            return false;
+        }
+    }
+
+    out = a + b;
+    return true;
+}
+
+
+} // namespace detail
+
+template <typename T, T TMin, T TMax> // FIXME: Just move limit to types, it's really needed everywhere!
+constexpr inline bool intrin_safe_add(T a, T b, T& out) {
+    static_assert(std::is_integral_v<T>);
+
+    IS_CONST_EVALUATED { return detail::safeAddComptimeImpl<T, TMin, TMax>(a, b, out); }
+
+#if COMPILER_CLANG == 1 || COMPILER_GCC == 1
+    return !__builtin_add_overflow(a, b, &out);
+#elif COMPILER_MSVC == 1 && CPU_ARCH_X86_64
+    // TODO: Just write inline assembly to make this actually fast.
+
+    // MSVC makes me happy...I am not even sure this is faster than the manual implementation
+    if constexpr (std::is_unsigned_v<T>) {
+        if constexpr (sizeof(T) == 1) {
+            u8 carry = _addcarry_u8(0, a, b, &out);
+            return carry == 0;
+        }
+        else if constexpr (sizeof(T) == 2) {
+            u8 carry = _addcarry_u16(0, a, b, &out);
+            return carry == 0;
+        }
+        else if constexpr (sizeof(T) == 4) {
+            u8 carry = _addcarry_u32(0, a, b, &out);
+            return carry == 0;
+        }
+        else if constexpr (sizeof(T) == 8) {
+            u8 carry = _addcarry_u64(0, a, b, &out);
+            return carry == 0;
+        }
+    }
+
+    // might as well be safe.
+    return detail::safeAddComptimeImpl(a, b, out);
+#else
+    return detail::safeAddComptimeImpl(a, b, out);
+#endif
+}
 
 } // namespace core

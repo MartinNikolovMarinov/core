@@ -114,6 +114,11 @@ template <typename T>               constexpr T           clamp(T value, T min, 
                                     constexpr bool        nearlyEq(f32 a, f32 b, f32 epsilon);
                                     constexpr bool        nearlyEq(f64 a, f64 b, f64 epsilon);
 
+template <typename T>               constexpr bool        safeAdd(T a, T b, T& out);
+template <typename T>               constexpr bool        safeSub(T a, T b, T& out);
+template <typename T>               constexpr bool        safeMul(T a, T b, T& out);
+template <typename T>               constexpr bool        safeDiv(T a, T b, T& out);
+
 template <typename T>               constexpr T           affineMap(T v, T fromMin, T fromMax, T toMin, T toMax);
 template <typename T, typename T2>  constexpr T           lerp(T a, T b, T2 t);
 template <typename T, typename T2>  constexpr T           lerpFast(T a, T b, T2 t);
@@ -807,6 +812,98 @@ constexpr bool nearlyEq(f64 a, f64 b, f64 epsilon) {
         return diff < (epsilon * core::limitMin<f64>());
     }
     return diff / core::core_min((absA + absB), core::limitMax<f64>()) < epsilon;
+}
+
+#pragma endregion
+
+#pragma region Safe basic math
+
+template <typename T>
+constexpr bool safeAdd(T a, T b, T& out) {
+    static_assert(std::is_integral_v<T>, "Safe addition works for integral types only.");
+    return core::intrin_safe_add<T, core::limitMin<T>(), core::limitMax<T>()>(a, b, out);
+}
+
+// FIXME: use intrinsics for all basic math.
+
+template <typename T>
+constexpr bool safeSub(T a, T b, T& out) {
+    static_assert(std::is_integral_v<T>, "Safe subtraction works for integral types only.");
+
+    if constexpr (std::is_signed_v<T>) {
+        if ((b > 0 && a < core::limitMin<T>() + b) ||
+            (b < 0 && a > core::limitMax<T>() + b)) {
+            return false;
+        }
+    }
+    else {
+        if (a < b) {
+            return false;
+        }
+    }
+
+    out = a - b;
+    return true;
+}
+
+template <typename T>
+constexpr bool safeMul(T a, T b, T& out) {
+    static_assert(std::is_integral_v<T>, "Safe multiplication works for integral types only.");
+
+    // Handle multiplication by zero separately
+    if (a == 0 || b == 0) {
+        out = 0;
+        return true;
+    }
+
+    if constexpr (std::is_signed_v<T>) {
+        // Handle special case: multiplying minimum by -1 causes overflow
+        if (a == core::limitMin<T>() && b == -1) {
+            return false;
+        }
+        if (b == core::limitMin<T>() && a == -1) {
+            return false;
+        }
+
+        if (b > 0) {
+            if (a > core::limitMax<T>() / b || a < core::limitMin<T>() / b) {
+                return false;
+            }
+        }
+        else {
+            if (a > core::limitMin<T>() / b || a < core::limitMax<T>() / b) {
+                return false;
+            }
+        }
+    }
+    else {
+        if (a > core::limitMax<T>() / b) {
+            return false;
+        }
+    }
+
+    out = a * b;
+    return true;
+}
+
+template <typename T>
+constexpr bool safeDiv(T a, T b, T& out) {
+    static_assert(std::is_integral_v<T>, "Safe division works for integral types only.");
+
+    // Handle zero values separately
+    if (b == 0) {
+        return false; // Division by zero is not allowed
+    }
+
+    if constexpr (std::is_signed_v<T>) {
+        // Handle special overflow case: dividing the minimum value by -1
+        if (a == core::limitMin<T>() && b == -1) {
+            return false; // This would cause overflow
+        }
+    }
+
+    out = a / b;
+    return true;
 }
 
 #pragma endregion

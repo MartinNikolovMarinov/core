@@ -2,8 +2,6 @@
 #include <core_assert.h>
 #include <core_mem.h>
 
-#include <math/core_math.h>
-
 namespace core {
 
 namespace {

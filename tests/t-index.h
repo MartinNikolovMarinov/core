@@ -157,4 +157,6 @@ i32 runPltStacktraceTestsSuite();
 i32 runPltThreadingTestsSuite();
 i32 runPltTimeTestsSuite();
 
+i32 runAsmTestsSuite();
+
 i32 runAllTests();

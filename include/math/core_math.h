@@ -18,9 +18,6 @@ using namespace coretypes;
 
 struct radians;
 
-template <typename T>               constexpr T           limitMax();
-template <typename T>               constexpr T           limitMin();
-
 template <typename T>               constexpr u32         exponentBits();
 template <typename T>               constexpr u32         mantisaBits();
 
@@ -122,40 +119,6 @@ template <typename T>               constexpr bool        safeDiv(T a, T b, T& o
 template <typename T>               constexpr T           affineMap(T v, T fromMin, T fromMax, T toMin, T toMax);
 template <typename T, typename T2>  constexpr T           lerp(T a, T b, T2 t);
 template <typename T, typename T2>  constexpr T           lerpFast(T a, T b, T2 t);
-
-#pragma endregion
-
-#pragma region Limit Helper Functions ---------------------------------------------------------------------------------
-
-template <typename T>
-constexpr T limitMax() {
-    if constexpr (std::is_same_v<T, u8>)       return u8(0xFF);                     // 255
-    else if constexpr (std::is_same_v<T, u16>) return u16(0xFFFF);                  // 65535
-    else if constexpr (std::is_same_v<T, u32>) return u32(0xFFFFFFFF);              // 4294967295
-    else if constexpr (std::is_same_v<T, u64>) return u64(0xFFFFFFFFFFFFFFFF);      // 18446744073709551615
-    else if constexpr (std::is_same_v<T, i8>)  return i8(0x7F);                     // 127
-    else if constexpr (std::is_same_v<T, i16>) return i16(0x7FFF);                  // 32767
-    else if constexpr (std::is_same_v<T, i32>) return i32(0x7FFFFFFF);              // 2147483647
-    else if constexpr (std::is_same_v<T, i64>) return i64(0x7FFFFFFFFFFFFFFF);      // 9223372036854775807
-    else if constexpr (std::is_same_v<T, f32>) return f32(0x1.fffffep+127);         // Maximum positive finite value of float
-    else if constexpr (std::is_same_v<T, f64>) return f64(0x1.fffffffffffffp+1023); // Maximum positive finite value of double
-    else static_assert(core::always_false<T>, "Unsupported type");
-}
-
-template <typename T>
-constexpr T limitMin() {
-    if constexpr (std::is_same_v<T, u8>)       return u8(0x0);                  // 0
-    else if constexpr (std::is_same_v<T, u16>) return u16(0x0);                 // 0
-    else if constexpr (std::is_same_v<T, u32>) return u32(0x0);                 // 0
-    else if constexpr (std::is_same_v<T, u64>) return u64(0x0);                 // 0
-    else if constexpr (std::is_same_v<T, i8>)  return i8(-0x80);                // -128
-    else if constexpr (std::is_same_v<T, i16>) return i16(-0x8000);             // -32768
-    else if constexpr (std::is_same_v<T, i32>) return i32(-0x80000000);         // -2147483648
-    else if constexpr (std::is_same_v<T, i64>) return i64(-0x8000000000000000); // -9223372036854775808
-    else if constexpr (std::is_same_v<T, f32>) return f32(0x1.0p-126);          // Minimum positive normal float
-    else if constexpr (std::is_same_v<T, f64>) return f64(0x1.0p-1022);         // Minimum positive normal double
-    else static_assert(core::always_false<T>, "Unsupported type");
-}
 
 #pragma endregion
 
@@ -818,10 +781,20 @@ constexpr bool nearlyEq(f64 a, f64 b, f64 epsilon) {
 
 #pragma region Safe basic math
 
+/**
+ * @brief Add a and b sotring the result in out. Works only for integers. Checks if there was overflow or underflow
+ *        (wraparound) in the result.
+ *
+ * @param a left hand side value.
+ * @param b right hand side value.
+ * @param out the result of the operation. If overflow or underflow occurred the value is undefined.
+ *
+ * @return returns true if addition was successful without overflowing or underflowing.
+*/
 template <typename T>
 constexpr bool safeAdd(T a, T b, T& out) {
     static_assert(std::is_integral_v<T>, "Safe addition works for integral types only.");
-    return core::intrin_safe_add<T, core::limitMin<T>(), core::limitMax<T>()>(a, b, out);
+    return core::intrin_safeAdd(a, b, out);
 }
 
 // FIXME: use intrinsics for all basic math.

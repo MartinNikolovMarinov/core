@@ -29,6 +29,8 @@
 #include "core_unique_ptr.h"
 #include "core_utf.h"
 
+#include "asm/core_asm.h"
+
 #include "math/core_bbox.h"
 #include "math/core_lines.h"
 #include "math/core_math.h"

@@ -59,12 +59,6 @@ i32 hashCorrectnessTest(THash calcHash) {
     return 0;
 }
 
-template <typename T>
-i32 banica(T n) {
-    CT_CHECK(n = 5);
-    return 0;
-}
-
 i32 runHashTestsSuite() {
     using namespace core::testing;
 

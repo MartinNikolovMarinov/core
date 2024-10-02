@@ -21,11 +21,13 @@ template<typename TInt>    constexpr char       digitToChar(TInt digit);
                            constexpr u32        intToCstr(i32 n, char* out, addr_size outMax, u32 digits = 0);
                            constexpr u32        intToCstr(i64 n, char* out, addr_size outMax, u32 digits = 0);
 
+template <typename TInt>   constexpr TInt       cstrToInt(const char* s);
+
+// FIXME: Replace these when the ryu implementation is ready ---
                            constexpr u32        floatToCstr(f32 n, char* out, addr_size outMax, u32 precision = 6);
                            constexpr u32        floatToCstr(f64 n, char* out, addr_size outMax, u32 precision = 6);
-
-template <typename TInt>   constexpr TInt       cstrToInt(const char* s);
 template <typename TFloat> constexpr TFloat     cstrToFloat(const char* s);
+// FIXME: TO HERE ---
 
                            constexpr void       intToHex(u8 v, char* out, u64 hexLen = (sizeof(u8) << 1));
                            constexpr void       intToHex(u16 v, char* out, u64 hexLen = (sizeof(u16) << 1));

@@ -5,6 +5,8 @@
 #include <core_types.h>
 #include <core_traits.h>
 
+#include <asm/core_asm.h>
+
 #if COMPILER_MSVC == 1
 #include <intrin.h>
 #endif
@@ -165,18 +167,16 @@ constexpr inline u64 intrin_rotr(u64 x, i32 s) { return detail::intrin_rotr(x, s
 
 namespace detail {
 
-template <typename T, T TMin, T TMax>
+template <typename T>
 constexpr bool safeAddComptimeImpl(T a, T b, T& out) {
-    static_assert(std::is_integral_v<T>, "Safe addition works for integral types only.");
-
     if constexpr (std::is_signed_v<T>) {
-        if ((b > 0 && a > TMax - b) ||
-            (b < 0 && a < TMin - b)) {
+        if ((b > 0 && a > core::limitMax<T>() - b) ||
+            (b < 0 && a < core::limitMin<T>() - b)) {
             return false;
         }
     }
     else {
-        if (a > TMax - b) {
+        if (a > core::limitMax<T>() - b) {
             return false;
         }
     }
@@ -185,43 +185,25 @@ constexpr bool safeAddComptimeImpl(T a, T b, T& out) {
     return true;
 }
 
-
 } // namespace detail
 
-template <typename T, T TMin, T TMax> // FIXME: Just move limit to types, it's really needed everywhere!
-constexpr inline bool intrin_safe_add(T a, T b, T& out) {
+template <typename T>
+constexpr inline bool intrin_safeAdd(T a, T b, T& out) {
     static_assert(std::is_integral_v<T>);
 
-    IS_CONST_EVALUATED { return detail::safeAddComptimeImpl<T, TMin, TMax>(a, b, out); }
+    IS_CONST_EVALUATED { return detail::safeAddComptimeImpl(a, b, out); }
 
 #if COMPILER_CLANG == 1 || COMPILER_GCC == 1
     return !__builtin_add_overflow(a, b, &out);
-#elif COMPILER_MSVC == 1 && CPU_ARCH_X86_64
-    // TODO: Just write inline assembly to make this actually fast.
-
-    // MSVC makes me happy...I am not even sure this is faster than the manual implementation
-    if constexpr (std::is_unsigned_v<T>) {
-        if constexpr (sizeof(T) == 1) {
-            u8 carry = _addcarry_u8(0, a, b, &out);
-            return carry == 0;
-        }
-        else if constexpr (sizeof(T) == 2) {
-            u8 carry = _addcarry_u16(0, a, b, &out);
-            return carry == 0;
-        }
-        else if constexpr (sizeof(T) == 4) {
-            u8 carry = _addcarry_u32(0, a, b, &out);
-            return carry == 0;
-        }
-        else if constexpr (sizeof(T) == 8) {
-            u8 carry = _addcarry_u64(0, a, b, &out);
-            return carry == 0;
-        }
+#elif CPU_ARCH_X86_64
+    if constexpr (std::is_signed_v<T>) {
+        return core::x86_asm_add_setno(a, b, out);
     }
-
-    // might as well be safe.
-    return detail::safeAddComptimeImpl(a, b, out);
+    else {
+        return core::x86_asm_add_setnc(a, b, out);
+    }
 #else
+    // fallback
     return detail::safeAddComptimeImpl(a, b, out);
 #endif
 }

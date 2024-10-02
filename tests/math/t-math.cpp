@@ -1,4 +1,5 @@
 #include "../t-index.h"
+#include "../common/wrapping_math_test_tables.h"
 
 constexpr i32 pow10Test() {
     struct TestCase {
@@ -342,6 +343,49 @@ constexpr i32 floatNearlyEqTest() {
     return 0;
 }
 
+constexpr i32 safeAddTest() {
+    using Type = __Wrapping_Math_TestCase::Type;
+
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", __wrapping_add_testCases, [](auto& c, const char* cErr) {
+        // A utility to handle the generic pattern
+        auto runTestCase = [](auto a, auto b, auto want, bool cwrapAround, const char* ccErr) constexpr -> i32 {
+            decltype(a) res = 0;
+            bool noWrapAround = core::safeAdd(a, b, res);
+
+            // Check if the detected wraparound matches expected behavior
+            CT_CHECK(noWrapAround == cwrapAround, ccErr);
+            if (noWrapAround) CT_CHECK(res == want, ccErr);
+
+            return 0;
+        };
+
+        switch (c.type)
+        {
+            case Type::I8:
+                return runTestCase(c.a.as_i8, c.b.as_i8, c.want.as_i8, c.noWrapAround, cErr);
+            case Type::I16:
+                return runTestCase(c.a.as_i16, c.b.as_i16, c.want.as_i16, c.noWrapAround, cErr);
+            case Type::I32:
+                return runTestCase(c.a.as_i32, c.b.as_i32, c.want.as_i32, c.noWrapAround, cErr);
+            case Type::I64:
+                return runTestCase(c.a.as_i64, c.b.as_i64, c.want.as_i64, c.noWrapAround, cErr);
+            case Type::U8:
+                return runTestCase(c.a.as_u8, c.b.as_u8, c.want.as_u8, c.noWrapAround, cErr);
+            case Type::U16:
+                return runTestCase(c.a.as_u16, c.b.as_u16, c.want.as_u16, c.noWrapAround, cErr);
+            case Type::U32:
+                return runTestCase(c.a.as_u32, c.b.as_u32, c.want.as_u32, c.noWrapAround, cErr);
+            case Type::U64:
+                return runTestCase(c.a.as_u64, c.b.as_u64, c.want.as_u64, c.noWrapAround, cErr);
+        }
+
+        Panic(false, "unreachable");
+        return 0;
+    });
+
+    return ret;
+}
+
 i32 runMathTestsSuite() {
     using namespace core::testing;
 
@@ -364,6 +408,8 @@ i32 runMathTestsSuite() {
     if (runTest(tInfo, floatNearlyEqExtreamCasesTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(floatNearlyEqTest);
     if (runTest(tInfo, floatNearlyEqTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(safeAddTest);
+    if (runTest(tInfo, safeAddTest) != 0) { ret = -1; }
 
     return ret;
 }
@@ -376,6 +422,7 @@ constexpr i32 runCompiletimeMathTestsSuite() {
     RunTestCompileTime(isPositiveTest);
     RunTestCompileTime(floatSafeEqTest);
     RunTestCompileTime(floatNearlyEqTest);
+    RunTestCompileTime(safeAddTest);
 
     return 0;
 }

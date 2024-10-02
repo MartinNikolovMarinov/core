@@ -3,8 +3,6 @@
 #include <core_cstr.h>
 #include <core_intrinsics.h>
 
-#include <math/core_math.h>
-
 namespace core {
 
 /**

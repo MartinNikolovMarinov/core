@@ -3,8 +3,8 @@ project(core VERSION 0.4.0)
 
 set(target_core core)
 set(target_core_upper CORE)
-# set(target_test core_test)
-set(target_test core_sandbox)
+set(target_test core_test)
+# set(target_test core_sandbox)
 
 # Standard Requirements:
 
@@ -213,6 +213,8 @@ if(CORE_BUILD_TESTS)
         tests/plt/t-threading.cpp
         tests/plt/t-time.cpp
         tests/plt/t-fs.cpp
+
+        tests/asm/t-asm.cpp
     )
 
     # Link core

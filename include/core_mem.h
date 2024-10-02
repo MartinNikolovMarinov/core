@@ -33,7 +33,7 @@ template <typename T>
 struct Memory {
     using size_type = addr_size;
 
-    // mFIXME: I should test this struct. Especially the slice boundary checking.
+    // FIXME: I should test this struct. Especially the slice boundary checking.
 
     constexpr Memory() : ptr(nullptr), length(0) {}
     constexpr Memory(T* _ptr, size_type _len) : ptr(_ptr), length(_len) {}

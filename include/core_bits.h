@@ -3,8 +3,6 @@
 #include <core_API.h>
 #include <core_types.h>
 
-#include <math/core_math.h>
-
 namespace core {
 
 using namespace coretypes;

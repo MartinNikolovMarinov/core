@@ -38,6 +38,7 @@ constexpr __Wrapping_Math_TestCase __wrapping_add_testCases[] = {
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I8, i8(0), i8(0), i8(0), true },
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I8, i8(5), i8(10), i8(15), true },
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I8, i8(10), i8(-5), i8(5), true },
+    __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I8, i8(-5), i8(-5), i8(-10), true },
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I8, core::limitMax<i8>(), core::limitMin<i8>(), i8(-1), true },
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I8, i8(core::limitMax<i8>() - 1), i8(1), i8(core::limitMax<i8>()), true },
 
@@ -60,6 +61,7 @@ constexpr __Wrapping_Math_TestCase __wrapping_add_testCases[] = {
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I16, i16(0), i16(0), i16(0), true },
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I16, i16(5), i16(10), i16(15), true },
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I16, i16(10), i16(-5), i16(5), true },
+    __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I16, i16(-10), i16(-5), i16(-15), true },
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I16, core::limitMax<i16>(), core::limitMin<i16>(), i16(-1), true },
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I16, i16(core::limitMax<i16>() - 1), i16(1), i16(core::limitMax<i16>()), true },
 
@@ -82,6 +84,7 @@ constexpr __Wrapping_Math_TestCase __wrapping_add_testCases[] = {
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I32, i32(0), i32(0), i32(0), true },
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I32, i32(5), i32(10), i32(15), true },
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I32, i32(10), i32(-5), i32(5), true },
+    __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I32, i32(-10), i32(-5), i32(-15), true },
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I32, core::limitMax<i32>(), core::limitMin<i32>(), i32(-1), true },
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I32, core::limitMax<i32>() - 1, i32(1), core::limitMax<i32>(), true },
 
@@ -104,6 +107,7 @@ constexpr __Wrapping_Math_TestCase __wrapping_add_testCases[] = {
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I64, i64(0), i64(0), i64(0), true },
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I64, i64(5), i64(10), i64(15), true },
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I64, i64(10), i64(-5), i64(5), true },
+    __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I64, i64(-10), i64(-5), i64(-15), true },
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I64, core::limitMax<i64>(), core::limitMin<i64>(), i64(-1), true },
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I64, core::limitMax<i64>() - 1, i64(1), core::limitMax<i64>(), true },
 
@@ -121,4 +125,96 @@ constexpr __Wrapping_Math_TestCase __wrapping_add_testCases[] = {
     // U64 wrap around
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U64, u64(core::limitMax<u64>()), u64(1), u64(0), false },
     __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U64, u64(core::limitMax<u64>()), u64(core::limitMax<u64>()), u64(0), false },
+};
+
+constexpr __Wrapping_Math_TestCase __wrapping_sub_testCases[] = {
+    // I8 no wrap around
+    __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I8, i8(0), i8(0), i8(0), true },
+    __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I8, i8(11), i8(5), i8(6), true },
+    __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I8, i8(17), i8(-5), i8(22), true },
+    __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I8, i8(-5), i8(-12), i8(7), true },
+    __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I8, i8(core::limitMax<i8>()), core::limitMax<i8>(), i8(0), true },
+    __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I8, i8(core::limitMin<i8>() + 1), i8(1), i8(core::limitMin<i8>()), true },
+    __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I8, i8(core::limitMin<i8>()), i8(core::limitMin<i8>()), i8(0), true },
+
+    // I8 wrap around
+    __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I8, i8(core::limitMax<i8>()), i8(-1), i8(0), false },
+    __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I8, i8(core::limitMax<i8>()), i8(-core::limitMax<i8>()), i8(0), false },
+    __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I8, i8(core::limitMin<i8>()), i8(1), i8(0), false },
+
+    // U8 no wrap around
+    __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U8, u8(0), u8(0), u8(0), true },
+    __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U8, u8(13), u8(10), u8(3), true },
+    __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U8, u8(core::limitMin<u8>() + 1), u8(1), u8(core::limitMin<u8>()), true },
+
+    // U8 wrap around
+    __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U8, u8(core::limitMin<u8>()), u8(1), u8(0), false },
+
+    // FIXME: These are the only worth while cases. Continue writing for other integer sizes...
+
+    // // I16 no wrap around
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I16, i16(0), i16(0), i16(0), true },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I16, i16(5), i16(10), i16(15), true },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I16, i16(10), i16(-5), i16(5), true },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I16, core::limitMax<i16>(), core::limitMin<i16>(), i16(-1), true },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I16, i16(core::limitMax<i16>() - 1), i16(1), i16(core::limitMax<i16>()), true },
+
+    // // I16 wrap around
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I16, core::limitMax<i16>(), i16(1), i16(0), false },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I16, core::limitMax<i16>(), core::limitMax<i16>(), i16(0), false },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I16, core::limitMin<i16>(), i16(-1), i16(0), false },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I16, core::limitMin<i16>(), core::limitMin<i16>(), i16(0), false },
+
+    //  // U16 no wrap around
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U16, u16(0), u16(0), u16(0), true },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U16, u16(5), u16(10), u16(15), true },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U16, u16(core::limitMax<u16>() - 1), u16(1), u16(core::limitMax<u16>()), true },
+
+    // // U16 wrap around
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U16, u16(core::limitMax<u16>()), u16(1), u16(0), false },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U16, u16(core::limitMax<u16>()), u16(core::limitMax<u16>()), u16(0), false },
+
+    // // I32 no wrap around
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I32, i32(0), i32(0), i32(0), true },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I32, i32(5), i32(10), i32(15), true },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I32, i32(10), i32(-5), i32(5), true },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I32, core::limitMax<i32>(), core::limitMin<i32>(), i32(-1), true },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I32, core::limitMax<i32>() - 1, i32(1), core::limitMax<i32>(), true },
+
+    // // I32 wrap around
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I32, core::limitMax<i32>(), i32(1), i32(0), false },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I32, core::limitMax<i32>(), core::limitMax<i32>(), i32(0), false },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I32, core::limitMin<i32>(), i32(-1), i32(0), false },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I32, core::limitMin<i32>(), core::limitMin<i32>(), i32(0), false },
+
+    // // U32 no wrap around
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U32, u32(0), u32(0), u32(0), true },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U32, u32(5), u32(10), u32(15), true },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U32, u32(core::limitMax<u32>() - 1), u32(1), u32(core::limitMax<u32>()), true },
+
+    // // U32 wrap around
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U32, u32(core::limitMax<u32>()), u32(1), u32(0), false },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U32, u32(core::limitMax<u32>()), u32(core::limitMax<u32>()), u32(0), false },
+
+    // // I64 no wrap around
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I64, i64(0), i64(0), i64(0), true },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I64, i64(5), i64(10), i64(15), true },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I64, i64(10), i64(-5), i64(5), true },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I64, core::limitMax<i64>(), core::limitMin<i64>(), i64(-1), true },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I64, core::limitMax<i64>() - 1, i64(1), core::limitMax<i64>(), true },
+
+    // // I64 wrap around
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I64, core::limitMax<i64>(), i64(1), i64(0), false },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I64, core::limitMax<i64>(), core::limitMax<i64>(), i64(0), false },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I64, core::limitMin<i64>(), i64(-1), i64(0), false },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::I64, core::limitMin<i64>(), core::limitMin<i64>(), i64(0), false },
+
+    // // U64 no wrap around
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U64, u64(0), u64(0), u64(0), true },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U64, u64(5), u64(10), u64(15), true },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U64, u64(core::limitMax<u64>() - 1), u64(1), u64(core::limitMax<u64>()), true },
+
+    // // U64 wrap around
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U64, u64(core::limitMax<u64>()), u64(1), u64(0), false },
+    // __Wrapping_Math_TestCase { __Wrapping_Math_TestCase::Type::U64, u64(core::limitMax<u64>()), u64(core::limitMax<u64>()), u64(0), false },
 };

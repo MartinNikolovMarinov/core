@@ -212,8 +212,6 @@ namespace detail {
 
 template <typename T>
 constexpr bool safeSubComptimeImpl(T a, T b, T& out) {
-    static_assert(std::is_integral_v<T>);
-
     if constexpr (std::is_signed_v<T>) {
         if ((b > 0 && a < core::limitMin<T>() + b) ||
             (b < 0 && a > core::limitMax<T>() + b)) {
@@ -250,6 +248,69 @@ constexpr inline bool intrin_safeSub(T a, T b, T& out) {
 #else
     // fallback
     return detail::safeSubComptimeImpl(a, b, out);
+#endif
+}
+
+namespace detail {
+
+template <typename T>
+constexpr inline bool safeMulComptimeImpl(T a, T b, T& out) {
+    // Handle multiplication by zero separately
+    if (a == 0 || b == 0) {
+        out = 0;
+        return true;
+    }
+
+    if constexpr (std::is_signed_v<T>) {
+        // Handle special case: multiplying minimum by -1 causes overflow
+        if (a == core::limitMin<T>() && b == -1) {
+            return false;
+        }
+        if (b == core::limitMin<T>() && a == -1) {
+            return false;
+        }
+
+        if (b > 0) {
+            if (a > core::limitMax<T>() / b || a < core::limitMin<T>() / b) {
+                return false;
+            }
+        }
+        else {
+            if (a > core::limitMin<T>() / b || a < core::limitMax<T>() / b) {
+                return false;
+            }
+        }
+    }
+    else {
+        if (a > core::limitMax<T>() / b) {
+            return false;
+        }
+    }
+
+    out = a * b;
+    return true;
+}
+
+} // namespace detail
+
+template <typename T>
+constexpr inline bool intrin_safeMul(T a, T b, T& out) {
+    static_assert(std::is_integral_v<T>);
+
+    IS_CONST_EVALUATED { return detail::safeMulComptimeImpl(a, b, out); }
+
+#if CPU_ARCH_X86_64
+    if constexpr (std::is_signed_v<T>) {
+        return core::x86_asm_imul_setno(a, b, out);
+    }
+    else {
+        return core::x86_asm_imul_setnc(a, b, out);
+    }
+#elif COMPILER_CLANG == 1 || COMPILER_GCC == 1
+    return !__builtin_mul_overflow(a, b, &out);
+#else
+    // fallback
+    return detail::safeMulComptimeImpl(a, b, out);
 #endif
 }
 

@@ -803,49 +803,11 @@ constexpr bool safeSub(T a, T b, T& out) {
     return core::intrin_safeSub(a, b, out);
 }
 
-// FIXME: use intrinsics for safe mul.
-
 template <typename T>
 constexpr bool safeMul(T a, T b, T& out) {
     static_assert(std::is_integral_v<T>, "Safe multiplication works for integral types only.");
-
-    // Handle multiplication by zero separately
-    if (a == 0 || b == 0) {
-        out = 0;
-        return true;
-    }
-
-    if constexpr (std::is_signed_v<T>) {
-        // Handle special case: multiplying minimum by -1 causes overflow
-        if (a == core::limitMin<T>() && b == -1) {
-            return false;
-        }
-        if (b == core::limitMin<T>() && a == -1) {
-            return false;
-        }
-
-        if (b > 0) {
-            if (a > core::limitMax<T>() / b || a < core::limitMin<T>() / b) {
-                return false;
-            }
-        }
-        else {
-            if (a > core::limitMin<T>() / b || a < core::limitMax<T>() / b) {
-                return false;
-            }
-        }
-    }
-    else {
-        if (a > core::limitMax<T>() / b) {
-            return false;
-        }
-    }
-
-    out = a * b;
-    return true;
+    return core::intrin_safeMul(a, b, out);
 }
-
-// FIXME: use intrinsics for safe div.
 
 template <typename T>
 constexpr bool safeDiv(T a, T b, T& out) {

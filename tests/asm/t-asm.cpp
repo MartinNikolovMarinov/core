@@ -118,6 +118,8 @@ i32 runAsmTestsSuite() {
     tInfo.name = FN_NAME_TO_CPTR(asmSubWithWrappingCheck_x86_64);
     if (runTest(tInfo, asmSubWithWrappingCheck_x86_64) != 0) { ret = -1; }
 
+    // FIXME: Write the multiplication and division tests. Division should be very simple.
+
 #endif
 
     return ret;

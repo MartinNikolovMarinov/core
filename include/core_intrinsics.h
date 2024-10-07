@@ -212,7 +212,7 @@ namespace detail {
 
 template <typename T>
 constexpr bool safeSubComptimeImpl(T a, T b, T& out) {
-    static_assert(std::is_integral_v<T>, "Safe subtraction works for integral types only.");
+    static_assert(std::is_integral_v<T>);
 
     if constexpr (std::is_signed_v<T>) {
         if ((b > 0 && a < core::limitMin<T>() + b) ||
@@ -232,25 +232,25 @@ constexpr bool safeSubComptimeImpl(T a, T b, T& out) {
 
 } // namespace detail
 
-// template <typename T>
-// constexpr inline bool intrin_safeSub(T a, T b, T& out) {
-//     static_assert(std::is_integral_v<T>);
+template <typename T>
+constexpr inline bool intrin_safeSub(T a, T b, T& out) {
+    static_assert(std::is_integral_v<T>);
 
-//     IS_CONST_EVALUATED { return detail::safeSubComptimeImpl(a, b, out); }
+    IS_CONST_EVALUATED { return detail::safeSubComptimeImpl(a, b, out); }
 
-// #if COMPILER_CLANG == 1 || COMPILER_GCC == 1
-//     return !__builtin_sub_overflow(a, b, &out);
-// #elif CPU_ARCH_X86_64
-//     if constexpr (std::is_signed_v<T>) {
-//         return core::x86_asm_sub_setno(a, b, out);
-//     }
-//     else {
-//         return core::x86_asm_sub_setnc(a, b, out);
-//     }
-// #else
-//     // fallback
-//     return detail::safeSubComptimeImpl(a, b, out);
-// #endif
-// }
+#if CPU_ARCH_X86_64
+    if constexpr (std::is_signed_v<T>) {
+        return core::x86_asm_sub_setno(a, b, out);
+    }
+    else {
+        return core::x86_asm_sub_setnc(a, b, out);
+    }
+#elif COMPILER_CLANG == 1 || COMPILER_GCC == 1
+    return !__builtin_sub_overflow(a, b, &out);
+#else
+    // fallback
+    return detail::safeSubComptimeImpl(a, b, out);
+#endif
+}
 
 } // namespace core

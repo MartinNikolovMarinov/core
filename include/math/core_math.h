@@ -797,27 +797,13 @@ constexpr bool safeAdd(T a, T b, T& out) {
     return core::intrin_safeAdd(a, b, out);
 }
 
-// FIXME: use intrinsics for all basic math.
-
 template <typename T>
 constexpr bool safeSub(T a, T b, T& out) {
     static_assert(std::is_integral_v<T>, "Safe subtraction works for integral types only.");
-
-    if constexpr (std::is_signed_v<T>) {
-        if ((b > 0 && a < core::limitMin<T>() + b) ||
-            (b < 0 && a > core::limitMax<T>() + b)) {
-            return false;
-        }
-    }
-    else {
-        if (a < b) {
-            return false;
-        }
-    }
-
-    out = a - b;
-    return true;
+    return core::intrin_safeSub(a, b, out);
 }
+
+// FIXME: use intrinsics for safe mul.
 
 template <typename T>
 constexpr bool safeMul(T a, T b, T& out) {
@@ -858,6 +844,8 @@ constexpr bool safeMul(T a, T b, T& out) {
     out = a * b;
     return true;
 }
+
+// FIXME: use intrinsics for safe div.
 
 template <typename T>
 constexpr bool safeDiv(T a, T b, T& out) {

@@ -2,6 +2,7 @@
 
 #include <core_API.h>
 #include <core_types.h>
+#include <core_system_checks.h>
 
 namespace core {
 
@@ -47,5 +48,17 @@ using namespace coretypes;
 // Take the name of a function:
 
 #define FN_NAME_TO_CPTR(test) #test
+
+// No don't inline function
+
+#if COMPILER_MSVC == 1
+    #define CORE_NEVER_INLINE __declspec(noinline)
+#elif COMPILER_GCC == 1 || COMPILER_CLANG == 1
+    #define CORE_NEVER_INLINE __attribute__((__noinline__))
+#else
+    #define CORE_NEVER_INLINE
+#endif
+
+#define CORE_NO_INLINE
 
 } // namespace core

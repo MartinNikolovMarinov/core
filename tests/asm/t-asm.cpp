@@ -10,14 +10,7 @@ i32 asmAddWithWrappingCheck_x86_64() {
         // A utility to handle the generic pattern
         auto runTestCase = [](auto a, auto b, auto want, bool cwrapAround, const char* ccErr) -> i32 {
             decltype(a) res = 0;
-            bool noWrapAround;
-
-            if constexpr (std::is_signed_v<decltype(a)>) {
-                noWrapAround = core::x86_asm_add_setno(a, b, res); // Signed overflow check
-            }
-            else {
-                noWrapAround = core::x86_asm_add_setnc(a, b, res); // Unsigned carry check
-            }
+            bool noWrapAround = core::x86_asm_add_no_overflow(a, b, res);
 
             // Check if the detected wraparound matches expected behavior
             CT_CHECK(noWrapAround == cwrapAround, ccErr);
@@ -60,14 +53,7 @@ i32 asmSubWithWrappingCheck_x86_64() {
         // A utility to handle the generic pattern
         auto runTestCase = [](auto a, auto b, auto want, bool cwrapAround, const char* ccErr) -> i32 {
             decltype(a) res = 0;
-            bool noWrapAround;
-
-            if constexpr (std::is_signed_v<decltype(a)>) {
-                noWrapAround = core::x86_asm_sub_setno(a, b, res); // Signed overflow check
-            }
-            else {
-                noWrapAround = core::x86_asm_sub_setnc(a, b, res); // Unsigned carry check
-            }
+            bool noWrapAround = core::x86_asm_sub_no_overflow(a, b, res); // Signed overflow check
 
             // Check if the detected wraparound matches expected behavior
             CT_CHECK(noWrapAround == cwrapAround, ccErr);

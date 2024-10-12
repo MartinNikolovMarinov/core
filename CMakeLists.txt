@@ -3,8 +3,8 @@ project(core VERSION 0.4.0)
 
 set(target_core core)
 set(target_core_upper CORE)
-set(target_test core_test)
-# set(target_test core_sandbox)
+# set(target_test core_test)
+set(target_test core_sandbox)
 
 # Standard Requirements:
 
@@ -54,7 +54,7 @@ option(CORE_SAVE_TEMPORARY_FILES "Save compiler temporary files. [WARNING] This 
 log_info("---------------------------------------------")
 log_info("Version:                   ${PROJECT_VERSION}")
 log_info("Platform:                  ${OS}")
-log_info("Arch:                      ${CMAKE_HOST_SYSTEM_PROCESSOR}") # IMPORTANT: Do not relly on CMAKE_HOST_SYSTEM_PROCESSOR for anything serious !
+log_info("Arch:                      ${CMAKE_SYSTEM_PROCESSOR}")
 log_info("C++ Version:               ${CMAKE_CXX_STANDARD}")
 log_info("Compiler:                  ${CMAKE_CXX_COMPILER_ID}")
 log_info("Debug:                     ${CORE_DEBUG}")
@@ -119,6 +119,12 @@ elseif(OS STREQUAL "windows")
         src/plt/win/win_pages.cpp
         src/plt/win/win_fs.cpp
         src/plt/win/win_stacktrace.cpp
+    )
+endif()
+
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
+    set(core_src ${core_src}
+        src/asm/core_asm_x86_64.cpp
     )
 endif()
 

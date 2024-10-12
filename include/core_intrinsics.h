@@ -193,15 +193,10 @@ constexpr inline bool intrin_safeAdd(T a, T b, T& out) {
 
     IS_CONST_EVALUATED { return detail::safeAddComptimeImpl(a, b, out); }
 
-#if CPU_ARCH_X86_64
-    if constexpr (std::is_signed_v<T>) {
-        return core::x86_asm_add_setno(a, b, out);
-    }
-    else {
-        return core::x86_asm_add_setnc(a, b, out);
-    }
-#elif COMPILER_CLANG == 1 || COMPILER_GCC == 1
+#if COMPILER_CLANG == 1 || COMPILER_GCC == 1
     return !__builtin_add_overflow(a, b, &out);
+#elif CPU_ARCH_X86_64
+    return core::x86_asm_add_no_overflow(a, b, out);
 #else
     // fallback
     return detail::safeAddComptimeImpl(a, b, out);
@@ -236,15 +231,10 @@ constexpr inline bool intrin_safeSub(T a, T b, T& out) {
 
     IS_CONST_EVALUATED { return detail::safeSubComptimeImpl(a, b, out); }
 
-#if CPU_ARCH_X86_64
-    if constexpr (std::is_signed_v<T>) {
-        return core::x86_asm_sub_setno(a, b, out);
-    }
-    else {
-        return core::x86_asm_sub_setnc(a, b, out);
-    }
-#elif COMPILER_CLANG == 1 || COMPILER_GCC == 1
+#if COMPILER_CLANG == 1 || COMPILER_GCC == 1
     return !__builtin_sub_overflow(a, b, &out);
+#elif CPU_ARCH_X86_64
+    return core::x86_asm_sub_no_overflow(a, b, out);
 #else
     // fallback
     return detail::safeSubComptimeImpl(a, b, out);
@@ -299,15 +289,10 @@ constexpr inline bool intrin_safeMul(T a, T b, T& out) {
 
     IS_CONST_EVALUATED { return detail::safeMulComptimeImpl(a, b, out); }
 
-#if CPU_ARCH_X86_64
-    if constexpr (std::is_signed_v<T>) {
-        return core::x86_asm_imul_setno(a, b, out);
-    }
-    else {
-        return core::x86_asm_imul_setnc(a, b, out);
-    }
-#elif COMPILER_CLANG == 1 || COMPILER_GCC == 1
+#if COMPILER_CLANG == 1 || COMPILER_GCC == 1
     return !__builtin_mul_overflow(a, b, &out);
+#elif CPU_ARCH_X86_64
+    return core::x86_asm_imul_overflow(a, b, out);
 #else
     // fallback
     return detail::safeMulComptimeImpl(a, b, out);

@@ -260,14 +260,18 @@ constexpr inline bool safeMulComptimeImpl(T a, T b, T& out) {
             return false;
         }
 
-        if (b > 0) {
-            if (a > core::limitMax<T>() / b || a < core::limitMin<T>() / b) {
-                return false;
+        // Dividing min by -1 can cause arithmetic exception, so skip this check. This is ok, because the only case
+        // where the multiplication can overflow is -1 * min and that case was already handled explicitly.
+        if (b != -1) {
+            if (b > 0) {
+                if (a > core::limitMax<T>() / b || a < core::limitMin<T>() / b) {
+                    return false;
+                }
             }
-        }
-        else {
-            if (a > core::limitMin<T>() / b || a < core::limitMax<T>() / b) {
-                return false;
+            else {
+                if (a > core::limitMin<T>() / b || a < core::limitMax<T>() / b) {
+                    return false;
+                }
             }
         }
     }
@@ -292,7 +296,7 @@ constexpr inline bool intrin_safeMul(T a, T b, T& out) {
 #if COMPILER_CLANG == 1 || COMPILER_GCC == 1
     return !__builtin_mul_overflow(a, b, &out);
 #elif CPU_ARCH_X86_64
-    return core::x86_asm_imul_overflow(a, b, out);
+    return core::x86_asm_mul_overflow(a, b, out);
 #else
     // fallback
     return detail::safeMulComptimeImpl(a, b, out);

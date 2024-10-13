@@ -11,7 +11,7 @@ macro(target_set_default_flags
 
     if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
         # For x86 assembly use Intel syntax
-        set(common_flags, "-masm=intel")
+        set(common_flags "${common_flags}" "-masm=intel")
     endif()
 
     if(${save_temporary_files})

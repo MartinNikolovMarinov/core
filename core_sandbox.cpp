@@ -194,12 +194,9 @@
 i32 main() {
     u8 a = 2, b = 13, c;
 
-    // FIXME: Find the multiplication bug here.
-    // FIXME: It is likeley that inline assembly functions can't be inlined correctly! Keep that in mind.
-
     std::cout << "overflow=" << (__builtin_mul_overflow(a, b, &c) ? "yes" : "no") << std::endl;
     std::cout << "c=" << +c << std::endl;
-    std::cout << "overflow=" << (core::x86_asm_imul_overflow(a, b, c) ? "no" : "yes") << std::endl;
+    std::cout << "overflow=" << (core::x86_asm_mul_overflow(a, b, c) ? "no" : "yes") << std::endl;
     std::cout << "c=" << +c << std::endl;
 
     return 0;

@@ -268,6 +268,8 @@ i32 runTestSuite(const TestSuiteInfo& info, TSuite suite) {
         }                                                                        \
         std::cerr << "at " << __FILE__ << ":" << __LINE__ << " in " << __func__; \
         std::cerr << std::endl;                                                  \
+        volatile i32* __forceCrash = nullptr;                                    \
+        [[maybe_unused]] i32 __ignored = *__forceCrash;                          \
         return -1;                                                               \
     }
 

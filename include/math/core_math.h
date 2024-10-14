@@ -213,6 +213,27 @@ constexpr f64 infinityF64()     { return core::intrin_hugeVal(); }
 constexpr f64 quietNaNF64()     { return core::intrin_nan(); }
 constexpr f64 signalingNaNF64() { return core::intrin_nans(); }
 
+template <typename T> constexpr T infinity() {
+    static_assert(std::is_floating_point_v<T>);
+    if constexpr (sizeof(T) == 4) return infinityF32();
+    else if constexpr (sizeof(T) == 8) return infinityF64();
+    else static_assert(core::always_false<T>());
+}
+
+template <typename T> constexpr T quietNaN() {
+    static_assert(std::is_floating_point_v<T>);
+    if constexpr (sizeof(T) == 4) return quietNaNF32();
+    else if constexpr (sizeof(T) == 8) return quietNaNF64();
+    else static_assert(core::always_false<T>());
+}
+
+template <typename T> constexpr T signalingNaN() {
+    static_assert(std::is_floating_point_v<T>);
+    if constexpr (sizeof(T) == 4) return signalingNaNF32();
+    else if constexpr (sizeof(T) == 8) return signalingNaNF64();
+    else static_assert(core::always_false<T>());
+}
+
 namespace detail {
 
 constexpr bool isinfCompiletimeImpl(f32 x) {

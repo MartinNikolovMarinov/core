@@ -35,6 +35,8 @@ constexpr inline char toUpperCaseANSI(char c) { return (c & ~0x20); }
 constexpr inline bool isLowerCaseANSI(char c) { return c == toLowerCaseANSI(c); }
 constexpr inline bool isUpperCaseANSI(char c) { return c == toUpperCaseANSI(c); }
 
+constexpr inline i32 cmpIgnoreCaseANSI(char a, char b) { return i32(toLowerCaseANSI(a) - toLowerCaseANSI(b)); }
+
 namespace detail {
 
 template<typename TChar>

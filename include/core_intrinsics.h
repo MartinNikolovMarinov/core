@@ -67,6 +67,7 @@ constexpr u32 intrin_countLeadingZeros(TInt n) {
         return u32(__builtin_clzll(u64(n)));
     }
 #elif COMPILER_MSVC == 1
+    // TODO: Does _BitScanReverse generate better machine code here?
     if constexpr (sizeof(TInt) == 4) {
         return u32(__lzcnt(u32(n)));
     }

@@ -20,6 +20,7 @@ struct radians;
 
 template <typename TFloat>          constexpr u32         exponentBits();
 template <typename TFloat>          constexpr u32         mantisaBits();
+template <typename TFloat>          constexpr u32         maxMantisaDigitsBase10();
 
 template <typename TInt>            constexpr i32         maxDigitsBase2();
 template <typename TInt>            constexpr i32         maxDigitsBase10();
@@ -55,7 +56,8 @@ template <typename T>               constexpr T           absGeneric(T a);
                                     constexpr f64         trunc(f64 x);
                                     constexpr f32         round(f32 x);
                                     constexpr f64         round(f64 x);
-template <typename TFloat>          constexpr TFloat      roundTo(TFloat n, u32 to);
+                                    constexpr f32         roundTo(f32 n, u32 to);
+                                    constexpr f64         roundTo(f64 n, u32 to);
 
                                     constexpr f32         sqrt(f32 x);
                                     constexpr f64         sqrt(f64 x);
@@ -111,10 +113,41 @@ template <typename T>               constexpr T           clamp(T value, T min, 
                                     constexpr bool        nearlyEq(f32 a, f32 b, f32 epsilon);
                                     constexpr bool        nearlyEq(f64 a, f64 b, f64 epsilon);
 
-template <typename TInt>            constexpr bool        safeAdd(TInt a, TInt b, TInt& out);
-template <typename TInt>            constexpr bool        safeSub(TInt a, TInt b, TInt& out);
-template <typename TInt>            constexpr bool        safeMul(TInt a, TInt b, TInt& out);
-template <typename TInt>            constexpr bool        safeDiv(TInt a, TInt b, TInt& out);
+                                    constexpr bool         safeAdd(i8 a, i8 b, i8& out);
+                                    constexpr bool         safeAdd(u8 a, u8 b, u8& out);
+                                    constexpr bool         safeAdd(i16 a, i16 b, i16& out);
+                                    constexpr bool         safeAdd(u16 a, u16 b, u16& out);
+                                    constexpr bool         safeAdd(i32 a, i32 b, i32& out);
+                                    constexpr bool         safeAdd(u32 a, u32 b, u32& out);
+                                    constexpr bool         safeAdd(i64 a, i64 b, i64& out);
+                                    constexpr bool         safeAdd(u64 a, u64 b, u64& out);
+
+                                    constexpr bool         safeSub(i8 a, i8 b, i8& out);
+                                    constexpr bool         safeSub(u8 a, u8 b, u8& out);
+                                    constexpr bool         safeSub(i16 a, i16 b, i16& out);
+                                    constexpr bool         safeSub(u16 a, u16 b, u16& out);
+                                    constexpr bool         safeSub(i32 a, i32 b, i32& out);
+                                    constexpr bool         safeSub(u32 a, u32 b, u32& out);
+                                    constexpr bool         safeSub(i64 a, i64 b, i64& out);
+                                    constexpr bool         safeSub(u64 a, u64 b, u64& out);
+
+                                    constexpr bool         safeMul(i8 a, i8 b, i8& out);
+                                    constexpr bool         safeMul(u8 a, u8 b, u8& out);
+                                    constexpr bool         safeMul(i16 a, i16 b, i16& out);
+                                    constexpr bool         safeMul(u16 a, u16 b, u16& out);
+                                    constexpr bool         safeMul(i32 a, i32 b, i32& out);
+                                    constexpr bool         safeMul(u32 a, u32 b, u32& out);
+                                    constexpr bool         safeMul(i64 a, i64 b, i64& out);
+                                    constexpr bool         safeMul(u64 a, u64 b, u64& out);
+
+                                    constexpr bool         safeDiv(i8 a, i8 b, i8& out);
+                                    constexpr bool         safeDiv(u8 a, u8 b, u8& out);
+                                    constexpr bool         safeDiv(i16 a, i16 b, i16& out);
+                                    constexpr bool         safeDiv(u16 a, u16 b, u16& out);
+                                    constexpr bool         safeDiv(i32 a, i32 b, i32& out);
+                                    constexpr bool         safeDiv(u32 a, u32 b, u32& out);
+                                    constexpr bool         safeDiv(i64 a, i64 b, i64& out);
+                                    constexpr bool         safeDiv(u64 a, u64 b, u64& out);
 
 template <typename T>               constexpr T           affineMap(T v, T fromMin, T fromMax, T toMin, T toMax);
 template <typename T, typename T2>  constexpr T           lerp(T a, T b, T2 t);
@@ -136,40 +169,46 @@ template <typename TFloat> constexpr u32 mantisaBits() {
     else static_assert(core::always_false<TFloat>, "Unsupported type");
 }
 
+template <typename TFloat> constexpr u32 maxMantisaDigitsBase10() {
+    if constexpr (std::is_same_v<TFloat, f32>) return 9;
+    else if constexpr (std::is_same_v<TFloat, f64>) return 17;
+    else static_assert(core::always_false<TFloat>, "Unsupported type");
+}
+
 #pragma endregion
 
 #pragma region Max Digits ---------------------------------------------------------------------------------------------
 
-template <typename T>
+template <typename TInt>
 constexpr i32 maxDigitsBase2() {
-    if constexpr (std::is_same_v<T, u8>)         return core::BYTE_SIZE;
-    else if constexpr (std::is_same_v<T, u16>)   return core::BYTE_SIZE * sizeof(u16);
-    else if constexpr (std::is_same_v<T, u32>)   return core::BYTE_SIZE * sizeof(u32);
-    else if constexpr (std::is_same_v<T, u64>)   return core::BYTE_SIZE * sizeof(u64);
-    else if constexpr (std::is_same_v<T, i8>)    return core::BYTE_SIZE * sizeof(i8) - 1;
-    else if constexpr (std::is_same_v<T, i16>)   return core::BYTE_SIZE * sizeof(i16) - 1;
-    else if constexpr (std::is_same_v<T, i32>)   return core::BYTE_SIZE * sizeof(i32) - 1;
-    else if constexpr (std::is_same_v<T, i64>)   return core::BYTE_SIZE * sizeof(i64) - 1;
-    else if constexpr (std::is_same_v<T, char>)  return core::BYTE_SIZE * sizeof(char);
-    else if constexpr (std::is_same_v<T, uchar>) return core::BYTE_SIZE * sizeof(uchar);
-    else if constexpr (std::is_same_v<T, schar>) return core::BYTE_SIZE * sizeof(schar) - 1;
-    else static_assert(core::always_false<T>, "Unsupported type");
+    if constexpr (std::is_same_v<TInt, u8>)         return core::BYTE_SIZE;
+    else if constexpr (std::is_same_v<TInt, u16>)   return core::BYTE_SIZE * sizeof(u16);
+    else if constexpr (std::is_same_v<TInt, u32>)   return core::BYTE_SIZE * sizeof(u32);
+    else if constexpr (std::is_same_v<TInt, u64>)   return core::BYTE_SIZE * sizeof(u64);
+    else if constexpr (std::is_same_v<TInt, i8>)    return core::BYTE_SIZE * sizeof(i8) - 1;
+    else if constexpr (std::is_same_v<TInt, i16>)   return core::BYTE_SIZE * sizeof(i16) - 1;
+    else if constexpr (std::is_same_v<TInt, i32>)   return core::BYTE_SIZE * sizeof(i32) - 1;
+    else if constexpr (std::is_same_v<TInt, i64>)   return core::BYTE_SIZE * sizeof(i64) - 1;
+    else if constexpr (std::is_same_v<TInt, char>)  return core::BYTE_SIZE * sizeof(char);
+    else if constexpr (std::is_same_v<TInt, uchar>) return core::BYTE_SIZE * sizeof(uchar);
+    else if constexpr (std::is_same_v<TInt, schar>) return core::BYTE_SIZE * sizeof(schar) - 1;
+    else static_assert(core::always_false<TInt>, "Unsupported type");
 }
 
-template <typename T>
+template <typename TInt>
 constexpr i32 maxDigitsBase10() {
-    if constexpr (std::is_same_v<T, u8>)         return 3;
-    else if constexpr (std::is_same_v<T, u16>)   return 5;
-    else if constexpr (std::is_same_v<T, u32>)   return 10;
-    else if constexpr (std::is_same_v<T, u64>)   return 20;
-    else if constexpr (std::is_same_v<T, i8>)    return 4;
-    else if constexpr (std::is_same_v<T, i16>)   return 6;
-    else if constexpr (std::is_same_v<T, i32>)   return 11;
-    else if constexpr (std::is_same_v<T, i64>)   return 20;
-    else if constexpr (std::is_same_v<T, char>)  return 4;
-    else if constexpr (std::is_same_v<T, uchar>) return 3;
-    else if constexpr (std::is_same_v<T, schar>) return 4;
-    else static_assert(core::always_false<T>, "Unsupported type");
+    if constexpr (std::is_same_v<TInt, u8>)         return 3;
+    else if constexpr (std::is_same_v<TInt, u16>)   return 5;
+    else if constexpr (std::is_same_v<TInt, u32>)   return 10;
+    else if constexpr (std::is_same_v<TInt, u64>)   return 20;
+    else if constexpr (std::is_same_v<TInt, i8>)    return 4;
+    else if constexpr (std::is_same_v<TInt, i16>)   return 6;
+    else if constexpr (std::is_same_v<TInt, i32>)   return 11;
+    else if constexpr (std::is_same_v<TInt, i64>)   return 20;
+    else if constexpr (std::is_same_v<TInt, char>)  return 4;
+    else if constexpr (std::is_same_v<TInt, uchar>) return 3;
+    else if constexpr (std::is_same_v<TInt, schar>) return 4;
+    else static_assert(core::always_false<TInt>, "Unsupported type");
 }
 
 #pragma endregion
@@ -477,11 +516,18 @@ constexpr TFloat round(TFloat x) {
 constexpr f32 round(f32 x) { return detail::round(x); }
 constexpr f64 round(f64 x) { return detail::round(x); }
 
+namespace detail {
+
 template <typename TFloat>
 constexpr TFloat roundTo(TFloat n, u32 to) {
     static_assert(core::is_float_v<TFloat>, "Invalid TFloat argument.");
     return TFloat(round(n * TFloat(10*to))) / TFloat(10*to);
 }
+
+} // namespace detail
+
+constexpr f32 roundTo(f32 n, u32 to) { return detail::roundTo(n, to); }
+constexpr f64 roundTo(f64 n, u32 to) { return detail::roundTo(n, to); }
 
 #pragma endregion
 
@@ -802,33 +848,34 @@ constexpr bool nearlyEq(f64 a, f64 b, f64 epsilon) {
 
 #pragma region Safe basic math
 
-/**
- * @brief Add a and b sotring the result in out. Works only for integers. Checks if there was overflow or underflow
- *        (wraparound) in the result.
- *
- * @param a left hand side value.
- * @param b right hand side value.
- * @param out the result of the operation. If overflow or underflow occurred the value is undefined.
- *
- * @return returns true if addition was successful without overflowing or underflowing.
-*/
-template <typename TInt>
-constexpr bool safeAdd(TInt a, TInt b, TInt& out) {
-    static_assert(std::is_integral_v<TInt>, "Safe addition works for integral types only.");
-    return core::intrin_safeAdd(a, b, out);
-}
+constexpr bool safeAdd(i8 a, i8 b, i8& out)    { return intrin_safeAdd(a, b, out); }
+constexpr bool safeAdd(u8 a, u8 b, u8& out)    { return intrin_safeAdd(a, b, out); }
+constexpr bool safeAdd(i16 a, i16 b, i16& out) { return intrin_safeAdd(a, b, out); }
+constexpr bool safeAdd(u16 a, u16 b, u16& out) { return intrin_safeAdd(a, b, out); }
+constexpr bool safeAdd(i32 a, i32 b, i32& out) { return intrin_safeAdd(a, b, out); }
+constexpr bool safeAdd(u32 a, u32 b, u32& out) { return intrin_safeAdd(a, b, out); }
+constexpr bool safeAdd(i64 a, i64 b, i64& out) { return intrin_safeAdd(a, b, out); }
+constexpr bool safeAdd(u64 a, u64 b, u64& out) { return intrin_safeAdd(a, b, out); }
 
-template <typename TInt>
-constexpr bool safeSub(TInt a, TInt b, TInt& out) {
-    static_assert(std::is_integral_v<TInt>, "Safe subtraction works for integral types only.");
-    return core::intrin_safeSub(a, b, out);
-}
+constexpr bool safeSub(i8 a, i8 b, i8& out)    { return intrin_safeSub(a, b, out); }
+constexpr bool safeSub(u8 a, u8 b, u8& out)    { return intrin_safeSub(a, b, out); }
+constexpr bool safeSub(i16 a, i16 b, i16& out) { return intrin_safeSub(a, b, out); }
+constexpr bool safeSub(u16 a, u16 b, u16& out) { return intrin_safeSub(a, b, out); }
+constexpr bool safeSub(i32 a, i32 b, i32& out) { return intrin_safeSub(a, b, out); }
+constexpr bool safeSub(u32 a, u32 b, u32& out) { return intrin_safeSub(a, b, out); }
+constexpr bool safeSub(i64 a, i64 b, i64& out) { return intrin_safeSub(a, b, out); }
+constexpr bool safeSub(u64 a, u64 b, u64& out) { return intrin_safeSub(a, b, out); }
 
-template <typename TInt>
-constexpr bool safeMul(TInt a, TInt b, TInt& out) {
-    static_assert(std::is_integral_v<TInt>, "Safe multiplication works for integral types only.");
-    return core::intrin_safeMul(a, b, out);
-}
+constexpr bool safeMul(i8 a, i8 b, i8& out)    { return intrin_safeMul(a, b, out); }
+constexpr bool safeMul(u8 a, u8 b, u8& out)    { return intrin_safeMul(a, b, out); }
+constexpr bool safeMul(i16 a, i16 b, i16& out) { return intrin_safeMul(a, b, out); }
+constexpr bool safeMul(u16 a, u16 b, u16& out) { return intrin_safeMul(a, b, out); }
+constexpr bool safeMul(i32 a, i32 b, i32& out) { return intrin_safeMul(a, b, out); }
+constexpr bool safeMul(u32 a, u32 b, u32& out) { return intrin_safeMul(a, b, out); }
+constexpr bool safeMul(i64 a, i64 b, i64& out) { return intrin_safeMul(a, b, out); }
+constexpr bool safeMul(u64 a, u64 b, u64& out) { return intrin_safeMul(a, b, out); }
+
+namespace detail {
 
 template <typename TInt>
 constexpr bool safeDiv(TInt a, TInt b, TInt& out) {
@@ -849,6 +896,17 @@ constexpr bool safeDiv(TInt a, TInt b, TInt& out) {
     out = a / b;
     return true;
 }
+
+} // namespace detail
+
+constexpr bool safeDiv(i8 a, i8 b, i8& out)    { return detail::safeDiv(a, b, out); }
+constexpr bool safeDiv(u8 a, u8 b, u8& out)    { return detail::safeDiv(a, b, out); }
+constexpr bool safeDiv(i16 a, i16 b, i16& out) { return detail::safeDiv(a, b, out); }
+constexpr bool safeDiv(u16 a, u16 b, u16& out) { return detail::safeDiv(a, b, out); }
+constexpr bool safeDiv(i32 a, i32 b, i32& out) { return detail::safeDiv(a, b, out); }
+constexpr bool safeDiv(u32 a, u32 b, u32& out) { return detail::safeDiv(a, b, out); }
+constexpr bool safeDiv(i64 a, i64 b, i64& out) { return detail::safeDiv(a, b, out); }
+constexpr bool safeDiv(u64 a, u64 b, u64& out) { return detail::safeDiv(a, b, out); }
 
 #pragma endregion
 

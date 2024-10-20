@@ -1,5 +1,7 @@
 #include "tests/t-index.h"
 
+#include "__original_ryu/ryu_parse.h"
+
 #include <iomanip>
 #include <iostream>
 
@@ -69,8 +71,8 @@ constexpr inline u32 mulShift32(u32 m, u64 factor, i32 shift) {
     // The casts here help MSVC to avoid calls to the __allmul library function.
     u32 factorLo = u32(factor);
     u32 factorHi = u32(factor >> 32);
-    u64 bits0 = u64(m * factorLo);
-    u64 bits1 = u64(m * factorHi);
+    u64 bits0 = u64(m) * u64(factorLo);
+    u64 bits1 = u64(m) * u64(factorHi);
 
     u64 sum = (bits0 >> 32) + bits1;
     u64 shiftedSum = sum >> (shift - 32);
@@ -126,34 +128,7 @@ inline f32 int32Bits2Float(u32 bits) {
     return f;
 }
 
-// #if defined(_MSC_VER)
-// #include <intrin.h>
-
-// static inline u32 floor_log2(const u32 value) {
-//   unsigned long index;
-//   return _BitScanReverse(&index, value) ? index : 32;
-// }
-
-// #else
-
-// static inline u32 floor_log2(const u32 value) {
-//   return 31 - __builtin_clz(value);
-// }
-
-// #endif
-
-// // The max function is already defined on Windows.
-// static inline i32 max32(i32 a, i32 b) {
-//   return a < b ? b : a;
-// }
-
-// static inline float int32Bits2Float(u32 bits) {
-//   float f;
-//   core::memcopy(&f, &bits, 1);
-//   return f;
-// }
-
-core::expected<f32, ParseFloatErr> s2f(const char* s, const u32 slen) {
+core::expected<f32, ParseFloatErr> my_s2f(const char* s, const u32 slen) {
     if (s == nullptr || slen == 0) {
         return core::unexpected(ParseFloatErr::InputEmpty);
     }
@@ -163,7 +138,7 @@ core::expected<f32, ParseFloatErr> s2f(const char* s, const u32 slen) {
     constexpr i32 EXPONENT_BITS = i32(core::exponentBits<f32>());
 
     constexpr u32 FLOAT_POW5_INV_BITCOUNT = 59;
-    constexpr u32 FLOAT_EXPONENT_BIAS = 8;
+    constexpr u32 FLOAT_EXPONENT_BIAS = 127;
 
     i32 mantissaDigits = 0;
     u32 mantissa = 0;
@@ -200,11 +175,6 @@ core::expected<f32, ParseFloatErr> s2f(const char* s, const u32 slen) {
 
     exponent -= slen != dotIndex ? slen - i32(dotIndex) - 1 : 0;
 
-    // std::cout << ("input = ") << s << std::endl;
-    // std::cout << ("Is Negative = ") << (isNegative ? "true" : "false") << std::endl;
-    // std::cout << ("Mantissa Digits = ") << mantissaDigits << std::endl;
-    // std::cout << ("man * 10^exp = ") << mantissa << (" * 10^") << exponent << std::endl;
-
     // Convert to binary float m2 * 2^e2, while retaining information about whether the conversion was exact.
     i32 e2, m2;
     bool trailingZeros;
@@ -228,10 +198,8 @@ core::expected<f32, ParseFloatErr> s2f(const char* s, const u32 slen) {
                          && multipleOfPowerOf5_32(mantissa, -exponent);
     }
 
-
     // Compute the final IEEE exponent.
     u32 ieee_e2 = core::core_max(0u, u32(e2) + FLOAT_EXPONENT_BIAS + floorLog2(m2));
-
     if (ieee_e2 > 0xfe) {
         // Final IEEE exponent is larger than the maximum representable; return +/-Infinity.
         u32 ieee = ((u32(isNegative)) << u32(EXPONENT_BITS + MANTISSA_BITS)) | (0xffu << MANTISSA_BITS);
@@ -269,9 +237,13 @@ core::expected<f32, ParseFloatErr> s2f(const char* s, const u32 slen) {
 }
 
 i32 main() {
-    constexpr const char* digits = "01.0";
+    constexpr const char* digits = "01.126";
     constexpr addr_size digitsSize = core::cstrLen(digits);
-    auto res = s2f(digits, digitsSize);
+    // f32 r;
+    // auto status = s2f_n(digits, digitsSize, &r);
+    // std::cout << r << std::endl;
+
+    auto res = my_s2f(digits, digitsSize);
     if (res.hasErr()) {
         std::cout << parseFloatErrCStr(res.err()) << std::endl;
         return 0;

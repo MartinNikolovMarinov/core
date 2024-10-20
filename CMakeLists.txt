@@ -221,6 +221,9 @@ if(CORE_BUILD_TESTS)
         tests/plt/t-fs.cpp
 
         tests/asm/t-asm.cpp
+
+        # FIXME: Remove this line:
+        __original_ryu/s2f.cpp
     )
 
     # Link core

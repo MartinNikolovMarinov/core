@@ -306,7 +306,7 @@ i32 main() {
 
     std::cout << "input = " << digits << std::endl;
     f32 f1 = core::Unpack(parseFloat<f32>(digits, i32(digitsSize)));
-    f32 f2 = -123.8;
+    f32 f2 = -123.8f;
     std::cout << "f1 == f2 = " << (f1 == f2 ? "true" : "false") << std::endl;
 
     return 0;

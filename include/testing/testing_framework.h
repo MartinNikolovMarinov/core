@@ -4,9 +4,9 @@
 #include <core_API.h>
 #include <core_cstr_conv.h>
 #include <core_exec_ctx.h>
+#include <core_hash.h>
 #include <core_intrinsics.h>
 #include <core_types.h>
-#include <core_hash.h>
 
 #include <iostream>
 #include <chrono>
@@ -259,8 +259,9 @@ i32 runTestSuite(const TestSuiteInfo& info, TSuite suite) {
 
 // CORE TEST CHECK Macro
 #define CT_CHECK(...) C_VFUNC(CT_CHECK, __VA_ARGS__)
-#define CT_CHECK1(expr) CT_CHECK2(expr, "")
-#define CT_CHECK2(expr, msg)                                                     \
+#define CT_CHECK1(expr) CT_CHECK3(expr, "", false)
+#define CT_CHECK2(expr, msg) CT_CHECK3(expr, msg, false)
+#define CT_CHECK3(expr, msg, crash)                                              \
     if (!(expr)) {                                                               \
         std::cerr << "\t\t[Test failed] ";                                       \
         if (core::cstrLen((msg)) > 0) {                                          \
@@ -268,8 +269,10 @@ i32 runTestSuite(const TestSuiteInfo& info, TSuite suite) {
         }                                                                        \
         std::cerr << "at " << __FILE__ << ":" << __LINE__ << " in " << __func__; \
         std::cerr << std::endl;                                                  \
-        volatile i32* __forceCrash = nullptr;                                    \
-        [[maybe_unused]] i32 __ignored = *__forceCrash;                          \
+        if (!!(crash)) {                                                         \
+            volatile i32* __forceCrash = nullptr;                                \
+            [[maybe_unused]] i32 __ignored = *__forceCrash;                      \
+        }                                                                        \
         return -1;                                                               \
     }
 

@@ -18,11 +18,11 @@ using namespace coretypes;
 
 struct radians;
 
-template <typename T>               constexpr u32         exponentBits();
-template <typename T>               constexpr u32         mantisaBits();
+template <typename TFloat>          constexpr u32         exponentBits();
+template <typename TFloat>          constexpr u32         mantisaBits();
 
-template <typename T>               constexpr i32         maxDigitsBase2();
-template <typename T>               constexpr i32         maxDigitsBase10();
+template <typename TInt>            constexpr i32         maxDigitsBase2();
+template <typename TInt>            constexpr i32         maxDigitsBase10();
 
 template <typename T>               constexpr T           absGeneric(T a);
                                     constexpr f32         abs(f32 a);
@@ -111,10 +111,10 @@ template <typename T>               constexpr T           clamp(T value, T min, 
                                     constexpr bool        nearlyEq(f32 a, f32 b, f32 epsilon);
                                     constexpr bool        nearlyEq(f64 a, f64 b, f64 epsilon);
 
-template <typename T>               constexpr bool        safeAdd(T a, T b, T& out);
-template <typename T>               constexpr bool        safeSub(T a, T b, T& out);
-template <typename T>               constexpr bool        safeMul(T a, T b, T& out);
-template <typename T>               constexpr bool        safeDiv(T a, T b, T& out);
+template <typename TInt>            constexpr bool        safeAdd(TInt a, TInt b, TInt& out);
+template <typename TInt>            constexpr bool        safeSub(TInt a, TInt b, TInt& out);
+template <typename TInt>            constexpr bool        safeMul(TInt a, TInt b, TInt& out);
+template <typename TInt>            constexpr bool        safeDiv(TInt a, TInt b, TInt& out);
 
 template <typename T>               constexpr T           affineMap(T v, T fromMin, T fromMax, T toMin, T toMax);
 template <typename T, typename T2>  constexpr T           lerp(T a, T b, T2 t);
@@ -124,16 +124,16 @@ template <typename T, typename T2>  constexpr T           lerpFast(T a, T b, T2 
 
 #pragma region Mantissa and Exponent
 
-template <typename T> constexpr u32 exponentBits() {
-    if constexpr (std::is_same_v<T, f32>) return 8;
-    else if constexpr (std::is_same_v<T, f64>) return 11;
-    else static_assert(core::always_false<T>, "Unsupported type");
+template <typename TFloat> constexpr u32 exponentBits() {
+    if constexpr (std::is_same_v<TFloat, f32>) return 8;
+    else if constexpr (std::is_same_v<TFloat, f64>) return 11;
+    else static_assert(core::always_false<TFloat>, "Unsupported type");
 }
 
-template <typename T> constexpr u32 mantisaBits() {
-    if constexpr (std::is_same_v<T, f32>) return 23;
-    else if constexpr (std::is_same_v<T, f64>) return 52;
-    else static_assert(core::always_false<T>, "Unsupported type");
+template <typename TFloat> constexpr u32 mantisaBits() {
+    if constexpr (std::is_same_v<TFloat, f32>) return 23;
+    else if constexpr (std::is_same_v<TFloat, f64>) return 52;
+    else static_assert(core::always_false<TFloat>, "Unsupported type");
 }
 
 #pragma endregion
@@ -812,36 +812,36 @@ constexpr bool nearlyEq(f64 a, f64 b, f64 epsilon) {
  *
  * @return returns true if addition was successful without overflowing or underflowing.
 */
-template <typename T>
-constexpr bool safeAdd(T a, T b, T& out) {
-    static_assert(std::is_integral_v<T>, "Safe addition works for integral types only.");
+template <typename TInt>
+constexpr bool safeAdd(TInt a, TInt b, TInt& out) {
+    static_assert(std::is_integral_v<TInt>, "Safe addition works for integral types only.");
     return core::intrin_safeAdd(a, b, out);
 }
 
-template <typename T>
-constexpr bool safeSub(T a, T b, T& out) {
-    static_assert(std::is_integral_v<T>, "Safe subtraction works for integral types only.");
+template <typename TInt>
+constexpr bool safeSub(TInt a, TInt b, TInt& out) {
+    static_assert(std::is_integral_v<TInt>, "Safe subtraction works for integral types only.");
     return core::intrin_safeSub(a, b, out);
 }
 
-template <typename T>
-constexpr bool safeMul(T a, T b, T& out) {
-    static_assert(std::is_integral_v<T>, "Safe multiplication works for integral types only.");
+template <typename TInt>
+constexpr bool safeMul(TInt a, TInt b, TInt& out) {
+    static_assert(std::is_integral_v<TInt>, "Safe multiplication works for integral types only.");
     return core::intrin_safeMul(a, b, out);
 }
 
-template <typename T>
-constexpr bool safeDiv(T a, T b, T& out) {
-    static_assert(std::is_integral_v<T>, "Safe division works for integral types only.");
+template <typename TInt>
+constexpr bool safeDiv(TInt a, TInt b, TInt& out) {
+    static_assert(std::is_integral_v<TInt>, "Safe division works for integral types only.");
 
     // Handle zero values separately
     if (b == 0) {
         return false; // Division by zero is not allowed
     }
 
-    if constexpr (std::is_signed_v<T>) {
+    if constexpr (std::is_signed_v<TInt>) {
         // Handle special overflow case: dividing the minimum value by -1
-        if (a == core::limitMin<T>() && b == -1) {
+        if (a == core::limitMin<TInt>() && b == -1) {
             return false; // This would cause overflow
         }
     }

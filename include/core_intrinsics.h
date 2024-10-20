@@ -15,26 +15,30 @@ namespace core {
 
 using namespace coretypes;
 
-constexpr u32        intrin_countLeadingZeros(u32 n);
-constexpr u32        intrin_countLeadingZeros(u64 n);
-constexpr u32        intrin_countLeadingZeros(i32 n);
-constexpr u32        intrin_countLeadingZeros(i64 n);
+                      constexpr u32        intrin_countLeadingZeros(u32 n);
+                      constexpr u32        intrin_countLeadingZeros(u64 n);
+                      constexpr u32        intrin_countLeadingZeros(i32 n);
+                      constexpr u32        intrin_countLeadingZeros(i64 n);
 
-constexpr f32        intrin_hugeValf();
-constexpr f32        intrin_nanf();
-constexpr f32        intrin_nansf();
-constexpr f64        intrin_hugeVal();
-constexpr f64        intrin_nan();
-constexpr f64        intrin_nans();
+                      constexpr f32        intrin_hugeValf();
+                      constexpr f32        intrin_nanf();
+                      constexpr f32        intrin_nansf();
+                      constexpr f64        intrin_hugeVal();
+                      constexpr f64        intrin_nan();
+                      constexpr f64        intrin_nans();
 
-constexpr u32        intrin_numberOfSetBits(u32 n);
-constexpr u32        intrin_numberOfSetBits(u64 n);
+                      constexpr u32        intrin_numberOfSetBits(u32 n);
+                      constexpr u32        intrin_numberOfSetBits(u64 n);
 
-constexpr inline u32 intrin_rotl(u32 x, i32 s);
-constexpr inline u64 intrin_rotl(u64 x, i32 s);
+                      constexpr inline u32 intrin_rotl(u32 x, i32 s);
+                      constexpr inline u64 intrin_rotl(u64 x, i32 s);
 
-constexpr inline u32 intrin_rotr(u32 x, i32 s);
-constexpr inline u64 intrin_rotr(u64 x, i32 s);
+                      constexpr inline u32 intrin_rotr(u32 x, i32 s);
+                      constexpr inline u64 intrin_rotr(u64 x, i32 s);
+
+template <typename T> constexpr inline bool intrin_safeAdd(T a, T b, T& out);
+template <typename T> constexpr inline bool intrin_safeSub(T a, T b, T& out);
+template <typename T> constexpr inline bool intrin_safeMul(T a, T b, T& out);
 
 namespace detail {
 

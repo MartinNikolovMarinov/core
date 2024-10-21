@@ -3,8 +3,8 @@ project(core VERSION 0.4.0)
 
 set(target_core core)
 set(target_core_upper CORE)
-# set(target_test core_test)
-set(target_test core_sandbox)
+set(target_test core_test)
+# set(target_test core_sandbox)
 
 # Standard Requirements:
 
@@ -222,8 +222,7 @@ if(CORE_BUILD_TESTS)
 
         tests/asm/t-asm.cpp
 
-        # FIXME: Remove this line:
-        __original_ryu/s2f.cpp
+        tests/common/ryu_reference_impl/s2f.cpp
     )
 
     # Link core

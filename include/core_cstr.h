@@ -10,26 +10,39 @@ namespace core {
 
 using namespace coretypes;
 
-constexpr inline bool isDigit(char c);
-constexpr inline i32  toDigit(char c);
-constexpr inline bool isHexDigit(char c);
-constexpr inline bool isWhiteSpace(char c);
+                        constexpr inline bool isDigit(char c);
+                        constexpr inline bool isHexDigit(char c);
+                        constexpr inline bool isWhiteSpace(char c);
 
-constexpr inline char toLowerCaseANSI(char c);
-constexpr inline char toUpperCaseANSI(char c);
-constexpr inline bool isLowerCaseANSI(char c);
-constexpr inline bool isUpperCaseANSI(char c);
+template <typename T>   constexpr inline T    toDigit(char s);
+template<typename TInt> constexpr inline char digitToChar(TInt digit);
 
-constexpr addr_size cstrLen(const char* p);
-constexpr addr_size cstrLen(const uchar* p);
+                        constexpr inline char toLowerCaseANSI(char c);
+                        constexpr inline char toUpperCaseANSI(char c);
+                        constexpr inline bool isLowerCaseANSI(char c);
+                        constexpr inline bool isUpperCaseANSI(char c);
 
-constexpr const char* cstrSkipSpace(const char* s);
-constexpr       char* cstrSkipSpace(char* s);
+                        constexpr inline addr_size   cstrLen(const char* p);
+                        constexpr inline addr_size   cstrLen(const uchar* p);
+
+                        constexpr const char* cstrSkipSpace(const char* s);
+                        constexpr       char* cstrSkipSpace(char* s);
 
 constexpr inline bool isDigit(char c) { return c >= '0' && c <= '9'; }
-constexpr inline i32  toDigit(char c) { return c - '0'; }
 constexpr inline bool isHexDigit(char c) { return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F'); }
 constexpr inline bool isWhiteSpace(char c) { return c == ' ' || c == '\t' || c == '\n' || c == '\r'; }
+
+template <typename T>
+constexpr inline T toDigit(char s) {
+    static_assert(std::is_arithmetic_v<T>, "T must be an arithmetic type.");
+    return static_cast<T>(s - '0');
+}
+
+template<typename TInt>
+constexpr inline char digitToChar(TInt digit) {
+    static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
+    return static_cast<char>((digit % 10) + '0');
+}
 
 constexpr inline char toLowerCaseANSI(char c) { return (c | 0x20); }
 constexpr inline char toUpperCaseANSI(char c) { return (c & ~0x20); }
@@ -42,7 +55,7 @@ constexpr inline i32 cmpIgnoreCaseANSI(char a, char b) { return i32(toLowerCaseA
 namespace detail {
 
 template<typename TChar>
-constexpr addr_size cstrLenImpl(const TChar* p) {
+constexpr inline addr_size cstrLenImpl(const TChar* p) {
     static_assert(is_char_v<TChar>, "TChar must be a char type.");
     if (p == nullptr) return 0;
     const TChar* start = p;
@@ -52,8 +65,8 @@ constexpr addr_size cstrLenImpl(const TChar* p) {
 
 } // namespace detail
 
-constexpr addr_size cstrLen(const char* p)  { return detail::cstrLenImpl(p); }
-constexpr addr_size cstrLen(const uchar* p) { return detail::cstrLenImpl(p); }
+constexpr inline addr_size cstrLen(const char* p)  { return detail::cstrLenImpl(p); }
+constexpr inline addr_size cstrLen(const uchar* p) { return detail::cstrLenImpl(p); }
 
 constexpr const char* cstrSkipSpace(const char* s) {
     if (s == nullptr) return s;

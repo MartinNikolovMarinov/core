@@ -276,6 +276,7 @@ template <typename T> constexpr T signalingNaN() {
 namespace detail {
 
 constexpr bool isinfCompiletimeImpl(f32 x) {
+    // FIXME: This check for infinity might not be enough. It needs to check any number that has exponent larger that a certain amount. For f32 I think it's  -126 to +127.
     return x == infinityF32() || -x == infinityF32();
 }
 

@@ -40,6 +40,8 @@ template <typename T> constexpr inline bool intrin_safeAdd(T a, T b, T& out);
 template <typename T> constexpr inline bool intrin_safeSub(T a, T b, T& out);
 template <typename T> constexpr inline bool intrin_safeMul(T a, T b, T& out);
 
+template <typename To, typename From> constexpr inline To intrin_bitCast(const From& src);
+
 namespace detail {
 
 template<typename TInt>
@@ -306,6 +308,14 @@ constexpr inline bool intrin_safeMul(T a, T b, T& out) {
     // fallback
     return detail::safeMulComptimeImpl(a, b, out);
 #endif
+}
+
+template <typename To, typename From>
+constexpr inline To intrin_bitCast(const From& src) {
+    static_assert(sizeof(To) == sizeof(From), "From and To must the of the same length");
+    static_assert(std::is_trivially_copyable_v<To>, "To is not trivially copyable");
+    static_assert(std::is_trivially_copyable_v<From>, "From is not trivially copyable");
+    return __builtin_bit_cast(To, src);
 }
 
 } // namespace core

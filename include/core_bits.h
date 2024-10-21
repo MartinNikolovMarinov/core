@@ -2,16 +2,20 @@
 
 #include <core_API.h>
 #include <core_types.h>
+#include <core_traits.h>
+#include <core_intrinsics.h>
 
 namespace core {
 
 using namespace coretypes;
 
-                constexpr bool leastSignificantNBits(u8 v, u8 bitSeq, u8 n);
-                constexpr bool mostSignificantNBits(u8 v, u8 bitSeq, u8 n);
-CORE_API_EXPORT void           floatToBin(u8 bytes[sizeof(f32)], f32 v);
-CORE_API_EXPORT void           floatToBin(u8 bytes[sizeof(f64)], f64 v);
+constexpr bool leastSignificantNBits(u8 v, u8 bitSeq, u8 n);
+constexpr bool mostSignificantNBits(u8 v, u8 bitSeq, u8 n);
 
+template <typename To, typename From>
+constexpr inline To bitCast(const From& src) noexcept {
+    return intrin_bitCast<To, From>(src);
+}
 
 // Least Significant N Bits are equal to bitSeq
 constexpr bool leastSignificantNBits(u8 v, u8 bitSeq, u8 n) {

@@ -1,6 +1,8 @@
 #pragma once
 
+#include <core_bits.h>
 #include <core_cstr.h>
+#include <core_expected.h>
 #include <core_ints.h>
 #include <core_traits.h>
 #include <core_types.h>
@@ -13,43 +15,44 @@ namespace core {
 
 using namespace coretypes;
 
-template <typename Ta>     constexpr inline Ta  charToInt(char s);
-template<typename TInt>    constexpr char       digitToChar(TInt digit);
+enum struct ParseError : u8 {
+    None,
+    InputEmpty,
+    InputHasMultipleDots,
+    InputHasInvalidSymbol,
+    InputNumberTooLarge, // will overflow return type
+};
+constexpr const char* parseErrorToCstr(ParseError err) {
+    switch (err) {
+        case ParseError::InputEmpty:             return "Input is empty";
+        case ParseError::InputHasMultipleDots:   return "Input more than one dot";
+        case ParseError::InputHasInvalidSymbol:  return "Input contains an invalid symbol";
+        case ParseError::InputNumberTooLarge:    return "Input number is too large to fit in return type";
+        case ParseError::None: break;
+    }
+    return "Unknown";
+}
 
-                           constexpr u32        intToCstr(u32 n, char* out, addr_size outMax, u32 digits = 0);
-                           constexpr u32        intToCstr(u64 n, char* out, addr_size outMax, u32 digits = 0);
-                           constexpr u32        intToCstr(i32 n, char* out, addr_size outMax, u32 digits = 0);
-                           constexpr u32        intToCstr(i64 n, char* out, addr_size outMax, u32 digits = 0);
-
-template <typename TInt>   constexpr TInt       cstrToInt(const char* s);
+                         constexpr u32  intToCstr(u32 n, char* out, addr_size outMax, u32 digits = 0);
+                         constexpr u32  intToCstr(u64 n, char* out, addr_size outMax, u32 digits = 0);
+                         constexpr u32  intToCstr(i32 n, char* out, addr_size outMax, u32 digits = 0);
+                         constexpr u32  intToCstr(i64 n, char* out, addr_size outMax, u32 digits = 0);
+template <typename TInt> constexpr TInt cstrToInt(const char* s); // FIXME: Replace this function with expected and add size param
+                         constexpr void intToHex(u8 v, char* out, u64 hexLen = (sizeof(u8) << 1));
+                         constexpr void intToHex(u16 v, char* out, u64 hexLen = (sizeof(u16) << 1));
+                         constexpr void intToHex(u32 v, char* out, u64 hexLen = (sizeof(u32) << 1));
+                         constexpr void intToHex(u64 v, char* out, u64 hexLen = (sizeof(u64) << 1));
+                         constexpr void intToHex(i8 v, char* out, u64 hexLen = (sizeof(i8) << 1));
+                         constexpr void intToHex(i16 v, char* out, u64 hexLen = (sizeof(i16) << 1));
+                         constexpr void intToHex(i32 v, char* out, u64 hexLen = (sizeof(i32) << 1));
+                         constexpr void intToHex(i64 v, char* out, u64 hexLen = (sizeof(i64) << 1));
 
 // FIXME: Replace these when the ryu implementation is ready ---
                            constexpr u32        floatToCstr(f32 n, char* out, addr_size outMax, u32 precision = 6);
                            constexpr u32        floatToCstr(f64 n, char* out, addr_size outMax, u32 precision = 6);
-template <typename TFloat> constexpr TFloat     cstrToFloat(const char* s);
 // FIXME: TO HERE ---
 
-                           constexpr void       intToHex(u8 v, char* out, u64 hexLen = (sizeof(u8) << 1));
-                           constexpr void       intToHex(u16 v, char* out, u64 hexLen = (sizeof(u16) << 1));
-                           constexpr void       intToHex(u32 v, char* out, u64 hexLen = (sizeof(u32) << 1));
-                           constexpr void       intToHex(u64 v, char* out, u64 hexLen = (sizeof(u64) << 1));
-                           constexpr void       intToHex(i8 v, char* out, u64 hexLen = (sizeof(i8) << 1));
-                           constexpr void       intToHex(i16 v, char* out, u64 hexLen = (sizeof(i16) << 1));
-                           constexpr void       intToHex(i32 v, char* out, u64 hexLen = (sizeof(i32) << 1));
-                           constexpr void       intToHex(i64 v, char* out, u64 hexLen = (sizeof(i64) << 1));
-
-
-template <typename Ta>
-constexpr inline Ta charToInt(char s) {
-    static_assert(std::is_arithmetic_v<Ta>, "TInt must be an arithmetic type.");
-    return static_cast<Ta>(s - '0');
-}
-
-template<typename TInt>
-constexpr char digitToChar(TInt digit) {
-    static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
-    return static_cast<char>((digit % 10) + '0');
-}
+template <typename TFloat> constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen);
 
 namespace detail {
 
@@ -201,7 +204,7 @@ constexpr TInt cstrToInt(const char* s) {
     }
 
     while (isDigit(*s)) {
-        TInt next = static_cast<TInt>(res * 10) + charToInt<TInt>(*s);
+        TInt next = static_cast<TInt>(res * 10) + core::toDigit<TInt>(*s);
         if (next < res) {
             // Overflow occurred. Does NOT handle all overflow cases, that is not the point of this check!
             return neg ? core::limitMin<TInt>() : core::limitMax<TInt>();
@@ -217,39 +220,231 @@ constexpr TInt cstrToInt(const char* s) {
     return res;
 }
 
+#pragma region Cptr to float
+
+// FIXME: Add a comment giving credit to the creator of the algorithm.
+
+namespace detail {
+
+constexpr u64 FLOAT_POW5_INV_SPLIT[55] = {
+    576460752303423489u, 461168601842738791u, 368934881474191033u, 295147905179352826u,
+    472236648286964522u, 377789318629571618u, 302231454903657294u, 483570327845851670u,
+    386856262276681336u, 309485009821345069u, 495176015714152110u, 396140812571321688u,
+    316912650057057351u, 507060240091291761u, 405648192073033409u, 324518553658426727u,
+    519229685853482763u, 415383748682786211u, 332306998946228969u, 531691198313966350u,
+    425352958651173080u, 340282366920938464u, 544451787073501542u, 435561429658801234u,
+    348449143727040987u, 557518629963265579u, 446014903970612463u, 356811923176489971u,
+    570899077082383953u, 456719261665907162u, 365375409332725730u, 292300327466180584u,
+    467680523945888934u, 374144419156711148u, 299315535325368918u, 478904856520590269u,
+    383123885216472215u, 306499108173177772u, 490398573077084435u, 392318858461667548u,
+    313855086769334039u, 502168138830934462u, 401734511064747569u, 321387608851798056u,
+    514220174162876889u, 411376139330301511u, 329100911464241209u, 526561458342785934u,
+    421249166674228747u, 336999333339382998u, 539198933343012796u, 431359146674410237u,
+    345087317339528190u, 552139707743245103u, 441711766194596083u
+};
+
+constexpr inline u32 mulShift32(u32 m, u64 factor, i32 shift) {
+    Assert(shift > 32);
+
+    // The casts here help MSVC to avoid calls to the __allmul library function.
+    u32 factorLo = u32(factor);
+    u32 factorHi = u32(factor >> 32);
+    u64 bits0 = u64(m) * u64(factorLo);
+    u64 bits1 = u64(m) * u64(factorHi);
+
+    u64 sum = (bits0 >> 32) + bits1;
+    u64 shiftedSum = sum >> (shift - 32);
+
+    Assert(shiftedSum <= core::limitMax<u32>());
+
+    return u32(shiftedSum);
+}
+
+constexpr inline i32 mulPow5InvDivPow2(u32 m, u32 i, u32 j) {
+    return mulShift32(m, FLOAT_POW5_INV_SPLIT[i], j);
+}
+
+constexpr u32 floorLog2(u32 x) {
+    return 31 - core::intrin_countLeadingZeros(x);
+}
+
+// Returns e == 0 ? 1 : [log_2(5^e)]; requires 0 <= e <= 3528.
+constexpr inline i32 log2pow5(i32 e) {
+    // This approximation works up to the point that the multiplication overflows at e = 3529.
+    // If the multiplication were done in 64 bits, it would fail at 5^4004 which is just greater
+    // than 2^9297.
+    Assert(e >= 0);
+    Assert(e <= 3528);
+    return i32((u32(e) * 1217359) >> 19);
+}
+
+// Returns e == 0 ? 1 : ceil(log_2(5^e)); requires 0 <= e <= 3528.
+constexpr inline i32 ceilLog2pow5(i32 e) {
+    return log2pow5(e) + 1;
+}
+
+// Returns true if value is divisible by 2^p.
+constexpr inline bool multipleOfPowerOf2_32(u32 value, u32 p) {
+    return (value & ((1u << p) - 1)) == 0;
+}
+
+constexpr inline u32 pow5factor_32(u32 value) {
+    u32 count = 0;
+    for (;;) {
+        Assert(value != 0);
+        u32 q = value / 5;
+        u32 r = value % 5;
+        if (r != 0) break;
+        value = q;
+        ++count;
+    }
+    return count;
+}
+
+constexpr inline bool multipleOfPowerOf5_32(u32 value, u32 p) {
+    return pow5factor_32(value) >= p;
+}
+
+} // detail
+
 // This function does not handle TFloat overflows!
 template <typename TFloat>
-constexpr TFloat cstrToFloat(const char* s) {
-    static_assert(core::is_float_v<TFloat>, "TFloat must be a floating point type.");
-    s = cstrSkipSpace(s);
-    if (s == nullptr || ((s[0] != '-' && s[0] != '.') && !isDigit(s[0]))) return 0;
-    TFloat res = 0;
-    bool neg = s[0] == '-';
-    i32 fractionalPart = 0;
-    if (neg) s++;
+constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen) {
+    static_assert(std::is_floating_point_v<TFloat>);
 
-    while(true) {
-        if (*s == '.') {
-            if (fractionalPart > 0) break; // Number has more than one decimal point.
-            fractionalPart = 1;
-            s++;
-        }
-        if (!isDigit(*s)) {
-            break;
-        }
+    static_assert(sizeof(TFloat) != 8, "FIXME: not implemented yet");
 
-        if (fractionalPart > 0) {
-            res += charToInt<TFloat>(*s) / TFloat(pow10(u32(fractionalPart++)));
+    if (s == nullptr || slen == 0) {
+        return core::unexpected(ParseError::InputEmpty);
+    }
+
+    using detail::floorLog2;
+    using detail::ceilLog2pow5;
+    using detail::mulPow5InvDivPow2;
+    using detail::multipleOfPowerOf2_32;
+    using detail::multipleOfPowerOf5_32;
+
+    constexpr i32 MAX_MANTISA_DIGITS = i32(core::maxMantisaDigitsBase10<TFloat>());
+    constexpr i32 MANTISSA_BITS = i32(core::mantisaBits<TFloat>());
+    constexpr i32 EXPONENT_BITS = i32(core::exponentBits<TFloat>());
+
+    constexpr u32 FLOAT_POW5_INV_BITCOUNT = 59; // FIXME: Value is invalid for f64
+    constexpr u32 FLOAT_EXPONENT_BIAS = 127; // FIXME: Value is invalid for f64
+
+    i32 mantissaDigits = 0;
+    u32 mantissa = 0;
+    i32 exponent = 0;
+    u32 dotIndex = slen;
+    bool isNegative = false;
+
+    u32 i = 0;
+    if (s[i] == '-') {
+        isNegative = true;
+        i++;
+    }
+
+    // check for special strings
+    {
+        if (slen - i == 3) {
+            if ((s[0] == 'n' || s[0] == 'N') &&
+                (s[1] == 'a' || s[1] == 'A') &&
+                (s[2] == 'n' || s[2] == 'N')
+            ) {
+                return core::signalingNaN<TFloat>();
+            }
+            if ((s[0] == 'i' || s[0] == 'i') &&
+                (s[1] == 'n' || s[1] == 'n') &&
+                (s[2] == 'f' || s[2] == 'f')
+            ) {
+                return isNegative ? -core::infinity<TFloat>() : core::infinity<TFloat>();
+            }
+        }
+    }
+
+    for (; i < slen; i++) {
+        char c = s[i];
+        if (c == '.') {
+            if (dotIndex != slen) {
+                return core::unexpected(ParseError::InputHasMultipleDots);
+            }
+            dotIndex = i;
         }
         else {
-            res = res * 10 + charToInt<TFloat>(*s);
+            if (!core::isDigit(c)) return core::unexpected(ParseError::InputHasInvalidSymbol);
+            if (mantissaDigits >= MAX_MANTISA_DIGITS) return core::unexpected(ParseError::InputNumberTooLarge);
+            mantissa = 10 * mantissa + core::toDigit<decltype(mantissa)>(c);
+            if (mantissa != 0) mantissaDigits++;
         }
+    }
 
-        s++;
-    };
+    if (mantissa == 0) {
+        return isNegative ? -0.0f : 0.0f;
+    }
 
-    return neg ? -res : res;
+    exponent -= slen != dotIndex ? slen - i32(dotIndex) - 1 : 0;
+
+    // Convert to binary float m2 * 2^e2, while retaining information about whether the conversion was exact.
+    i32 e2, m2;
+    bool trailingZeros;
+    {
+        e2 = floorLog2(mantissa) + exponent - ceilLog2pow5(-exponent) - (MANTISSA_BITS + 1);
+
+        // We now compute [m * 10^e / 2^e2] = [m / (5^(-e) 2^(e2-e))].
+        i32 j = e2 - exponent + ceilLog2pow5(-exponent) - 1 + FLOAT_POW5_INV_BITCOUNT;
+        m2 = mulPow5InvDivPow2(mantissa, -exponent, j);
+
+        // We also compute if the result is exact, i.e.,
+        //   [m / (5^(-e) 2^(e2-e))] == m / (5^(-e) 2^(e2-e))
+        //
+        // If e2-e >= 0, we need to check whether (5^(-e) 2^(e2-e)) divides m, which is the
+        // case iff pow5(m) >= -e AND pow2(m) >= e2-e.
+        //
+        // If e2-e < 0, we have actually computed [m * 2^(e e2) / 5^(-e)] above,
+        // and we need to check whether 5^(-e) divides (m * 2^(e-e2)), which is the case iff
+        // pow5(m * 2^(e-e2)) = pow5(m) >= -e.
+        trailingZeros = (e2 < exponent || (e2 - exponent < 32 && multipleOfPowerOf2_32(mantissa, e2 - exponent)))
+                         && multipleOfPowerOf5_32(mantissa, -exponent);
+    }
+
+    // Compute the final IEEE exponent.
+    u32 ieee_e2 = core::core_max(0u, u32(e2) + FLOAT_EXPONENT_BIAS + floorLog2(m2));
+    if (ieee_e2 > 0xfe) {
+        // Final IEEE exponent is larger than the maximum representable; return +/-Infinity.
+        u32 ieee = ((u32(isNegative)) << u32(EXPONENT_BITS + MANTISSA_BITS)) | (0xffu << MANTISSA_BITS);
+        TFloat ret = core::bitCast<TFloat>(ieee);
+        return ret;
+    }
+
+    // We need to figure out how much we need to shift m2. The tricky part is that we need to take the final IEEE
+    // exponent into account, so we need to reverse the bias and also special-case the value 0.
+    i32 shift = (ieee_e2 == 0 ? 1 : ieee_e2) - e2 - FLOAT_EXPONENT_BIAS - MANTISSA_BITS;
+    Assert(shift >= 0);
+
+    // We need to round up if the exact value is more than 0.5 above the value we computed. That's equivalent to
+    // checking if the last removed bit was 1 and either the value was not just trailing zeros or the result would
+    // otherwise be odd.
+    //
+    // We need to update trailingZeros given that we have the exact output exponent ieee_e2 now.
+    trailingZeros &= (m2 & ((1u << (shift - 1)) - 1)) == 0;
+    u32 lastRemovedBit = (m2 >> (shift - 1)) & 1;
+    bool roundUp = (lastRemovedBit != 0) && (!trailingZeros || (((m2 >> shift) & 1) != 0));
+
+    u32 ieee_m2 = (m2 >> shift) + roundUp;
+    Assert(ieee_m2 <= (1u << (MANTISSA_BITS + 1)));
+    ieee_m2 &= (1u << MANTISSA_BITS) - 1;
+    if (ieee_m2 == 0 && roundUp) {
+        // Rounding up may overflow the mantissa.
+        // In this case we move a trailing zero of the mantissa into the exponent.
+        // Due to how the IEEE represents +/-Infinity, we don't need to check for overflow here.
+        ieee_e2++;
+    }
+
+    u32 ieee = (((u32(isNegative) << EXPONENT_BITS) | u32(ieee_e2)) << MANTISSA_BITS) | ieee_m2;
+    TFloat ret = core::bitCast<TFloat>(ieee);
+    return ret;
 }
+
+#pragma endregion
 
 namespace detail {
 

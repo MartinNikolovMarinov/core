@@ -1,199 +1,5 @@
 #include "t-index.h"
 
-constexpr i32 charToIntTest() {
-    struct TestCase {
-        char in;
-        i32 expected;
-    };
-
-    constexpr TestCase cases[] = {
-        { '0', 0 },
-        { '1', 1 },
-        { '2', 2 },
-        { '3', 3 },
-        { '4', 4 },
-        { '5', 5 },
-        { '6', 6 },
-        { '7', 7 },
-        { '8', 8 },
-        { '9', 9 },
-    };
-
-    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        CT_CHECK(core::charToInt<i8>(c.in) == i8(c.expected), cErr);
-        CT_CHECK(core::charToInt<i16>(c.in) == i16(c.expected), cErr);
-        CT_CHECK(core::charToInt<i32>(c.in) == i32(c.expected), cErr);
-        CT_CHECK(core::charToInt<i64>(c.in) == i64(c.expected), cErr);
-        CT_CHECK(core::charToInt<u8>(c.in) == u8(c.expected), cErr);
-        CT_CHECK(core::charToInt<u16>(c.in) == u16(c.expected), cErr);
-        CT_CHECK(core::charToInt<u32>(c.in) == u32(c.expected), cErr);
-        CT_CHECK(core::charToInt<u64>(c.in) == u64(c.expected), cErr);
-        CT_CHECK(core::charToInt<f32>(c.in) == f32(c.expected), cErr);
-        CT_CHECK(core::charToInt<f64>(c.in) == f64(c.expected), cErr);
-        return 0;
-    });
-
-    return ret;
-}
-
-constexpr i32 digitToCharTest() {
-    struct TestCase {
-        i32 in;
-        char expected;
-    };
-
-    constexpr TestCase cases[] = {
-        { 0, '0' },
-        { 1, '1' },
-        { 2, '2' },
-        { 3, '3' },
-        { 4, '4' },
-        { 5, '5' },
-        { 6, '6' },
-        { 7, '7' },
-        { 8, '8' },
-        { 9, '9' },
-    };
-
-    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        CT_CHECK(core::digitToChar(i8(c.in)) == c.expected, cErr);
-        CT_CHECK(core::digitToChar(i16(c.in)) == c.expected, cErr);
-        CT_CHECK(core::digitToChar(i32(c.in)) == c.expected, cErr);
-        CT_CHECK(core::digitToChar(i64(c.in)) == c.expected, cErr);
-        CT_CHECK(core::digitToChar(u8(c.in)) == c.expected, cErr);
-        CT_CHECK(core::digitToChar(u16(c.in)) == c.expected, cErr);
-        CT_CHECK(core::digitToChar(u32(c.in)) == c.expected, cErr);
-        CT_CHECK(core::digitToChar(u64(c.in)) == c.expected, cErr);
-        return 0;
-    });
-
-    return ret;
-};
-
-constexpr i32 intToCstrTest() {
-    {
-        struct TestCase {
-            i32 in;
-            u32 digitCount;
-            const char* expected;
-        };
-
-        constexpr TestCase cases[] = {
-            { 0, 1, "0" },
-            { 1, 1, "1" },
-            { -1, 1, "-1" },
-            { 123, 3, "123" },
-            { -123, 3, "-123" },
-            { 123456789, 9, "123456789" },
-            { -123456789, 9, "-123456789" },
-            { 2147483647, 10, "2147483647" },
-            { -2147483647, 10, "-2147483647" },
-        };
-
-        i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-            char buf[12] = {};
-            auto res = core::intToCstr(c.in, buf, 12, c.digitCount);
-            CT_CHECK(core::cstrLen(buf) == res, cErr);
-            CT_CHECK(core::cstrLen(buf) == core::cstrLen(c.expected));
-            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
-            return 0;
-        });
-        CT_CHECK(ret == 0);
-    }
-    {
-        struct TestCase {
-            i64 in;
-            u32 digitCount;
-            const char* expected;
-        };
-
-        constexpr TestCase cases[] = {
-            { 0, 1, "0" },
-            { 1, 1, "1" },
-            { -1, 1, "-1" },
-            { 123, 3, "123" },
-            { -123, 3, "-123" },
-            { 123456789, 9, "123456789" },
-            { -123456789, 9, "-123456789" },
-            { 2147483647, 10, "2147483647" },
-            { -2147483647, 10, "-2147483647" },
-            { 2147483648, 10, "2147483648" },
-            { -2147483648, 10, "-2147483648" },
-            { 9223372036854775807, 19, "9223372036854775807" },
-            { -9223372036854775807, 19, "-9223372036854775807" },
-        };
-
-        i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-            char buf[21] = {};
-            auto res = core::intToCstr(c.in, buf, 21, c.digitCount);
-            CT_CHECK(core::cstrLen(buf) == res, cErr);
-            CT_CHECK(core::cstrLen(buf) == core::cstrLen(c.expected));
-            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
-            return 0;
-        });
-        CT_CHECK(ret == 0);
-    }
-
-    {
-        struct TestCase {
-            u32 in;
-            u32 digitCount;
-            const char* expected;
-        };
-
-        constexpr TestCase cases[] = {
-            { 0, 1, "0" },
-            { 1, 1, "1" },
-            { 123, 3, "123" },
-            { 123456789, 9, "123456789" },
-            { 2147483647, 10, "2147483647" },
-            { 2147483648, 10, "2147483648" },
-            { 4294967295, 10, "4294967295" },
-        };
-
-        i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-            char buf[11] = {};
-            auto res = core::intToCstr(c.in, buf, 11, c.digitCount);
-            CT_CHECK(core::cstrLen(buf) == res, cErr);
-            CT_CHECK(core::cstrLen(buf) == core::cstrLen(c.expected));
-            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
-            return 0;
-        });
-        CT_CHECK(ret == 0);
-    }
-
-    {
-        struct TestCase {
-            u64 in;
-            u32 digitCount;
-            const char* expected;
-        };
-
-        constexpr TestCase cases[] = {
-            { 0, 1, "0" },
-            { 1, 1, "1" },
-            { 123, 3, "123" },
-            { 123456789, 9, "123456789" },
-            { 2147483647, 10, "2147483647" },
-            { 2147483648, 10, "2147483648" },
-            { 4294967295, 10, "4294967295" },
-            { 4294967296, 10, "4294967296" },
-            { 9223372036854775807, 19, "9223372036854775807" },
-        };
-
-        i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-            char buf[20] = {};
-            auto res = core::intToCstr(c.in, buf, 20, c.digitCount);
-            CT_CHECK(core::cstrLen(buf) == res, cErr);
-            CT_CHECK(core::cstrLen(buf) == core::cstrLen(c.expected));
-            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
-            return 0;
-        });
-        CT_CHECK(ret == 0);
-    }
-
-    return 0;
-}
 
 constexpr i32 cstrToIntTest() {
     {
@@ -457,6 +263,255 @@ constexpr i32 cstrToIntTest() {
     return 0;
 }
 
+constexpr i32 cstrToFloatTest() {
+    {
+        struct TestCase {
+            const char* input;
+            f32 expected;
+            core::ParseError err;
+        };
+
+        constexpr TestCase cases[] = {
+            // Basic
+            { "0", 0.0f, core::ParseError::None },
+            { "-0", -0.0f, core::ParseError::None },
+            { "1", 1.0f, core::ParseError::None },
+            { "-1", -1.0f, core::ParseError::None },
+            { "123456789", 123456792.0f, core::ParseError::None },
+            { "299792458", 299792448.0f, core::ParseError::None },
+            { ".123", 0.123f, core::ParseError::None },
+            { "123", 123.f, core::ParseError::None },
+            { "00000000000000000000000000000", 0.f, core::ParseError::None },
+            { "0.000000000000000000000000000", 0.f, core::ParseError::None },
+
+            // Trailing zeroes
+            { "26843549.5", 26843550.0f, core::ParseError::None },
+            { "50000002.5", 50000004.0f, core::ParseError::None },
+            { "99999989.5", 99999992.0f, core::ParseError::None },
+
+            // Error cases
+            { "", 0, core::ParseError::InputEmpty },
+            { nullptr, 0, core::ParseError::InputEmpty },
+            { ".12.3", 0, core::ParseError::InputHasMultipleDots },
+
+            { "a123", 0, core::ParseError::InputHasInvalidSymbol },
+            { "0.a123", 0, core::ParseError::InputHasInvalidSymbol },
+            { ".123a", 0, core::ParseError::InputHasInvalidSymbol },
+            { "123a", 0, core::ParseError::InputHasInvalidSymbol },
+            { "12.3a", 0, core::ParseError::InputHasInvalidSymbol },
+
+            { "0123456789", 123456789.f, core::ParseError::None },
+            { "1234567890", 0.f, core::ParseError::InputNumberTooLarge },
+            { "123456789.0", 0.f, core::ParseError::InputNumberTooLarge },
+            { "12345678.00", 0.f, core::ParseError::InputNumberTooLarge },
+            { "1234567.000", 0.f, core::ParseError::InputNumberTooLarge },
+
+            { "9999999999", 0.f, core::ParseError::InputNumberTooLarge },
+            { "-1234567890", 0.f, core::ParseError::InputNumberTooLarge },
+
+            // FIXME: I need to test such cases very carefully, but first implement the general common cases.
+            { "0.0000000001", 0.0000000001f, core::ParseError::None },
+            { "0.00000000001", 0.00000000001f, core::ParseError::None },
+            { "0.0000000000001", 0.0000000000001f, core::ParseError::None },
+            { "0.00000000000001", 0.00000000000001f, core::ParseError::None },
+            { "0.000000000000001", 0.000000000000001f, core::ParseError::None },
+            { "0.0000000000000001", 0.0000000000000001f, core::ParseError::None },
+            { "0.00000000000000001", 0.00000000000000001f, core::ParseError::None },
+            { "0.000000000000000001", 0.000000000000000001f, core::ParseError::None },
+            { "0.0000000000000000001", 0.0000000000000000001f, core::ParseError::None },
+            { "0.00000000000000000001", 0.00000000000000000001f, core::ParseError::None },
+            { "0.000000000000000000001", 0.000000000000000000001f, core::ParseError::None },
+            { "0.0000000000000000000001", 0.0000000000000000000001f, core::ParseError::None },
+            { "0.00000000000000000000001", 0.00000000000000000000001f, core::ParseError::None },
+            { "0.000000000000000000000001", 0.000000000000000000000001f, core::ParseError::None },
+            { "0.0000000000000000000000001", 0.0000000000000000000000001f, core::ParseError::None },
+            { "0.00000000000000000000000001", 0.00000000000000000000000001f, core::ParseError::None },
+            { "0.000000000000000000000000001", 0.000000000000000000000000001f, core::ParseError::None },
+            { "0.0000000000000000000000000001", 0.0000000000000000000000000001f, core::ParseError::None },
+            { "0.00000000000000000000000000001", 0.00000000000000000000000000001f, core::ParseError::None },
+        };
+
+        i32 ret = core::testing::executeTestTable("test case failed for f32 at index: ", cases, [](auto& c, const char* cErr) {
+            auto v = core::cstrToFloat<f32>(c.input, u32(core::cstrLen(c.input)));
+            if (c.err == core::ParseError::None) {
+                CT_CHECK(v.hasValue(), cErr, true);
+                CT_CHECK(v.value() == c.expected, cErr, true);
+
+                CT_CHECK(!core::isnan(v.value()), cErr, true);
+                CT_CHECK(!core::isinf(v.value()), cErr, true);
+            }
+            else {
+                CT_CHECK(v.hasErr(), cErr, true);
+                CT_CHECK(v.err() == c.err, cErr, true);
+            }
+
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
+    return 0;
+};
+
+constexpr i32 digitToCharTest() {
+    struct TestCase {
+        i32 in;
+        char expected;
+    };
+
+    constexpr TestCase cases[] = {
+        { 0, '0' },
+        { 1, '1' },
+        { 2, '2' },
+        { 3, '3' },
+        { 4, '4' },
+        { 5, '5' },
+        { 6, '6' },
+        { 7, '7' },
+        { 8, '8' },
+        { 9, '9' },
+    };
+
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+        CT_CHECK(core::digitToChar(i8(c.in)) == c.expected, cErr);
+        CT_CHECK(core::digitToChar(i16(c.in)) == c.expected, cErr);
+        CT_CHECK(core::digitToChar(i32(c.in)) == c.expected, cErr);
+        CT_CHECK(core::digitToChar(i64(c.in)) == c.expected, cErr);
+        CT_CHECK(core::digitToChar(u8(c.in)) == c.expected, cErr);
+        CT_CHECK(core::digitToChar(u16(c.in)) == c.expected, cErr);
+        CT_CHECK(core::digitToChar(u32(c.in)) == c.expected, cErr);
+        CT_CHECK(core::digitToChar(u64(c.in)) == c.expected, cErr);
+        return 0;
+    });
+
+    return ret;
+};
+
+constexpr i32 intToCstrTest() {
+    {
+        struct TestCase {
+            i32 in;
+            u32 digitCount;
+            const char* expected;
+        };
+
+        constexpr TestCase cases[] = {
+            { 0, 1, "0" },
+            { 1, 1, "1" },
+            { -1, 1, "-1" },
+            { 123, 3, "123" },
+            { -123, 3, "-123" },
+            { 123456789, 9, "123456789" },
+            { -123456789, 9, "-123456789" },
+            { 2147483647, 10, "2147483647" },
+            { -2147483647, 10, "-2147483647" },
+        };
+
+        i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+            char buf[12] = {};
+            auto res = core::intToCstr(c.in, buf, 12, c.digitCount);
+            CT_CHECK(core::cstrLen(buf) == res, cErr);
+            CT_CHECK(core::cstrLen(buf) == core::cstrLen(c.expected));
+            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+    {
+        struct TestCase {
+            i64 in;
+            u32 digitCount;
+            const char* expected;
+        };
+
+        constexpr TestCase cases[] = {
+            { 0, 1, "0" },
+            { 1, 1, "1" },
+            { -1, 1, "-1" },
+            { 123, 3, "123" },
+            { -123, 3, "-123" },
+            { 123456789, 9, "123456789" },
+            { -123456789, 9, "-123456789" },
+            { 2147483647, 10, "2147483647" },
+            { -2147483647, 10, "-2147483647" },
+            { 2147483648, 10, "2147483648" },
+            { -2147483648, 10, "-2147483648" },
+            { 9223372036854775807, 19, "9223372036854775807" },
+            { -9223372036854775807, 19, "-9223372036854775807" },
+        };
+
+        i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+            char buf[21] = {};
+            auto res = core::intToCstr(c.in, buf, 21, c.digitCount);
+            CT_CHECK(core::cstrLen(buf) == res, cErr);
+            CT_CHECK(core::cstrLen(buf) == core::cstrLen(c.expected));
+            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
+    {
+        struct TestCase {
+            u32 in;
+            u32 digitCount;
+            const char* expected;
+        };
+
+        constexpr TestCase cases[] = {
+            { 0, 1, "0" },
+            { 1, 1, "1" },
+            { 123, 3, "123" },
+            { 123456789, 9, "123456789" },
+            { 2147483647, 10, "2147483647" },
+            { 2147483648, 10, "2147483648" },
+            { 4294967295, 10, "4294967295" },
+        };
+
+        i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+            char buf[11] = {};
+            auto res = core::intToCstr(c.in, buf, 11, c.digitCount);
+            CT_CHECK(core::cstrLen(buf) == res, cErr);
+            CT_CHECK(core::cstrLen(buf) == core::cstrLen(c.expected));
+            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
+    {
+        struct TestCase {
+            u64 in;
+            u32 digitCount;
+            const char* expected;
+        };
+
+        constexpr TestCase cases[] = {
+            { 0, 1, "0" },
+            { 1, 1, "1" },
+            { 123, 3, "123" },
+            { 123456789, 9, "123456789" },
+            { 2147483647, 10, "2147483647" },
+            { 2147483648, 10, "2147483648" },
+            { 4294967295, 10, "4294967295" },
+            { 4294967296, 10, "4294967296" },
+            { 9223372036854775807, 19, "9223372036854775807" },
+        };
+
+        i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+            char buf[20] = {};
+            auto res = core::intToCstr(c.in, buf, 20, c.digitCount);
+            CT_CHECK(core::cstrLen(buf) == res, cErr);
+            CT_CHECK(core::cstrLen(buf) == core::cstrLen(c.expected));
+            CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
+    return 0;
+}
+
 constexpr i32 intHexTest() {
     {
         struct TestCase { i8 in; const char* expected; };
@@ -623,26 +678,26 @@ i32 runCstrConvTestsSuite() {
     i32 ret = 0;
     TestInfo tInfo = createTestInfo();
 
-    tInfo.name = FN_NAME_TO_CPTR(charToIntTest);
-    if (runTest(tInfo, charToIntTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cstrToIntTest);
+    if (runTest(tInfo, cstrToIntTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(digitToCharTest);
     if (runTest(tInfo, digitToCharTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(intToCstrTest);
     if (runTest(tInfo, intToCstrTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(intHexTest);
     if (runTest(tInfo, intHexTest) != 0) { ret = -1; }
-    tInfo.name = FN_NAME_TO_CPTR(cstrToIntTest);
-    if (runTest(tInfo, cstrToIntTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cstrToFloatTest);
+    if (runTest(tInfo, cstrToFloatTest) != 0) { ret = -1; }
 
     return ret;
 }
 
 constexpr i32 runCompiletimeCstrConvTestsSuite() {
-    RunTestCompileTime(charToIntTest);
+    RunTestCompileTime(cstrToIntTest);
     RunTestCompileTime(digitToCharTest);
     RunTestCompileTime(intToCstrTest);
     RunTestCompileTime(intHexTest);
-    RunTestCompileTime(cstrToIntTest);
+    RunTestCompileTime(cstrToFloatTest);
 
     return 0;
 }

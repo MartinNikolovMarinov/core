@@ -111,6 +111,42 @@ constexpr i32 cstrSkipWhiteSpaceTest() {
     return ret;
 };
 
+constexpr i32 charToIntTest() {
+    struct TestCase {
+        char in;
+        i32 expected;
+    };
+
+    constexpr TestCase cases[] = {
+        { '0', 0 },
+        { '1', 1 },
+        { '2', 2 },
+        { '3', 3 },
+        { '4', 4 },
+        { '5', 5 },
+        { '6', 6 },
+        { '7', 7 },
+        { '8', 8 },
+        { '9', 9 },
+    };
+
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+        CT_CHECK(core::toDigit<i8>(c.in) == i8(c.expected), cErr);
+        CT_CHECK(core::toDigit<i16>(c.in) == i16(c.expected), cErr);
+        CT_CHECK(core::toDigit<i32>(c.in) == i32(c.expected), cErr);
+        CT_CHECK(core::toDigit<i64>(c.in) == i64(c.expected), cErr);
+        CT_CHECK(core::toDigit<u8>(c.in) == u8(c.expected), cErr);
+        CT_CHECK(core::toDigit<u16>(c.in) == u16(c.expected), cErr);
+        CT_CHECK(core::toDigit<u32>(c.in) == u32(c.expected), cErr);
+        CT_CHECK(core::toDigit<u64>(c.in) == u64(c.expected), cErr);
+        CT_CHECK(core::toDigit<f32>(c.in) == f32(c.expected), cErr);
+        CT_CHECK(core::toDigit<f64>(c.in) == f64(c.expected), cErr);
+        return 0;
+    });
+
+    return ret;
+}
+
 i32 runCstrTestsSuite() {
     using namespace core::testing;
 
@@ -125,6 +161,8 @@ i32 runCstrTestsSuite() {
     if (runTest(tInfo, cstrLenTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(cstrSkipWhiteSpaceTest);
     if (runTest(tInfo, cstrSkipWhiteSpaceTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(charToIntTest);
+    if (runTest(tInfo, charToIntTest) != 0) { ret = -1; }
 
     return ret;
 }
@@ -134,6 +172,7 @@ constexpr i32 runCompiletimeCstrTestsSuite() {
     RunTestCompileTime(isWhiteSpaceTest);
     RunTestCompileTime(cstrLenTest);
     RunTestCompileTime(cstrSkipWhiteSpaceTest);
+    RunTestCompileTime(charToIntTest);
 
     return 0;
 }

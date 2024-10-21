@@ -51,6 +51,7 @@ struct CORE_API_EXPORT CmdFlagParser {
         MissingRequiredFlag,
         ValidationFailed,
         UnknownFlag,
+        FaildToParseNumber,
 
         SENTINEL
     };
@@ -336,16 +337,25 @@ struct CORE_API_EXPORT CmdFlagParser {
                     }
                     case FlagType::Float32:
                     {
-                        f32 v = core::cstrToFloat<f32>(value.data());
-                        *reinterpret_cast<f32*>(fd->data) = v;
+                        auto v = core::cstrToFloat<f32>(value.data(), value.len());
+                        if (v.hasErr()) {
+                            err = MatchError::FaildToParseNumber;
+                            return false;
+                        }
+                        *reinterpret_cast<f32*>(fd->data) = v.value();
                         fd->isSet = true;
                         break;
                     }
                     case FlagType::Float64:
                     {
-                        f64 v = core::cstrToFloat<f64>(value.data());
-                        *reinterpret_cast<f64*>(fd->data) = v;
-                        fd->isSet = true;
+                        // FIXME: Uncomment this when fixed.
+                        // auto v = core::cstrToFloat<f64>(value.data(), value.len());
+                        // if (v.hasErr()) {
+                        //     err = MatchError::FaildToParseNumber;
+                        //     return false;
+                        // }
+                        // *reinterpret_cast<f64*>(fd->data) = v.value();
+                        // fd->isSet = true;
                         break;
                     }
                     case FlagType::String:

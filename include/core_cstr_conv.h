@@ -33,25 +33,25 @@ constexpr const char* parseErrorToCstr(ParseError err) {
     return "Unknown";
 }
 
-                         constexpr u32  intToCstr(u32 n, char* out, addr_size outMax, u32 digits = 0);
-                         constexpr u32  intToCstr(u64 n, char* out, addr_size outMax, u32 digits = 0);
-                         constexpr u32  intToCstr(i32 n, char* out, addr_size outMax, u32 digits = 0);
-                         constexpr u32  intToCstr(i64 n, char* out, addr_size outMax, u32 digits = 0);
-template <typename TInt> constexpr TInt cstrToInt(const char* s); // FIXME: Replace this function with expected and add size param
-                         constexpr void intToHex(u8 v, char* out, u64 hexLen = (sizeof(u8) << 1));
-                         constexpr void intToHex(u16 v, char* out, u64 hexLen = (sizeof(u16) << 1));
-                         constexpr void intToHex(u32 v, char* out, u64 hexLen = (sizeof(u32) << 1));
-                         constexpr void intToHex(u64 v, char* out, u64 hexLen = (sizeof(u64) << 1));
-                         constexpr void intToHex(i8 v, char* out, u64 hexLen = (sizeof(i8) << 1));
-                         constexpr void intToHex(i16 v, char* out, u64 hexLen = (sizeof(i16) << 1));
-                         constexpr void intToHex(i32 v, char* out, u64 hexLen = (sizeof(i32) << 1));
-                         constexpr void intToHex(i64 v, char* out, u64 hexLen = (sizeof(i64) << 1));
+constexpr u32  intToCstr(u32 n, char* out, addr_size outMax, u32 digits = 0);
+constexpr u32  intToCstr(u64 n, char* out, addr_size outMax, u32 digits = 0);
+constexpr u32  intToCstr(i32 n, char* out, addr_size outMax, u32 digits = 0);
+constexpr u32  intToCstr(i64 n, char* out, addr_size outMax, u32 digits = 0);
+constexpr void intToHex(u8 v, char* out, u64 hexLen = (sizeof(u8) << 1));
+constexpr void intToHex(u16 v, char* out, u64 hexLen = (sizeof(u16) << 1));
+constexpr void intToHex(u32 v, char* out, u64 hexLen = (sizeof(u32) << 1));
+constexpr void intToHex(u64 v, char* out, u64 hexLen = (sizeof(u64) << 1));
+constexpr void intToHex(i8 v, char* out, u64 hexLen = (sizeof(i8) << 1));
+constexpr void intToHex(i16 v, char* out, u64 hexLen = (sizeof(i16) << 1));
+constexpr void intToHex(i32 v, char* out, u64 hexLen = (sizeof(i32) << 1));
+constexpr void intToHex(i64 v, char* out, u64 hexLen = (sizeof(i64) << 1));
 
 // FIXME: Replace these when the ryu implementation is ready ---
                            constexpr u32        floatToCstr(f32 n, char* out, addr_size outMax, u32 precision = 6);
                            constexpr u32        floatToCstr(f64 n, char* out, addr_size outMax, u32 precision = 6);
 // FIXME: TO HERE ---
 
+template <typename TInt> constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen);
 template <typename TFloat> constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen);
 
 namespace detail {
@@ -192,25 +192,33 @@ constexpr u32 floatToCstr(f64 n, char* out, addr_size outMax, u32 precision) { r
 
 // This function does not handle TInt overflows!
 template <typename TInt>
-constexpr TInt cstrToInt(const char* s) {
+constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen) {
     static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
-    s = cstrSkipSpace(s);
-    if (s == nullptr || (s[0] != '-' && !isDigit(s[0]))) return 0;
 
-    TInt res = 0;
-    bool neg = s[0] == '-';
-    if constexpr (core::is_signed_v<TInt>) {
-        if (neg) s++;
+    if (s == nullptr || slen == 0) {
+        return core::unexpected(ParseError::InputEmpty);
     }
 
-    while (isDigit(*s)) {
-        TInt next = static_cast<TInt>(res * 10) + core::toDigit<TInt>(*s);
+    u32 i = 0;
+    bool neg = false;
+    if constexpr (core::is_signed_v<TInt>) {
+        neg = s[i] == '-';
+        if (neg) i++;
+    }
+
+    TInt res = 0;
+    while (i < slen) {
+        char curr = s[i];
+        if (!isDigit(curr)) {
+            return core::unexpected(ParseError::InputHasInvalidSymbol);
+        }
+
+        TInt next = static_cast<TInt>(res * 10) + core::toDigit<TInt>(curr);
         if (next < res) {
-            // Overflow occurred. Does NOT handle all overflow cases, that is not the point of this check!
-            return neg ? core::limitMin<TInt>() : core::limitMax<TInt>();
+            return core::unexpected(ParseError::InputNumberTooLarge);
         }
         res = next;
-        s++;
+        i++;
     }
 
     if constexpr (core::is_signed_v<TInt>) {

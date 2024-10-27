@@ -309,35 +309,51 @@ struct CORE_API_EXPORT CmdFlagParser {
                     }
                     case FlagType::Int32:
                     {
-                        i32 v = core::cstrToInt<i32>(value.data());
-                        *reinterpret_cast<i32*>(fd->data) = v;
+                        auto v = core::cstrToInt<i32>(value.data(), u32(value.len()));
+                        if (v.hasErr()) {
+                            err = MatchError::FaildToParseNumber;
+                            return false;
+                        }
+                        *reinterpret_cast<i32*>(fd->data) = v.value();
                         fd->isSet = true;
                         break;
                     }
                     case FlagType::Int64:
                     {
-                        i64 v = core::cstrToInt<i64>(value.data());
-                        *reinterpret_cast<i64*>(fd->data) = v;
+                        auto v = core::cstrToInt<i64>(value.data(), u32(value.len()));
+                        if (v.hasErr()) {
+                            err = MatchError::FaildToParseNumber;
+                            return false;
+                        }
+                        *reinterpret_cast<i64*>(fd->data) = v.value();
                         fd->isSet = true;
                         break;
                     }
                     case FlagType::Uint32:
                     {
-                        u32 v = core::cstrToInt<u32>(value.data());
-                        *reinterpret_cast<u32*>(fd->data) = v;
+                        auto v = core::cstrToInt<u32>(value.data(), u32(value.len()));
+                        if (v.hasErr()) {
+                            err = MatchError::FaildToParseNumber;
+                            return false;
+                        }
+                        *reinterpret_cast<u32*>(fd->data) = v.value();
                         fd->isSet = true;
                         break;
                     }
                     case FlagType::Uint64:
                     {
-                        u64 v = core::cstrToInt<u64>(value.data());
-                        *reinterpret_cast<u64*>(fd->data) = v;
+                        auto v = core::cstrToInt<u64>(value.data(), u32(value.len()));
+                        if (v.hasErr()) {
+                            err = MatchError::FaildToParseNumber;
+                            return false;
+                        }
+                        *reinterpret_cast<u64*>(fd->data) = v.value();
                         fd->isSet = true;
                         break;
                     }
                     case FlagType::Float32:
                     {
-                        auto v = core::cstrToFloat<f32>(value.data(), value.len());
+                        auto v = core::cstrToFloat<f32>(value.data(), u32(value.len()));
                         if (v.hasErr()) {
                             err = MatchError::FaildToParseNumber;
                             return false;

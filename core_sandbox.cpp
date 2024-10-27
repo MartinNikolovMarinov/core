@@ -1,7 +1,5 @@
 #include "tests/t-index.h"
 
-// #include "__original_ryu/ryu_parse.h"
-
 #include <iomanip>
 #include <iostream>
 

@@ -1,5 +1,7 @@
 #include "t-index.h"
 
+#include "common/ryu_reference_impl/ryu_parse.h"
+
 // FIXME: Check error cases for all the tests. Add more tests if needed.
 constexpr i32 cstrToIntTest() {
     {
@@ -183,96 +185,6 @@ constexpr i32 cstrToIntTest() {
 
     return 0;
 }
-
-constexpr i32 cstrToFloatTest() {
-    {
-        struct TestCase {
-            const char* input;
-            f32 expected;
-            core::ParseError err;
-        };
-
-        constexpr TestCase cases[] = {
-            // Basic
-            { "0", 0.0f, core::ParseError::None },
-            { "-0", -0.0f, core::ParseError::None },
-            { "1", 1.0f, core::ParseError::None },
-            { "-1", -1.0f, core::ParseError::None },
-            { "123456789", 123456792.0f, core::ParseError::None },
-            { "299792458", 299792448.0f, core::ParseError::None },
-            { ".123", 0.123f, core::ParseError::None },
-            { "123", 123.f, core::ParseError::None },
-            { "00000000000000000000000000000", 0.f, core::ParseError::None },
-            { "0.000000000000000000000000000", 0.f, core::ParseError::None },
-
-            // Trailing zeroes
-            { "26843549.5", 26843550.0f, core::ParseError::None },
-            { "50000002.5", 50000004.0f, core::ParseError::None },
-            { "99999989.5", 99999992.0f, core::ParseError::None },
-
-            // Error cases
-            { "", 0, core::ParseError::InputEmpty },
-            { nullptr, 0, core::ParseError::InputEmpty },
-            { ".12.3", 0, core::ParseError::InputHasMultipleDots },
-
-            { "a123", 0, core::ParseError::InputHasInvalidSymbol },
-            { "0.a123", 0, core::ParseError::InputHasInvalidSymbol },
-            { ".123a", 0, core::ParseError::InputHasInvalidSymbol },
-            { "123a", 0, core::ParseError::InputHasInvalidSymbol },
-            { "12.3a", 0, core::ParseError::InputHasInvalidSymbol },
-
-            { "0123456789", 123456789.f, core::ParseError::None },
-            { "1234567890", 0.f, core::ParseError::InputNumberTooLarge },
-            { "123456789.0", 0.f, core::ParseError::InputNumberTooLarge },
-            { "12345678.00", 0.f, core::ParseError::InputNumberTooLarge },
-            { "1234567.000", 0.f, core::ParseError::InputNumberTooLarge },
-
-            { "9999999999", 0.f, core::ParseError::InputNumberTooLarge },
-            { "-1234567890", 0.f, core::ParseError::InputNumberTooLarge },
-
-            // FIXME: I need to test such cases very carefully, but first implement the general common cases.
-            { "0.0000000001", 0.0000000001f, core::ParseError::None },
-            { "0.00000000001", 0.00000000001f, core::ParseError::None },
-            { "0.0000000000001", 0.0000000000001f, core::ParseError::None },
-            { "0.00000000000001", 0.00000000000001f, core::ParseError::None },
-            { "0.000000000000001", 0.000000000000001f, core::ParseError::None },
-            { "0.0000000000000001", 0.0000000000000001f, core::ParseError::None },
-            { "0.00000000000000001", 0.00000000000000001f, core::ParseError::None },
-            { "0.000000000000000001", 0.000000000000000001f, core::ParseError::None },
-            { "0.0000000000000000001", 0.0000000000000000001f, core::ParseError::None },
-            { "0.00000000000000000001", 0.00000000000000000001f, core::ParseError::None },
-            { "0.000000000000000000001", 0.000000000000000000001f, core::ParseError::None },
-            { "0.0000000000000000000001", 0.0000000000000000000001f, core::ParseError::None },
-            { "0.00000000000000000000001", 0.00000000000000000000001f, core::ParseError::None },
-            { "0.000000000000000000000001", 0.000000000000000000000001f, core::ParseError::None },
-            { "0.0000000000000000000000001", 0.0000000000000000000000001f, core::ParseError::None },
-            { "0.00000000000000000000000001", 0.00000000000000000000000001f, core::ParseError::None },
-            { "0.000000000000000000000000001", 0.000000000000000000000000001f, core::ParseError::None },
-            { "0.0000000000000000000000000001", 0.0000000000000000000000000001f, core::ParseError::None },
-            { "0.00000000000000000000000000001", 0.00000000000000000000000000001f, core::ParseError::None },
-        };
-
-        i32 ret = core::testing::executeTestTable("test case failed for f32 at index: ", cases, [](auto& c, const char* cErr) {
-            auto v = core::cstrToFloat<f32>(c.input, u32(core::cstrLen(c.input)));
-            if (c.err == core::ParseError::None) {
-                CT_CHECK(v.hasValue(), cErr, true);
-                CT_CHECK(v.value() == c.expected, cErr, true);
-
-                CT_CHECK(!core::isnan(v.value()), cErr, true);
-                CT_CHECK(!core::isinf(v.value()), cErr, true);
-            }
-            else {
-                CT_CHECK(v.hasErr(), cErr, true);
-                CT_CHECK(v.err() == c.err, cErr, true);
-            }
-
-            return 0;
-        });
-        CT_CHECK(ret == 0);
-    }
-
-    return 0;
-};
 
 constexpr i32 digitToCharTest() {
     struct TestCase {
@@ -593,6 +505,104 @@ constexpr i32 intHexTest() {
     return 0;
 }
 
+constexpr i32 cstrToFloatTest() {
+    {
+        struct TestCase {
+            const char* input;
+            f32 expected;
+            core::ParseError err;
+        };
+
+        constexpr TestCase cases[] = {
+            // Basic
+            { "0", 0.0f, core::ParseError::None },
+            { "-0", -0.0f, core::ParseError::None },
+            { "1", 1.0f, core::ParseError::None },
+            { "-1", -1.0f, core::ParseError::None },
+            { "123456789", 123456792.0f, core::ParseError::None },
+            { "299792458", 299792448.0f, core::ParseError::None },
+            { ".123", 0.123f, core::ParseError::None },
+            { "123", 123.f, core::ParseError::None },
+            { "00000000000000000000000000000", 0.f, core::ParseError::None },
+            { "0.000000000000000000000000000", 0.f, core::ParseError::None },
+
+            // Trailing zeroes
+            { "26843549.5", 26843550.0f, core::ParseError::None },
+            { "50000002.5", 50000004.0f, core::ParseError::None },
+            { "99999989.5", 99999992.0f, core::ParseError::None },
+
+            // Error cases
+            { "", 0, core::ParseError::InputEmpty },
+            { nullptr, 0, core::ParseError::InputEmpty },
+            { ".12.3", 0, core::ParseError::InputHasMultipleDots },
+
+            { "a123", 0, core::ParseError::InputHasInvalidSymbol },
+            { "0.a123", 0, core::ParseError::InputHasInvalidSymbol },
+            { ".123a", 0, core::ParseError::InputHasInvalidSymbol },
+            { "123a", 0, core::ParseError::InputHasInvalidSymbol },
+            { "12.3a", 0, core::ParseError::InputHasInvalidSymbol },
+
+            { "0123456789", 123456789.f, core::ParseError::None },
+            { "1234567890", 0.f, core::ParseError::InputNumberTooLarge },
+            { "123456789.0", 0.f, core::ParseError::InputNumberTooLarge },
+            { "12345678.00", 0.f, core::ParseError::InputNumberTooLarge },
+            { "1234567.000", 0.f, core::ParseError::InputNumberTooLarge },
+
+            { "9999999999", 0.f, core::ParseError::InputNumberTooLarge },
+            { "-1234567890", 0.f, core::ParseError::InputNumberTooLarge },
+        };
+
+        i32 ret = core::testing::executeTestTable("test case failed for f32 at index: ", cases, [](auto& c, const char* cErr) {
+            auto v = core::cstrToFloat<f32>(c.input, u32(core::cstrLen(c.input)));
+            if (c.err == core::ParseError::None) {
+                CT_CHECK(v.hasValue(), cErr, true);
+                CT_CHECK(v.value() == c.expected, cErr, true);
+
+                CT_CHECK(!core::isnan(v.value()), cErr, true);
+                CT_CHECK(!core::isinf(v.value()), cErr, true);
+            }
+            else {
+                CT_CHECK(v.hasErr(), cErr, true);
+                CT_CHECK(v.err() == c.err, cErr, true);
+            }
+
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
+    return 0;
+};
+
+i32 cstrToFloatComparedToOriginalTest() {
+    {
+        // Parse numbers of the sequence -10^i
+        constexpr u32 N = 100; // FIXME: I need to understand why this works for such large numbers.
+        char buff[N] = {};
+
+        u32 i = 0;
+        buff[i++] = '0';
+        buff[i++] = '.';
+        buff[i++] = '1';
+        for (; i < N; i++) {
+            // 0.0...1
+            buff[i - 1] = '0';
+            buff[i] = '1';
+
+            auto res = core::cstrToFloat<f32>(buff, i);
+            CT_CHECK(res.hasValue());
+            f32 got = res.value();
+            f32 want = 0;
+            ryu::s2f_n(buff, i, &want);
+            CT_CHECK(got == want);
+            CT_CHECK(!core::isnan(got));
+            CT_CHECK(!core::isinf(got));
+        }
+    }
+
+    return 0;
+}
+
 i32 runCstrConvTestsSuite() {
     using namespace core::testing;
 
@@ -609,6 +619,8 @@ i32 runCstrConvTestsSuite() {
     if (runTest(tInfo, intHexTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(cstrToFloatTest);
     if (runTest(tInfo, cstrToFloatTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cstrToFloatComparedToOriginalTest);
+    if (runTest(tInfo, cstrToFloatComparedToOriginalTest) != 0) { ret = -1; }
 
     return ret;
 }

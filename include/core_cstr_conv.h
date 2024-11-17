@@ -200,7 +200,7 @@ constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen) {
     }
 
     u32 i = 0;
-    bool neg = false;
+    [[maybe_unused]] bool neg = false;
     if constexpr (core::is_signed_v<TInt>) {
         neg = s[i] == '-';
         if (neg) i++;

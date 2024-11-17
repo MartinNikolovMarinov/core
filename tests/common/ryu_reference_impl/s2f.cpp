@@ -1,3 +1,8 @@
+#include <core_compiler.h>
+
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_SUPPRESS_ALL
+
 #include "ryu_parse.h"
 
 #include <assert.h>
@@ -241,3 +246,5 @@ enum Status s2f(const char * buffer, float * result) {
 }
 
 } // namespace ryu
+
+PRAGMA_WARNING_POP

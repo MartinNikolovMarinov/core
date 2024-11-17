@@ -1,5 +1,10 @@
 #pragma once
 
+#include <core_compiler.h>
+
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_SUPPRESS_ALL
+
 #include "common.h"
 
 #include "f2s_full_table.h"
@@ -59,3 +64,5 @@ static inline uint32_t mulPow5divPow2(const uint32_t m, const uint32_t i, const 
 }
 
 } // namespace ryu
+
+PRAGMA_WARNING_POP

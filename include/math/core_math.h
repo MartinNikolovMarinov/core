@@ -2,6 +2,7 @@
 
 #include <core_API.h>
 #include <core_assert.h>
+#include <core_bits.h>
 #include <core_intrinsics.h>
 #include <core_system_checks.h>
 #include <core_traits.h>
@@ -21,6 +22,8 @@ struct radians;
 template <typename TFloat>          constexpr u32         exponentBits();
 template <typename TFloat>          constexpr u32         mantisaBits();
 template <typename TFloat>          constexpr u32         maxMantisaDigitsBase10();
+                                    constexpr f32         createFloat32(u32 mantissa, u32 exponent, bool sign);
+                                    constexpr f64         createFloat64(u64 mantissa, u64 exponent, bool sign);
 
 template <typename TInt>            constexpr i32         maxDigitsBase2();
 template <typename TInt>            constexpr i32         maxDigitsBase10();
@@ -173,6 +176,22 @@ template <typename TFloat> constexpr u32 maxMantisaDigitsBase10() {
     if constexpr (std::is_same_v<TFloat, f32>) return 9;
     else if constexpr (std::is_same_v<TFloat, f64>) return 17;
     else static_assert(core::always_false<TFloat>, "Unsupported type");
+}
+
+constexpr f32 createFloat32(u32 mantissa, u32 exponent, bool sign) {
+    u32 sign_bit = sign ? 1u : 0u;
+    u32 ieee754 = (sign_bit << 31)            // Sign bit (1 bit)
+                | ((exponent & 0xFF) << 23)   // Exponent (8 bits)
+                | (mantissa & 0x7FFFFF);      // Mantissa (23 bits)
+    return core::bitCast<f32>(ieee754);
+}
+
+constexpr f64 createFloat64(u64 mantissa, u64 exponent, bool sign) {
+    u64 sign_bit = sign ? 1u : 0u;
+    u64 ieee754 = (sign_bit << 63)              // Sign bit (1 bit)
+                | ((exponent & 0x7FF) << 52)    // Exponent (11 bits)
+                | (mantissa & 0xFFFFFFFFFFFFF); // Mantissa (52 bits)
+    return core::bitCast<f64>(ieee754);
 }
 
 #pragma endregion

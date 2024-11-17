@@ -4,6 +4,11 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <core_compiler.h>
+
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_SUPPRESS_ALL
+
 namespace ryu {
 
 #if defined(_M_IX86) || defined(_M_ARM)
@@ -97,3 +102,5 @@ static inline uint64_t double_to_bits(const double d) {
 }
 
 } // namespace ryu
+
+PRAGMA_WARNING_POP

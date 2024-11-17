@@ -1,5 +1,10 @@
 #pragma once
 
+#include <core_compiler.h>
+
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_SUPPRESS_ALL
+
 namespace ryu {
 
 enum Status {
@@ -13,3 +18,5 @@ enum Status s2f_n(const char * buffer, const int len, float * result);
 enum Status s2f(const char * buffer, float * result);
 
 } // namespace ryu
+
+PRAGMA_WARNING_POP

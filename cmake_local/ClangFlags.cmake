@@ -5,7 +5,7 @@ macro(target_set_default_flags
     is_debug
     save_temporary_files)
 
-    set(common_flags "-std=c++20" "-pthread")
+    set(common_flags -std=c++20 -pthread)
     set(debug_flags "")
     set(release_flags "")
 
@@ -22,6 +22,11 @@ macro(target_set_default_flags
         common_flags "${common_flags}"
         debug_flags "${debug_flags}"
         release_flags "${release_flags}"
+    )
+
+    # This apperantly needs to be set after all other flags. Probably because of some ordering problem.
+    set(common_flags ${common_flags}
+        -Wno-gnu-zero-variadic-macro-arguments # Supress warning for " , ##__VA_ARGS__ " in variadic macros
     )
 
     if(${is_debug})

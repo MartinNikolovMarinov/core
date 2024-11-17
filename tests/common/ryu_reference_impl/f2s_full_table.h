@@ -1,5 +1,8 @@
 #pragma once
 
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_SUPPRESS_ALL
+
 namespace ryu {
 
 #define FLOAT_POW5_INV_BITCOUNT 59
@@ -38,3 +41,5 @@ static const uint64_t FLOAT_POW5_SPLIT[47] = {
 };
 
 } // namespace ryu
+
+PRAGMA_WARNING_POP

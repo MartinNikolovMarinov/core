@@ -1,5 +1,7 @@
 #pragma once
 
+#include <core_compiler.h>
+
 PRAGMA_WARNING_PUSH
 PRAGMA_WARNING_SUPPRESS_ALL
 

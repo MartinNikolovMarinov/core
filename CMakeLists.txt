@@ -223,6 +223,7 @@ if(CORE_BUILD_TESTS)
         tests/asm/t-asm.cpp
 
         tests/common/ryu_reference_impl/s2f.cpp
+        tests/common/ryu_reference_impl/s2d.cpp
     )
 
     # Link core

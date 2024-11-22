@@ -6,7 +6,6 @@ PRAGMA_WARNING_PUSH
 PRAGMA_WARNING_SUPPRESS_ALL
 
 #include "common.h"
-
 #include "f2s_full_table.h"
 
 namespace ryu {

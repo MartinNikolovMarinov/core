@@ -512,13 +512,13 @@ constexpr inline bool multipleOfPowerOf5_32(u32 value, u32 p) {
 }
 
 constexpr inline u32 pow5Factor_64(u64 value) {
-    u64 m_inv_5 = 14757395258967641293u; // 5 * m_inv_5 = 1 (mod 2^64)
-    u64 n_div_5 = 3689348814741910323u;  // #{ n | n = 0 (mod 2^64) } = 2^64 / 5
+    u64 mInv5 = 14757395258967641293u; // 5 * mInv5 = 1 (mod 2^64)
+    u64 mDiv5 = 3689348814741910323u;  // #{ n | n = 0 (mod 2^64) } = 2^64 / 5
     u32 count = 0;
     for (;;) {
         Assert(value != 0);
-        value *= m_inv_5;
-        if (value > n_div_5)
+        value *= mInv5;
+        if (value > mDiv5)
             break;
         ++count;
     }
@@ -641,19 +641,22 @@ constexpr core::expected<f32, ParseError> stof(const char* s, u32 slen) {
         isNegative = true;
         i++;
     }
+    else if (s[i] == '+') {
+        i++;
+    }
 
     // check for special strings
     {
         if (slen - i == 3) {
-            if ((s[0] == 'n' || s[0] == 'N') &&
-                (s[1] == 'a' || s[1] == 'A') &&
-                (s[2] == 'n' || s[2] == 'N')
+            if ((s[i + 0] == 'n' || s[i + 0] == 'N') &&
+                (s[i + 1] == 'a' || s[i + 1] == 'A') &&
+                (s[i + 2] == 'n' || s[i + 2] == 'N')
             ) {
                 return core::signalingNaN<f32>();
             }
-            if ((s[0] == 'i' || s[0] == 'i') &&
-                (s[1] == 'n' || s[1] == 'n') &&
-                (s[2] == 'f' || s[2] == 'f')
+            if ((s[i + 0] == 'i' || s[i + 0] == 'I') &&
+                (s[i + 1] == 'n' || s[i + 1] == 'N') &&
+                (s[i + 2] == 'f' || s[i + 2] == 'F')
             ) {
                 return isNegative ? -core::infinity<f32>() : core::infinity<f32>();
             }
@@ -766,19 +769,22 @@ constexpr core::expected<f64, ParseError> stod(const char* s, u32 slen) {
         isNegative = true;
         i++;
     }
+    else if (s[i] == '+') {
+        i++;
+    }
 
     // check for special strings
     {
         if (slen - i == 3) {
-            if ((s[0] == 'n' || s[0] == 'N') &&
-                (s[1] == 'a' || s[1] == 'A') &&
-                (s[2] == 'n' || s[2] == 'N')
+            if ((s[i + 0] == 'n' || s[i + 0] == 'N') &&
+                (s[i + 1] == 'a' || s[i + 1] == 'A') &&
+                (s[i + 2] == 'n' || s[i + 2] == 'N')
             ) {
                 return core::signalingNaN<f64>();
             }
-            if ((s[0] == 'i' || s[0] == 'i') &&
-                (s[1] == 'n' || s[1] == 'n') &&
-                (s[2] == 'f' || s[2] == 'f')
+            if ((s[i + 0] == 'i' || s[i + 0] == 'I') &&
+                (s[i + 1] == 'n' || s[i + 1] == 'N') &&
+                (s[i + 2] == 'f' || s[i + 2] == 'F')
             ) {
                 return isNegative ? -core::infinity<f64>() : core::infinity<f64>();
             }

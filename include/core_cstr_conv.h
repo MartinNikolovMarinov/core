@@ -46,12 +46,13 @@ constexpr void intToHex(i16 v, char* out, u64 hexLen = (sizeof(i16) << 1));
 constexpr void intToHex(i32 v, char* out, u64 hexLen = (sizeof(i32) << 1));
 constexpr void intToHex(i64 v, char* out, u64 hexLen = (sizeof(i64) << 1));
 
+template <typename TInt> constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen);
+
 // FIXME: Replace these when the ryu implementation is ready ---
-                           constexpr u32        floatToCstr(f32 n, char* out, addr_size outMax, u32 precision = 6);
-                           constexpr u32        floatToCstr(f64 n, char* out, addr_size outMax, u32 precision = 6);
+constexpr u32 floatToCstr(f32 n, char* out, addr_size outMax, u32 precision = 6);
+constexpr u32 floatToCstr(f64 n, char* out, addr_size outMax, u32 precision = 6);
 // FIXME: TO HERE ---
 
-template <typename TInt> constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen);
 template <typename TFloat> constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen);
 
 namespace detail {
@@ -471,7 +472,7 @@ constexpr inline i32 mulPow5InvDivPow2(u32 m, u32 i, u32 j) {
 }
 
 constexpr u32 floorLog2(u32 x) { return 31 - core::intrin_countLeadingZeros(x); }
-constexpr u64 floorLog2(u64 x) { return 63 - core::intrin_countLeadingZeros(x); }
+constexpr u32 floorLog2(u64 x) { return 63 - core::intrin_countLeadingZeros(x); }
 
 // Returns e == 0 ? 1 : [log_2(5^e)]; requires 0 <= e <= 3528.
 constexpr inline i32 log2pow5(i32 e) {
@@ -531,7 +532,7 @@ constexpr inline bool multipleOfPowerOf5_64(const u64 value, const u32 p) {
 
 // TODO2: [PERFORMANCE] explore intrinsics usage to speed up some of these conversion functions.
 
-constexpr inline u64 shiftright128(const u64 lo, const u64 hi, const u32 dist) {
+constexpr inline u64 shiftRight128(const u64 lo, const u64 hi, const u32 dist) {
     // We don't need to handle the case dist >= 64 here (see above).
     Assert(dist < 64);
     Assert(dist > 0);
@@ -540,29 +541,29 @@ constexpr inline u64 shiftright128(const u64 lo, const u64 hi, const u32 dist) {
 
 constexpr inline u64 umul128(const u64 a, const u64 b, u64* const productHi) {
     // The casts here help MSVC to avoid calls to the __allmul library function.
-    const u32 aLo = (u32)a;
-    const u32 aHi = (u32)(a >> 32);
-    const u32 bLo = (u32)b;
-    const u32 bHi = (u32)(b >> 32);
+    const u32 aLo = u32(a);
+    const u32 aHi = u32((a >> 32));
+    const u32 bLo = u32(b);
+    const u32 bHi = u32((b >> 32));
 
-    const u64 b00 = (u64)aLo * bLo;
-    const u64 b01 = (u64)aLo * bHi;
-    const u64 b10 = (u64)aHi * bLo;
-    const u64 b11 = (u64)aHi * bHi;
+    const u64 b00 = u64(aLo * bLo);
+    const u64 b01 = u64(aLo * bHi);
+    const u64 b10 = u64(aHi * bLo);
+    const u64 b11 = u64(aHi * bHi);
 
-    const u32 b00Lo = (u32)b00;
-    const u32 b00Hi = (u32)(b00 >> 32);
+    const u32 b00Lo = u32(b00);
+    const u32 b00Hi = u32((b00 >> 32));
 
     const u64 mid1 = b10 + b00Hi;
-    const u32 mid1Lo = (u32)(mid1);
-    const u32 mid1Hi = (u32)(mid1 >> 32);
+    const u32 mid1Lo = u32((mid1));
+    const u32 mid1Hi = u32((mid1 >> 32));
 
     const u64 mid2 = b01 + mid1Lo;
-    const u32 mid2Lo = (u32)(mid2);
-    const u32 mid2Hi = (u32)(mid2 >> 32);
+    const u32 mid2Lo = u32((mid2));
+    const u32 mid2Hi = u32((mid2 >> 32));
 
     const u64 pHi = b11 + mid1Hi + mid2Hi;
-    const u64 pLo = ((u64)mid2Lo << 32) | b00Lo;
+    const u64 pLo = (u64(mid2Lo) << 32) | b00Lo;
 
     *productHi = pHi;
     return pLo;
@@ -578,7 +579,7 @@ constexpr inline u64 mulShift64(const u64 m, const u64* const mul, const int32_t
     if (sum < high0) {
         ++high1; // overflow into high1
     }
-    return shiftright128(sum, high1, j - 64);
+    return shiftRight128(sum, high1, j - 64);
 }
 
 // This is faster if we don't have a 64x64->128-bit multiplication.
@@ -596,13 +597,13 @@ constexpr inline u64 mulShiftAll64(
     const u64 lo2 = lo + mul[0];
     const u64 mid2 = mid + mul[1] + (lo2 < lo);
     const u64 hi2 = hi + (mid2 < mid);
-    *vp = shiftright128(mid2, hi2, (u32) (j - 64 - 1));
+    *vp = shiftRight128(mid2, hi2, u32(j - 64 - 1));
 
     if (mmShift == 1) {
         const u64 lo3 = lo - mul[0];
         const u64 mid3 = mid - mul[1] - (lo3 > lo);
         const u64 hi3 = hi - (mid3 > mid);
-        *vm = shiftright128(mid3, hi3, (u32) (j - 64 - 1));
+        *vm = shiftRight128(mid3, hi3, u32(j - 64 - 1));
     } else {
         const u64 lo3 = lo + lo;
         const u64 mid3 = mid + mid + (lo3 < lo);
@@ -610,45 +611,31 @@ constexpr inline u64 mulShiftAll64(
         const u64 lo4 = lo3 - mul[0];
         const u64 mid4 = mid3 - mul[1] - (lo4 > lo3);
         const u64 hi4 = hi3 - (mid4 > mid3);
-        *vm = shiftright128(mid4, hi4, (u32) (j - 64));
+        *vm = shiftRight128(mid4, hi4, u32(j - 64));
     }
 
-    return shiftright128(mid, hi, (u32) (j - 64 - 1));
+    return shiftRight128(mid, hi, u32(j - 64 - 1));
 }
 
-} // detail
-
-// This function does not handle TFloat overflows!
-template <typename TFloat>
-constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen) {
-    static_assert(std::is_floating_point_v<TFloat>);
-
+constexpr core::expected<f32, ParseError> stof(const char* s, u32 slen) {
     if (s == nullptr || slen == 0) {
         return core::unexpected(ParseError::InputEmpty);
     }
 
-    using detail::floorLog2;
-    using detail::ceilLog2pow5;
-    using detail::mulPow5InvDivPow2;
-    using detail::multipleOfPowerOf2_32;
-    using detail::multipleOfPowerOf5_32;
-    using detail::multipleOfPowerOf5_64;
+    constexpr i32 MAX_MANTISA_DIGITS = i32(core::maxMantisaDigitsBase10<f32>());
+    constexpr i32 MANTISSA_BITS = i32(core::mantisaBits<f32>());
+    constexpr i32 EXPONENT_BITS = i32(core::exponentBits<f32>());
 
-    using MantissaType = std::conditional_t<sizeof(TFloat) == 4, u32, u64>;
-
-    constexpr i32 MAX_MANTISA_DIGITS = i32(core::maxMantisaDigitsBase10<TFloat>());
-    constexpr i32 MANTISSA_BITS = i32(core::mantisaBits<TFloat>());
-    constexpr i32 EXPONENT_BITS = i32(core::exponentBits<TFloat>());
-
-    constexpr u32 POW5_INV_BITCOUNT = sizeof(TFloat) == 4 ? 59 : 125;
-    constexpr u32 EXPONENT_BIAS = sizeof(TFloat) == 4 ? 127 : 1023;
+    constexpr u32 POW5_INV_BITCOUNT = 59;
+    constexpr u32 EXPONENT_BIAS = 127;
 
     i32 mantissaDigits = 0;
-    MantissaType mantissa = 0;
+    u32 mantissa = 0;
     i32 exponent = 0;
     u32 dotIndex = slen;
     bool isNegative = false;
 
+    // check if negative
     u32 i = 0;
     if (s[i] == '-') {
         isNegative = true;
@@ -662,30 +649,33 @@ constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen
                 (s[1] == 'a' || s[1] == 'A') &&
                 (s[2] == 'n' || s[2] == 'N')
             ) {
-                return core::signalingNaN<TFloat>();
+                return core::signalingNaN<f32>();
             }
             if ((s[0] == 'i' || s[0] == 'i') &&
                 (s[1] == 'n' || s[1] == 'n') &&
                 (s[2] == 'f' || s[2] == 'f')
             ) {
-                return isNegative ? -core::infinity<TFloat>() : core::infinity<TFloat>();
+                return isNegative ? -core::infinity<f32>() : core::infinity<f32>();
             }
         }
     }
 
-    for (; i < slen; i++) {
-        char c = s[i];
-        if (c == '.') {
-            if (dotIndex != slen) {
-                return core::unexpected(ParseError::InputHasMultipleDots);
+    // parse the mantissa
+    {
+        for (; i < slen; i++) {
+            char c = s[i];
+            if (c == '.') {
+                if (dotIndex != slen) {
+                    return core::unexpected(ParseError::InputHasMultipleDots);
+                }
+                dotIndex = i;
             }
-            dotIndex = i;
-        }
-        else {
-            if (!core::isDigit(c)) return core::unexpected(ParseError::InputHasInvalidSymbol);
-            if (mantissaDigits >= MAX_MANTISA_DIGITS) return core::unexpected(ParseError::InputNumberTooLarge);
-            mantissa = 10 * mantissa + core::toDigit<decltype(mantissa)>(c);
-            if (mantissa != 0) mantissaDigits++;
+            else {
+                if (!core::isDigit(c)) return core::unexpected(ParseError::InputHasInvalidSymbol);
+                if (mantissaDigits >= MAX_MANTISA_DIGITS) return core::unexpected(ParseError::InputNumberTooLarge);
+                mantissa = 10 * mantissa + core::toDigit<decltype(mantissa)>(c);
+                if (mantissa != 0) mantissaDigits++;
+            }
         }
     }
 
@@ -696,34 +686,26 @@ constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen
     exponent -= slen != dotIndex ? slen - i32(dotIndex) - 1 : 0;
 
     // Convert to binary float m2 * 2^e2, while retaining information about whether the conversion was exact.
-    i32 e2;
-    MantissaType m2;
+    i32 e2; u32 m2;
     bool trailingZeros;
     {
         e2 = floorLog2(mantissa) + exponent - ceilLog2pow5(-exponent) - (MANTISSA_BITS + 1);
 
         // We now compute [m * 10^e / 2^e2] = [m / (5^(-e) 2^(e2-e))].
         i32 j = e2 - exponent + ceilLog2pow5(-exponent) - 1 + POW5_INV_BITCOUNT;
+        m2 = mulPow5InvDivPow2(mantissa, -exponent, j);
 
-        if constexpr (sizeof(TFloat) == 4) {
-            m2 = mulPow5InvDivPow2(mantissa, -exponent, j);
-
-            // We also compute if the result is exact, i.e.,
-            //   [m / (5^(-e) 2^(e2-e))] == m / (5^(-e) 2^(e2-e))
-            //
-            // If e2-e >= 0, we need to check whether (5^(-e) 2^(e2-e)) divides m, which is the
-            // case iff pow5(m) >= -e AND pow2(m) >= e2-e.
-            //
-            // If e2-e < 0, we have actually computed [m * 2^(e e2) / 5^(-e)] above,
-            // and we need to check whether 5^(-e) divides (m * 2^(e-e2)), which is the case iff
-            // pow5(m * 2^(e-e2)) = pow5(m) >= -e.
-            trailingZeros = (e2 < exponent || (e2 - exponent < 32 && multipleOfPowerOf2_32(mantissa, e2 - exponent)))
-                            && multipleOfPowerOf5_32(mantissa, -exponent);
-        }
-        else {
-            m2 = mulShift64(mantissa, detail::DOUBLE_POW5_INV_SPLIT[-exponent], j);
-            trailingZeros = multipleOfPowerOf5_64(mantissa, -exponent);
-        }
+        // We also compute if the result is exact, i.e.,
+        //   [m / (5^(-e) 2^(e2-e))] == m / (5^(-e) 2^(e2-e))
+        //
+        // If e2-e >= 0, we need to check whether (5^(-e) 2^(e2-e)) divides m, which is the
+        // case if pow5(m) >= -e AND pow2(m) >= e2-e.
+        //
+        // If e2-e < 0, we have actually computed [m * 2^(e e2) / 5^(-e)] above,
+        // and we need to check whether 5^(-e) divides (m * 2^(e-e2)), which is the case if
+        // pow5(m * 2^(e-e2)) = pow5(m) >= -e.
+        trailingZeros = (e2 < exponent || (e2 - exponent < 32 && multipleOfPowerOf2_32(mantissa, e2 - exponent)))
+                        && multipleOfPowerOf5_32(mantissa, -exponent);
     }
 
     // Compute the final IEEE exponent.
@@ -731,7 +713,7 @@ constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen
     if (ieee_e2 > 0xfe) {
         // Final IEEE exponent is larger than the maximum representable; return +/-Infinity.
         u32 ieee = ((u32(isNegative)) << u32(EXPONENT_BITS + MANTISSA_BITS)) | (0xffu << MANTISSA_BITS);
-        TFloat ret = core::bitCast<TFloat>(ieee);
+        f32 ret = core::bitCast<f32>(ieee);
         return ret;
     }
 
@@ -760,8 +742,136 @@ constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen
     }
 
     u32 ieee = (((u32(isNegative) << EXPONENT_BITS) | u32(ieee_e2)) << MANTISSA_BITS) | ieee_m2;
-    TFloat ret = core::bitCast<TFloat>(ieee);
+    f32 ret = core::bitCast<f32>(ieee);
     return ret;
+}
+
+constexpr core::expected<f64, ParseError> stod(const char* s, u32 slen) {
+    constexpr i32 MAX_MANTISA_DIGITS = i32(core::maxMantisaDigitsBase10<f64>());
+    constexpr i32 MANTISSA_BITS = i32(core::mantisaBits<f64>());
+    constexpr i32 EXPONENT_BITS = i32(core::exponentBits<f64>());
+
+    constexpr u32 POW5_INV_BITCOUNT = 125;
+    constexpr u32 EXPONENT_BIAS = 1023;
+
+    i32 mantissaDigits = 0;
+    u64 mantissa = 0;
+    i32 exponent = 0;
+    u32 dotIndex = slen;
+    bool isNegative = false;
+
+    // check if negative
+    u32 i = 0;
+    if (s[i] == '-') {
+        isNegative = true;
+        i++;
+    }
+
+    // check for special strings
+    {
+        if (slen - i == 3) {
+            if ((s[0] == 'n' || s[0] == 'N') &&
+                (s[1] == 'a' || s[1] == 'A') &&
+                (s[2] == 'n' || s[2] == 'N')
+            ) {
+                return core::signalingNaN<f64>();
+            }
+            if ((s[0] == 'i' || s[0] == 'i') &&
+                (s[1] == 'n' || s[1] == 'n') &&
+                (s[2] == 'f' || s[2] == 'f')
+            ) {
+                return isNegative ? -core::infinity<f64>() : core::infinity<f64>();
+            }
+        }
+    }
+
+    // parse the mantissa
+    for (; i < slen; i++) {
+        char c = s[i];
+        if (c == '.') {
+            if (dotIndex != slen) {
+                return core::unexpected(ParseError::InputHasMultipleDots);
+            }
+            dotIndex = i;
+        }
+        else {
+            if (!core::isDigit(c)) return core::unexpected(ParseError::InputHasInvalidSymbol);
+            if (mantissaDigits >= MAX_MANTISA_DIGITS) return core::unexpected(ParseError::InputNumberTooLarge);
+            mantissa = 10 * mantissa + core::toDigit<decltype(mantissa)>(c);
+            if (mantissa != 0) mantissaDigits++;
+        }
+    }
+
+    if (mantissa == 0) {
+        return isNegative ? -0.0f : 0.0f;
+    }
+
+    exponent -= slen != dotIndex ? slen - i32(dotIndex) - 1 : 0;
+
+    // Convert to binary float m2 * 2^e2, while retaining information about whether the conversion was exact.
+    i32 e2;
+    u64 m2;
+    bool trailingZeros;
+    {
+        e2 = floorLog2(mantissa) + exponent - ceilLog2pow5(-exponent) - (MANTISSA_BITS + 1);
+
+        // We now compute [m * 10^e / 2^e2] = [m / (5^(-e) 2^(e2-e))].
+        i32 j = e2 - exponent + ceilLog2pow5(-exponent) - 1 + POW5_INV_BITCOUNT;
+        m2 = mulShift64(mantissa, detail::DOUBLE_POW5_INV_SPLIT[-exponent], j);
+        trailingZeros = multipleOfPowerOf5_64(mantissa, -exponent);
+    }
+
+    // Compute the final IEEE exponent.
+    u32 ieee_e2 = core::core_max(0u, u32(e2) + EXPONENT_BIAS + u32(floorLog2(m2)));
+    if (ieee_e2 > 0x7fe) {
+        // Final IEEE exponent is larger than the maximum representable; return +/-Infinity.
+        u64 ieee = ((u64(isNegative)) << u64(EXPONENT_BITS + MANTISSA_BITS)) | (0x7ffull << MANTISSA_BITS);
+        f64 ret = core::bitCast<f64>(ieee);
+        return ret;
+    }
+
+    // We need to figure out how much we need to shift m2. The tricky part is that we need to take the final IEEE
+    // exponent into account, so we need to reverse the bias and also special-case the value 0.
+    i32 shift = (ieee_e2 == 0 ? 1 : ieee_e2) - e2 - EXPONENT_BIAS - MANTISSA_BITS;
+    Assert(shift >= 0);
+
+    // We need to round up if the exact value is more than 0.5 above the value we computed. That's equivalent to
+    // checking if the last removed bit was 1 and either the value was not just trailing zeros or the result would
+    // otherwise be odd.
+    //
+    // We need to update trailingZeros given that we have the exact output exponent ieee_e2 now.
+    trailingZeros &= (m2 & ((1ull << (shift - 1)) - 1)) == 0;
+    u64 lastRemovedBit = (m2 >> (shift - 1)) & 1;
+    bool roundUp = (lastRemovedBit != 0) && (!trailingZeros || (((m2 >> shift) & 1) != 0));
+
+    u64 ieee_m2 = (m2 >> u64(shift)) + roundUp;
+    Assert(ieee_m2 <= (1ull << (MANTISSA_BITS + 1)));
+    ieee_m2 &= (1ull << MANTISSA_BITS) - 1;
+    if (ieee_m2 == 0 && roundUp) {
+        // Rounding up may overflow the mantissa.
+        // In this case we move a trailing zero of the mantissa into the exponent.
+        // Due to how the IEEE represents +/-Infinity, we don't need to check for overflow here.
+        ieee_e2++;
+    }
+
+    u64 ieee = (((u64(isNegative) << EXPONENT_BITS) | u64(ieee_e2)) << u64(MANTISSA_BITS)) | ieee_m2;
+    f64 res = core::bitCast<f64>(ieee);
+    return res;
+}
+
+} // detail
+
+template <typename TFloat>
+constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen) {
+    if constexpr (std::is_same_v<TFloat, f32>) {
+        return detail::stof(s, slen);
+    }
+    else if constexpr (std::is_same_v<TFloat, f64>) {
+        return detail::stod(s, slen);
+    }
+    else {
+        static_assert(core::always_false<TFloat>, "cstrToFloat was called with an invalid type");
+    }
 }
 
 #pragma endregion

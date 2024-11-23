@@ -20,6 +20,7 @@ using namespace coretypes;
 struct radians;
 
 template <typename TFloat>          constexpr u32         exponentBits();
+template <typename TFloat>          constexpr u32         maxExponentBias();
 template <typename TFloat>          constexpr u32         mantisaBits();
 template <typename TFloat>          constexpr u32         maxMantisaDigitsBase10();
                                     constexpr f32         createFloat32(u32 mantissa, u32 exponent, bool sign);
@@ -163,6 +164,12 @@ template <typename T, typename T2>  constexpr T           lerpFast(T a, T b, T2 
 template <typename TFloat> constexpr u32 exponentBits() {
     if constexpr (std::is_same_v<TFloat, f32>) return 8;
     else if constexpr (std::is_same_v<TFloat, f64>) return 11;
+    else static_assert(core::always_false<TFloat>, "Unsupported type");
+}
+
+template <typename TFloat> constexpr u32 maxExponentBias() {
+    if constexpr (std::is_same_v<TFloat, f32>) return 127;
+    else if constexpr (std::is_same_v<TFloat, f64>) return 1023;
     else static_assert(core::always_false<TFloat>, "Unsupported type");
 }
 

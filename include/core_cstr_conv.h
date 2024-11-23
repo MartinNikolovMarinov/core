@@ -25,7 +25,7 @@ enum struct ParseError : u8 {
 constexpr const char* parseErrorToCstr(ParseError err) {
     switch (err) {
         case ParseError::InputEmpty:             return "Input is empty";
-        case ParseError::InputHasMultipleDots:   return "Input more than one dot";
+        case ParseError::InputHasMultipleDots:   return "Input has more than one dot";
         case ParseError::InputHasInvalidSymbol:  return "Input contains an invalid symbol";
         case ParseError::InputNumberTooLarge:    return "Input number is too large to fit in return type";
         case ParseError::None: break;
@@ -546,24 +546,24 @@ constexpr inline u64 umul128(const u64 a, const u64 b, u64* const productHi) {
     const u32 bLo = u32(b);
     const u32 bHi = u32((b >> 32));
 
-    const u64 b00 = u64(aLo * bLo);
-    const u64 b01 = u64(aLo * bHi);
-    const u64 b10 = u64(aHi * bLo);
-    const u64 b11 = u64(aHi * bHi);
+    const u64 b00 = u64(aLo) * u64(bLo);
+    const u64 b01 = u64(aLo) * u64(bHi);
+    const u64 b10 = u64(aHi) * u64(bLo);
+    const u64 b11 = u64(aHi) * u64(bHi);
 
     const u32 b00Lo = u32(b00);
-    const u32 b00Hi = u32((b00 >> 32));
+    const u32 b00Hi = u32(b00 >> 32);
 
     const u64 mid1 = b10 + b00Hi;
-    const u32 mid1Lo = u32((mid1));
-    const u32 mid1Hi = u32((mid1 >> 32));
+    const u32 mid1Lo = u32(mid1);
+    const u32 mid1Hi = u32(mid1 >> 32);
 
     const u64 mid2 = b01 + mid1Lo;
-    const u32 mid2Lo = u32((mid2));
-    const u32 mid2Hi = u32((mid2 >> 32));
+    const u32 mid2Lo = u32(mid2);
+    const u32 mid2Hi = u32(mid2 >> 32);
 
     const u64 pHi = b11 + mid1Hi + mid2Hi;
-    const u64 pLo = (u64(mid2Lo) << 32) | b00Lo;
+    const u64 pLo = (u64(mid2Lo) << 32) | u64(b00Lo);
 
     *productHi = pHi;
     return pLo;
@@ -582,41 +582,6 @@ constexpr inline u64 mulShift64(const u64 m, const u64* const mul, const int32_t
     return shiftRight128(sum, high1, j - 64);
 }
 
-// This is faster if we don't have a 64x64->128-bit multiplication.
-constexpr inline u64 mulShiftAll64(
-    u64 m, const u64* const mul, const int32_t j,
-    u64* const vp, u64* const vm, const u32 mmShift) {
-    m <<= 1;
-    // m is maximum 55 bits
-    u64 tmp;
-    const u64 lo = umul128(m, mul[0], &tmp);
-    u64 hi;
-    const u64 mid = tmp + umul128(m, mul[1], &hi);
-    hi += mid < tmp; // overflow into hi
-
-    const u64 lo2 = lo + mul[0];
-    const u64 mid2 = mid + mul[1] + (lo2 < lo);
-    const u64 hi2 = hi + (mid2 < mid);
-    *vp = shiftRight128(mid2, hi2, u32(j - 64 - 1));
-
-    if (mmShift == 1) {
-        const u64 lo3 = lo - mul[0];
-        const u64 mid3 = mid - mul[1] - (lo3 > lo);
-        const u64 hi3 = hi - (mid3 > mid);
-        *vm = shiftRight128(mid3, hi3, u32(j - 64 - 1));
-    } else {
-        const u64 lo3 = lo + lo;
-        const u64 mid3 = mid + mid + (lo3 < lo);
-        const u64 hi3 = hi + hi + (mid3 < mid);
-        const u64 lo4 = lo3 - mul[0];
-        const u64 mid4 = mid3 - mul[1] - (lo4 > lo3);
-        const u64 hi4 = hi3 - (mid4 > mid3);
-        *vm = shiftRight128(mid4, hi4, u32(j - 64));
-    }
-
-    return shiftRight128(mid, hi, u32(j - 64 - 1));
-}
-
 constexpr core::expected<f32, ParseError> stof(const char* s, u32 slen) {
     if (s == nullptr || slen == 0) {
         return core::unexpected(ParseError::InputEmpty);
@@ -627,7 +592,7 @@ constexpr core::expected<f32, ParseError> stof(const char* s, u32 slen) {
     constexpr i32 EXPONENT_BITS = i32(core::exponentBits<f32>());
 
     constexpr u32 POW5_INV_BITCOUNT = 59;
-    constexpr u32 EXPONENT_BIAS = 127;
+    constexpr u32 EXPONENT_BIAS = core::maxExponentBias<f32>();
 
     i32 mantissaDigits = 0;
     u32 mantissa = 0;
@@ -750,12 +715,16 @@ constexpr core::expected<f32, ParseError> stof(const char* s, u32 slen) {
 }
 
 constexpr core::expected<f64, ParseError> stod(const char* s, u32 slen) {
+    if (s == nullptr || slen == 0) {
+        return core::unexpected(ParseError::InputEmpty);
+    }
+
     constexpr i32 MAX_MANTISA_DIGITS = i32(core::maxMantisaDigitsBase10<f64>());
     constexpr i32 MANTISSA_BITS = i32(core::mantisaBits<f64>());
     constexpr i32 EXPONENT_BITS = i32(core::exponentBits<f64>());
 
     constexpr u32 POW5_INV_BITCOUNT = 125;
-    constexpr u32 EXPONENT_BIAS = 1023;
+    constexpr u32 EXPONENT_BIAS = core::maxExponentBias<f64>();
 
     i32 mantissaDigits = 0;
     u64 mantissa = 0;

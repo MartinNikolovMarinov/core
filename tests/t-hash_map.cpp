@@ -342,6 +342,19 @@ i32 removeFromHashMapTest() {
     return 0;
 }
 
+i32 brokenRemovingFromABrokenChainTest() {
+    {
+        core::HashMap<i32, i32> m(2);
+        m.put(1, 1);
+        m.put(5, 5);
+        m.remove(5);
+        i32* v = m.get(1);
+        CT_CHECK(v != nullptr);
+    }
+
+    return 0;
+}
+
 i32 moveAndCopyHashMapTest() {
     using namespace core::testing;
 
@@ -543,6 +556,8 @@ i32 runHashMapTestsSuite() {
         if (runTest(tInfo, getWhenHashMapIsFilledToCapacityTest) != 0) { retCode = -1; }
         tInfo.name = FN_NAME_TO_CPTR(removeFromHashMapTest);
         if (runTest(tInfo, removeFromHashMapTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(brokenRemovingFromABrokenChainTest);
+        if (runTest(tInfo, brokenRemovingFromABrokenChainTest) != 0) { retCode = -1; }
         tInfo.name = FN_NAME_TO_CPTR(moveAndCopyHashMapTest);
         if (runTest(tInfo, moveAndCopyHashMapTest) != 0) { retCode = -1; }
         tInfo.name = FN_NAME_TO_CPTR(veryPoorlyHashedKeyInMapTest);
@@ -581,3 +596,4 @@ constexpr i32 runCompiletimeHashMapTestsSuite() {
 
     return 0;
 }
+

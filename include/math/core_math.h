@@ -20,11 +20,13 @@ using namespace coretypes;
 struct radians;
 
 template <typename TFloat>          constexpr u32         exponentBits();
-template <typename TFloat>          constexpr u32         maxExponentBias();
+template <typename TFloat>          constexpr u32         exponentBias();
 template <typename TFloat>          constexpr u32         mantisaBits();
 template <typename TFloat>          constexpr u32         maxMantisaDigitsBase10();
                                     constexpr f32         createFloat32(u32 mantissa, u32 exponent, bool sign);
                                     constexpr f64         createFloat64(u64 mantissa, u64 exponent, bool sign);
+                                    constexpr void        decomposeFloat32(f32 n, u32& mantissa, u32& exponent, bool& sign);
+                                    constexpr void        decomposeFloat64(f64 n, u64& mantissa, u64& exponent, bool& sign);
 
 template <typename TInt>            constexpr i32         maxDigitsBase2();
 template <typename TInt>            constexpr i32         maxDigitsBase10();
@@ -167,7 +169,7 @@ template <typename TFloat> constexpr u32 exponentBits() {
     else static_assert(core::always_false<TFloat>, "Unsupported type");
 }
 
-template <typename TFloat> constexpr u32 maxExponentBias() {
+template <typename TFloat> constexpr u32 exponentBias() {
     if constexpr (std::is_same_v<TFloat, f32>) return 127;
     else if constexpr (std::is_same_v<TFloat, f64>) return 1023;
     else static_assert(core::always_false<TFloat>, "Unsupported type");
@@ -186,19 +188,33 @@ template <typename TFloat> constexpr u32 maxMantisaDigitsBase10() {
 }
 
 constexpr f32 createFloat32(u32 mantissa, u32 exponent, bool sign) {
-    u32 sign_bit = sign ? 1u : 0u;
-    u32 ieee754 = (sign_bit << 31)            // Sign bit (1 bit)
+    u32 signBit = sign ? 0u : 1u;
+    u32 ieee754 = (signBit << 31)            // Sign bit (1 bit)
                 | ((exponent & 0xFF) << 23)   // Exponent (8 bits)
                 | (mantissa & 0x7FFFFF);      // Mantissa (23 bits)
     return core::bitCast<f32>(ieee754);
 }
 
 constexpr f64 createFloat64(u64 mantissa, u64 exponent, bool sign) {
-    u64 sign_bit = sign ? 1u : 0u;
-    u64 ieee754 = (sign_bit << 63)              // Sign bit (1 bit)
+    u64 signBit = sign ? 0u : 1u;
+    u64 ieee754 = (signBit << 63)              // Sign bit (1 bit)
                 | ((exponent & 0x7FF) << 52)    // Exponent (11 bits)
                 | (mantissa & 0xFFFFFFFFFFFFF); // Mantissa (52 bits)
     return core::bitCast<f64>(ieee754);
+}
+
+constexpr void decomposeFloat32(f32 n, u32& mantissa, u32& exponent, bool& sign) {
+    u32 bits = core::bitCast<u32>(n);
+    sign = ((bits >> 31) & 1u) == 0u;
+    exponent = (bits >> 23) & 0xFFu;
+    mantissa = bits & 0x7FFFFFu;
+}
+
+constexpr void decomposeFloat64(f64 n, u64& mantissa, u64& exponent, bool& sign) {
+    u64 bits = core::bitCast<u64>(n);
+    sign = ((bits >> 63) & 1u) == 0u;
+    exponent = (bits >> 52) & 0x7FFu;
+    mantissa = bits & 0xFFFFFFFFFFFFFu;
 }
 
 #pragma endregion

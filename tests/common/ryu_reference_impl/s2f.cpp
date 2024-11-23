@@ -122,10 +122,10 @@ enum Status s2f_n(const char * buffer, const int len, float * result) {
     return SUCCESS;
   }
 
-  printf("Input=%s\n", buffer);
-  printf("m10digits = %d\n", m10digits);
-  printf("e10digits = %d\n", e10digits);
-  printf("m10 * 10^e10 = %u * 10^%d\n", m10, e10);
+  // printf("Input=%s\n", buffer);
+  // printf("m10digits = %d\n", m10digits);
+  // printf("e10digits = %d\n", e10digits);
+  // printf("m10 * 10^e10 = %u * 10^%d\n", m10, e10);
 
   if ((m10digits + e10 <= -46) || (m10 == 0)) {
     // Number is less than 1e-46, which should be rounded down to 0; return +/-0.0.
@@ -177,9 +177,9 @@ enum Status s2f_n(const char * buffer, const int len, float * result) {
     int j = e2 - e10 + ceil_log2pow5(-e10) - 1 + FLOAT_POW5_INV_BITCOUNT;
     m2 = mulPow5InvDivPow2(m10, -e10, j);
 
-    std::cout << "" << std::endl;
-    std::cout << "m2 = " << m2 << std::endl;
-    std::cout << "" << std::endl;
+    // std::cout << "" << std::endl;
+    // std::cout << "m2 = " << m2 << std::endl;
+    // std::cout << "" << std::endl;
 
     // We also compute if the result is exact, i.e.,
     //   [m10 / (5^(-e10) 2^(e2-e10))] == m10 / (5^(-e10) 2^(e2-e10))
@@ -194,7 +194,7 @@ enum Status s2f_n(const char * buffer, const int len, float * result) {
         && multipleOfPowerOf5_32(m10, -e10);
   }
 
-  printf("m2 * 2^e2 = %u * 2^%d\n", m2, e2);
+  // printf("m2 * 2^e2 = %u * 2^%d\n", m2, e2);
 
   // Compute the final IEEE exponent.
   uint32_t ieee_e2 = (uint32_t) max32(0, e2 + FLOAT_EXPONENT_BIAS + floor_log2(m2));
@@ -212,8 +212,8 @@ enum Status s2f_n(const char * buffer, const int len, float * result) {
   int32_t shift = (ieee_e2 == 0 ? 1 : ieee_e2) - e2 - FLOAT_EXPONENT_BIAS - FLOAT_MANTISSA_BITS;
   assert(shift >= 0);
 
-  printf("ieee_e2 = %d\n", ieee_e2);
-  printf("shift = %d\n", shift);
+  // printf("ieee_e2 = %d\n", ieee_e2);
+  // printf("shift = %d\n", shift);
 
   // We need to round up if the exact value is more than 0.5 above the value we computed. That's
   // equivalent to checking if the last removed bit was 1 and either the value was not just
@@ -224,8 +224,8 @@ enum Status s2f_n(const char * buffer, const int len, float * result) {
   uint32_t lastRemovedBit = (m2 >> (shift - 1)) & 1;
   bool roundUp = (lastRemovedBit != 0) && (!trailingZeros || (((m2 >> shift) & 1) != 0));
 
-  printf("roundUp = %d\n", roundUp);
-  printf("ieee_m2 = %u\n", (m2 >> shift) + roundUp);
+  // printf("roundUp = %d\n", roundUp);
+  // printf("ieee_m2 = %u\n", (m2 >> shift) + roundUp);
 
   uint32_t ieee_m2 = (m2 >> shift) + roundUp;
   assert(ieee_m2 <= (1u << (FLOAT_MANTISSA_BITS + 1)));

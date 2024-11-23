@@ -592,7 +592,7 @@ constexpr core::expected<f32, ParseError> stof(const char* s, u32 slen) {
     constexpr i32 EXPONENT_BITS = i32(core::exponentBits<f32>());
 
     constexpr u32 POW5_INV_BITCOUNT = 59;
-    constexpr u32 EXPONENT_BIAS = core::maxExponentBias<f32>();
+    constexpr u32 EXPONENT_BIAS = core::exponentBias<f32>();
 
     i32 mantissaDigits = 0;
     u32 mantissa = 0;
@@ -724,7 +724,7 @@ constexpr core::expected<f64, ParseError> stod(const char* s, u32 slen) {
     constexpr i32 EXPONENT_BITS = i32(core::exponentBits<f64>());
 
     constexpr u32 POW5_INV_BITCOUNT = 125;
-    constexpr u32 EXPONENT_BIAS = core::maxExponentBias<f64>();
+    constexpr u32 EXPONENT_BIAS = core::exponentBias<f64>();
 
     i32 mantissaDigits = 0;
     u64 mantissa = 0;

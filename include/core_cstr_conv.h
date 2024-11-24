@@ -21,6 +21,7 @@ enum struct ParseError : u8 {
     InputHasMultipleDots,
     InputHasInvalidSymbol,
     InputNumberTooLarge, // will overflow return type
+    OutputBufferTooSmall, // will overflow provided buffer
 };
 constexpr const char* parseErrorToCstr(ParseError err) {
     switch (err) {
@@ -28,6 +29,7 @@ constexpr const char* parseErrorToCstr(ParseError err) {
         case ParseError::InputHasMultipleDots:   return "Input has more than one dot";
         case ParseError::InputHasInvalidSymbol:  return "Input contains an invalid symbol";
         case ParseError::InputNumberTooLarge:    return "Input number is too large to fit in return type";
+        case ParseError::OutputBufferTooSmall:   return "Output buffer is too small to fit the parsed number";
         case ParseError::None: break;
     }
     return "Unknown";
@@ -48,12 +50,10 @@ constexpr void intToHex(i64 v, char* out, u64 hexLen = (sizeof(i64) << 1));
 
 template <typename TInt> constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen);
 
-// FIXME: Replace these when the ryu implementation is ready ---
-constexpr u32 floatToCstr(f32 n, char* out, addr_size outMax, u32 precision = 6);
-constexpr u32 floatToCstr(f64 n, char* out, addr_size outMax, u32 precision = 6);
-// FIXME: TO HERE ---
-
+                           constexpr core::expected<u32, ParseError>    floatToCstr(f32 n, char* out, u32 olen);
+                           constexpr core::expected<u32, ParseError>    floatToCstr(f64 n, char* out, u32 olen);
 template <typename TFloat> constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen);
+
 
 namespace detail {
 
@@ -93,103 +93,6 @@ constexpr u32 intToCstr(u32 n, char* out, addr_size outMax, u32 digits) { return
 constexpr u32 intToCstr(u64 n, char* out, addr_size outMax, u32 digits) { return detail::intToCstr(n, out, outMax, digits); }
 constexpr u32 intToCstr(i32 n, char* out, addr_size outMax, u32 digits) { return detail::intToCstr(n, out, outMax, digits); }
 constexpr u32 intToCstr(i64 n, char* out, addr_size outMax, u32 digits) { return detail::intToCstr(n, out, outMax, digits); }
-
-namespace detail {
-
-template <typename TFloat>
-constexpr u32 floatToCstr(TFloat n, char* out, addr_size outMax, u32 precision) {
-    static_assert(core::is_float_v<TFloat>, "TFloat must be a floating point type.");
-    Assert(out);
-
-    if constexpr (sizeof(TFloat) == 4) {
-        Assert(precision < 8, "Precision must be less than 8 for float.");
-    }
-    else {
-        Assert(precision < 16, "Precision must be less than 16 for double.");
-    }
-
-    u32 idx = 0;
-
-    const auto safeAppend = [&idx, out, outMax](char c) {
-        Assert(addr_size(idx) < outMax);
-        out[idx++] = c;
-    };
-
-    if (core::isnan(n)) {
-        safeAppend('n');
-        safeAppend('a');
-        safeAppend('n');
-        return idx;
-    }
-
-    if (core::isinf(n)) {
-        if (n < 0) safeAppend('-');
-        safeAppend('i');
-        safeAppend('n');
-        safeAppend('f');
-        return idx;
-    }
-
-    if (n < 0) {
-        safeAppend('-');
-        n = -n;
-    }
-
-    i64 intPart = i64(n);
-    u64 fracMultiplier =  core::pow10(precision);
-    TFloat fracPartFloat = (n - TFloat(intPart)) * TFloat(fracMultiplier);
-
-    // Banker's rounding:
-    i64 fracPart;
-    TFloat roundPart = fracPartFloat - TFloat(i64(fracPartFloat));
-    if (roundPart > TFloat(0.5)) {
-        fracPart = i64(fracPartFloat) + 1;
-    }
-    else if (roundPart < TFloat(0.5)) {
-        fracPart = i64(fracPartFloat);
-    }
-    else { // roundPart == 0.5, tie breaker.
-        fracPart = i64(fracPartFloat);
-        if (fracPart & 1) {
-            fracPart++;
-        }
-    }
-
-    // Handle overflow from rounding.
-    if (fracPart >= i64(fracMultiplier)) {
-        intPart++;
-        fracPart = 0;
-    }
-
-    // Convert the integer part.
-    idx += detail::intToCstr(intPart, out + idx, outMax, 0);
-    if (precision > 0) {
-        safeAppend('.');
-
-        // Prepend zeroes if the fractional part is less than the precision.
-        u32 zeroesToPrepend = precision - core::digitCount(fracPart);
-        for (u32 i = 0; i < zeroesToPrepend; i++) {
-            safeAppend('0');
-        }
-
-        // Convert the fractional part.
-        u32 prev = idx;
-        idx += detail::intToCstr(fracPart, out + idx, outMax, 0);
-        u32 currentPrecision = (idx - prev) + zeroesToPrepend;
-
-        // Add trailing zeroes if the precision is not reached.
-        for (u32 i = currentPrecision; i < precision; i++) {
-            safeAppend('0');
-        }
-    }
-
-    return idx;
-}
-
-} // detail
-
-constexpr u32 floatToCstr(f32 n, char* out, addr_size outMax, u32 precision) { return detail::floatToCstr(n, out, outMax, precision); }
-constexpr u32 floatToCstr(f64 n, char* out, addr_size outMax, u32 precision) { return detail::floatToCstr(n, out, outMax, precision); }
 
 // This function does not handle TInt overflows!
 template <typename TInt>
@@ -569,7 +472,7 @@ constexpr inline u64 umul128(const u64 a, const u64 b, u64* const productHi) {
     return pLo;
 }
 
-constexpr inline u64 mulShift64(const u64 m, const u64* const mul, const int32_t j) {
+constexpr inline u64 mulShift64(const u64 m, const u64* const mul, const u32 j) {
     // m is maximum 55 bits
     u64 high1;                                   // 128
     const u64 low1 = umul128(m, mul[1], &high1); // 64
@@ -848,6 +751,292 @@ constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen
         static_assert(core::always_false<TFloat>, "cstrToFloat was called with an invalid type");
     }
 }
+
+#pragma endregion
+
+#pragma region float to Cptr
+
+namespace detail {
+
+constexpr u64 FLOAT_POW5_SPLIT[47] = {
+    1152921504606846976u, 1441151880758558720u, 1801439850948198400u, 2251799813685248000u,
+    1407374883553280000u, 1759218604441600000u, 2199023255552000000u, 1374389534720000000u,
+    1717986918400000000u, 2147483648000000000u, 1342177280000000000u, 1677721600000000000u,
+    2097152000000000000u, 1310720000000000000u, 1638400000000000000u, 2048000000000000000u,
+    1280000000000000000u, 1600000000000000000u, 2000000000000000000u, 1250000000000000000u,
+    1562500000000000000u, 1953125000000000000u, 1220703125000000000u, 1525878906250000000u,
+    1907348632812500000u, 1192092895507812500u, 1490116119384765625u, 1862645149230957031u,
+    1164153218269348144u, 1455191522836685180u, 1818989403545856475u, 2273736754432320594u,
+    1421085471520200371u, 1776356839400250464u, 2220446049250313080u, 1387778780781445675u,
+    1734723475976807094u, 2168404344971008868u, 1355252715606880542u, 1694065894508600678u,
+    2117582368135750847u, 1323488980084844279u, 1654361225106055349u, 2067951531382569187u,
+    1292469707114105741u, 1615587133892632177u, 2019483917365790221u
+};
+
+// Returns floor(log_10(2^e)); requires 0 <= e <= 1650.
+constexpr inline u32 log10Pow2(const i32 e) {
+    // The first value this approximation fails for is 2^1651 which is just greater than 10^297.
+    Assert(e >= 0);
+    Assert(e <= 1650);
+    return (u32(e) * 78913) >> 18;
+}
+
+// Returns e == 0 ? 1 : ceil(log_2(5^e)); requires 0 <= e <= 3528.
+constexpr inline i32 pow5bits(const i32 e) {
+    // This approximation works up to the point that the multiplication overflows at e = 3529.
+    // If the multiplication were done in 64 bits, it would fail at 5^4004 which is just greater
+    // than 2^9297.
+    Assert(e >= 0);
+    Assert(e <= 3528);
+    return i32(((u32(e) * 1217359) >> 19) + 1);
+}
+
+constexpr inline u32 log10Pow5(const int32_t e) {
+  // The first value this approximation fails for is 5^2621 which is just greater than 10^1832.
+  Assert(e >= 0);
+  Assert(e <= 2620);
+  return (u32(e) * 732923) >> 20;
+}
+
+constexpr inline u32 mulPow5divPow2(const u32 m, const u32 i, const int32_t j) {
+    return mulShift32(m, FLOAT_POW5_SPLIT[i], j);
+}
+
+constexpr inline u32 decimalLength17(const u64 v) {
+    Assert(v < 100000000000000000L);
+    if (v >= 10000000000000000L) { return 17; }
+    if (v >= 1000000000000000L) { return 16; }
+    if (v >= 100000000000000L) { return 15; }
+    if (v >= 10000000000000L) { return 14; }
+    if (v >= 1000000000000L) { return 13; }
+    if (v >= 100000000000L) { return 12; }
+    if (v >= 10000000000L) { return 11; }
+    if (v >= 1000000000L) { return 10; }
+    if (v >= 100000000L) { return 9; }
+    if (v >= 10000000L) { return 8; }
+    if (v >= 1000000L) { return 7; }
+    if (v >= 100000L) { return 6; }
+    if (v >= 10000L) { return 5; }
+    if (v >= 1000L) { return 4; }
+    if (v >= 100L) { return 3; }
+    if (v >= 10L) { return 2; }
+    return 1;
+}
+
+constexpr inline u32 decimalLength9(const u32 v) {
+    Assert(v < 1000000000);
+    if (v >= 100000000) { return 9; }
+    if (v >= 10000000) { return 8; }
+    if (v >= 1000000) { return 7; }
+    if (v >= 100000) { return 6; }
+    if (v >= 10000) { return 5; }
+    if (v >= 1000) { return 4; }
+    if (v >= 100) { return 3; }
+    if (v >= 10) { return 2; }
+    return 1;
+}
+
+constexpr core::expected<u32, ParseError> copySpecialString(char* out, u32 olen, bool sign, bool exponent, bool mantissa) {
+    if (mantissa) {
+        if (olen < 3) return core::unexpected(ParseError::OutputBufferTooSmall);
+        core::memcopy(out, "NaN", 3);
+        return 3;
+    }
+
+    u32 i = 0;
+    if (sign) {
+        out[i] = '-';
+        i++;
+    }
+
+    if (exponent) {
+        if (olen < 3 + i) return core::unexpected(ParseError::OutputBufferTooSmall);
+        core::memcopy(out + i, "Inf", 3);
+        return i + 3;
+    }
+
+    if (olen < i + 1) return core::unexpected(ParseError::OutputBufferTooSmall);
+    out[i] = '0';
+    return i + 1;
+}
+
+template <typename MantissaType>
+struct FloatToStrDecimal {
+    MantissaType mantissa;
+    i32 exponent;
+};
+
+constexpr FloatToStrDecimal<u32> ftod(u32 ieeeMantissa, u32 ieeeExponent) {
+    constexpr u32 POW5_INV_BITCOUNT = 59;
+    constexpr u32 POW5_BITCOUNT = 61;
+
+    i32 e2; u32 m2;
+    if (ieeeExponent == 0) {
+        // We subtract 2 so that the bounds computation has 2 additional bits.
+        e2 = 1 - core::exponentBias<f32>() - core::mantisaBits<f32>() - 2;
+        m2 = ieeeMantissa;
+    }
+    else {
+        e2 = i32(ieeeExponent) - core::exponentBias<f32>() - core::mantisaBits<f32>() - 2;
+        m2 = (1u << core::mantisaBits<f32>()) | ieeeMantissa;
+    }
+
+    bool even = (m2 & 1) == 0;
+    bool acceptBounds = even;
+
+    // Step 2: Determine the interval of valid decimal representations.
+    u32 mv = 4 * m2;
+    u32 mp = 4 * m2 + 2;
+    u32 mmShift = ieeeMantissa != 0 || ieeeExponent <= 1;
+    u32 mm = 4 * m2 - 1 - mmShift;
+
+    // Step 3: Convert to a decimal power base using 64-bit arithmetic.
+    u32 vr, vp, vm;
+    u32 e10;
+    bool vmIsTrailingZeros = false;
+    bool vrIsTrailingZeros = false;
+    u8 lastRemovedDigit = 0;
+    if (e2 >= 0) {
+        u32 q = log10Pow2(e2);
+        e10 = q;
+        u32 k = POW5_INV_BITCOUNT + pow5bits(q) - 1;
+        u32 i = -e2 + q + k;
+        vr = mulPow5InvDivPow2(mv, q, i);
+        vp = mulPow5InvDivPow2(mp, q, i);
+        vm = mulPow5InvDivPow2(mm, q, i);
+        if (q != 0 && (vp - 1) / 10 <= vm / 10) {
+            // We need to know one removed digit even if we are not going to loop below. We could use
+            // q = X - 1 above, except that would require 33 bits for the result, and we've found that
+            // 32-bit arithmetic is faster even on 64-bit machines.
+            u32 l = POW5_INV_BITCOUNT + pow5bits(q - 1) - 1;
+            lastRemovedDigit = u8(mulPow5InvDivPow2(mv, q - 1, -e2 + q - 1 + l) % 10);
+        }
+        if (q <= 9) {
+            // The largest power of 5 that fits in 24 bits is 5^10, but q <= 9 seems to be safe as well.
+            // Only one of mp, mv, and mm can be a multiple of 5, if any.
+            if (mv % 5 == 0) {
+                vrIsTrailingZeros = multipleOfPowerOf5_32(mv, q);
+            }
+            else if (acceptBounds) {
+                vmIsTrailingZeros = multipleOfPowerOf5_32(mm, q);
+            }
+            else {
+                vp -= multipleOfPowerOf5_32(mp, q);
+            }
+        }
+    }
+    else {
+        u32 q = log10Pow5(-e2);
+        e10 = q + e2;
+        u32 i = -e2 - q;
+        u32 k = pow5bits(i) - POW5_BITCOUNT;
+        u32 j = q - k;
+        vr = mulPow5divPow2(mv, i, j);
+        vp = mulPow5divPow2(mp, i, j);
+        vm = mulPow5divPow2(mm, i, j);
+        if (q != 0 && (vp - 1) / 10 <= vm / 10) {
+            j = q - 1 - (pow5bits(i + 1) - POW5_BITCOUNT);
+            lastRemovedDigit = u8(mulPow5divPow2(mv, i + 1, j) % 10);
+        }
+        if (q <= 1) {
+            // {vr,vp,vm} is trailing zeros if {mv,mp,mm} has at least q trailing 0 bits.
+            // mv = 4 * m2, so it always has at least two trailing 0 bits.
+            vrIsTrailingZeros = true;
+            if (acceptBounds) {
+                // mm = mv - 1 - mmShift, so it has 1 trailing 0 bit iff mmShift == 1.
+                vmIsTrailingZeros = mmShift == 1;
+            }
+            else {
+                // mp = mv + 2, so it always has at least one trailing 0 bit.
+                --vp;
+            }
+        }
+        else if (q < 31) { // TODO(ulfjack): Use a tighter bound here.
+            vrIsTrailingZeros = multipleOfPowerOf2_32(mv, q - 1);
+        }
+    }
+
+    // Step 4: Find the shortest decimal representation in the interval of valid representations.
+    i32 removed = 0;
+    u32 mantissa;
+    if (vmIsTrailingZeros || vrIsTrailingZeros) {
+        // General case, which happens rarely (~4.0%).
+        while (vp / 10 > vm / 10) {
+            vmIsTrailingZeros &= vm % 10 == 0;
+            vrIsTrailingZeros &= lastRemovedDigit == 0;
+            lastRemovedDigit = u8(vr % 10);
+            vr /= 10;
+            vp /= 10;
+            vm /= 10;
+            ++removed;
+        }
+
+        if (vmIsTrailingZeros) {
+            while (vm % 10 == 0) {
+                vrIsTrailingZeros &= lastRemovedDigit == 0;
+                lastRemovedDigit = u8(vr % 10);
+                vr /= 10;
+                vp /= 10;
+                vm /= 10;
+                ++removed;
+            }
+        }
+
+        if (vrIsTrailingZeros && lastRemovedDigit == 5 && vr % 2 == 0) {
+            // Round even if the exact number is .....50..0.
+            lastRemovedDigit = 4;
+        }
+
+        // We need to take vr + 1 if vr is outside bounds or we need to round up.
+        mantissa = vr + ((vr == vm && (!acceptBounds || !vmIsTrailingZeros)) || lastRemovedDigit >= 5);
+    }
+    else {
+        // Specialized for the common case (~96.0%). Percentages below are relative to this.
+        // Loop iterations below (approximately):
+        // 0: 13.6%, 1: 70.7%, 2: 14.1%, 3: 1.39%, 4: 0.14%, 5+: 0.01%
+        while (vp / 10 > vm / 10) {
+            lastRemovedDigit = u8(vr % 10);
+            vr /= 10;
+            vp /= 10;
+            vm /= 10;
+            ++removed;
+        }
+        // We need to take vr + 1 if vr is outside bounds or we need to round up.
+        mantissa = vr + (vr == vm || lastRemovedDigit >= 5);
+    }
+
+    i32 exp = e10 + removed;
+    return FloatToStrDecimal<u32> { mantissa, exp };
+}
+
+constexpr core::expected<u32, ParseError> toChars(FloatToStrDecimal<f32> v, bool sign, char* out, u32 olen) {
+    // FIXME: TODO
+}
+
+constexpr core::expected<u32, ParseError> ftos(f32 n, char* out, u32 olen) {
+    if (out == nullptr || olen == 0) {
+        return core::unexpected(ParseError::InputEmpty);
+    }
+
+    // Decode bits into sign, mantissa, and exponent.
+    bool ieeeSign;
+    u32 ieeeMantissa;
+    u32 ieeeExponent;
+    core::decomposeFloat32(n, ieeeMantissa, ieeeExponent, ieeeSign);
+
+    if (ieeeExponent == ((1u << exponentBits<f32>()) - 1u) || (ieeeExponent == 0 && ieeeMantissa == 0)) {
+        return detail::copySpecialString(out, olen, ieeeSign, ieeeExponent, ieeeMantissa);
+    }
+
+    FloatToStrDecimal<u32> v = ftod(ieeeMantissa, ieeeExponent);
+    return toChars(v, ieeeSign, out, olen);
+}
+
+} // namespace detail
+
+
+constexpr core::expected<u32, ParseError> floatToCstr(f32 n, char* out, u32 olen) { return detail::ftos(n, out, olen); }
+// constexpr core::expected<u32, ParseError> floatToCstr(f64 n, char* out, u32 olen) { return detail::dtos(n, out, olen); }
 
 #pragma endregion
 

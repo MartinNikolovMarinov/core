@@ -41,32 +41,37 @@ i32 main() {
     core::initProgramCtx(assertHandler, nullptr);
     std::cout << std::fixed << std::setprecision(8);
 
-    {
-        constexpr f32 v = core::bitCast<f32>(0b01000100011110100000000000000000);
-        std::string s = std::to_string(v);
-
-        f32 ryuRes;
-        auto status = ryu::s2f_n(s.c_str(), i32(s.size()), &ryuRes);
-        Assert(status == ryu::Status::SUCCESS);
-
-        f32 myRes = core::Unpack(core::cstrToFloat<f32>(s.c_str(), u32(s.size())));
-
-        Assert(ryuRes == myRes, "Failed to meet criteria");
-
-        std::cout << s.c_str() << " OK ->" << std::endl;
-    }
-
-    return 0;
-
     std::ostringstream ss;
-    ss << std::fixed << std::setprecision(8);
+    ss << std::fixed << std::setprecision(9);
 
     u32 n = 0x3F800000; // One in float
     std::string s;
 
+    bool above10 = false;
+    bool above100 = false;
+    bool above1000 = false;
+    bool above10000 = false;
+
     for (; n < core::limitMax<u32>(); n++) {
         f32 v = core::bitCast<f32>(n);
         s = std::to_string(v);
+
+        if (!above10 && v >= 10) {
+            above10 = true;
+            ss << std::fixed << std::setprecision(8);
+        }
+        else if (!above100 && v >= 10) {
+            above100 = true;
+            ss << std::fixed << std::setprecision(7);
+        }
+        else if (!above1000 && v >= 10) {
+            above1000 = true;
+            ss << std::fixed << std::setprecision(6);
+        }
+        else if (!above10000 && v >= 10) {
+            above10000 = true;
+            ss << std::fixed << std::setprecision(5);
+        }
 
         f32 ryuRes;
         auto status = ryu::s2f_n(s.c_str(), i32(s.size()), &ryuRes);

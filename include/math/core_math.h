@@ -189,7 +189,7 @@ template <typename TFloat> constexpr u32 maxMantisaDigitsBase10() {
 
 constexpr f32 createFloat32(u32 mantissa, u32 exponent, bool sign) {
     u32 signBit = sign ? 0u : 1u;
-    u32 ieee754 = (signBit << 31)            // Sign bit (1 bit)
+    u32 ieee754 = (signBit << 31)             // Sign bit (1 bit)
                 | ((exponent & 0xFF) << 23)   // Exponent (8 bits)
                 | (mantissa & 0x7FFFFF);      // Mantissa (23 bits)
     return core::bitCast<f32>(ieee754);

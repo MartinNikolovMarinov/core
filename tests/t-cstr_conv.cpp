@@ -1,5 +1,6 @@
 #include "t-index.h"
 
+#include "common/ryu_reference_impl/ryu.h"
 #include "common/ryu_reference_impl/ryu_parse.h"
 
 // FIXME: Check error cases for all the tests. Add more tests if needed.

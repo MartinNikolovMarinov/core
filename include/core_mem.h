@@ -9,8 +9,11 @@ namespace core {
 
 using namespace coretypes;
 
-template <typename T> inline T*          memcopy(T* dest, const T* src, addr_size len);
+// FIXME: some of these are lazily left non-constexpr. Fix this slop!
+
+template <typename T> constexpr T*       memcopy(T* dest, const T* src, addr_size len);
 template <typename T> inline T*          memset(T* dest, u8 v, addr_size len);
+template <typename T> constexpr T*       memset(T* dest, T v, addr_size len);
                       constexpr i32      memcmp(const char* a, addr_size lena, const char* b, addr_size lenb);
                       constexpr i32      memcmp(const char* a, const char* b, addr_size len);
                       constexpr i32      memcmp(const uchar* a, addr_size lena, const uchar* b, addr_size lenb);
@@ -183,13 +186,29 @@ constexpr addr_off memidxofImpl(const char* a, addr_size lena, const char* vals,
 
 } // namespace detail
 
-template <typename T> inline T* memcopy(T* dest, const T* src, addr_size len) {
-    if constexpr (!std::is_void_v<T>) { len *= sizeof(T); }
+template <typename T> constexpr T* memcopy(T* dest, const T* src, addr_size len) {
+    IS_CONST_EVALUATED {
+        if constexpr (std::is_copy_assignable_v<T>) {
+            for (addr_size i = 0; i < len; i++) {
+                *dest++ = *src++; // NOTE: T needs to have an equals operator.
+            }
+            return dest;
+        }
+    }
+
+    // The below code can byte copy any T.
+    len *= sizeof(T);
     return reinterpret_cast<T*>(detail::memcopyImpl(dest, src, len));
 }
 template <typename T> inline T* memset(T* dest, u8 v, addr_size len) {
-    if constexpr (!std::is_void_v<T>) { len *= sizeof(T); }
+    len *= sizeof(T);
     return reinterpret_cast<T*>(detail::memsetImpl(dest, v, len));
+}
+template <typename T> constexpr T* memset(T* dest, T v, addr_size len) {
+    for (addr_size i = 0; i < len; i++) {
+        *dest++ = v;
+    }
+    return dest;
 }
 
 constexpr i32 memcmp(const char* a, addr_size lena, const char* b, addr_size lenb) {

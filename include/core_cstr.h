@@ -22,8 +22,8 @@ template<typename TInt> constexpr inline char digitToChar(TInt digit);
                         constexpr inline bool isLowerCaseANSI(char c);
                         constexpr inline bool isUpperCaseANSI(char c);
 
-                        constexpr inline addr_size   cstrLen(const char* p);
-                        constexpr inline addr_size   cstrLen(const uchar* p);
+                        constexpr inline addr_size cstrLen(const char* p);
+                        constexpr inline addr_size cstrLen(const uchar* p);
 
                         constexpr const char* cstrSkipSpace(const char* s);
                         constexpr       char* cstrSkipSpace(char* s);

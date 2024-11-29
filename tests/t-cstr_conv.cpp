@@ -800,10 +800,8 @@ constexpr i32 runCompiletimeCstrConvTestsSuite() {
     RunTestCompileTime(digitToCharTest);
     RunTestCompileTime(intToCstrTest);
     RunTestCompileTime(intHexTest);
-
-    // FIXME: Uncomment constexpr tests once development is done:
-    // RunTestCompileTime(cstrToFloatTest);
-    // RunTestCompileTime(cstrToFloatNanAndInfTest);
+    RunTestCompileTime(cstrToFloatTest);
+    RunTestCompileTime(cstrToFloatNanAndInfTest);
 
     return 0;
 }

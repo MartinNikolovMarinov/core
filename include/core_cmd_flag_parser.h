@@ -364,14 +364,13 @@ struct CORE_API_EXPORT CmdFlagParser {
                     }
                     case FlagType::Float64:
                     {
-                        // FIXME: Uncomment this when fixed.
-                        // auto v = core::cstrToFloat<f64>(value.data(), value.len());
-                        // if (v.hasErr()) {
-                        //     err = MatchError::FaildToParseNumber;
-                        //     return false;
-                        // }
-                        // *reinterpret_cast<f64*>(fd->data) = v.value();
-                        // fd->isSet = true;
+                        auto v = core::cstrToFloat<f64>(value.data(), u32(value.len()));
+                        if (v.hasErr()) {
+                            err = MatchError::FaildToParseNumber;
+                            return false;
+                        }
+                        *reinterpret_cast<f64*>(fd->data) = v.value();
+                        fd->isSet = true;
                         break;
                     }
                     case FlagType::String:

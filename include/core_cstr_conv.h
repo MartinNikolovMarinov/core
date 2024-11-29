@@ -36,11 +36,13 @@ constexpr const char* parseErrorToCstr(ParseError err) {
     return "Unknown";
 }
 
+template <typename TInt> constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen);
+
 constexpr u32  intToCstr(u32 n, char* out, addr_size outMax, u32 digits = 0);
 constexpr u32  intToCstr(u64 n, char* out, addr_size outMax, u32 digits = 0);
 constexpr u32  intToCstr(i32 n, char* out, addr_size outMax, u32 digits = 0);
 constexpr u32  intToCstr(i64 n, char* out, addr_size outMax, u32 digits = 0);
-constexpr void intToHex(u8 v, char* out, u64 hexLen = (sizeof(u8) << 1));
+constexpr void intToHex(u8 v, char* out, u64 hexLen = (sizeof(u8) << 1)); // TODO: alter the to hex api to match the behaviour of toCstr
 constexpr void intToHex(u16 v, char* out, u64 hexLen = (sizeof(u16) << 1));
 constexpr void intToHex(u32 v, char* out, u64 hexLen = (sizeof(u32) << 1));
 constexpr void intToHex(u64 v, char* out, u64 hexLen = (sizeof(u64) << 1));
@@ -49,11 +51,9 @@ constexpr void intToHex(i16 v, char* out, u64 hexLen = (sizeof(i16) << 1));
 constexpr void intToHex(i32 v, char* out, u64 hexLen = (sizeof(i32) << 1));
 constexpr void intToHex(i64 v, char* out, u64 hexLen = (sizeof(i64) << 1));
 
-template <typename TInt> constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen);
-
-                           constexpr core::expected<u32, ParseError>    floatToCstr(f32 n, char* out, u32 olen);
-                           constexpr core::expected<u32, ParseError>    floatToCstr(f64 n, char* out, u32 olen);
 template <typename TFloat> constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen);
+                           constexpr u32                                floatToCstr(f32 n, char* out, u32 olen);
+                           constexpr u32                                floatToCstr(f64 n, char* out, u32 olen);
 
 
 namespace detail {
@@ -160,6 +160,19 @@ constexpr void intToHex(i64 v, char* out, u64 hexLen) { detail::intToHex(v, out,
 
 namespace detail {
 
+constexpr char DIGIT_TABLE[200] = {
+    '0','0','0','1','0','2','0','3','0','4','0','5','0','6','0','7','0','8','0','9',
+    '1','0','1','1','1','2','1','3','1','4','1','5','1','6','1','7','1','8','1','9',
+    '2','0','2','1','2','2','2','3','2','4','2','5','2','6','2','7','2','8','2','9',
+    '3','0','3','1','3','2','3','3','3','4','3','5','3','6','3','7','3','8','3','9',
+    '4','0','4','1','4','2','4','3','4','4','4','5','4','6','4','7','4','8','4','9',
+    '5','0','5','1','5','2','5','3','5','4','5','5','5','6','5','7','5','8','5','9',
+    '6','0','6','1','6','2','6','3','6','4','6','5','6','6','6','7','6','8','6','9',
+    '7','0','7','1','7','2','7','3','7','4','7','5','7','6','7','7','7','8','7','9',
+    '8','0','8','1','8','2','8','3','8','4','8','5','8','6','8','7','8','8','8','9',
+    '9','0','9','1','9','2','9','3','9','4','9','5','9','6','9','7','9','8','9','9'
+};
+
 constexpr inline u64 umul128(const u64 a, const u64 b, u64* const productHi) {
     // The casts here help MSVC to avoid calls to the __allmul library function.
     const u32 aLo = u32(a);
@@ -231,6 +244,24 @@ constexpr inline u32 log10pow5(i32 e) {
     return (u32(e) * 732923) >> 20;
 }
 
+constexpr inline i32 copySpecialStr(bool sign, bool exponent, bool mantissa, char* out, [[maybe_unused]] u32 olen) {
+    Assert(olen > u32(sign) + 3, "provider buffer is short");
+
+    if (mantissa) {
+        core::memcopy(out, "NaN", 3);
+        return 3;
+    }
+    if (sign) {
+        out[0] = '-';
+    }
+    if (exponent) {
+        core::memcopy(out + sign, "Inf", 3);
+        return sign + 8;
+    }
+    core::memcopy(out + sign, "0E0", 3);
+    return i32(sign) + 3;
+}
+
 template<typename TFloat> struct FloatTraits;
 
 template<>
@@ -285,6 +316,19 @@ struct FloatTraits<f32> {
         2117582368135750847u, 1323488980084844279u, 1654361225106055349u, 2067951531382569187u,
         1292469707114105741u, 1615587133892632177u, 2019483917365790221u
     };
+
+    static constexpr inline u32 decimalLength9(u32 v) {
+        Assert(v < 1000000000);
+        if (v >= 100000000) { return 9; }
+        if (v >= 10000000) { return 8; }
+        if (v >= 1000000) { return 7; }
+        if (v >= 100000) { return 6; }
+        if (v >= 10000) { return 5; }
+        if (v >= 1000) { return 4; }
+        if (v >= 100) { return 3; }
+        if (v >= 10) { return 2; }
+        return 1;
+    }
 
     static constexpr u32 floorLog2(u32 x) {
         return 31 - core::intrin_countLeadingZeros(x);
@@ -979,7 +1023,6 @@ constexpr FloatTraits<f32>::FloatDecimal floatToDecimal(u32 ieeeMantissa, u32 ie
 
     constexpr u32 FLOAT_BIAS = Traits::EXPONENT_BIAS;
     constexpr i32 MANTISSA_BITS = Traits::MANTISSA_BITS;
-    // constexpr i32 EXPONENT_BITS = Traits::EXPONENT_BITS;
     constexpr u32 POW5_INV_BITCOUNT = Traits::POW5_INV_BITCOUNT;
     constexpr u32 POW5_BITCOUNT = Traits::POW5_BITCOUNT;
 
@@ -1124,11 +1167,117 @@ constexpr FloatTraits<f32>::FloatDecimal floatToDecimal(u32 ieeeMantissa, u32 ie
     return fd;
 }
 
+constexpr inline i32 toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* out, [[maybe_unused]] u32 olen) {
+    // FIXME: check the that the output buffer has enough space for all write operations!
+
+    using Traits = FloatTraits<f32>;
+
+    // Step 5: Print the decimal representation.
+    i32 index = 0;
+    if (sign) {
+        out[index++] = '-';
+    }
+
+    u32 mantissa = v.mantissa;
+    u32 mantissaLen = Traits::decimalLength9(mantissa);
+
+    // Print the decimal digits.
+    // The following code is equivalent to:
+    // for (uint32_t i = 0; i < mantissaLen - 1; ++i) {
+    //     const uint32_t c = mantissa % 10; mantissa /= 10;
+    //     result[index + mantissaLen - i] = (char) ('0' + c);
+    // }
+    // result[index] = '0' + mantissa % 10;
+    u32 i = 0;
+    while (mantissa >= 10000) {
+        u32 c = mantissa % 10000;
+        mantissa /= 10000;
+        u32 c0 = (c % 100) << 1;
+        u32 c1 = (c / 100) << 1;
+        core::memcopy(out + index + mantissaLen - i - 1, DIGIT_TABLE + c0, 2);
+        core::memcopy(out + index + mantissaLen - i - 3, DIGIT_TABLE + c1, 2);
+        i += 4;
+    }
+
+    if (mantissa >= 100) {
+        const u32 c = (mantissa % 100) << 1;
+        mantissa /= 100;
+        core::memcopy(out + index + mantissaLen - i - 1, DIGIT_TABLE + c, 2);
+        i += 2;
+    }
+    if (mantissa >= 10) {
+        const u32 c = mantissa << 1;
+        // We can't use memcpy here: the decimal dot goes between these two digits.
+        out[index + mantissaLen - i] = DIGIT_TABLE[c + 1];
+        out[index] = DIGIT_TABLE[c];
+    }
+    else {
+        out[index] = core::toDigit<char>(char(mantissa));
+    }
+
+    // Print decimal point if needed.
+    if (mantissaLen > 1) {
+        out[index + 1] = '.';
+        index += mantissaLen + 1;
+    }
+    else {
+        ++index;
+    }
+
+    // Print the exponent.
+    out[index++] = 'E';
+    i32 exp = v.exponent + i32(mantissaLen) - 1;
+    if (exp < 0) {
+        out[index++] = '-';
+        exp = -exp;
+    }
+
+    if (exp >= 10) {
+        core::memcopy(out + index, DIGIT_TABLE + 2 * exp, 2);
+        index += 2;
+    }
+    else {
+        out[index++] = core::toDigit<char>(char(exp));
+    }
+
+    return index;
+}
+
+constexpr u32 float32ToCstr(f32 n, char* out, u32 olen) {
+    using Traits = FloatTraits<f32>;
+    using FloatDecimal = Traits::FloatDecimal;
+
+    constexpr i32 EXPONENT_BITS = Traits::EXPONENT_BITS;
+
+    // Step 1: Decode the floating-point number, and unify normalized and subnormal cases.
+    bool ieeeSign; u32 ieeeMantissa; u32 ieeeExponent;
+    core::decomposeFloat32(n, ieeeMantissa, ieeeExponent, ieeeSign);
+
+    if (ieeeExponent == ((1u << EXPONENT_BITS) - 1u) || (ieeeExponent == 0 && ieeeMantissa == 0)) {
+        return copySpecialStr(ieeeSign, ieeeExponent, ieeeMantissa, out, olen);
+    }
+
+    FloatDecimal v = floatToDecimal(ieeeMantissa, ieeeExponent);
+    return toChars(v, ieeeSign, out, olen);
+}
+
+constexpr u32 float64ToCstr(f64, char*, u32) {
+    // FIXME: implement next
+    return 0;
+}
+
 } // namespace detail
 
 template<typename TFloat>
 constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen) {
     return detail::cstrToFloatImpl<TFloat>(s, slen);
+}
+
+constexpr u32 floatToCstr(f32 n, char* out, u32 olen) {
+    return detail::float32ToCstr(n, out, olen);
+}
+constexpr u32 floatToCstr(f64 n, char* out, u32 olen) {
+    return detail::float64ToCstr(n, out, olen);
 }
 
 #pragma endregion

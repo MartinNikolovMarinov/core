@@ -188,33 +188,53 @@ template <typename TFloat> constexpr u32 maxMantissaDigitsBase10() {
 }
 
 constexpr f32 createFloat32(u32 mantissa, u32 exponent, bool sign) {
-    u32 signBit = sign ? 0u : 1u;
-    u32 ieee754 = (signBit << 31)             // Sign bit (1 bit)
-                | ((exponent & 0xFF) << 23)   // Exponent (8 bits)
-                | (mantissa & 0x7FFFFF);      // Mantissa (23 bits)
+    constexpr u32 SIGN_BIT_SHIFT = 31;
+    constexpr u32 EXPONENT_BIT_SHIFT = 23;
+    constexpr u32 EXPONENT_MASK = 0xFF;       // 8 bits for exponent
+    constexpr u32 MANTISSA_MASK = 0x7FFFFF;  // 23 bits for mantissa
+
+    u32 signBit = sign ? 1u : 0u;
+    u32 ieee754 = (signBit << SIGN_BIT_SHIFT)       // Sign bit (1 bit)
+                | ((exponent & EXPONENT_MASK) << EXPONENT_BIT_SHIFT) // Exponent (8 bits)
+                | (mantissa & MANTISSA_MASK);      // Mantissa (23 bits)
     return core::bitCast<f32>(ieee754);
 }
 
 constexpr f64 createFloat64(u64 mantissa, u64 exponent, bool sign) {
-    u64 signBit = sign ? 0u : 1u;
-    u64 ieee754 = (signBit << 63)              // Sign bit (1 bit)
-                | ((exponent & 0x7FF) << 52)    // Exponent (11 bits)
-                | (mantissa & 0xFFFFFFFFFFFFF); // Mantissa (52 bits)
+    constexpr u64 SIGN_BIT_SHIFT = 63;
+    constexpr u64 EXPONENT_BIT_SHIFT = 52;
+    constexpr u64 EXPONENT_MASK = 0x7FF;          // 11 bits for exponent
+    constexpr u64 MANTISSA_MASK = 0xFFFFFFFFFFFFF; // 52 bits for mantissa
+
+    u64 signBit = sign ? 1u : 0u;
+    u64 ieee754 = (signBit << SIGN_BIT_SHIFT)       // Sign bit (1 bit)
+                | ((exponent & EXPONENT_MASK) << EXPONENT_BIT_SHIFT) // Exponent (11 bits)
+                | (mantissa & MANTISSA_MASK);      // Mantissa (52 bits)
     return core::bitCast<f64>(ieee754);
 }
 
 constexpr void decomposeFloat32(f32 n, u32& mantissa, u32& exponent, bool& sign) {
+    constexpr u32 SIGN_BIT_SHIFT = 31;
+    constexpr u32 EXPONENT_BIT_SHIFT = 23;
+    constexpr u32 EXPONENT_MASK = 0xFF;       // 8 bits for exponent
+    constexpr u32 MANTISSA_MASK = 0x7FFFFF;  // 23 bits for mantissa
+
     u32 bits = core::bitCast<u32>(n);
-    sign = ((bits >> 31) & 1u) == 0u;
-    exponent = (bits >> 23) & 0xFFu;
-    mantissa = bits & 0x7FFFFFu;
+    sign = ((bits >> SIGN_BIT_SHIFT) & 1u) != 0u;
+    exponent = (bits >> EXPONENT_BIT_SHIFT) & EXPONENT_MASK;
+    mantissa = bits & MANTISSA_MASK;
 }
 
 constexpr void decomposeFloat64(f64 n, u64& mantissa, u64& exponent, bool& sign) {
+    constexpr u64 SIGN_BIT_SHIFT = 63;
+    constexpr u64 EXPONENT_BIT_SHIFT = 52;
+    constexpr u64 EXPONENT_MASK = 0x7FF;          // 11 bits for exponent
+    constexpr u64 MANTISSA_MASK = 0xFFFFFFFFFFFFF; // 52 bits for mantissa
+
     u64 bits = core::bitCast<u64>(n);
-    sign = ((bits >> 63) & 1u) == 0u;
-    exponent = (bits >> 52) & 0x7FFu;
-    mantissa = bits & 0xFFFFFFFFFFFFFu;
+    sign = ((bits >> SIGN_BIT_SHIFT) & 1u) != 0u;
+    exponent = (bits >> EXPONENT_BIT_SHIFT) & EXPONENT_MASK;
+    mantissa = bits & MANTISSA_MASK;
 }
 
 #pragma endregion
@@ -318,7 +338,6 @@ template <typename T> constexpr T signalingNaN() {
 namespace detail {
 
 constexpr bool isinfCompiletimeImpl(f32 x) {
-    // FIXME: This check for infinity might not be enough. It needs to check any number that has exponent larger that a certain amount. For f32 I think it's  -126 to +127.
     return x == infinityF32() || -x == infinityF32();
 }
 

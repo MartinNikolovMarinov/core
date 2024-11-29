@@ -215,7 +215,11 @@ struct FloatTraits<f32> {
     static constexpr i32 MANTISSA_BITS = core::mantissaBits<f32>();
     static constexpr i32 EXPONENT_BITS = core::exponentBits<f32>();
     static constexpr u32 EXPONENT_BIAS = core::exponentBias<f32>();
+    static constexpr u32 POW5_BITCOUNT = 61;
     static constexpr u32 POW5_INV_BITCOUNT = 59;
+    static constexpr i32 MIN_EXPONENT_AFTER_WHICH_ROUND_TO_ZERO = -46;
+    static constexpr i32 MAX_EXPONENT_AFTER_WHICH_ROUND_TO_INF = 40;
+    static constexpr u32 MANTISSA_BITS_MASK = 0xffu;
 
     static constexpr u32 POW5_INV_SPLIT_SIZE = 55;
     static constexpr u64 POW5_INV_SPLIT[POW5_INV_SPLIT_SIZE] = {
@@ -287,6 +291,66 @@ struct FloatTraits<f32> {
     static constexpr bool multipleOfPowerOf2(u32 value, u32 p) {
         return (value & ((1u << p) - 1)) == 0;
     }
+
+    static constexpr bool multipleOfPowerOf2(uint64_t value, const uint32_t p) {
+        Assert(value != 0);
+        Assert(p < 64);
+        // __builtin_ctzll doesn't appear to be faster here.
+        return (value & ((1ull << p) - 1)) == 0;
+    }
+
+    static constexpr bool convertFloatToBinary(u32 mantissa, i32 exponent, u32& m2, i32& e2) {
+        // Convert to binary float m2 * 2^e2, while retaining information about whether the conversion
+        // was exact (trailingZeros).
+        bool trailingZeros;
+        if (exponent >= 0) {
+            // The length of m * 10^e in bits is:
+            //   log2(mantissa * 10^exponent) = log2(mantissa) + exponent log2(10) = log2(mantissa) + exponent + exponent * log2(5)
+            //
+            // We want to compute the MANTISSA_BITS + 1 top-most bits (+1 for the implicit leading
+            // one in IEEE format). We therefore choose a binary output exponent of
+            //   log2(mantissa * 10^exponent) - (MANTISSA_BITS + 1).
+            //
+            // We use floor(log2(5^exponent)) so that we get at least this many bits; better to
+            // have an additional bit than to not have enough bits.
+            e2 = floorLog2(mantissa) + exponent + log2pow5(exponent) - (MANTISSA_BITS + 1);
+
+            // We now compute [mantissa * 10^exponent / 2^e2] = [mantissa * 5^exponent / 2^(e2-exponent)].
+            // To that end, we use the POW5_SPLIT table.
+            int j = e2 - exponent - ceilLog2pow5(exponent) + POW5_BITCOUNT;
+            Assert(j >= 0);
+
+            m2 = mulShift(mantissa, POW5_SPLIT[exponent], j);
+
+            // We also compute if the result is exact, i.e.,
+            //   [mantissa * 10^exponent / 2^e2] == mantissa * 10^exponent / 2^e2.
+            // This can only be the case if 2^e2 divides mantissa * 10^exponent, which in turn requires that the
+            // largest power of 2 that divides mantissa + exponent is greater than e2. If e2 is less than exponent, then
+            // the result must be exact. Otherwise we use the existing multipleOfPowerOf2 function.
+            trailingZeros = e2 < exponent || (e2 - exponent < 32 && multipleOfPowerOf2(mantissa, e2 - exponent));
+        }
+        else {
+            e2 = floorLog2(mantissa) + exponent - ceilLog2pow5(-exponent) - (MANTISSA_BITS + 1);
+
+            // We now compute [mantissa * 10^exponent / 2^e2] = [mantissa / (5^(-exponent) 2^(e2-exponent))].
+            int j = e2 - exponent + ceilLog2pow5(-exponent) - 1 + POW5_INV_BITCOUNT;
+            m2 = mulShift(mantissa, POW5_INV_SPLIT[-exponent], j);
+
+            // We also compute if the result is exact, i.e.,
+            //   [mantissa / (5^(-exponent) 2^(e2-exponent))] == mantissa / (5^(-exponent) 2^(e2-exponent))
+            //
+            // If e2-exponent >= 0, we need to check whether (5^(-exponent) 2^(e2-exponent)) divides mantissa, which is the
+            // case iff pow5(mantissa) >= -exponent AND pow2(mantissa) >= e2-exponent.
+            //
+            // If e2-exponent < 0, we have actually computed [mantissa * 2^(exponent e2) / 5^(-exponent)] above,
+            // and we need to check whether 5^(-exponent) divides (mantissa * 2^(exponent-e2)), which is the case iff
+            // pow5(mantissa * 2^(exponent-e2)) = pow5(mantissa) >= -exponent.
+            trailingZeros = (e2 < exponent || (e2 - exponent < 32 && multipleOfPowerOf2(mantissa, e2 - exponent)))
+                && multipleOfPowerOf5(mantissa, u32(-exponent));
+        }
+
+        return trailingZeros;
+    }
 };
 
 template<>
@@ -298,6 +362,11 @@ struct FloatTraits<f64> {
     static constexpr i32 EXPONENT_BITS = core::exponentBits<f64>();
     static constexpr u32 EXPONENT_BIAS = core::exponentBias<f64>();
     static constexpr u32 POW5_INV_BITCOUNT = 125;
+    static constexpr u32 POW5_BITCOUNT = 125;
+
+    static constexpr i32 MIN_EXPONENT_AFTER_WHICH_ROUND_TO_ZERO = -324;
+    static constexpr i32 MAX_EXPONENT_AFTER_WHICH_ROUND_TO_INF = 310;
+    static constexpr u64 MANTISSA_BITS_MASK = 0x7ffull;
 
     static constexpr u32 POW5_INV_TABLE_SIZE = 342;
     static constexpr u64 POW5_INV_SPLIT[POW5_INV_TABLE_SIZE][2] = {
@@ -663,17 +732,71 @@ struct FloatTraits<f64> {
         return shiftRight128(sum, high1, j - 64);
     }
 
-    static constexpr u64 pow5Factor(u64 value) {
-        u64 count = 0;
-        while (value % 5 == 0) {
-            value /= 5;
+    static constexpr u32 pow5Factor(u64 value) {
+        constexpr u64 mInvDiv = 14757395258967641293u; // 5 * mInvDiv = 1 (mod 2^64)
+        constexpr u64 nDiv5 = 3689348814741910323u;    // #{ n | n = 0 (mod 2^64) } = 2^64 / 5
+        u32 count = 0;
+        for (;;) {
+            Assert(value != 0);
+            value *= mInvDiv;
+            if (value > nDiv5)
+                break;
             ++count;
         }
         return count;
     }
 
-    static constexpr bool multipleOfPowerOf5(u64 value, u64 p) {
+    static constexpr bool multipleOfPowerOf5(u64 value, u32 p) {
         return pow5Factor(value) >= p;
+    }
+
+    static constexpr bool multipleOfPowerOf2(uint64_t value, const uint32_t p) {
+        Assert(value != 0);
+        Assert(p < 64);
+        // __builtin_ctzll doesn't appear to be faster here.
+        return (value & ((1ull << p) - 1)) == 0;
+    }
+
+    static constexpr bool convertFloatToBinary(u64 mantissa, i32 exponent, u64& m2, i32& e2) {
+        // Convert to binary float m2 * 2^e2, while retaining information about whether the conversion
+        // was exact (trailingZeros).
+        bool trailingZeros;
+        if (exponent >= 0) {
+            // The length of m * 10^e in bits is:
+            //   log2(mantissa * 10^exponent) = log2(mantissa) + exponent log2(10) = log2(mantissa) + exponent + exponent * log2(5)
+            //
+            // We want to compute the MANTISSA_BITS + 1 top-most bits (+1 for the implicit leading
+            // one in IEEE format). We therefore choose a binary output exponent of
+            //   log2(mantissa * 10^exponent) - (MANTISSA_BITS + 1).
+            //
+            // We use floor(log2(5^exponent)) so that we get at least this many bits; better to
+            // have an additional bit than to not have enough bits.
+            e2 = floorLog2(mantissa) + exponent + log2pow5(exponent) - (MANTISSA_BITS + 1);
+
+            // We now compute [mantissa * 10^exponent / 2^e2] = [mantissa * 5^exponent / 2^(e2-exponent)].
+            // To that end, we use the POW5_SPLIT table.
+            int j = e2 - exponent - ceilLog2pow5(exponent) + POW5_BITCOUNT;
+            Assert(j >= 0);
+
+            Assert(exponent < i32(POW5_TABLE_SIZE));
+            m2 = mulShift(mantissa, POW5_SPLIT[exponent], j);
+            // We also compute if the result is exact, i.e.,
+            //   [mantissa * 10^exponent / 2^e2] == mantissa * 10^exponent / 2^e2.
+            // This can only be the case if 2^e2 divides mantissa * 10^exponent, which in turn requires that the
+            // largest power of 2 that divides mantissa + exponent is greater than e2. If e2 is less than exponent, then
+            // the result must be exact. Otherwise we use the existing multipleOfPowerOf2 function.
+            trailingZeros = e2 < exponent || (e2 - exponent < 64 && multipleOfPowerOf2(mantissa, e2 - exponent));
+        }
+        else {
+            e2 = floorLog2(mantissa) + exponent - ceilLog2pow5(-exponent) - (MANTISSA_BITS + 1);
+            int j = e2 - exponent + ceilLog2pow5(-exponent) - 1 + POW5_INV_BITCOUNT;
+
+            Assert(-exponent < i32(POW5_INV_TABLE_SIZE));
+            m2 = mulShift(mantissa, POW5_INV_SPLIT[-exponent], j);
+            trailingZeros = multipleOfPowerOf5(mantissa, u32(-exponent));
+        }
+
+        return trailingZeros;
     }
 };
 
@@ -690,13 +813,18 @@ constexpr core::expected<TFloat, ParseError> cstrToFloatImpl(const char* s, u32 
     constexpr i32 MANTISSA_BITS = Traits::MANTISSA_BITS;
     constexpr i32 EXPONENT_BITS = Traits::EXPONENT_BITS;
     constexpr u32 EXPONENT_BIAS = Traits::EXPONENT_BIAS;
-    constexpr u32 POW5_INV_BITCOUNT = Traits::POW5_INV_BITCOUNT;
+    constexpr i32 MIN_EXPONENT_AFTER_WHICH_ROUND_TO_ZERO = Traits::MIN_EXPONENT_AFTER_WHICH_ROUND_TO_ZERO;
+    constexpr i32 MAX_EXPONENT_AFTER_WHICH_ROUND_TO_INF = Traits::MAX_EXPONENT_AFTER_WHICH_ROUND_TO_INF;
+    constexpr UInt MANTISSA_BITS_MASK = Traits::MANTISSA_BITS_MASK;
 
     i32 mantissaDigits = 0;
+    i32 exponentDigits = 0;
     UInt mantissa = 0;
     i32 exponent = 0;
     u32 dotIndex = slen;
+    u32 eIndex = slen;
     bool isNegative = false;
+    bool exponentIsNegative = false;
 
     // Check sign and skip if present
     u32 i = 0;
@@ -732,36 +860,62 @@ constexpr core::expected<TFloat, ParseError> cstrToFloatImpl(const char* s, u32 
             }
             dotIndex = i;
         } else {
-            if (!core::isDigit(c)) return core::unexpected(ParseError::InputHasInvalidSymbol);
+            if (!core::isDigit(c)) break;
             if (mantissaDigits >= MAX_MANTISSA_DIGITS) return core::unexpected(ParseError::InputNumberTooLarge);
             mantissa = 10 * mantissa + core::toDigit<UInt>(c);
             if (mantissa != 0) mantissaDigits++;
         }
     }
 
+    // At this point either the end of the string has been reached, or a symbol that is not a part of the mantissa.
+    if (i < slen && (s[i] == 'e' || s[i] == 'E')) {
+        // exponent notation is used.
+        eIndex = i;
+        i++;
+        if (i < slen && ((s[i] == '-') || (s[i] == '+'))) {
+            exponentIsNegative = s[i] == '-';
+            i++;
+        }
+
+        for (; i < slen; i++) {
+            char c = s[i];
+            if (!core::isDigit(c)) return core::unexpected(ParseError::InputHasInvalidSymbol);
+            if (exponentDigits > 3) return core::unexpected(ParseError::InputNumberTooLarge);
+            exponent = 10 * exponent + core::toDigit<i32>(c);
+            if (exponent != 0) {
+                exponentDigits++;
+            }
+        }
+    }
+
+    if (i < slen) {
+        // NOTE: This includes white space after the number!
+        return core::unexpected(ParseError::InputHasInvalidSymbol);
+    }
+
     if (mantissa == 0) {
         return isNegative ? -0.0f : 0.0f;
     }
 
-    exponent -= (dotIndex != slen) ? (slen - i32(dotIndex) - 1) : 0;
-
-    // Compute e2 and m2
-    i32 e2 = Traits::floorLog2(mantissa) + exponent - ceilLog2pow5(-exponent) - (MANTISSA_BITS + 1);
-    i32 j = e2 - exponent + ceilLog2pow5(-exponent) - 1 + POW5_INV_BITCOUNT;
-
-    UInt m2;
-    bool trailingZeros;
-
-    if constexpr (std::is_same<TFloat, float>::value) {
-        m2 = Traits::mulShift(mantissa, Traits::POW5_INV_SPLIT[-exponent], j);
-        trailingZeros = (e2 < exponent || (e2 - exponent < 32 && Traits::multipleOfPowerOf2(mantissa, e2 - exponent)))
-                        && Traits::multipleOfPowerOf5(mantissa, -exponent);
-    } else {
-        m2 = Traits::mulShift(mantissa, Traits::POW5_INV_SPLIT[-exponent], j);
-        trailingZeros = Traits::multipleOfPowerOf5(mantissa, -exponent);
+    if (exponentIsNegative) {
+        exponent = -exponent;
     }
 
-    // Compute IEEE exponent
+    exponent -= (dotIndex < eIndex) ? (eIndex - i32(dotIndex) - 1) : 0;
+
+    if (mantissaDigits + exponent <= MIN_EXPONENT_AFTER_WHICH_ROUND_TO_ZERO) {
+        UInt ieee = UInt(isNegative) << (EXPONENT_BITS + MANTISSA_BITS);
+        return core::bitCast<TFloat>(ieee);
+    }
+    if (mantissaDigits + exponent >= MAX_EXPONENT_AFTER_WHICH_ROUND_TO_INF) {
+        UInt ieee = (UInt(isNegative) << UInt(EXPONENT_BITS + MANTISSA_BITS)) | (MANTISSA_BITS_MASK << UInt(MANTISSA_BITS));
+        return core::bitCast<TFloat>(ieee);
+    }
+
+    UInt m2; i32 e2;
+    bool trailingZeros = Traits::convertFloatToBinary(mantissa, exponent, m2, e2);
+
+    // Compute the final IEEE exponent.
     u32 ieee_e2 = std::max(0, e2 + i32(EXPONENT_BIAS) + i32(Traits::floorLog2(m2)));
     if (ieee_e2 > ((1u << EXPONENT_BITS) - 2)) {
         // Overflow to infinity

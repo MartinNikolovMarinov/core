@@ -177,10 +177,6 @@ enum Status s2f_n(const char * buffer, const int len, float * result) {
     int j = e2 - e10 + ceil_log2pow5(-e10) - 1 + FLOAT_POW5_INV_BITCOUNT;
     m2 = mulPow5InvDivPow2(m10, -e10, j);
 
-    // std::cout << "" << std::endl;
-    // std::cout << "m2 = " << m2 << std::endl;
-    // std::cout << "" << std::endl;
-
     // We also compute if the result is exact, i.e.,
     //   [m10 / (5^(-e10) 2^(e2-e10))] == m10 / (5^(-e10) 2^(e2-e10))
     //

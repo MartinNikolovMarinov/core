@@ -140,7 +140,7 @@ static constexpr const char* hexDigits = "0123456789ABCDEF";
 // The out argument must have enough space to hold the result!
 template <typename TInt>
 constexpr void intToHex(TInt v, char* out, u64 hexLen) {
-    for (size_t i = 0, j = (hexLen - 1) * 4; i < hexLen; i++, j-=4) {
+    for (addr_size i = 0, j = (hexLen - 1) * 4; i < hexLen; i++, j-=4) {
         out[i] = detail::hexDigits[(v >> j) & 0x0f];
     }
 }
@@ -190,6 +190,16 @@ constexpr inline u64 umul128(const u64 a, const u64 b, u64* const productHi) {
     return pLo;
 }
 
+// Returns e == 0 ? 1 : ceil(log_2(5^e)); requires 0 <= e <= 3528.
+constexpr inline i32 pow5bits(i32 e) {
+    // This approximation works up to the point that the multiplication overflows at e = 3529.
+    // If the multiplication were done in 64 bits, it would fail at 5^4004 which is just greater
+    // than 2^9297.
+    Assert(e >= 0);
+    Assert(e <= 3528);
+    return i32((u32(e) * 1217359) >> 19) + 1;
+}
+
 // Returns e == 0 ? 1 : [log_2(5^e)]; requires 0 <= e <= 3528.
 constexpr inline i32 log2pow5(i32 e) {
     // This approximation works up to the point that the multiplication overflows at e = 3529.
@@ -205,11 +215,32 @@ constexpr inline i32 ceilLog2pow5(i32 e) {
     return log2pow5(e) + 1;
 }
 
+// Returns floor(log_10(2^e)); requires 0 <= e <= 1650.
+constexpr inline u32 log10pow2(i32 e) {
+    // The first value this approximation fails for is 2^1651 which is just greater than 10^297.
+    Assert(e >= 0);
+    Assert(e <= 1650);
+    return (u32(e) * 78913) >> 18;
+}
+
+// Returns floor(log_10(5^e)); requires 0 <= e <= 2620.
+constexpr inline u32 log10pow5(i32 e) {
+    // The first value this approximation fails for is 5^2621 which is just greater than 10^1832.
+    Assert(e >= 0);
+    Assert(e <= 2620);
+    return (u32(e) * 732923) >> 20;
+}
+
 template<typename TFloat> struct FloatTraits;
 
 template<>
 struct FloatTraits<f32> {
     using UInt = u32;
+
+    struct FloatDecimal {
+        u32 mantissa;
+        i32 exponent;
+    };
 
     static constexpr i32 MAX_MANTISSA_DIGITS = core::maxMantissaDigitsBase10<f32>();
     static constexpr i32 MANTISSA_BITS = core::mantissaBits<f32>();
@@ -292,7 +323,7 @@ struct FloatTraits<f32> {
         return (value & ((1u << p) - 1)) == 0;
     }
 
-    static constexpr bool multipleOfPowerOf2(uint64_t value, const uint32_t p) {
+    static constexpr bool multipleOfPowerOf2(u64 value, u32 p) {
         Assert(value != 0);
         Assert(p < 64);
         // __builtin_ctzll doesn't appear to be faster here.
@@ -750,7 +781,7 @@ struct FloatTraits<f64> {
         return pow5Factor(value) >= p;
     }
 
-    static constexpr bool multipleOfPowerOf2(uint64_t value, const uint32_t p) {
+    static constexpr bool multipleOfPowerOf2(u64 value, const u32 p) {
         Assert(value != 0);
         Assert(p < 64);
         // __builtin_ctzll doesn't appear to be faster here.
@@ -940,6 +971,157 @@ constexpr core::expected<TFloat, ParseError> cstrToFloatImpl(const char* s, u32 
 
     UInt ieee = ((UInt(isNegative) << EXPONENT_BITS | UInt(ieee_e2)) << MANTISSA_BITS) | ieee_m2;
     return core::bitCast<TFloat>(ieee);
+}
+
+constexpr FloatTraits<f32>::FloatDecimal floatToDecimal(u32 ieeeMantissa, u32 ieeeExponent) {
+    using Traits = FloatTraits<f32>;
+    using FloatDecimal = Traits::FloatDecimal;
+
+    constexpr u32 FLOAT_BIAS = Traits::EXPONENT_BIAS;
+    constexpr i32 MANTISSA_BITS = Traits::MANTISSA_BITS;
+    // constexpr i32 EXPONENT_BITS = Traits::EXPONENT_BITS;
+    constexpr u32 POW5_INV_BITCOUNT = Traits::POW5_INV_BITCOUNT;
+    constexpr u32 POW5_BITCOUNT = Traits::POW5_BITCOUNT;
+
+    i32 e2;
+    u32 m2;
+    if (ieeeExponent == 0) {
+        // We subtract 2 so that the bounds computation has 2 additional bits.
+        e2 = 1 - i32(FLOAT_BIAS) - MANTISSA_BITS - 2;
+        m2 = ieeeMantissa;
+    }
+    else {
+        e2 = i32(ieeeExponent) - FLOAT_BIAS - MANTISSA_BITS - 2;
+        m2 = (1u << MANTISSA_BITS) | ieeeMantissa;
+    }
+    bool even = (m2 & 1) == 0;
+    bool acceptBounds = even;
+
+    // Step 2: Determine the interval of valid decimal representations.
+    u32 mv = 4 * m2;
+    u32 mp = 4 * m2 + 2;
+    u32 mmShift = u32(ieeeMantissa != 0) || u32(ieeeExponent <= 1);
+    u32 mm = 4 * m2 - 1 - mmShift;
+
+    // Step 3: Convert to a decimal power base using 64-bit arithmetic.
+    u32 vr, vp, vm;
+    i32 e10;
+    bool vmIsTrailingZeros = false;
+    bool vrIsTrailingZeros = false;
+    u8 lastRemovedDigit = 0;
+    if (e2 >= 0) {
+        u32 q = log10pow2(e2);
+        e10 = i32(q);
+
+        i32 k = i32(POW5_INV_BITCOUNT) + pow5bits(i32(q)) - 1;
+        i32 i = -e2 + i32(q) + k;
+
+        vr = Traits::mulShift(mv, Traits::POW5_INV_SPLIT[q], i);
+        vp = Traits::mulShift(mp, Traits::POW5_INV_SPLIT[q], i);
+        vm = Traits::mulShift(mm, Traits::POW5_INV_SPLIT[q], i);
+
+        if (q != 0 && (vp - 1) / 10 <= vm / 10) {
+            // We need to know one removed digit even if we are not going to loop below. We could use
+            // q = X - 1 above, except that would require 33 bits for the result, and we've found that
+            // 32-bit arithmetic is faster even on 64-bit machines.
+            i32 l = POW5_INV_BITCOUNT + pow5bits(i32(q - 1)) - 1;
+            i32 shift = -e2 + i32(q) - 1 + l;
+            lastRemovedDigit = u8(Traits::mulShift(mv, Traits::POW5_INV_SPLIT[q - 1], u32(shift)) % 10);
+        }
+
+        if (q <= 9) {
+            // The largest power of 5 that fits in 24 bits is 5^10, but q <= 9 seems to be safe as well.
+            // Only one of mp, mv, and mm can be a multiple of 5, if any.
+            if (mv % 5 == 0)
+                vrIsTrailingZeros = Traits::multipleOfPowerOf5(mv, q);
+            else if (acceptBounds)
+                vmIsTrailingZeros = Traits::multipleOfPowerOf5(mm, q);
+            else
+                vp -= Traits::multipleOfPowerOf5(mp, q);
+        }
+    }
+    else {
+        u32 q = log10pow5(-e2);
+        e10 = i32(q) + e2;
+
+        i32 i = -e2 - i32(q);
+        i32 k = pow5bits(i) - POW5_BITCOUNT;
+        i32 j = i32(q) - k;
+
+        vr = Traits::mulShift(mv, Traits::POW5_INV_SPLIT[i], j);
+        vp = Traits::mulShift(mp, Traits::POW5_INV_SPLIT[i], j);
+        vm = Traits::mulShift(mm, Traits::POW5_INV_SPLIT[i], j);
+
+        if (q != 0 && (vp - 1) / 10 <= vm / 10) {
+            j = i32(q) - 1 - (pow5bits(i + 1) - POW5_BITCOUNT);
+            lastRemovedDigit = u8(Traits::mulShift(mv, Traits::POW5_SPLIT[i + 1], j) % 10);
+        }
+
+        if (q <= 1) {
+            // {vr,vp,vm} is trailing zeros if {mv,mp,mm} has at least q trailing 0 bits.
+            // mv = 4 * m2, so it always has at least two trailing 0 bits.
+            vrIsTrailingZeros = true;
+            if (acceptBounds) {
+                // mm = mv - 1 - mmShift, so it has 1 trailing 0 bit iff mmShift == 1.
+                vmIsTrailingZeros = mmShift == 1;
+            }
+            else {
+                // mp = mv + 2, so it always has at least one trailing 0 bit.
+                --vp;
+            }
+        }
+        else if (q < 31) { // TODO2: bound checking can be tighter here.
+            vrIsTrailingZeros = Traits::multipleOfPowerOf2(mv, q - 1);
+        }
+    }
+
+    // Step 4: Find the shortest decimal representation in the interval of valid representations.
+    i32 removed = 0;
+    u32 mantissa;
+    if (vmIsTrailingZeros || vrIsTrailingZeros) {
+        // General case, which happens rarely (~4.0%).
+        while (vp / 10 > vm / 10) {
+            vmIsTrailingZeros &= vm % 10 == 0;
+            vrIsTrailingZeros &= lastRemovedDigit == 0;
+            lastRemovedDigit = u8(vr % 10);
+            vr /= 10;
+            vp /= 10;
+            vm /= 10;
+            ++removed;
+        }
+
+        if (vmIsTrailingZeros) {
+            while (vm % 10 == 0) {
+                vrIsTrailingZeros &= lastRemovedDigit == 0;
+                lastRemovedDigit = u8(vr % 10);
+                vr /= 10; vp /= 10; vm /= 10;
+                ++removed;
+            }
+        }
+
+        if (vrIsTrailingZeros && lastRemovedDigit == 5 && vr % 2 == 0) {
+            // Round even if the exact number is .....50..0.
+            lastRemovedDigit = 4;
+        }
+        // We need to take vr + 1 if vr is outside bounds or we need to round up.
+        mantissa = vr + ((vr == vm && (!acceptBounds || !vmIsTrailingZeros)) || lastRemovedDigit >= 5);
+    }
+    else {
+        // Specialized for the common case (~96.0%). Percentages below are relative to this.
+        // Loop iterations below (approximately):
+        // 0: 13.6%, 1: 70.7%, 2: 14.1%, 3: 1.39%, 4: 0.14%, 5+: 0.01%
+        while (vp / 10 > vm / 10) {
+            lastRemovedDigit = u8(vr % 10);
+            vr /= 10; vp /= 10; vm /= 10;
+            removed++;
+        }
+        // We need to take vr + 1 if vr is outside bounds or we need to round up.
+        mantissa = vr + (vr == vm || lastRemovedDigit >= 5);
+    }
+
+    i32 exp = e10 + removed;
+    FloatDecimal fd = { mantissa, exp };
+    return fd;
 }
 
 } // namespace detail

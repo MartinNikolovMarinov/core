@@ -21,8 +21,8 @@ struct radians;
 
 template <typename TFloat>          constexpr u32         exponentBits();
 template <typename TFloat>          constexpr u32         exponentBias();
-template <typename TFloat>          constexpr u32         mantisaBits();
-template <typename TFloat>          constexpr u32         maxMantisaDigitsBase10();
+template <typename TFloat>          constexpr u32         mantissaBits();
+template <typename TFloat>          constexpr u32         maxMantissaDigitsBase10();
                                     constexpr f32         createFloat32(u32 mantissa, u32 exponent, bool sign);
                                     constexpr f64         createFloat64(u64 mantissa, u64 exponent, bool sign);
                                     constexpr void        decomposeFloat32(f32 n, u32& mantissa, u32& exponent, bool& sign);
@@ -175,13 +175,13 @@ template <typename TFloat> constexpr u32 exponentBias() {
     else static_assert(core::always_false<TFloat>, "Unsupported type");
 }
 
-template <typename TFloat> constexpr u32 mantisaBits() {
+template <typename TFloat> constexpr u32 mantissaBits() {
     if constexpr (std::is_same_v<TFloat, f32>) return 23;
     else if constexpr (std::is_same_v<TFloat, f64>) return 52;
     else static_assert(core::always_false<TFloat>, "Unsupported type");
 }
 
-template <typename TFloat> constexpr u32 maxMantisaDigitsBase10() {
+template <typename TFloat> constexpr u32 maxMantissaDigitsBase10() {
     if constexpr (std::is_same_v<TFloat, f32>) return 9;
     else if constexpr (std::is_same_v<TFloat, f64>) return 17;
     else static_assert(core::always_false<TFloat>, "Unsupported type");

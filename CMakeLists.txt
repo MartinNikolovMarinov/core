@@ -3,8 +3,8 @@ project(core VERSION 0.4.0)
 
 set(target_core core)
 set(target_core_upper CORE)
-# set(target_test core_test)
-set(target_test core_sandbox)
+set(target_test core_test)
+# set(target_test core_sandbox)
 
 # Standard Requirements:
 
@@ -187,6 +187,7 @@ if(CORE_BUILD_TESTS)
         tests/t-bits.cpp
         tests/t-cmd_flag_parser.cpp
         tests/t-cstr_conv.cpp
+        tests/t-cstr_conv_cstr_to_float.cpp
         tests/t-cstr.cpp
         tests/t-defer.cpp
         tests/t-expected.cpp

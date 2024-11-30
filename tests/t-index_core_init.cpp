@@ -82,6 +82,8 @@ i32 runAllTests() {
     if (runTestSuite(sInfo, runBitsTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runCstrConvTestsSuite);
     if (runTestSuite(sInfo, runCstrConvTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runCstrConv_CstrToFloat);
+    if (runTestSuite(sInfo, runCstrConv_CstrToFloat) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runCstrTestsSuite);
     if (runTestSuite(sInfo, runCstrTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runDeferTestsSuite);

@@ -124,6 +124,7 @@ i32 runArrTestsSuite();
 i32 runBitsTestsSuite();
 i32 runCmdParserTestsSuite();
 i32 runCstrConvTestsSuite();
+i32 runCstrConv_CstrToFloat();
 i32 runCstrTestsSuite();
 i32 runDeferTestsSuite();
 i32 runExpectedTestsSuite();

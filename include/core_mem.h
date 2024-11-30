@@ -197,11 +197,11 @@ template <typename T> constexpr T* memcopy(T* dest, const T* src, addr_size len)
     }
 
     // The below code can byte copy any T.
-    len *= sizeof(T);
+    if constexpr (!std::is_void_v<T>) len *= sizeof(T);
     return reinterpret_cast<T*>(detail::memcopyImpl(dest, src, len));
 }
 template <typename T> inline T* memset(T* dest, u8 v, addr_size len) {
-    len *= sizeof(T);
+    if constexpr (!std::is_void_v<T>) len *= sizeof(T);
     return reinterpret_cast<T*>(detail::memsetImpl(dest, v, len));
 }
 template <typename T> constexpr T* memset(T* dest, T v, addr_size len) {

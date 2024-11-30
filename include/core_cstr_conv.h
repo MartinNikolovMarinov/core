@@ -203,6 +203,12 @@ constexpr inline u64 umul128(const u64 a, const u64 b, u64* const productHi) {
     return pLo;
 }
 
+constexpr inline u64 shiftright128(u64 lo, u64 hi, u32 dist) {
+    Assert(dist < 64);
+    Assert(dist > 0);
+    return (hi << (64 - dist)) | (lo >> dist);
+}
+
 // Returns e == 0 ? 1 : ceil(log_2(5^e)); requires 0 <= e <= 3528.
 constexpr inline i32 pow5bits(i32 e) {
     // This approximation works up to the point that the multiplication overflows at e = 3529.
@@ -431,6 +437,11 @@ struct FloatTraits<f32> {
 template<>
 struct FloatTraits<f64> {
     using UInt = u64;
+
+    struct FloatDecimal {
+        u64 mantissa;
+        i32 exponent;
+    };
 
     static constexpr i32 MAX_MANTISSA_DIGITS = core::maxMantissaDigitsBase10<f64>();
     static constexpr i32 MANTISSA_BITS = core::mantissaBits<f64>();
@@ -873,6 +884,40 @@ struct FloatTraits<f64> {
 
         return trailingZeros;
     }
+
+    // This is faster if we don't have a 64x64->128-bit multiplication.
+    static constexpr inline u64 mulShiftAll64(u64 m, const u64* const mul, const i32 j, u64* const vp, u64* const vm, const u32 mmShift) {
+        m <<= 1;
+        // m is maximum 55 bits
+        u64 tmp;
+        u64 lo = umul128(m, mul[0], &tmp);
+        u64 hi;
+        u64 mid = tmp + umul128(m, mul[1], &hi);
+        hi += mid < tmp; // overflow into hi
+
+        u64 lo2 = lo + mul[0];
+        u64 mid2 = mid + mul[1] + (lo2 < lo);
+        u64 hi2 = hi + (mid2 < mid);
+        *vp = shiftright128(mid2, hi2, u32(j - 64 - 1));
+
+        if (mmShift == 1) {
+            u64 lo3 = lo - mul[0];
+            u64 mid3 = mid - mul[1] - (lo3 > lo);
+            u64 hi3 = hi - (mid3 > mid);
+            *vm = shiftright128(mid3, hi3, u32(j - 64 - 1));
+        }
+        else {
+            u64 lo3 = lo + lo;
+            u64 mid3 = mid + mid + (lo3 < lo);
+            u64 hi3 = hi + hi + (mid3 < mid);
+            u64 lo4 = lo3 - mul[0];
+            u64 mid4 = mid3 - mul[1] - (lo4 > lo3);
+            u64 hi4 = hi3 - (mid4 > mid3);
+            *vm = shiftright128(mid4, hi4, u32(j - 64));
+        }
+
+        return shiftright128(mid, hi, u32(j - 64 - 1));
+    }
 };
 
 template<typename TFloat>
@@ -1160,6 +1205,191 @@ constexpr FloatTraits<f32>::FloatDecimal floatToDecimal(u32 ieeeMantissa, u32 ie
         }
         // We need to take vr + 1 if vr is outside bounds or we need to round up.
         mantissa = vr + (vr == vm || lastRemovedDigit >= 5);
+    }
+
+    i32 exp = e10 + removed;
+    FloatDecimal fd = { mantissa, exp };
+    return fd;
+}
+
+constexpr FloatTraits<f64>::FloatDecimal floatToDecimal(u64 ieeeMantissa, u32 ieeeExponent) {
+    using Traits = FloatTraits<f64>;
+    using FloatDecimal = Traits::FloatDecimal;
+
+    constexpr u32 DOUBLE_BIAS = Traits::EXPONENT_BIAS;
+    constexpr i32 MANTISSA_BITS = Traits::MANTISSA_BITS;
+    constexpr u32 POW5_INV_BITCOUNT = Traits::POW5_INV_BITCOUNT;
+    constexpr u32 POW5_BITCOUNT = Traits::POW5_BITCOUNT;
+
+    i32 e2;
+    u64 m2;
+    if (ieeeExponent == 0) {
+        // We subtract 2 so that the bounds computation has 2 additional bits.
+        e2 = 1 - i32(DOUBLE_BIAS) - MANTISSA_BITS - 2;
+        m2 = ieeeMantissa;
+    }
+    else {
+        e2 = i32(ieeeExponent) - DOUBLE_BIAS - MANTISSA_BITS - 2;
+        m2 = (1ull << MANTISSA_BITS) | ieeeMantissa;
+    }
+    bool even = (m2 & 1) == 0;
+    bool acceptBounds = even;
+
+    // Step 2: Determine the interval of valid decimal representations.
+    u64 mv = 4 * m2;
+    u32 mmShift = u32(ieeeMantissa != 0) || u32(ieeeExponent <= 1);
+
+    // Step 3: Convert to a decimal power base using 128-bit arithmetic.
+    u64 vr, vp, vm;
+    i32 e10;
+    bool vmIsTrailingZeros = false;
+    bool vrIsTrailingZeros = false;
+    if (e2 >= 0) {
+        u32 q = log10pow2(e2) - (e2 > 3);
+        e10 = i32(q);
+        i32 k = POW5_INV_BITCOUNT + pow5bits(i32(q)) - 1;
+        i32 i = -e2 + i32(q) + k;
+
+        vr = Traits::mulShiftAll64(m2, Traits::POW5_INV_SPLIT[q], i, &vp, &vm, mmShift);
+
+        if (q <= 21) {
+            // Only one of mp, mv, and mm can be a multiple of 5, if any.
+            u32 mvMod5 = u32(mv) - 5 * u32(mv / 5);
+            if (mvMod5 == 0) {
+                vrIsTrailingZeros = Traits::multipleOfPowerOf5(mv, q);
+            }
+            else if (acceptBounds) {
+                // Same as min(e2 + (~mm & 1), pow5Factor(mm)) >= q
+                // <=> e2 + (~mm & 1) >= q && pow5Factor(mm) >= q
+                // <=> true && pow5Factor(mm) >= q, since e2 >= q.
+                vmIsTrailingZeros = Traits::multipleOfPowerOf5(mv - 1 - mmShift, q);
+            }
+            else {
+                // Same as min(e2 + 1, pow5Factor(mp)) >= q.
+                vp -= Traits::multipleOfPowerOf5(mv + 2, q);
+            }
+        }
+    }
+    else {
+        // This expression is slightly faster than max(0, log10Pow5(-e2) - 1).
+        u32 q = log10pow5(-e2) - (-e2 > 1);
+        e10 = i32(q) + e2;
+        i32 i = -e2 - i32(q);
+        i32 k = pow5bits(i) - POW5_BITCOUNT;
+        i32 j = i32(q) - k;
+
+        vr = Traits::mulShiftAll64(m2, Traits::POW5_SPLIT[i], j, &vp, &vm, mmShift);
+
+        if (q <= 1) {
+            // {vr,vp,vm} is trailing zeros if {mv,mp,mm} has at least q trailing 0 bits.
+            // mv = 4 * m2, so it always has at least two trailing 0 bits.
+            vrIsTrailingZeros = true;
+            if (acceptBounds) {
+                // mm = mv - 1 - mmShift, so it has 1 trailing 0 bit iff mmShift == 1.
+                vmIsTrailingZeros = mmShift == 1;
+            }
+            else {
+                // mp = mv + 2, so it always has at least one trailing 0 bit.
+                --vp;
+            }
+        }
+        else if (q < 63) { // TODO2: bound checking can be tighter here.
+            // We want to know if the full product has at least q trailing zeros.
+            // We need to compute min(p2(mv), p5(mv) - e2) >= q
+            // <=> p2(mv) >= q && p5(mv) - e2 >= q
+            // <=> p2(mv) >= q (because -e2 >= q)
+            vrIsTrailingZeros = Traits::multipleOfPowerOf2(mv, q);
+        }
+    }
+
+    // Step 4: Find the shortest decimal representation in the interval of valid representations.
+    i32 removed = 0;
+    u8 lastRemovedDigit = 0;
+    u64 mantissa;
+    // On average, we remove ~2 digits.
+    if (vmIsTrailingZeros || vrIsTrailingZeros) {
+        // General case, which happens rarely (~0.7%).
+        for (;;) {
+            u64 vpDiv10 = vp / 10;
+            u64 vmDiv10 = vm / 10;
+            if (vpDiv10 <= vmDiv10) {
+                break;
+            }
+            u32 vmMod10 = (u32(vm)) - 10 * u32(vmDiv10);
+            u64 vrDiv10 = vr / 10;
+            u32 vrMod10 = u32(vr) - 10 * u32(vrDiv10);
+            vmIsTrailingZeros &= vmMod10 == 0;
+            vrIsTrailingZeros &= lastRemovedDigit == 0;
+            lastRemovedDigit = u8(vrMod10);
+            vr = vrDiv10;
+            vp = vpDiv10;
+            vm = vmDiv10;
+            ++removed;
+        }
+
+        if (vmIsTrailingZeros) {
+            for (;;) {
+                u64 vmDiv10 = vm / 10;
+                u32 vmMod10 = u32(vm) - 10 * u32(vmDiv10);
+                if (vmMod10 != 0) {
+                    break;
+                }
+                u64 vpDiv10 = vp / 10;
+                u64 vrDiv10 = vr / 10;
+                u32 vrMod10 = u32(vr) - 10 * u32(vrDiv10);
+                vrIsTrailingZeros &= lastRemovedDigit == 0;
+                lastRemovedDigit = u8(vrMod10);
+                vr = vrDiv10;
+                vp = vpDiv10;
+                vm = vmDiv10;
+                ++removed;
+            }
+        }
+
+        if (vrIsTrailingZeros && lastRemovedDigit == 5 && vr % 2 == 0) {
+            // Round even if the exact number is .....50..0.
+            lastRemovedDigit = 4;
+        }
+
+        // We need to take vr + 1 if vr is outside bounds or we need to round up.
+        mantissa = vr + ((vr == vm && (!acceptBounds || !vmIsTrailingZeros)) || lastRemovedDigit >= 5);
+    }
+    else {
+        // Specialized for the common case (~99.3%). Percentages below are relative to this.
+        bool roundUp = false;
+        u64 vpDiv100 = vp / 100;
+        u64 vmDiv100 = vm / 100;
+        if (vpDiv100 > vmDiv100) { // Optimization: remove two digits at a time (~86.2%).
+            u64 vrDiv100 = vr / 100;
+            u32 vrMod100 = u32(vr) - 100 * u32(vrDiv100);
+            roundUp = vrMod100 >= 50;
+            vr = vrDiv100;
+            vp = vpDiv100;
+            vm = vmDiv100;
+            removed += 2;
+        }
+
+        // Loop iterations below (approximately), without optimization above:
+        // 0: 0.03%, 1: 13.8%, 2: 70.6%, 3: 14.0%, 4: 1.40%, 5: 0.14%, 6+: 0.02%
+        // Loop iterations below (approximately), with optimization above:
+        // 0: 70.6%, 1: 27.8%, 2: 1.40%, 3: 0.14%, 4+: 0.02%
+        for (;;) {
+            u64 vpDiv10 = vp / 10;
+            u64 vmDiv10 = vm / 10;
+            if (vpDiv10 <= vmDiv10) {
+                break;
+            }
+            u64 vrDiv10 = vr / 10;
+            u32 vrMod10 = u32(vr) - 10 * u32(vrDiv10);
+            roundUp = vrMod10 >= 5;
+            vr = vrDiv10;
+            vp = vpDiv10;
+            vm = vmDiv10;
+            ++removed;
+        }
+
+        // We need to take vr + 1 if vr is outside bounds or we need to round up.
+        mantissa = vr + (vr == vm || roundUp);
     }
 
     i32 exp = e10 + removed;

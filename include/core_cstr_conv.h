@@ -796,17 +796,42 @@ struct FloatTraits<f64> {
         {  3278889188817135834u, 1424047269444608885u }, {  8710297504448807696u, 1780059086805761106u }
     };
 
-    static constexpr u32 floorLog2(u64 x) {
+    static constexpr inline u32 decimalLength17(u64 v) {
+        // This is slightly faster than a loop.
+        // The average output length is 16.38 digits, so we check high-to-low.
+        // Function precondition: v is not an 18, 19, or 20-digit number.
+        // (17 digits are sufficient for round-tripping.)
+        Assert(v < 100000000000000000L);
+        if (v >= 10000000000000000L) { return 17; }
+        if (v >= 1000000000000000L) { return 16; }
+        if (v >= 100000000000000L) { return 15; }
+        if (v >= 10000000000000L) { return 14; }
+        if (v >= 1000000000000L) { return 13; }
+        if (v >= 100000000000L) { return 12; }
+        if (v >= 10000000000L) { return 11; }
+        if (v >= 1000000000L) { return 10; }
+        if (v >= 100000000L) { return 9; }
+        if (v >= 10000000L) { return 8; }
+        if (v >= 1000000L) { return 7; }
+        if (v >= 100000L) { return 6; }
+        if (v >= 10000L) { return 5; }
+        if (v >= 1000L) { return 4; }
+        if (v >= 100L) { return 3; }
+        if (v >= 10L) { return 2; }
+        return 1;
+    }
+
+    static constexpr inline u32 floorLog2(u64 x) {
         return 63 - core::intrin_countLeadingZeros(x);
     }
 
-    static constexpr u64 shiftRight128(u64 low, u64 high, u64 dist) {
+    static constexpr inline u64 shiftRight128(u64 low, u64 high, u64 dist) {
         Assert(dist < 64);
         Assert(dist > 0);
         return (high << (64 - dist)) | (low >> dist);
     }
 
-    static constexpr u64 mulShift(u64 m, const u64* mul, u32 j) {
+    static constexpr inline u64 mulShift(u64 m, const u64* mul, u32 j) {
         u64 high1;
         u64 low1 = umul128(m, mul[1], &high1);
         u64 high0;
@@ -818,7 +843,7 @@ struct FloatTraits<f64> {
         return shiftRight128(sum, high1, j - 64);
     }
 
-    static constexpr u32 pow5Factor(u64 value) {
+    static constexpr inline u32 pow5Factor(u64 value) {
         constexpr u64 mInvDiv = 14757395258967641293u; // 5 * mInvDiv = 1 (mod 2^64)
         constexpr u64 nDiv5 = 3689348814741910323u;    // #{ n | n = 0 (mod 2^64) } = 2^64 / 5
         u32 count = 0;
@@ -832,18 +857,18 @@ struct FloatTraits<f64> {
         return count;
     }
 
-    static constexpr bool multipleOfPowerOf5(u64 value, u32 p) {
+    static constexpr inline bool multipleOfPowerOf5(u64 value, u32 p) {
         return pow5Factor(value) >= p;
     }
 
-    static constexpr bool multipleOfPowerOf2(u64 value, const u32 p) {
+    static constexpr inline bool multipleOfPowerOf2(u64 value, const u32 p) {
         Assert(value != 0);
         Assert(p < 64);
         // __builtin_ctzll doesn't appear to be faster here.
         return (value & ((1ull << p) - 1)) == 0;
     }
 
-    static constexpr bool convertFloatToBinary(u64 mantissa, i32 exponent, u64& m2, i32& e2) {
+    static constexpr inline bool convertFloatToBinary(u64 mantissa, i32 exponent, u64& m2, i32& e2) {
         // Convert to binary float m2 * 2^e2, while retaining information about whether the conversion
         // was exact (trailingZeros).
         bool trailingZeros;
@@ -1413,8 +1438,8 @@ constexpr inline i32 toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* 
 
     // Print the decimal digits.
     // The following code is equivalent to:
-    // for (uint32_t i = 0; i < mantissaLen - 1; ++i) {
-    //     const uint32_t c = mantissa % 10; mantissa /= 10;
+    // for (u32 i = 0; i < mantissaLen - 1; ++i) {
+    //     const u32 c = mantissa % 10; mantissa /= 10;
     //     result[index + mantissaLen - i] = (char) ('0' + c);
     // }
     // result[index] = '0' + mantissa % 10;
@@ -1473,6 +1498,106 @@ constexpr inline i32 toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* 
     return index;
 }
 
+constexpr inline i32 toChars(FloatTraits<f64>::FloatDecimal v, bool sign, char* out, [[maybe_unused]] u32 olen) {
+    // FIXME: check the that the output buffer has enough space for all write operations!
+
+    using Traits = FloatTraits<f64>;
+
+    // Step 5: Print the decimal representation.
+    int index = 0;
+    if (sign) {
+        out[index++] = '-';
+    }
+
+    u64 mantissa = v.mantissa;
+    u32 olength = Traits::decimalLength17(mantissa);
+
+    u32 i = 0;
+    // We prefer 32-bit operations, even on 64-bit platforms.
+    // We have at most 17 digits, and u32 can store 9 digits.
+    // If output doesn't fit into u32, we cut off 8 digits,
+    // so the rest will fit into u32.
+    if ((mantissa >> 32) != 0) {
+        // Expensive 64-bit division.
+        const u64 q =  mantissa / 100000000;
+        u32 mantissa2 = u32(mantissa) - 100000000 * u32(q);
+        mantissa = q;
+
+        const u32 c = mantissa2 % 10000;
+        mantissa2 /= 10000;
+        const u32 d = mantissa2 % 10000;
+        const u32 c0 = (c % 100) << 1;
+        const u32 c1 = (c / 100) << 1;
+        const u32 d0 = (d % 100) << 1;
+        const u32 d1 = (d / 100) << 1;
+        core::memcopy(out + index + olength - 1, DIGIT_TABLE + c0, 2);
+        core::memcopy(out + index + olength - 3, DIGIT_TABLE + c1, 2);
+        core::memcopy(out + index + olength - 5, DIGIT_TABLE + d0, 2);
+        core::memcopy(out + index + olength - 7, DIGIT_TABLE + d1, 2);
+        i += 8;
+    }
+
+    u32 mantissa2 = u32(mantissa);
+    while (mantissa2 >= 10000) {
+        u32 c = mantissa2 % 10000;
+        mantissa2 /= 10000;
+        const u32 c0 = (c % 100) << 1;
+        const u32 c1 = (c / 100) << 1;
+        core::memcopy(out + index + olength - i - 1, DIGIT_TABLE + c0, 2);
+        core::memcopy(out + index + olength - i - 3, DIGIT_TABLE + c1, 2);
+        i += 4;
+    }
+
+    if (mantissa2 >= 100) {
+        const u32 c = (mantissa2 % 100) << 1;
+        mantissa2 /= 100;
+        core::memcopy(out + index + olength - i - 1, DIGIT_TABLE + c, 2);
+        i += 2;
+    }
+    if (mantissa2 >= 10) {
+        u32 c = mantissa2 << 1;
+        // We can't use memcpy here: the decimal dot goes between these two digits.
+        out[index + olength - i] = DIGIT_TABLE[c + 1];
+        out[index] = DIGIT_TABLE[c];
+    }
+    else {
+        out[index] = core::toDigit<char>(char(mantissa2));
+    }
+
+    // Print decimal point if needed.
+    if (olength > 1) {
+        out[index + 1] = '.';
+        index += olength + 1;
+    }
+    else {
+        index++;
+    }
+
+    // Print the exponent.
+    out[index++] = 'E';
+    i32 exp = v.exponent + i32(olength) - 1;
+    if (exp < 0) {
+        out[index++] = '-';
+        exp = -exp;
+    }
+
+    if (exp >= 100) {
+        i32 c = exp % 10;
+        core::memcopy(out + index, DIGIT_TABLE + 2 * (exp / 10), 2);
+        out[index + 2] = core::toDigit<char>(char(c));
+        index += 3;
+    }
+    else if (exp >= 10) {
+        core::memcopy(out + index, DIGIT_TABLE + 2 * exp, 2);
+        index += 2;
+    }
+    else {
+        out[index++] = core::toDigit<char>(char(exp));
+    }
+
+    return index;
+}
+
 constexpr u32 float32ToCstr(f32 n, char* out, u32 olen) {
     using Traits = FloatTraits<f32>;
     using FloatDecimal = Traits::FloatDecimal;
@@ -1491,9 +1616,70 @@ constexpr u32 float32ToCstr(f32 n, char* out, u32 olen) {
     return toChars(v, ieeeSign, out, olen);
 }
 
-constexpr u32 float64ToCstr(f64, char*, u32) {
-    // FIXME: implement next
-    return 0;
+constexpr u32 float64ToCstr(f64 n, char* out, u32 olen) {
+    using Traits = FloatTraits<f64>;
+    using FloatDecimal = Traits::FloatDecimal;
+
+    constexpr u32 MANTISSA_BITS = Traits::MANTISSA_BITS;
+    constexpr i32 EXPONENT_BITS = Traits::EXPONENT_BITS;
+    constexpr i32 DOUBLE_BIAS = Traits::EXPONENT_BIAS;
+
+    auto isSmallInt = [](u64 ieeeMantissa, u32 ieeeExponent, FloatDecimal& v) -> bool {
+        u64 m2 = (1ull << MANTISSA_BITS) | ieeeMantissa;
+        i32 e2 = i32(ieeeExponent) - DOUBLE_BIAS - MANTISSA_BITS;
+
+        if (e2 > 0) {
+            return false;
+        }
+
+        if (e2 < -52) {
+            return false;
+        }
+
+        // Since 2^52 <= m2 < 2^53 and 0 <= -e2 <= 52: 1 <= f = m2 / 2^-e2 < 2^53.
+        // Test if the lower -e2 bits of the significand are 0, i.e. whether the fraction is 0.
+        u64 mask = (1ull << -e2) - 1;
+        u64 fraction = m2 & mask;
+        if (fraction != 0) {
+            return false;
+        }
+
+        // f is an integer in the range [1, 2^53).
+        // Note: mantissa might contain trailing (decimal) 0's.
+        // Note: since 2^53 < 10^16, there is no need to adjust decimalLength17().
+        v.mantissa = m2 >> -e2;
+        v.exponent = 0;
+        return true;
+    };
+
+    bool ieeeSign;
+    u64 ieeeMantissa;
+    u32 ieeeExponent;
+    core::decomposeFloat64(n, ieeeMantissa, ieeeExponent, ieeeSign);
+
+    if (ieeeExponent == ((1u << EXPONENT_BITS) - 1u) || (ieeeExponent == 0 && ieeeMantissa == 0)) {
+        return copySpecialStr(ieeeSign, ieeeExponent, ieeeMantissa, out, olen);
+    }
+
+    FloatDecimal res = {};
+    if (isSmallInt(ieeeMantissa, ieeeExponent, res)) {
+        // For small integers in the range [1, 2^53), v.mantissa might contain trailing (decimal) zeros.
+        // For scientific notation we need to move these zeros into the exponent.
+        for (;;) {
+            u64 q = res.mantissa / 10;
+            u32 r = u32(res.mantissa) - 10 * u32(q);
+            if (r != 0) {
+                break;
+            }
+            res.mantissa = q;
+            res.exponent++;
+        }
+    }
+    else {
+        res = floatToDecimal(ieeeMantissa, ieeeExponent);
+    }
+
+    return toChars(res, ieeeSign, out, olen);
 }
 
 } // namespace detail

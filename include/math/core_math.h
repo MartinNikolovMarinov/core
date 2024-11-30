@@ -26,7 +26,7 @@ template <typename TFloat>          constexpr u32         maxMantissaDigitsBase1
                                     constexpr f32         createFloat32(u32 mantissa, u32 exponent, bool sign);
                                     constexpr f64         createFloat64(u64 mantissa, u64 exponent, bool sign);
                                     constexpr void        decomposeFloat32(f32 n, u32& mantissa, u32& exponent, bool& sign);
-                                    constexpr void        decomposeFloat64(f64 n, u64& mantissa, u64& exponent, bool& sign);
+                                    constexpr void        decomposeFloat64(f64 n, u64& mantissa, u32& exponent, bool& sign);
 
 template <typename TInt>            constexpr i32         maxDigitsBase2();
 template <typename TInt>            constexpr i32         maxDigitsBase10();
@@ -225,15 +225,15 @@ constexpr void decomposeFloat32(f32 n, u32& mantissa, u32& exponent, bool& sign)
     mantissa = bits & MANTISSA_MASK;
 }
 
-constexpr void decomposeFloat64(f64 n, u64& mantissa, u64& exponent, bool& sign) {
+constexpr void decomposeFloat64(f64 n, u64& mantissa, u32& exponent, bool& sign) {
     constexpr u64 SIGN_BIT_SHIFT = 63;
     constexpr u64 EXPONENT_BIT_SHIFT = 52;
-    constexpr u64 EXPONENT_MASK = 0x7FF;          // 11 bits for exponent
+    constexpr u64 EXPONENT_MASK = 0x7FF;           // 11 bits for exponent
     constexpr u64 MANTISSA_MASK = 0xFFFFFFFFFFFFF; // 52 bits for mantissa
 
     u64 bits = core::bitCast<u64>(n);
     sign = ((bits >> SIGN_BIT_SHIFT) & 1u) != 0u;
-    exponent = (bits >> EXPONENT_BIT_SHIFT) & EXPONENT_MASK;
+    exponent = u32((bits >> EXPONENT_BIT_SHIFT) & EXPONENT_MASK);
     mantissa = bits & MANTISSA_MASK;
 }
 

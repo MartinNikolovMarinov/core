@@ -5451,7 +5451,8 @@ constexpr core::expected<TFloat, ParseError> cstrToFloatImpl(const char* s, u32 
     if (s[i] == '-') {
         isNegative = true;
         i++;
-    } else if (s[i] == '+') {
+    }
+    else if (s[i] == '+') {
         i++;
     }
 
@@ -5479,7 +5480,8 @@ constexpr core::expected<TFloat, ParseError> cstrToFloatImpl(const char* s, u32 
                 return core::unexpected(ParseError::InputHasMultipleDots);
             }
             dotIndex = i;
-        } else {
+        }
+        else {
             if (!core::isDigit(c)) break;
             if (mantissaDigits >= MAX_MANTISSA_DIGITS) return core::unexpected(ParseError::InputNumberTooLarge);
             mantissa = 10 * mantissa + core::toDigit<UInt>(c);
@@ -5537,7 +5539,8 @@ constexpr core::expected<TFloat, ParseError> cstrToFloatImpl(const char* s, u32 
 
     // Compute the final IEEE exponent.
     u32 ieee_e2 = std::max(0, e2 + i32(EXPONENT_BIAS) + i32(Traits::floorLog2(m2)));
-    if (ieee_e2 > ((1u << EXPONENT_BITS) - 2)) {
+    constexpr u32 MAX_IEEE_EXPONENT = ((1u << EXPONENT_BITS) - 2);
+    if (ieee_e2 > MAX_IEEE_EXPONENT) {
         // Overflow to infinity
         UInt ieee = (UInt(isNegative) << (EXPONENT_BITS + MANTISSA_BITS)) | ((1ull << EXPONENT_BITS) - 1) << MANTISSA_BITS;
         return core::bitCast<TFloat>(ieee);

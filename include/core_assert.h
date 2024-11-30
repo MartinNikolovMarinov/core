@@ -32,7 +32,9 @@ CORE_API_EXPORT GlobalAssertHandlerFn getGlobalAssertHandler();
             }
     #endif
 #else
-    #define Assert(...)
+    #ifndef Assert
+        #define Assert(...)
+    #endif
 #endif
 
 #ifndef Panic

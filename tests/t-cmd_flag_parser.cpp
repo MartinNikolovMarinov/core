@@ -701,9 +701,9 @@ i32 cmdParserAliasTest() {
 }
 
 i32 runCmdParserTestsSuite() {
-    return 0; // FIXME: After fixing float parsing, remove this.
-
     using namespace core::testing;
+
+    // FIXME: Decide what to do when parsing input like "123asd", "12.3asxzc", "12.3 ", etc., because they currently fail and that is probably not correct behaviour.
 
     auto runTests = [] (TestInfo& tInfo, const char* description, i32& retCode) {
         tInfo.description = description;

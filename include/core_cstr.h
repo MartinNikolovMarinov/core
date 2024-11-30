@@ -35,13 +35,15 @@ constexpr inline bool isWhiteSpace(char c) { return c == ' ' || c == '\t' || c =
 template <typename T>
 constexpr inline T toDigit(char s) {
     static_assert(std::is_arithmetic_v<T>, "T must be an arithmetic type.");
-    return static_cast<T>(s - '0');
+    return T(s - '0');
 }
 
-template<typename TInt>
-constexpr inline char digitToChar(TInt digit) {
-    static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
-    return static_cast<char>((digit % 10) + '0');
+template<typename T>
+constexpr inline char digitToChar(T digit) {
+    if constexpr (sizeof(T) == 1) {
+        return char(digit) + '0';
+    }
+    return char(digit % 10) + '0';
 }
 
 constexpr inline char toLowerCaseANSI(char c) { return (c | 0x20); }

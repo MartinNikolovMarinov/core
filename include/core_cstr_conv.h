@@ -329,7 +329,7 @@ constexpr inline void appendDigitsCutExcess(u32 count, u32 digits, char* result)
     }
     // Generate the last digit if count is odd.
     if (i < count) {
-        char c =  core::toDigit<char>(char(digits % 10));
+        char c =  core::digitToChar(digits);
         result[count - i - 1] = c;
     }
 }
@@ -351,7 +351,7 @@ constexpr inline void appendNineDigits(u32 digits, char* out) {
         core::memcopy(out + 7 - i, DIGIT_TABLE + c0, 2);
         core::memcopy(out + 5 - i, DIGIT_TABLE + c1, 2);
     }
-    out[0] = core::toDigit<char>(char('0' + digits));
+    out[0] = core::digitToChar(char('0' + digits));
 }
 
 template<typename TFloat> struct FloatTraits;
@@ -5639,9 +5639,9 @@ constexpr FloatTraits<f32>::FloatDecimal floatToDecimal(u32 ieeeMantissa, u32 ie
         i32 k = pow5bits(i) - POW5_BITCOUNT;
         i32 j = i32(q) - k;
 
-        vr = Traits::mulShift(mv, Traits::POW5_INV_SPLIT[i], j);
-        vp = Traits::mulShift(mp, Traits::POW5_INV_SPLIT[i], j);
-        vm = Traits::mulShift(mm, Traits::POW5_INV_SPLIT[i], j);
+        vr = Traits::mulShift(mv, Traits::POW5_SPLIT[i], j);
+        vp = Traits::mulShift(mp, Traits::POW5_SPLIT[i], j);
+        vm = Traits::mulShift(mm, Traits::POW5_SPLIT[i], j);
 
         if (q != 0 && (vp - 1) / 10 <= vm / 10) {
             j = i32(q) - 1 - (pow5bits(i + 1) - POW5_BITCOUNT);
@@ -5941,7 +5941,7 @@ constexpr inline i32 toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* 
         out[index] = DIGIT_TABLE[c];
     }
     else {
-        out[index] = core::toDigit<char>(char(mantissa));
+        out[index] = core::digitToChar(char(mantissa));
     }
 
     // Print decimal point if needed.
@@ -5950,7 +5950,7 @@ constexpr inline i32 toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* 
         index += mantissaLen + 1;
     }
     else {
-        ++index;
+        index++;
     }
 
     // Print the exponent.
@@ -5966,7 +5966,7 @@ constexpr inline i32 toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* 
         index += 2;
     }
     else {
-        out[index++] = core::toDigit<char>(char(exp));
+        out[index++] = core::digitToChar(char(exp));
     }
 
     return index;
@@ -6031,7 +6031,7 @@ constexpr inline i32 toChars(FloatTraits<f64>::FloatDecimal v, bool sign, char* 
         out[index] = DIGIT_TABLE[c];
     }
     else {
-        out[index] = core::toDigit<char>(char(mantissa2));
+        out[index] = core::digitToChar(char(mantissa2));
     }
 
     // Print decimal point if needed.
@@ -6054,7 +6054,7 @@ constexpr inline i32 toChars(FloatTraits<f64>::FloatDecimal v, bool sign, char* 
     if (exp >= 100) {
         i32 c = exp % 10;
         core::memcopy(out + index, DIGIT_TABLE + 2 * (exp / 10), 2);
-        out[index + 2] = core::toDigit<char>(char(c));
+        out[index + 2] = core::digitToChar(char(c));
         index += 3;
     }
     else if (exp >= 10) {
@@ -6062,7 +6062,7 @@ constexpr inline i32 toChars(FloatTraits<f64>::FloatDecimal v, bool sign, char* 
         index += 2;
     }
     else {
-        out[index++] = core::toDigit<char>(char(exp));
+        out[index++] = core::digitToChar(char(exp));
     }
 
     return index;
@@ -6198,7 +6198,7 @@ constexpr u32 float64ToFixedCstr(f64 n, u32 precision, char* out, u32 olen) {
             core::memcopy(oout + olength - i - 2, DIGIT_TABLE + c, 2);
         }
         else {
-            oout[0] = core::toDigit<char>(char(digits));
+            oout[0] = core::digitToChar(char(digits));
         }
     };
 

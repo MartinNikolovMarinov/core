@@ -6,11 +6,8 @@
 #include <bitset>
 #include <cstdio>
 
+#include "tests/common/ryu_reference_impl/ryu.h"
 #include "tests/common/ryu_reference_impl/ryu_parse.h"
-
-// constexpr const char* digits = "01.126";
-// constexpr addr_size digitsSize = core::cstrLen(digits);
-// constexpr auto res = core::cstrToFloat<f32>(digits, digitsSize);
 
 void assertHandler(const char* failedExpr, const char* file, i32 line, const char* funcName, const char* errMsg) {
     constexpr u32 stackFramesToSkip = 2;
@@ -40,52 +37,21 @@ void assertHandler(const char* failedExpr, const char* file, i32 line, const cha
 
 i32 main() {
     core::initProgramCtx(assertHandler, nullptr);
-    std::cout << std::fixed << std::setprecision(17);
 
-    std::ostringstream ss;
-    ss << std::fixed << std::setprecision(17);
-
-    // 0x3F800000; // One in float
-    // 0x3FF0000000000000; // One in double
-    u64 n = 0x3FF0000000000000;
-
-    bool above10 = false;
-    bool above100 = false;
-    bool above1000 = false;
-    bool above10000 = false;
-
-    for (; n < core::limitMax<u64>(); n++) {
-        char s[64];
-        f64 v = core::bitCast<f64>(n);
-        i32 sN = std::sprintf(s, "%.16f", v);
-
-        if (!above10 && v >= 10) {
-            above10 = true;
-            ss << std::fixed << std::setprecision(16);
-        }
-        else if (!above100 && v >= 10) {
-            above100 = true;
-            ss << std::fixed << std::setprecision(15);
-        }
-        else if (!above1000 && v >= 10) {
-            above1000 = true;
-            ss << std::fixed << std::setprecision(14);
-        }
-        else if (!above10000 && v >= 10) {
-            above10000 = true;
-            ss << std::fixed << std::setprecision(13);
-        }
-
-        f64 ryuRes;
-        auto status = ryu::s2d_n(s, sN, &ryuRes);
-        Assert(status == ryu::Status::SUCCESS);
-
-        f64 myRes = core::Unpack(core::cstrToFloat<f64>(s, sN));
-
-        Assert(ryuRes == myRes, "Failed to meet criteria");
-
-        std::cout << s << " OK ->" << std::bitset<sizeof(n)*17>(n) << std::endl;
+    {
+        char buff[64];
+        i32 n = core::floatToCstr(5.2f, buff, 64);
+        buff[n] = '\0';
+        std::cout << "buff = " << buff << " n = " << n << std::endl;
     }
+
+    {
+        char buff[64];
+        i32 n = ryu::f2s_buffered_n(5.2f, buff);
+        buff[n] = '\0';
+        std::cout << "buff = " << buff << " n = " << n << std::endl;
+    }
+
 
     return 0;
 }

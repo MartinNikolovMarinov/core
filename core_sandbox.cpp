@@ -40,6 +40,7 @@ i32 main() {
 
     {
         char buff[64];
+        core::memset(buff, 5, 64);
         i32 n = core::floatToCstr(5.2f, buff, 64);
         buff[n] = '\0';
         std::cout << "buff = " << buff << " n = " << n << std::endl;

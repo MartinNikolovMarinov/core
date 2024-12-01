@@ -295,7 +295,7 @@ constexpr inline u32 decimalLength17(u64 v) {
 }
 
 constexpr inline i32 copySpecialStr(bool sign, bool exponent, bool mantissa, char* out, [[maybe_unused]] u32 olen, bool exponentFormant = true) {
-    Assert(olen > u32(sign) + 3, "provider buffer is short");
+    Assert(olen > u32(sign) + 3, "provider buffer is too short to fit special string");
 
     if (mantissa) {
         core::memcopy(out, "NaN", 3);
@@ -5900,11 +5900,49 @@ constexpr FloatTraits<f64>::FloatDecimal floatToDecimal(u64 ieeeMantissa, u32 ie
     return fd;
 }
 
-constexpr inline i32 toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* out, [[maybe_unused]] u32 olen) {
+struct OutputBuffer {
+    char* out;
+    u32 widx;
+    u32 max;
+
+    constexpr OutputBuffer(char* buf, u32 blen) : out(buf), widx(0), max(blen) {}
+
+    constexpr inline bool writeCharAt(char a, u32 idx) {
+        if (idx >= max) return false;
+        out[idx] = a;
+        return true;
+    }
+
+    constexpr inline bool writeChar(char a) {
+        if (!writeCharAt(a, widx)) return false;
+        widx++;
+        return true;
+    }
+
+    constexpr inline bool writeAt(const char* in, u32 inLen, u32 offset) {
+        if (offset + inLen >= max) return false;
+        core::memcopy(out + offset, in, inLen);
+        return true;
+    }
+
+    constexpr inline bool write(const char* in, u32 inLen) {
+        if (!writeAt(in, inLen, widx)) return false;
+        widx += inLen;
+        return true;
+    }
+
+    constexpr inline bool advance(u32 len) {
+        if (widx + len >= max) return false;
+        widx += len;
+        return true;
+    }
+};
+
+constexpr inline u32 toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* out, [[maybe_unused]] u32 olen) {
     // Step 5: Print the decimal representation.
-    i32 index = 0;
+    OutputBuffer obuf(out, olen);
     if (sign) {
-        out[index++] = '-';
+        if (!obuf.writeChar('-')) return obuf.widx;
     }
 
     u32 mantissa = v.mantissa;
@@ -5923,56 +5961,57 @@ constexpr inline i32 toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* 
         mantissa /= 10000;
         u32 c0 = (c % 100) << 1;
         u32 c1 = (c / 100) << 1;
-        core::memcopy(out + index + mantissaLen - i - 1, DIGIT_TABLE + c0, 2);
-        core::memcopy(out + index + mantissaLen - i - 3, DIGIT_TABLE + c1, 2);
+        if (!obuf.writeAt(DIGIT_TABLE + c0, 2, obuf.widx + mantissaLen - i - 1)) return obuf.widx;
+        if (!obuf.writeAt(DIGIT_TABLE + c1, 2, obuf.widx + mantissaLen - i - 3)) return obuf.widx;
         i += 4;
     }
 
     if (mantissa >= 100) {
         u32 c = (mantissa % 100) << 1;
         mantissa /= 100;
-        core::memcopy(out + index + mantissaLen - i - 1, DIGIT_TABLE + c, 2);
+        if (!obuf.writeAt(DIGIT_TABLE + c, 2, obuf.widx + mantissaLen - i - 1)) return obuf.widx;
         i += 2;
     }
     if (mantissa >= 10) {
         u32 c = mantissa << 1;
         // We can't use memcpy here: the decimal dot goes between these two digits.
-        out[index + mantissaLen - i] = DIGIT_TABLE[c + 1];
-        out[index] = DIGIT_TABLE[c];
+        if (!obuf.writeCharAt(DIGIT_TABLE[c + 1], obuf.widx + mantissaLen - i)) return obuf.widx;
+        if (!obuf.writeCharAt(DIGIT_TABLE[c], obuf.widx)) return obuf.widx;
     }
     else {
-        out[index] = core::digitToChar(char(mantissa));
+        char digit = core::digitToChar(char(mantissa));
+        if (!obuf.writeCharAt(digit, obuf.widx)) return obuf.widx;
     }
 
     // Print decimal point if needed.
     if (mantissaLen > 1) {
-        out[index + 1] = '.';
-        index += mantissaLen + 1;
+        obuf.writeCharAt('.', obuf.widx + 1);
+        obuf.advance(mantissaLen + 1);
     }
     else {
-        index++;
+        obuf.advance(1);
     }
 
     // Print the exponent.
-    out[index++] = 'E';
+    obuf.writeChar('E');
     i32 exp = v.exponent + i32(mantissaLen) - 1;
     if (exp < 0) {
-        out[index++] = '-';
+        obuf.writeChar('-');
         exp = -exp;
     }
 
     if (exp >= 10) {
-        core::memcopy(out + index, DIGIT_TABLE + 2 * exp, 2);
-        index += 2;
+        obuf.write(DIGIT_TABLE + 2 * exp, 2);
     }
     else {
-        out[index++] = core::digitToChar(char(exp));
+        char digit = core::digitToChar(char(exp));
+        obuf.writeChar(digit);
     }
 
-    return index;
+    return obuf.widx;
 }
 
-constexpr inline i32 toChars(FloatTraits<f64>::FloatDecimal v, bool sign, char* out, [[maybe_unused]] u32 olen) {
+constexpr inline u32 toChars(FloatTraits<f64>::FloatDecimal v, bool sign, char* out, [[maybe_unused]] u32 olen) {
     // Step 5: Print the decimal representation.
     int index = 0;
     if (sign) {

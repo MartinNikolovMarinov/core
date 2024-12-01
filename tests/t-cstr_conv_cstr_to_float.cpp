@@ -743,7 +743,7 @@ constexpr i32 inputCloseToLimitTest() {
     return 0;
 }
 
-i32 runCstrConv_CstrToFloat() {
+i32 runCstrConv_CstrToFloat_TestsSuite() {
     using namespace core::testing;
 
     i32 ret = 0;
@@ -767,7 +767,7 @@ i32 runCstrConv_CstrToFloat() {
     return ret;
 }
 
-constexpr i32 runCompiletimeCstrConvTestsSuite() {
+constexpr i32 runCompiletimeCstrConv_CstrToFloat_TestsSuite() {
     RunTestCompileTime(exponentNotationTest);
     RunTestCompileTime(normalNotationTest);
     RunTestCompileTime(specialValuesTest);

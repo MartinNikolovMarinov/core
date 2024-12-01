@@ -57,8 +57,8 @@ constexpr T limitMax() {
     else if constexpr (std::is_same_v<T, i16>) return i16(0x7FFF);                  // 32767
     else if constexpr (std::is_same_v<T, i32>) return i32(0x7FFFFFFF);              // 2147483647
     else if constexpr (std::is_same_v<T, i64>) return i64(0x7FFFFFFFFFFFFFFF);      // 9223372036854775807
-    else if constexpr (std::is_same_v<T, f32>) return f32(0x1.fffffep+127);         // Maximum positive finite value of float // FIXME: I should be more precise about float and double max values
-    else if constexpr (std::is_same_v<T, f64>) return f64(0x1.fffffffffffffp+1023); // Maximum positive finite value of double
+    else if constexpr (std::is_same_v<T, f32>) return f32(0x1.fffffep+127);         // Maximum positive normal f32
+    else if constexpr (std::is_same_v<T, f64>) return f64(0x1.fffffffffffffp+1023); // Maximum positive normal f64
 }
 
 template <typename T>
@@ -71,9 +71,11 @@ constexpr T limitMin() {
     else if constexpr (std::is_same_v<T, i16>) return i16(-0x8000);             // -32768
     else if constexpr (std::is_same_v<T, i32>) return i32(-0x80000000);         // -2147483648
     else if constexpr (std::is_same_v<T, i64>) return i64(-0x8000000000000000); // -9223372036854775808
-    else if constexpr (std::is_same_v<T, f32>) return f32(0x1.0p-126);          // Minimum positive normal float // FIXME: I should be more precise about float and double min values
-    else if constexpr (std::is_same_v<T, f64>) return f64(0x1.0p-1022);         // Minimum positive normal double
+    else if constexpr (std::is_same_v<T, f32>) return f32(0x1.0p-126);          // Minimum positive subnormal f32
+    else if constexpr (std::is_same_v<T, f64>) return f64(0x1.0p-1022);         // Minimum positive subnormal f64
 }
+
+// TODO2: If I need the lowest normal f32 it's just equal to "-limitMax<TFloat>()"
 
 } // namespace coretypes
 

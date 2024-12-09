@@ -95,19 +95,21 @@ using CT = ConstructorTester;
  * \param errMsgPrefix The error message prefix.
  * \param cases The test case table.
  * \param assertionFn The assertion function.
+ * \param maxTestDigits The maximum digits for the test number.
 */
 template <addr_size PLen, typename TCase, addr_size NCases, typename Afunc>
 [[nodiscard]] constexpr i32 executeTestTable(const char (&errMsgPrefix)[PLen],
                                              const TCase (&cases)[NCases],
-                                             Afunc assertionFn) {
+                                             Afunc assertionFn,
+                                             i32 maxTestDigits = 5) {
     addr_size i = 0;
-    char errMsg[PLen + 20] = {}; // The 20 is for the test case index number.
+    char errMsg[PLen + 20] = {}; // The 20 gives space for the test number.
     for (addr_size j = 0; j < PLen; j++) { // NOTE: intentionally not using memcopy, because this needs to work in constexpr.
         errMsg[j] = errMsgPrefix[j];
     }
     char* appendIdx = &errMsg[PLen - 1];
     for (auto& c : cases) {
-        core::intToCstr(i, appendIdx, PLen - 1, 2);
+        core::intToCstr(i, appendIdx, PLen - 1, maxTestDigits);
         if (assertionFn(c, errMsg) != 0) return -1;
         i++;
     }

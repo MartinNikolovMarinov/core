@@ -5,24 +5,37 @@
 
 constexpr i32 checkWithOriginalNormal(auto in, const char* got, u32 gotN, const char* cErr) {
     IS_NOT_CONST_EVALUATED {
-        if constexpr (std::is_same_v<decltype(in), f32>) {
-            constexpr u32 BUFF_LEN = 64;
-            char buf[BUFF_LEN];
-            u32 n = ryu::f2s_buffered_n(in, buf);
+        constexpr u32 BUFF_LEN = 64;
+        char buf[BUFF_LEN];
+        u32 n;
 
-            i32 cmpResult = core::memcmp(buf, n, got, gotN);
-            CT_CHECK(cmpResult == 0, cErr);
+        if constexpr (std::is_same_v<decltype(in), f32>)
+            n = ryu::f2s_buffered_n(in, buf);
+        else if constexpr (std::is_same_v<decltype(in), f64>)
+            n = ryu::d2s_buffered_n(in, buf);
+        else
+            static_assert(core::always_false<decltype(in)>, "invalid type passed");
+
+        // Handle difference for cases that end with zero exponent = E0
+        if (n > 2) {
+            if (buf[n - 2] == 'E' && buf[n - 1] == '0') {
+                n -= 2;
+            }
         }
-        else if constexpr (std::is_same_v<decltype(in), f64>) {
-            constexpr u32 BUFF_LEN = 64;
-            char buf[BUFF_LEN];
-            u32 n = ryu::d2s_buffered_n(in, buf);
 
+        if (!core::isinf(in)) {
             i32 cmpResult = core::memcmp(buf, n, got, gotN);
             CT_CHECK(cmpResult == 0, cErr);
         }
         else {
-            static_assert(core::always_false<decltype(in)>, "invalid type passed");
+            if (in > 0) {
+                CT_CHECK(core::memcmp(buf, n, "Infinity", core::cstrLen("Infinity")) == 0, cErr);
+                CT_CHECK(core::memcmp(got, gotN, "inf", core::cstrLen("inf")) == 0, cErr);
+            }
+            else {
+                CT_CHECK(core::memcmp(buf, n, "-Infinity", core::cstrLen("-Infinity")) == 0, cErr);
+                CT_CHECK(core::memcmp(got, gotN, "-inf", core::cstrLen("-inf")) == 0, cErr);
+            }
         }
     }
 
@@ -38,17 +51,17 @@ constexpr i32 toExponentNotationTest() {
 
         constexpr TestCase cases[] = {
             // Basic
-            { 0.0f, "0E0" },
-            { -0.0f, "-0E0" },
-            { 1.0f, "1E0" },
-            { -1.0f, "-1E0" },
-            { 1.2f, "1.2E0" },
-            { 1.23f, "1.23E0" },
-            { 1.234f, "1.234E0" },
-            { 1.2345f, "1.2345E0" },
-            { 1.23456f, "1.23456E0" },
-            { 1.234567f, "1.234567E0" },
-            { 1.2345678f, "1.2345678E0" },
+            { 0.0f, "0" },
+            { -0.0f, "-0" },
+            { 1.0f, "1" },
+            { -1.0f, "-1" },
+            { 1.2f, "1.2" },
+            { 1.23f, "1.23" },
+            { 1.234f, "1.234" },
+            { 1.2345f, "1.2345" },
+            { 1.23456f, "1.23456" },
+            { 1.234567f, "1.234567" },
+            { 1.2345678f, "1.2345678" },
 
             // Exact value round even
             { 3.0540412E5f, "3.0540412E5" },
@@ -121,33 +134,33 @@ constexpr i32 toExponentNotationTest() {
 
         constexpr TestCase cases[] = {
             // Basic
-            { 0.0, "0E0" },
-            { -0.0, "-0E0" },
-            { 1.0, "1E0" },
-            { -1.0, "-1E0" },
-            { 1.2, "1.2E0" },
-            { 1.23, "1.23E0" },
-            { 1.234, "1.234E0" },
-            { 1.2345, "1.2345E0" },
-            { 1.23456, "1.23456E0" },
-            { 1.234567, "1.234567E0" },
-            { 1.2345678, "1.2345678E0" },
-            { 1.23456789, "1.23456789E0" },
-            { 1.234567895, "1.234567895E0" },
-            { 1.2345678901, "1.2345678901E0" },
-            { 1.23456789012, "1.23456789012E0" },
-            { 1.234567890123, "1.234567890123E0" },
-            { 1.2345678901234, "1.2345678901234E0" },
-            { 1.23456789012345, "1.23456789012345E0" },
-            { 1.234567890123456, "1.234567890123456E0" },
-            { 1.2345678901234567, "1.2345678901234567E0" },
+            { 0.0, "0" },
+            { -0.0, "-0" },
+            { 1.0, "1" },
+            { -1.0, "-1" },
+            { 1.2, "1.2" },
+            { 1.23, "1.23" },
+            { 1.234, "1.234" },
+            { 1.2345, "1.2345" },
+            { 1.23456, "1.23456" },
+            { 1.234567, "1.234567" },
+            { 1.2345678, "1.2345678" },
+            { 1.23456789, "1.23456789" },
+            { 1.234567895, "1.234567895" },
+            { 1.2345678901, "1.2345678901" },
+            { 1.23456789012, "1.23456789012" },
+            { 1.234567890123, "1.234567890123" },
+            { 1.2345678901234, "1.2345678901234" },
+            { 1.23456789012345, "1.23456789012345" },
+            { 1.234567890123456, "1.234567890123456" },
+            { 1.2345678901234567, "1.2345678901234567" },
 
             // Test 32-bit chunking
-            { 4.294967294, "4.294967294E0" }, // 2^32 - 2
-            { 4.294967295, "4.294967295E0" }, // 2^32 - 1
-            { 4.294967296, "4.294967296E0" }, // 2^32
-            { 4.294967297, "4.294967297E0" }, // 2^32 + 1
-            { 4.294967298, "4.294967298E0" }, // 2^32 + 2
+            { 4.294967294, "4.294967294" }, // 2^32 - 2
+            { 4.294967295, "4.294967295" }, // 2^32 - 1
+            { 4.294967296, "4.294967296" }, // 2^32
+            { 4.294967297, "4.294967297" }, // 2^32 + 1
+            { 4.294967298, "4.294967298" }, // 2^32 + 2
 
             // Trailing zeros
             { 2.98023223876953125E-8, "2.9802322387695312E-8" },
@@ -161,7 +174,7 @@ constexpr i32 toExponentNotationTest() {
             { 9007199254740991.0, "9.007199254740991E15" }, // 2^53-1,
             { 9007199254740992.0, "9.007199254740992E15" }, // 2^53,
 
-            { 1.0e+0, "1E0" },
+            { 1.0e+0, "1" },
             { 1.2e+1, "1.2E1" },
             { 1.23e+2, "1.23E2" },
             { 1.234e+3, "1.234E3" },
@@ -180,7 +193,7 @@ constexpr i32 toExponentNotationTest() {
             { 1.234567890123456e+15, "1.234567890123456E15" },
 
             // 10^i
-            { 1.0e+0, "1E0" },
+            { 1.0e+0, "1" },
             { 1.0e+1, "1E1" },
             { 1.0e+2, "1E2" },
             { 1.0e+3, "1E3" },
@@ -215,7 +228,7 @@ constexpr i32 toExponentNotationTest() {
             { 1.0e+15 + 1.0e+14, "1.1E15" },
 
             // Largest power of 2 <= 10^(i+1)
-            { 8.0, "8E0" },
+            { 8.0, "8" },
             { 64.0, "6.4E1" },
             { 512.0, "5.12E2" },
             { 8192.0, "8.192E3" },
@@ -255,7 +268,7 @@ constexpr i32 toExponentNotationTest() {
             { 9.0608011534336E15, "9.0608011534336E15" },
             { 4.708356024711512E18, "4.708356024711512E18" },
             { 9.409340012568248E18, "9.409340012568248E18" },
-            { 1.2345678, "1.2345678E0" },
+            { 1.2345678, "1.2345678" },
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for f64 at index: ", cases, [](auto& c, const char* cErr) {
@@ -276,8 +289,6 @@ constexpr i32 toExponentNotationTest() {
 
     return 0;
 }
-
-#include <sstream>
 
 constexpr i32 toSpecialValuesTest() {
     {
@@ -300,14 +311,15 @@ constexpr i32 toSpecialValuesTest() {
             { core::limitMin<f32>(), "1.1754944E-38" },
             { -core::limitMin<f32>(), "-1.1754944E-38" },
 
-            // FIXME: Fix this with the check with original
-            // Overflow cases
-            // { core::infinity<f32>(), "Inf" },
-            // { -core::infinity<f32>(), "-Inf" },
+            { core::infinity<f32>(), "inf" },
+            { -core::infinity<f32>(), "-inf" },
+
+            { core::quietNaNF32(), "NaN" },
+            { core::signalingNaNF32(), "NaN" },
 
             // Underflow to zero
-            { 0.0f, "0E0" },
-            { -0.0f, "-0E0" },
+            { 0.0f, "0" },
+            { -0.0f, "-0" },
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for f32 at index: ", cases, [](auto& c, const char* cErr) {
@@ -326,31 +338,52 @@ constexpr i32 toSpecialValuesTest() {
         CT_CHECK(ret == 0);
     }
 
-    // {
-    //     struct TestCase {
-    //         f64 input;
-    //         const char* expected;
-    //     };
+    {
+        struct TestCase {
+            f64 input;
+            const char* expected;
+        };
 
-    //     constexpr TestCase cases[] = {
+        constexpr TestCase cases[] = {
+            // Subnormal/Denormalized Numbers
+            { 4.9406564584124654e-324, "5E-324" }, // Smallest positive subnormal double
+            { -4.9406564584124654e-324, "-5E-324" },
+            { 4.9e-324, "5E-324" },
 
-    //     };
+            // Largest representable value
+            { core::limitMax<f64>(), "1.7976931348623157E308" }, // 1.7976931348623157E308 ok
+            { -core::limitMax<f64>(), "-1.7976931348623157E308" }, // -1.7976931348623157E308
 
-    //     i32 ret = core::testing::executeTestTable("test case failed for f64 at index: ", cases, [](auto& c, const char* cErr) {
-    //         constexpr u32 BUFF_LEN = 64;
-    //         char gotBuf[BUFF_LEN];
-    //         u32 gotN = core::floatToCstr(c.input, gotBuf, BUFF_LEN);
-    //         gotBuf[gotN] = '\0';
+            // Smallest representable normalized value
+            { core::limitMin<f64>(), "2.2250738585072014E-308" },
+            { -core::limitMin<f64>(), "-2.2250738585072014E-308" },
 
-    //         i32 cmpResult = core::memcmp(gotBuf, gotN, c.expected, core::cstrLen(c.expected));
-    //         CT_CHECK(cmpResult == 0, cErr);
+            { core::infinity<f64>(), "inf" },
+            { -core::infinity<f64>(), "-inf" },
 
-    //         CT_CHECK(checkWithOriginalNormal(c.input, gotBuf, gotN, cErr) == 0);
+            { core::quietNaNF64(), "NaN" },
+            { core::signalingNaNF64(), "NaN" },
 
-    //         return 0;
-    //     });
-    //     CT_CHECK(ret == 0);
-    // }
+            // Underflow to zero
+            { 0.0, "0" },
+            { -0.0, "-0" },
+        };
+
+        i32 ret = core::testing::executeTestTable("test case failed for f64 at index: ", cases, [](auto& c, const char* cErr) {
+            constexpr u32 BUFF_LEN = 64;
+            char gotBuf[BUFF_LEN];
+            u32 gotN = core::floatToCstr(c.input, gotBuf, BUFF_LEN);
+            gotBuf[gotN] = '\0';
+
+            i32 cmpResult = core::memcmp(gotBuf, gotN, c.expected, core::cstrLen(c.expected));
+            CT_CHECK(cmpResult == 0, cErr);
+
+            CT_CHECK(checkWithOriginalNormal(c.input, gotBuf, gotN, cErr) == 0);
+
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
 
     return 0;
 }
@@ -366,13 +399,12 @@ i32 runCstrConv_FloatToCstr_TestsSuite() {
     tInfo.name = FN_NAME_TO_CPTR(toSpecialValuesTest);
     if (runTest(tInfo, toSpecialValuesTest) != 0) { ret = -1; }
 
-    // FIXME: continue testing
-
     return ret;
 }
 
 constexpr i32 runCompiletimeCstrConv_FloatToCstr_TestsSuite() {
     RunTestCompileTime(toExponentNotationTest);
+    RunTestCompileTime(toSpecialValuesTest);
 
     return 0;
 }

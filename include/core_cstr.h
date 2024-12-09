@@ -40,9 +40,6 @@ constexpr inline T toDigit(char s) {
 
 template<typename T>
 constexpr inline char digitToChar(T digit) {
-    if constexpr (sizeof(T) == 1) {
-        return char(digit) + '0';
-    }
     return char(digit % 10) + '0';
 }
 

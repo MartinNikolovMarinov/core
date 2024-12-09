@@ -35,6 +35,13 @@ void assertHandler(const char* failedExpr, const char* file, i32 line, const cha
     throw std::runtime_error("Assertion failed!");
 };
 
+// constexpr double d64_max = std::numeric_limits<double>::max();
+// constexpr double d64_lowest = std::numeric_limits<double>::lowest();
+// constexpr double d64_denorm_min = std::numeric_limits<double>::denorm_min();
+// constexpr double d64_min = std::numeric_limits<double>::min();
+
+// constexpr f64 tt = core::bitCast<f64>(1ull);
+
 i32 main() {
     core::initProgramCtx(assertHandler, nullptr);
 

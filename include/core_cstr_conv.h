@@ -294,7 +294,7 @@ constexpr inline u32 decimalLength17(u64 v) {
     return 1;
 }
 
-constexpr inline i32 copySpecialStr(bool sign, bool exponent, bool mantissa, char* out, [[maybe_unused]] u32 olen, bool exponentFormant = true) {
+constexpr inline i32 copySpecialStr(bool sign, bool exponent, bool mantissa, char* out, [[maybe_unused]] u32 olen) {
     Assert(olen > u32(sign) + 3, "provider buffer is too short to fit special string");
 
     if (mantissa) {
@@ -305,11 +305,7 @@ constexpr inline i32 copySpecialStr(bool sign, bool exponent, bool mantissa, cha
         out[0] = '-';
     }
     if (exponent) {
-        core::memcopy(out + sign, "Inf", 3);
-        return i32(sign) + 3;
-    }
-    if (exponentFormant) {
-        core::memcopy(out + sign, "0E0", 3);
+        core::memcopy(out + sign, "inf", 3);
         return i32(sign) + 3;
     }
 
@@ -351,7 +347,7 @@ constexpr inline void appendNineDigits(u32 digits, char* out) {
         core::memcopy(out + 7 - i, DIGIT_TABLE + c0, 2);
         core::memcopy(out + 5 - i, DIGIT_TABLE + c1, 2);
     }
-    out[0] = core::digitToChar(char('0' + digits));
+    out[0] = core::digitToChar(digits);
 }
 
 template<typename TFloat> struct FloatTraits;
@@ -5907,31 +5903,31 @@ struct OutputBuffer {
 
     constexpr OutputBuffer(char* buf, u32 blen) : out(buf), widx(0), max(blen) {}
 
-    constexpr inline bool writeCharAt(char a, u32 idx) {
+    [[nodiscard]] constexpr inline bool writeCharAt(char a, u32 idx) {
         if (idx >= max) return false;
         out[idx] = a;
         return true;
     }
 
-    constexpr inline bool writeChar(char a) {
+    [[nodiscard]] constexpr inline bool writeChar(char a) {
         if (!writeCharAt(a, widx)) return false;
         widx++;
         return true;
     }
 
-    constexpr inline bool writeAt(const char* in, u32 inLen, u32 offset) {
+    [[nodiscard]] constexpr inline bool writeAt(const char* in, u32 inLen, u32 offset) {
         if (offset + inLen >= max) return false;
         core::memcopy(out + offset, in, inLen);
         return true;
     }
 
-    constexpr inline bool write(const char* in, u32 inLen) {
+    [[nodiscard]] constexpr inline bool write(const char* in, u32 inLen) {
         if (!writeAt(in, inLen, widx)) return false;
         widx += inLen;
         return true;
     }
 
-    constexpr inline bool advance(u32 len) {
+    [[nodiscard]] constexpr inline bool advance(u32 len) {
         if (widx + len >= max) return false;
         widx += len;
         return true;
@@ -5961,8 +5957,10 @@ constexpr inline u32 toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* 
         mantissa /= 10000;
         u32 c0 = (c % 100) << 1;
         u32 c1 = (c / 100) << 1;
+
         if (!obuf.writeAt(DIGIT_TABLE + c0, 2, obuf.widx + mantissaLen - i - 1)) return obuf.widx;
         if (!obuf.writeAt(DIGIT_TABLE + c1, 2, obuf.widx + mantissaLen - i - 3)) return obuf.widx;
+
         i += 4;
     }
 
@@ -5976,36 +5974,38 @@ constexpr inline u32 toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* 
         u32 c = mantissa << 1;
         // We can't use memcpy here: the decimal dot goes between these two digits.
         if (!obuf.writeCharAt(DIGIT_TABLE[c + 1], obuf.widx + mantissaLen - i)) return obuf.widx;
-        if (!obuf.writeCharAt(DIGIT_TABLE[c], obuf.widx)) return obuf.widx;
+        if (!obuf.writeCharAt(DIGIT_TABLE[c], obuf.widx))                       return obuf.widx;
     }
     else {
-        char digit = core::digitToChar(char(mantissa));
+        char digit = core::digitToChar(mantissa);
         if (!obuf.writeCharAt(digit, obuf.widx)) return obuf.widx;
     }
 
     // Print decimal point if needed.
     if (mantissaLen > 1) {
-        obuf.writeCharAt('.', obuf.widx + 1);
-        obuf.advance(mantissaLen + 1);
+        if (!obuf.writeCharAt('.', obuf.widx + 1)) return obuf.widx;
+        if (!obuf.advance(mantissaLen + 1))        return obuf.widx;
     }
     else {
-        obuf.advance(1);
+        if (!obuf.advance(1)) return obuf.widx;
     }
 
-    // Print the exponent.
-    obuf.writeChar('E');
     i32 exp = v.exponent + i32(mantissaLen) - 1;
+    if (exp == 0) return obuf.widx;
+
+    // Print the exponent.
+    if (!obuf.writeChar('E')) return obuf.widx;
     if (exp < 0) {
-        obuf.writeChar('-');
+        if (!obuf.writeChar('-')) return obuf.widx;
         exp = -exp;
     }
 
     if (exp >= 10) {
-        obuf.write(DIGIT_TABLE + 2 * exp, 2);
+        if (!obuf.write(DIGIT_TABLE + 2 * exp, 2)) return obuf.widx;
     }
     else {
-        char digit = core::digitToChar(char(exp));
-        obuf.writeChar(digit);
+        char digit = core::digitToChar(exp);
+        if (!obuf.writeChar(digit)) return obuf.widx;
     }
 
     return obuf.widx;
@@ -6013,19 +6013,19 @@ constexpr inline u32 toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* 
 
 constexpr inline u32 toChars(FloatTraits<f64>::FloatDecimal v, bool sign, char* out, [[maybe_unused]] u32 olen) {
     // Step 5: Print the decimal representation.
-    int index = 0;
+    OutputBuffer obuf(out, olen);
     if (sign) {
-        out[index++] = '-';
+        if (!obuf.writeChar('-')) return obuf.widx;
     }
 
     u64 mantissa = v.mantissa;
-    u32 olength = decimalLength17(mantissa);
+    u32 mantissaLen = decimalLength17(mantissa);
 
-    u32 i = 0;
-    // We prefer 32-bit operations, even on 64-bit platforms.
+    // 32-bit operations are prefered, even on 64-bit platforms.
     // We have at most 17 digits, and u32 can store 9 digits.
     // If output doesn't fit into u32, we cut off 8 digits,
     // so the rest will fit into u32.
+    u32 i = 0;
     if ((mantissa >> 32) != 0) {
         // Expensive 64-bit division.
         u64 q =  mantissa / 100000000;
@@ -6039,10 +6039,12 @@ constexpr inline u32 toChars(FloatTraits<f64>::FloatDecimal v, bool sign, char* 
         u32 c1 = (c / 100) << 1;
         u32 d0 = (d % 100) << 1;
         u32 d1 = (d / 100) << 1;
-        core::memcopy(out + index + olength - 1, DIGIT_TABLE + c0, 2);
-        core::memcopy(out + index + olength - 3, DIGIT_TABLE + c1, 2);
-        core::memcopy(out + index + olength - 5, DIGIT_TABLE + d0, 2);
-        core::memcopy(out + index + olength - 7, DIGIT_TABLE + d1, 2);
+
+        if (!obuf.writeAt(DIGIT_TABLE + c0, 2, obuf.widx + mantissaLen - 1)) return obuf.widx;
+        if (!obuf.writeAt(DIGIT_TABLE + c1, 2, obuf.widx + mantissaLen - 3)) return obuf.widx;
+        if (!obuf.writeAt(DIGIT_TABLE + d0, 2, obuf.widx + mantissaLen - 5)) return obuf.widx;
+        if (!obuf.writeAt(DIGIT_TABLE + d1, 2, obuf.widx + mantissaLen - 7)) return obuf.widx;
+
         i += 8;
     }
 
@@ -6052,59 +6054,63 @@ constexpr inline u32 toChars(FloatTraits<f64>::FloatDecimal v, bool sign, char* 
         mantissa2 /= 10000;
         u32 c0 = (c % 100) << 1;
         u32 c1 = (c / 100) << 1;
-        core::memcopy(out + index + olength - i - 1, DIGIT_TABLE + c0, 2);
-        core::memcopy(out + index + olength - i - 3, DIGIT_TABLE + c1, 2);
+
+        if (!obuf.writeAt(DIGIT_TABLE + c0, 2, obuf.widx + mantissaLen - i - 1)) return obuf.widx;
+        if (!obuf.writeAt(DIGIT_TABLE + c1, 2, obuf.widx + mantissaLen - i - 3)) return obuf.widx;
+
         i += 4;
     }
 
     if (mantissa2 >= 100) {
         u32 c = (mantissa2 % 100) << 1;
         mantissa2 /= 100;
-        core::memcopy(out + index + olength - i - 1, DIGIT_TABLE + c, 2);
+        if (!obuf.writeAt(DIGIT_TABLE + c, 2, obuf.widx + mantissaLen - i - 1)) return obuf.widx;
         i += 2;
     }
     if (mantissa2 >= 10) {
         u32 c = mantissa2 << 1;
         // We can't use memcpy here: the decimal dot goes between these two digits.
-        out[index + olength - i] = DIGIT_TABLE[c + 1];
-        out[index] = DIGIT_TABLE[c];
+        if (!obuf.writeCharAt(DIGIT_TABLE[c + 1], obuf.widx + mantissaLen - i)) return obuf.widx;
+        if (!obuf.writeCharAt(DIGIT_TABLE[c], obuf.widx))                       return obuf.widx;
     }
     else {
-        out[index] = core::digitToChar(char(mantissa2));
+        char digit = core::digitToChar(mantissa2);
+        if (!obuf.writeCharAt(digit, obuf.widx)) return obuf.widx;
     }
 
     // Print decimal point if needed.
-    if (olength > 1) {
-        out[index + 1] = '.';
-        index += olength + 1;
+    if (mantissaLen > 1) {
+        if (!obuf.writeCharAt('.', obuf.widx + 1)) return obuf.widx;
+        if (!obuf.advance(mantissaLen + 1))        return obuf.widx;
     }
     else {
-        index++;
+        if (!obuf.advance(1)) return obuf.widx;
     }
 
+    i32 exp = v.exponent + i32(mantissaLen) - 1;
+    if (exp == 0) return obuf.widx;
+
     // Print the exponent.
-    out[index++] = 'E';
-    i32 exp = v.exponent + i32(olength) - 1;
+    if (!obuf.writeChar('E')) return obuf.widx;
     if (exp < 0) {
-        out[index++] = '-';
+        if (!obuf.writeChar('-')) return obuf.widx;
         exp = -exp;
     }
 
     if (exp >= 100) {
-        i32 c = exp % 10;
-        core::memcopy(out + index, DIGIT_TABLE + 2 * (exp / 10), 2);
-        out[index + 2] = core::digitToChar(char(c));
-        index += 3;
+        if (!obuf.write(DIGIT_TABLE + 2 * (exp / 10), 2)) return obuf.widx;
+        char digit = core::digitToChar(exp);
+        if (!obuf.writeChar(digit)) return obuf.widx;
     }
     else if (exp >= 10) {
-        core::memcopy(out + index, DIGIT_TABLE + 2 * exp, 2);
-        index += 2;
+        if (!obuf.write(DIGIT_TABLE + 2 * exp, 2)) return obuf.widx;
     }
     else {
-        out[index++] = core::digitToChar(char(exp));
+        char digit = core::digitToChar(exp);
+        if (!obuf.writeChar(digit)) return obuf.widx;
     }
 
-    return index;
+    return obuf.widx;
 }
 
 constexpr u32 float32ToCstr(f32 n, char* out, u32 olen) {
@@ -6237,7 +6243,7 @@ constexpr u32 float64ToFixedCstr(f64 n, u32 precision, char* out, u32 olen) {
             core::memcopy(oout + olength - i - 2, DIGIT_TABLE + c, 2);
         }
         else {
-            oout[0] = core::digitToChar(char(digits));
+            oout[0] = core::digitToChar(digits);
         }
     };
 
@@ -6248,7 +6254,7 @@ constexpr u32 float64ToFixedCstr(f64 n, u32 precision, char* out, u32 olen) {
 
     // Case distinction; exit early for the easy cases.
     if (ieeeExponent == ((1u << EXPONENT_BITS) - 1u)) {
-        return copySpecialStr(ieeeSign, ieeeMantissa, ieeeExponent, out, olen, false);
+        return copySpecialStr(ieeeSign, ieeeMantissa, ieeeExponent, out, olen);
     }
 
     if (ieeeExponent == 0 && ieeeMantissa == 0) {

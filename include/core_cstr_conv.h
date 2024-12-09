@@ -52,9 +52,9 @@ constexpr void intToHex(i32 v, char* out, u64 hexLen = (sizeof(i32) << 1));
 constexpr void intToHex(i64 v, char* out, u64 hexLen = (sizeof(i64) << 1));
 
 template <typename TFloat> constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen);
-                           constexpr u32                                floatToCstr(f32 n, char* out, u32 olen);
-                           constexpr u32                                floatToCstr(f64 n, char* out, u32 olen);
-                           constexpr u32                                floatToFixedCstr(f64 n, u32 precision, char* out, u32 olen);
+                           constexpr core::expected<u32, ParseError>    floatToCstr(f32 n, char* out, u32 olen);
+                           constexpr core::expected<u32, ParseError>    floatToCstr(f64 n, char* out, u32 olen);
+                           constexpr u32 floatToFixedCstr(f64 n, u32 precision, char* out, u32 olen);
 
 namespace detail {
 
@@ -134,8 +134,6 @@ constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen) {
 }
 
 namespace detail {
-
-// FIXME: Overflow writes to output buffers is not handled at all?
 
 static constexpr const char* hexDigits = "0123456789ABCDEF";
 
@@ -294,8 +292,10 @@ constexpr inline u32 decimalLength17(u64 v) {
     return 1;
 }
 
-constexpr inline i32 copySpecialStr(bool sign, bool exponent, bool mantissa, char* out, [[maybe_unused]] u32 olen) {
-    Assert(olen > u32(sign) + 3, "provider buffer is too short to fit special string");
+constexpr inline core::expected<u32, ParseError> copySpecialStr(bool sign, bool exponent, bool mantissa, char* out, [[maybe_unused]] u32 olen) {
+    if (olen <= u32(sign) + 3) {
+        return core::unexpected(ParseError::OutputBufferTooSmall);
+    }
 
     if (mantissa) {
         core::memcopy(out, "NaN", 3);
@@ -306,11 +306,11 @@ constexpr inline i32 copySpecialStr(bool sign, bool exponent, bool mantissa, cha
     }
     if (exponent) {
         core::memcopy(out + sign, "inf", 3);
-        return i32(sign) + 3;
+        return u32(sign) + 3;
     }
 
     core::memcopy(out + sign, "0", 1);
-    return i32(sign) + 1;
+    return u32(sign) + 1;
 }
 
 // Convert `digits` to decimal and write the last `count` decimal digits to result.
@@ -5934,11 +5934,13 @@ struct OutputBuffer {
     }
 };
 
-constexpr inline u32 toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* out, [[maybe_unused]] u32 olen) {
+constexpr inline core::expected<u32, ParseError> toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* out, [[maybe_unused]] u32 olen) {
     // Step 5: Print the decimal representation.
     OutputBuffer obuf(out, olen);
     if (sign) {
-        if (!obuf.writeChar('-')) return obuf.widx;
+        if (!obuf.writeChar('-')) {
+            return core::unexpected(ParseError::OutputBufferTooSmall);
+        }
     }
 
     u32 mantissa = v.mantissa;
@@ -5958,8 +5960,10 @@ constexpr inline u32 toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* 
         u32 c0 = (c % 100) << 1;
         u32 c1 = (c / 100) << 1;
 
-        if (!obuf.writeAt(DIGIT_TABLE + c0, 2, obuf.widx + mantissaLen - i - 1)) return obuf.widx;
-        if (!obuf.writeAt(DIGIT_TABLE + c1, 2, obuf.widx + mantissaLen - i - 3)) return obuf.widx;
+        if (!obuf.writeAt(DIGIT_TABLE + c0, 2, obuf.widx + mantissaLen - i - 1))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
+        if (!obuf.writeAt(DIGIT_TABLE + c1, 2, obuf.widx + mantissaLen - i - 3))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
 
         i += 4;
     }
@@ -5967,55 +5971,69 @@ constexpr inline u32 toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* 
     if (mantissa >= 100) {
         u32 c = (mantissa % 100) << 1;
         mantissa /= 100;
-        if (!obuf.writeAt(DIGIT_TABLE + c, 2, obuf.widx + mantissaLen - i - 1)) return obuf.widx;
+        if (!obuf.writeAt(DIGIT_TABLE + c, 2, obuf.widx + mantissaLen - i - 1))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
         i += 2;
     }
     if (mantissa >= 10) {
         u32 c = mantissa << 1;
         // We can't use memcpy here: the decimal dot goes between these two digits.
-        if (!obuf.writeCharAt(DIGIT_TABLE[c + 1], obuf.widx + mantissaLen - i)) return obuf.widx;
-        if (!obuf.writeCharAt(DIGIT_TABLE[c], obuf.widx))                       return obuf.widx;
+        if (!obuf.writeCharAt(DIGIT_TABLE[c + 1], obuf.widx + mantissaLen - i))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
+        if (!obuf.writeCharAt(DIGIT_TABLE[c], obuf.widx))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
     }
     else {
         char digit = core::digitToChar(mantissa);
-        if (!obuf.writeCharAt(digit, obuf.widx)) return obuf.widx;
+        if (!obuf.writeCharAt(digit, obuf.widx))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
     }
 
     // Print decimal point if needed.
     if (mantissaLen > 1) {
-        if (!obuf.writeCharAt('.', obuf.widx + 1)) return obuf.widx;
-        if (!obuf.advance(mantissaLen + 1))        return obuf.widx;
+        if (!obuf.writeCharAt('.', obuf.widx + 1))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
+        if (!obuf.advance(mantissaLen + 1))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
     }
     else {
-        if (!obuf.advance(1)) return obuf.widx;
+        if (!obuf.advance(1))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
     }
 
     i32 exp = v.exponent + i32(mantissaLen) - 1;
-    if (exp == 0) return obuf.widx;
+    if (exp == 0)
+        return u32(obuf.widx);
 
     // Print the exponent.
-    if (!obuf.writeChar('E')) return obuf.widx;
+    if (!obuf.writeChar('E'))
+        return core::unexpected(ParseError::OutputBufferTooSmall);
     if (exp < 0) {
-        if (!obuf.writeChar('-')) return obuf.widx;
+        if (!obuf.writeChar('-'))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
         exp = -exp;
     }
 
     if (exp >= 10) {
-        if (!obuf.write(DIGIT_TABLE + 2 * exp, 2)) return obuf.widx;
+        if (!obuf.write(DIGIT_TABLE + 2 * exp, 2))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
     }
     else {
         char digit = core::digitToChar(exp);
-        if (!obuf.writeChar(digit)) return obuf.widx;
+        if (!obuf.writeChar(digit))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
     }
 
-    return obuf.widx;
+
+    return u32(obuf.widx);
 }
 
-constexpr inline u32 toChars(FloatTraits<f64>::FloatDecimal v, bool sign, char* out, [[maybe_unused]] u32 olen) {
+constexpr inline core::expected<u32, ParseError> toChars(FloatTraits<f64>::FloatDecimal v, bool sign, char* out, [[maybe_unused]] u32 olen) {
     // Step 5: Print the decimal representation.
     OutputBuffer obuf(out, olen);
     if (sign) {
-        if (!obuf.writeChar('-')) return obuf.widx;
+        if (!obuf.writeChar('-'))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
     }
 
     u64 mantissa = v.mantissa;
@@ -6040,10 +6058,14 @@ constexpr inline u32 toChars(FloatTraits<f64>::FloatDecimal v, bool sign, char* 
         u32 d0 = (d % 100) << 1;
         u32 d1 = (d / 100) << 1;
 
-        if (!obuf.writeAt(DIGIT_TABLE + c0, 2, obuf.widx + mantissaLen - 1)) return obuf.widx;
-        if (!obuf.writeAt(DIGIT_TABLE + c1, 2, obuf.widx + mantissaLen - 3)) return obuf.widx;
-        if (!obuf.writeAt(DIGIT_TABLE + d0, 2, obuf.widx + mantissaLen - 5)) return obuf.widx;
-        if (!obuf.writeAt(DIGIT_TABLE + d1, 2, obuf.widx + mantissaLen - 7)) return obuf.widx;
+        if (!obuf.writeAt(DIGIT_TABLE + c0, 2, obuf.widx + mantissaLen - 1))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
+        if (!obuf.writeAt(DIGIT_TABLE + c1, 2, obuf.widx + mantissaLen - 3))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
+        if (!obuf.writeAt(DIGIT_TABLE + d0, 2, obuf.widx + mantissaLen - 5))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
+        if (!obuf.writeAt(DIGIT_TABLE + d1, 2, obuf.widx + mantissaLen - 7))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
 
         i += 8;
     }
@@ -6055,8 +6077,10 @@ constexpr inline u32 toChars(FloatTraits<f64>::FloatDecimal v, bool sign, char* 
         u32 c0 = (c % 100) << 1;
         u32 c1 = (c / 100) << 1;
 
-        if (!obuf.writeAt(DIGIT_TABLE + c0, 2, obuf.widx + mantissaLen - i - 1)) return obuf.widx;
-        if (!obuf.writeAt(DIGIT_TABLE + c1, 2, obuf.widx + mantissaLen - i - 3)) return obuf.widx;
+        if (!obuf.writeAt(DIGIT_TABLE + c0, 2, obuf.widx + mantissaLen - i - 1))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
+        if (!obuf.writeAt(DIGIT_TABLE + c1, 2, obuf.widx + mantissaLen - i - 3))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
 
         i += 4;
     }
@@ -6064,56 +6088,70 @@ constexpr inline u32 toChars(FloatTraits<f64>::FloatDecimal v, bool sign, char* 
     if (mantissa2 >= 100) {
         u32 c = (mantissa2 % 100) << 1;
         mantissa2 /= 100;
-        if (!obuf.writeAt(DIGIT_TABLE + c, 2, obuf.widx + mantissaLen - i - 1)) return obuf.widx;
+        if (!obuf.writeAt(DIGIT_TABLE + c, 2, obuf.widx + mantissaLen - i - 1))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
         i += 2;
     }
     if (mantissa2 >= 10) {
         u32 c = mantissa2 << 1;
         // We can't use memcpy here: the decimal dot goes between these two digits.
-        if (!obuf.writeCharAt(DIGIT_TABLE[c + 1], obuf.widx + mantissaLen - i)) return obuf.widx;
-        if (!obuf.writeCharAt(DIGIT_TABLE[c], obuf.widx))                       return obuf.widx;
+        if (!obuf.writeCharAt(DIGIT_TABLE[c + 1], obuf.widx + mantissaLen - i))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
+        if (!obuf.writeCharAt(DIGIT_TABLE[c], obuf.widx))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
     }
     else {
         char digit = core::digitToChar(mantissa2);
-        if (!obuf.writeCharAt(digit, obuf.widx)) return obuf.widx;
+        if (!obuf.writeCharAt(digit, obuf.widx))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
     }
 
     // Print decimal point if needed.
     if (mantissaLen > 1) {
-        if (!obuf.writeCharAt('.', obuf.widx + 1)) return obuf.widx;
-        if (!obuf.advance(mantissaLen + 1))        return obuf.widx;
+        if (!obuf.writeCharAt('.', obuf.widx + 1))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
+        if (!obuf.advance(mantissaLen + 1))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
     }
     else {
-        if (!obuf.advance(1)) return obuf.widx;
+        if (!obuf.advance(1))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
     }
 
     i32 exp = v.exponent + i32(mantissaLen) - 1;
-    if (exp == 0) return obuf.widx;
+    if (exp == 0)
+        return u32(obuf.widx);
 
     // Print the exponent.
-    if (!obuf.writeChar('E')) return obuf.widx;
+    if (!obuf.writeChar('E'))
+        return core::unexpected(ParseError::OutputBufferTooSmall);
     if (exp < 0) {
-        if (!obuf.writeChar('-')) return obuf.widx;
+        if (!obuf.writeChar('-'))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
         exp = -exp;
     }
 
     if (exp >= 100) {
-        if (!obuf.write(DIGIT_TABLE + 2 * (exp / 10), 2)) return obuf.widx;
+        if (!obuf.write(DIGIT_TABLE + 2 * (exp / 10), 2))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
         char digit = core::digitToChar(exp);
-        if (!obuf.writeChar(digit)) return obuf.widx;
+        if (!obuf.writeChar(digit))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
     }
     else if (exp >= 10) {
-        if (!obuf.write(DIGIT_TABLE + 2 * exp, 2)) return obuf.widx;
+        if (!obuf.write(DIGIT_TABLE + 2 * exp, 2))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
     }
     else {
         char digit = core::digitToChar(exp);
-        if (!obuf.writeChar(digit)) return obuf.widx;
+        if (!obuf.writeChar(digit))
+            return core::unexpected(ParseError::OutputBufferTooSmall);
     }
 
-    return obuf.widx;
+    return u32(obuf.widx);
 }
 
-constexpr u32 float32ToCstr(f32 n, char* out, u32 olen) {
+constexpr core::expected<u32, ParseError> float32ToCstr(f32 n, char* out, u32 olen) {
     using Traits = FloatTraits<f32>;
     using FloatDecimal = Traits::FloatDecimal;
 
@@ -6131,7 +6169,7 @@ constexpr u32 float32ToCstr(f32 n, char* out, u32 olen) {
     return toChars(v, ieeeSign, out, olen);
 }
 
-constexpr u32 float64ToCstr(f64 n, char* out, u32 olen) {
+constexpr core::expected<u32, ParseError> float64ToCstr(f64 n, char* out, u32 olen) {
     using Traits = FloatTraits<f64>;
     using FloatDecimal = Traits::FloatDecimal;
 
@@ -6254,7 +6292,7 @@ constexpr u32 float64ToFixedCstr(f64 n, u32 precision, char* out, u32 olen) {
 
     // Case distinction; exit early for the easy cases.
     if (ieeeExponent == ((1u << EXPONENT_BITS) - 1u)) {
-        return copySpecialStr(ieeeSign, ieeeMantissa, ieeeExponent, out, olen);
+        return core::Unpack(copySpecialStr(ieeeSign, ieeeMantissa, ieeeExponent, out, olen));
     }
 
     if (ieeeExponent == 0 && ieeeMantissa == 0) {
@@ -6429,16 +6467,17 @@ constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen
     return detail::cstrToFloatImpl<TFloat>(s, slen);
 }
 
-constexpr u32 floatToCstr(f32 n, char* out, u32 olen) {
+constexpr core::expected<u32, ParseError> floatToCstr(f32 n, char* out, u32 olen) {
     return detail::float32ToCstr(n, out, olen);
 }
-constexpr u32 floatToCstr(f64 n, char* out, u32 olen) {
+constexpr core::expected<u32, ParseError> floatToCstr(f64 n, char* out, u32 olen) {
     return detail::float64ToCstr(n, out, olen);
 }
 
-constexpr u32 floatToFixedCstr(f64 n, u32 precision, char* out, u32 olen) {
-    return detail::float64ToFixedCstr(n, precision, out, olen);
-}
+// TODO: This implementation is not tested at all.
+// constexpr u32 floatToFixedCstr(f64 n, u32 precision, char* out, u32 olen) {
+//     return detail::float64ToFixedCstr(n, precision, out, olen);
+// }
 
 #pragma endregion
 

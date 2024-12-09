@@ -7,6 +7,8 @@
 
 #include <new>
 
+// FIXME: Fix the chain braking bug!
+
 namespace core {
 
 template <typename TKey, typename TValue> struct HashMap;

@@ -113,7 +113,7 @@ constexpr i32 toExponentNotationTest() {
         i32 ret = core::testing::executeTestTable("test case failed for f32 at index: ", cases, [](auto& c, const char* cErr) {
             constexpr u32 BUFF_LEN = 64;
             char gotBuf[BUFF_LEN];
-            u32 gotN = core::floatToCstr(c.input, gotBuf, BUFF_LEN);
+            u32 gotN = core::Unpack(core::floatToCstr(c.input, gotBuf, BUFF_LEN));
             gotBuf[gotN] = '\0';
 
             i32 cmpResult = core::memcmp(gotBuf, gotN, c.expected, core::cstrLen(c.expected));
@@ -274,7 +274,7 @@ constexpr i32 toExponentNotationTest() {
         i32 ret = core::testing::executeTestTable("test case failed for f64 at index: ", cases, [](auto& c, const char* cErr) {
             constexpr u32 BUFF_LEN = 64;
             char gotBuf[BUFF_LEN];
-            u32 gotN = core::floatToCstr(c.input, gotBuf, BUFF_LEN);
+            u32 gotN = core::Unpack(core::floatToCstr(c.input, gotBuf, BUFF_LEN));
             gotBuf[gotN] = '\0';
 
             i32 cmpResult = core::memcmp(gotBuf, gotN, c.expected, core::cstrLen(c.expected));
@@ -325,7 +325,7 @@ constexpr i32 toSpecialValuesTest() {
         i32 ret = core::testing::executeTestTable("test case failed for f32 at index: ", cases, [](auto& c, const char* cErr) {
             constexpr u32 BUFF_LEN = 64;
             char gotBuf[BUFF_LEN];
-            u32 gotN = core::floatToCstr(c.input, gotBuf, BUFF_LEN);
+            u32 gotN = core::Unpack(core::floatToCstr(c.input, gotBuf, BUFF_LEN));
             gotBuf[gotN] = '\0';
 
             i32 cmpResult = core::memcmp(gotBuf, gotN, c.expected, core::cstrLen(c.expected));
@@ -372,7 +372,7 @@ constexpr i32 toSpecialValuesTest() {
         i32 ret = core::testing::executeTestTable("test case failed for f64 at index: ", cases, [](auto& c, const char* cErr) {
             constexpr u32 BUFF_LEN = 64;
             char gotBuf[BUFF_LEN];
-            u32 gotN = core::floatToCstr(c.input, gotBuf, BUFF_LEN);
+            u32 gotN = core::Unpack(core::floatToCstr(c.input, gotBuf, BUFF_LEN));
             gotBuf[gotN] = '\0';
 
             i32 cmpResult = core::memcmp(gotBuf, gotN, c.expected, core::cstrLen(c.expected));
@@ -380,6 +380,201 @@ constexpr i32 toSpecialValuesTest() {
 
             CT_CHECK(checkWithOriginalNormal(c.input, gotBuf, gotN, cErr) == 0);
 
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
+    return 0;
+}
+
+constexpr i32 shortBufferWritesTest() {
+    using core::ParseError;
+
+    {
+        struct TestCase {
+            f32 input;
+            u32 bufferSize;
+        };
+
+        constexpr TestCase cases[] = {
+            { 0.0f, 0 },
+            { 0.0f, 1 },
+            { -1.23456f, 0 },
+            { 3.4028235e38f, 5 },
+            { 9.9f, 2 },
+            { 1.2e2f, 3 },
+            { 1.2e2f, 4 },
+            { 98.0f, 3 },
+            { 1.2e1f, 4 },
+            { 3.4028235e38f, 1 },
+            { 3.4028235e38f, 2 },
+            { 3.4028235e38f, 3 },
+            { 3.4028235e38f, 4 },
+            { 123.456f, 1 },
+            { 123.456f, 2 },
+            { 123.456f, 3 },
+            { 123.456f, 4 },
+            { 123.456f, 5 },
+            { 12.34f, 1 },
+            { 12.34f, 2 },
+            { 5.0f, 0 },
+            { 1.23456f, 1 },
+            { 1.23456f, 2 },
+            { 9.0f, 0 },
+            { 1.2e1f, 4 },
+            { 1.23e-10f, 1 },
+            { 1.23e20f, 1 },
+            { 1.23e20f, 2 },
+            { 1.23e1f, 1 },
+            { 1e-20f, 1 },
+            { 1e-20f, 2 },
+            { 1e-20f, 3 },
+            { 1e20f, 1 },
+            { 1e20f, 2 },
+            { 1e20f, 3 },
+            { 3.4e38f, 1 },
+            { 3.4e38f, 2 },
+            { 3.4e38f, 3 },
+            { 3.4e38f, 4 },
+            { 3.4e38f, 5 },
+            { -9.9f, 1 },
+            { -9.9f, 2 },
+            { -9.9f, 3 },
+        };
+
+        i32 ret = core::testing::executeTestTable("test case failed for f32 short writes at index: ", cases, [](auto& c, const char* cErr) {
+            constexpr u32 BUFF_LEN = 64;
+            char buff[BUFF_LEN];
+            auto got = core::floatToCstr(c.input, buff, c.bufferSize);
+            CT_CHECK(got.hasErr(), cErr);
+            CT_CHECK(got.err() == core::ParseError::OutputBufferTooSmall, cErr);
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
+    {
+        struct TestCase {
+            f64 input;
+            u32 bufferSize;
+        };
+
+        constexpr TestCase cases[] = {
+            // Zero case
+            { 0.0, 0 },
+            { 0.0, 1 },
+
+            // Sign fails immediately
+            { -1.23456, 0 },
+
+            // Trigger (mantissa >> 32) != 0 and fail at first writeAt
+            { core::limitMax<f64>(), 1 },
+            // Same big number, slightly bigger buffers to fail at subsequent writeAt calls
+            { core::limitMax<f64>(), 2 },
+            { core::limitMax<f64>(), 3 },
+            { core::limitMax<f64>(), 4 },
+
+            // While(mantissa2 >= 10000) block fail
+            // Use a large number to ensure multiple divisions and writeAt calls
+            { 1e20, 1 },
+            { 1e20, 2 },
+            { 1e20, 3 },
+            { 1e20, 4 },
+
+            // If (mantissa2 >= 100) fail
+            { 123.456, 1 },
+            { 123.456, 2 },
+            { 123.456, 3 },
+
+            // If (mantissa2 >= 10) fail (two writes)
+            { 12.34, 1 },
+            { 12.34, 2 },
+
+            // Single digit mantissa fail
+            { 5.0, 0 },
+
+            // Fail writing decimal point
+            { 1.23456, 1 }, // can’t write full "1."
+            { 1.23456, 2 }, // can’t write "1.2"
+
+            // Fail advance(1) case (mantissaLen == 1)
+            { 9.0, 0 },
+
+            // Fail writing 'E'
+            { 1.23e10, 1 },
+
+            // Fail writing '-' for negative exponent
+            { 1.23e-10, 1 },
+
+            // exp >= 100 fail
+            { 1.23e200, 1 },
+            { 1.23e200, 2 },
+            { 1.23e200, 3 },
+
+            // exp >= 10 fail
+            { 1.23e20, 1 },
+            { 1.23e20, 2 },
+
+            // exp < 10 fail
+            { 1.23e1, 1 },
+
+            // Extreme small exponent
+            { 1.23e-100, 1 },
+            { 1.23e-100, 2 },
+            { 1.23e-100, 3 },
+
+            // Extreme large exponent
+            { 1.23e300, 1 },
+            { 1.23e300, 2 },
+
+            // Very small numbers
+            { 1e-200, 1 },
+            { 1e-200, 2 },
+
+            // Boundary cases for digit handling
+            { 9.9, 1 },
+            { 9.9, 2 },
+            { 9.9, 3 },
+
+            // More scenarios for exp >= 10
+            { 1.23e15, 1 },
+            { 1.23e15, 2 },
+            { 1.23e15, 3 },
+
+            // Fail with different buffer sizes.
+            { core::limitMin<f64>(), 0 },
+            { core::limitMin<f64>(), 1 },
+            { core::limitMin<f64>(), 2 },
+            { core::limitMin<f64>(), 3 },
+            { core::limitMin<f64>(), 4 },
+            { core::limitMin<f64>(), 5 },
+            { core::limitMin<f64>(), 6 },
+            { core::limitMin<f64>(), 7 },
+            { core::limitMin<f64>(), 8 },
+            { core::limitMin<f64>(), 9 },
+            { core::limitMin<f64>(), 10 },
+            { core::limitMin<f64>(), 11 },
+            { core::limitMin<f64>(), 12 },
+            { core::limitMin<f64>(), 13 },
+            { core::limitMin<f64>(), 14 },
+            { core::limitMin<f64>(), 15 },
+            { core::limitMin<f64>(), 15 },
+            { core::limitMin<f64>(), 16 },
+            { core::limitMin<f64>(), 17 },
+            { core::limitMin<f64>(), 18 },
+            { core::limitMin<f64>(), 19 },
+            { core::limitMin<f64>(), 20 },
+            { core::limitMin<f64>(), 21 },
+            { core::limitMin<f64>(), 22 },
+        };
+
+        i32 ret = core::testing::executeTestTable("test case failed for overflow at index: ", cases, [](auto& c, const char* cErr) {
+            constexpr u32 BUFF_LEN = 64;
+            char buff[BUFF_LEN];
+            auto got = core::floatToCstr(c.input, buff, c.bufferSize);
+            CT_CHECK(got.hasErr(), cErr);
+            CT_CHECK(got.err() == core::ParseError::OutputBufferTooSmall);
             return 0;
         });
         CT_CHECK(ret == 0);
@@ -398,6 +593,8 @@ i32 runCstrConv_FloatToCstr_TestsSuite() {
     if (runTest(tInfo, toExponentNotationTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(toSpecialValuesTest);
     if (runTest(tInfo, toSpecialValuesTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(shortBufferWritesTest);
+    if (runTest(tInfo, shortBufferWritesTest) != 0) { ret = -1; }
 
     return ret;
 }

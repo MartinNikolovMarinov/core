@@ -228,6 +228,7 @@ if(CORE_BUILD_TESTS)
         tests/common/ryu_reference_impl/s2d.cpp
         tests/common/ryu_reference_impl/f2s.cpp
         tests/common/ryu_reference_impl/d2s.cpp
+        tests/common/ryu_reference_impl/t-verify.cpp
     )
 
     # Link core

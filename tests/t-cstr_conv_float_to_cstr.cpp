@@ -602,6 +602,7 @@ i32 runCstrConv_FloatToCstr_TestsSuite() {
 constexpr i32 runCompiletimeCstrConv_FloatToCstr_TestsSuite() {
     RunTestCompileTime(toExponentNotationTest);
     RunTestCompileTime(toSpecialValuesTest);
+    RunTestCompileTime(shortBufferWritesTest);
 
     return 0;
 }

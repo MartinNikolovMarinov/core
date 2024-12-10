@@ -126,6 +126,7 @@ i32 runCmdParserTestsSuite();
 i32 runCstrConvTestsSuite();
 i32 runCstrConv_CstrToFloat_TestsSuite();
 i32 runCstrConv_FloatToCstr_TestsSuite();
+i32 verifyRyuAlgorithm();
 i32 runCstrTestsSuite();
 i32 runDeferTestsSuite();
 i32 runExpectedTestsSuite();

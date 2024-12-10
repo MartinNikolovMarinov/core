@@ -155,6 +155,9 @@ i32 runAllTests() {
     sInfo.name = FN_NAME_TO_CPTR(runAsmTestsSuite);
     if (runTestSuite(sInfo, runAsmTestsSuite) != 0) { ret = -1; }
 
+    // sInfo.name = FN_NAME_TO_CPTR(verifyRyuAlgorithm);
+    // if (runTestSuite(sInfo, verifyRyuAlgorithm) != 0) { ret = -1; }
+
     std::cout << '\n';
     if (ret == 0) {
         if (sInfo.useAnsiColors) {

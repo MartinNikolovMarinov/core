@@ -7,8 +7,6 @@
 
 #include <new>
 
-// FIXME: Fix the chain braking bug!
-
 namespace core {
 
 template <typename TKey, typename TValue> struct HashMap;
@@ -47,13 +45,19 @@ struct HashMap {
 
     static constexpr f64 maxLoadFactor = detail::DEFAULT_MAX_LOAD_FACTOR;
 
+    enum BucketState: u8 {
+        Free,
+        Occupied,
+        Deleted,
+    };
+
     // IMPORTANT: Only a subset of the features can be used without a copy constructr, but it is allowed.
     //            On the other hand, without a move contructor this struct is useless.
     static_assert(std::is_move_constructible_v<key_type>, "TKey must be move constructible");
     static_assert(std::is_move_constructible_v<value_type>, "TValue must be move constructible");
     static_assert(HashableConcept<key_type>, "TKey must be hashable");
 
-    HashMap() : m_keys(nullptr), m_values(nullptr), m_occupied(nullptr), m_cap(0), m_len(0) {}
+    HashMap() : m_keys(nullptr), m_values(nullptr), m_bucketState(nullptr), m_cap(0), m_len(0) {}
     HashMap(size_type cap) {
         cap = detail::addLoadFactor(cap, maxLoadFactor);
         m_cap = cap > 0 ? detail::nextPowerOf2ForCap(cap) : 0;
@@ -61,12 +65,12 @@ struct HashMap {
         if (m_cap > 0) {
             m_keys        = reinterpret_cast<key_type*>(core::alloc(m_cap, sizeof(key_type)));
             m_values      = reinterpret_cast<value_type*>(core::alloc(m_cap, sizeof(value_type)));
-            m_occupied    = reinterpret_cast<bool*>(core::zeroAlloc(m_cap, sizeof(bool)));
+            m_bucketState = reinterpret_cast<BucketState*>(core::zeroAlloc(m_cap, sizeof(BucketState)));
         }
         else {
             m_keys = nullptr;
             m_values = nullptr;
-            m_occupied = nullptr;
+            m_bucketState = nullptr;
         }
     }
 
@@ -76,13 +80,13 @@ struct HashMap {
 
         m_keys = other.m_keys;
         m_values = other.m_values;
-        m_occupied = other.m_occupied;
+        m_bucketState = other.m_bucketState;
         m_cap = other.m_cap;
         m_len = other.m_len;
 
         other.m_keys = nullptr;
         other.m_values = nullptr;
-        other.m_occupied = nullptr;
+        other.m_bucketState = nullptr;
         other.m_cap = 0;
         other.m_len = 0;
     }
@@ -97,13 +101,13 @@ struct HashMap {
 
         m_keys = other.m_keys;
         m_values = other.m_values;
-        m_occupied = other.m_occupied;
+        m_bucketState = other.m_bucketState;
         m_cap = other.m_cap;
         m_len = other.m_len;
 
         other.m_keys = nullptr;
         other.m_values = nullptr;
-        other.m_occupied = nullptr;
+        other.m_bucketState = nullptr;
         other.m_cap = 0;
         other.m_len = 0;
 
@@ -118,10 +122,11 @@ struct HashMap {
 
     void clear() {
         for (size_type i = 0; i < m_cap; ++i) {
-            if (m_occupied[i]) {
+            if (m_bucketState[i] == BucketState::Occupied) {
                 m_values[i].~value_type();
                 m_keys[i].~key_type();
             }
+            m_bucketState[i] = BucketState::Free;
         }
 
         m_len = 0;
@@ -134,35 +139,35 @@ struct HashMap {
 
         core::free(m_keys, m_cap, sizeof(key_type));
         core::free(m_values, m_cap, sizeof(value_type));
-        core::free(m_occupied, m_cap, sizeof(bool));
+        core::free(m_bucketState, m_cap, sizeof(BucketState));
 
         m_cap = 0;
         m_keys = nullptr;
         m_values = nullptr;
-        m_occupied = nullptr;
+        m_bucketState = nullptr;
     }
 
     HashMap copy() const {
         value_type* copyData = nullptr;
         key_type* copyKeys = nullptr;
-        bool* copyOccupied = nullptr;
+        BucketState* copyBucketState = nullptr;
 
         if (m_cap > 0) {
-            copyData     = reinterpret_cast<value_type *>(core::alloc(m_cap, sizeof(value_type)));
-            copyKeys     = reinterpret_cast<key_type *>(core::alloc(m_cap, sizeof(key_type)));
-            copyOccupied = reinterpret_cast<bool *>(core::alloc(m_cap, sizeof(bool)));
+            copyData        = reinterpret_cast<value_type *>(core::alloc(m_cap, sizeof(value_type)));
+            copyKeys        = reinterpret_cast<key_type *>(core::alloc(m_cap, sizeof(key_type)));
+            copyBucketState = reinterpret_cast<BucketState *>(core::alloc(m_cap, sizeof(BucketState)));
 
             for (size_type i = 0; i < m_cap; i++) {
                 new (&copyData[i]) value_type(m_values[i]);
                 new (&copyKeys[i]) key_type(m_keys[i]);
-                copyOccupied[i] = m_occupied[i];
+                copyBucketState[i] = m_bucketState[i];
             }
         }
 
         HashMap result;
         result.m_keys = copyKeys;
         result.m_values = copyData;
-        result.m_occupied = copyOccupied;
+        result.m_bucketState = copyBucketState;
         result.m_cap = m_cap;
         result.m_len = m_len;
         return result;
@@ -201,7 +206,7 @@ struct HashMap {
         if (idx < m_cap) {
             m_values[idx].~value_type();
             m_keys[idx].~key_type();
-            m_occupied[idx] = false;
+            m_bucketState[idx] = BucketState::Deleted;
             m_len--;
             return true;
         }
@@ -218,43 +223,43 @@ struct HashMap {
 
         newCap = detail::nextPowerOf2ForCap(newCap);
 
-        key_type* newKeys     = reinterpret_cast<key_type*>(core::alloc(newCap, sizeof(key_type)));
-        value_type* newValues = reinterpret_cast<value_type*>(core::alloc(newCap, sizeof(value_type)));
-        bool* newOccupied     = reinterpret_cast<bool*>(core::zeroAlloc(newCap, sizeof(bool)));
+        key_type* newKeys           = reinterpret_cast<key_type*>(core::alloc(newCap, sizeof(key_type)));
+        value_type* newValues       = reinterpret_cast<value_type*>(core::alloc(newCap, sizeof(value_type)));
+        BucketState* newBucketState = reinterpret_cast<BucketState*>(core::zeroAlloc(newCap, sizeof(BucketState)));
 
         for (size_type i = 0; i < m_cap; i++) {
-            if (m_occupied[i]) {
+            if (m_bucketState[i] == BucketState::Occupied) {
                 auto h         = core::hash(m_keys[i]);
                 size_type addr = size_type(h) & (newCap - 1); // re-hash the key and find a new slot.
 
                 // Find the first empty slot starting from the calculated slot.
-                while (newOccupied[addr]) {
+                while (newBucketState[addr]) {
                     // This loop should be guaranteed to terminate because new cap is always larger than the old cap.
                     addr = (addr + 1) & (newCap - 1);
                 }
 
                 new (&newKeys[addr]) key_type(std::move(m_keys[i]));
                 new (&newValues[addr]) value_type(std::move(m_values[i]));
-                newOccupied[addr] = true;
+                newBucketState[addr] = BucketState::Occupied;
             }
         }
 
         if (m_keys) {
             core::free(m_keys, m_cap, sizeof(key_type));
             core::free(m_values, m_cap, sizeof(value_type));
-            core::free(m_occupied, m_cap, sizeof(bool));
+            core::free(m_bucketState, m_cap, sizeof(BucketState));
         }
 
         m_cap = newCap;
         m_keys = newKeys;
         m_values = newValues;
-        m_occupied = newOccupied;
+        m_bucketState = newBucketState;
     }
 
     template <typename TCallback>
     void keys(TCallback cb) const {
         for (size_type i = 0; i < m_cap; i++) {
-            if (m_occupied[i]) {
+            if (m_bucketState[i] == BucketState::Occupied) {
                 if (!cb(m_keys[i])) {
                     return;
                 }
@@ -265,7 +270,7 @@ struct HashMap {
     template <typename TCallback>
     void values(TCallback cb) const {
         for (size_type i = 0; i < m_cap; i++) {
-            if (m_occupied[i]) {
+            if (m_bucketState[i] == BucketState::Occupied) {
                 if (!cb(m_values[i])) {
                     return;
                 }
@@ -281,7 +286,7 @@ struct HashMap {
     template <typename TCallback>
     void entries(TCallback cb) const {
         for (size_type i = 0; i < m_cap; i++) {
-            if (m_occupied[i]) {
+            if (m_bucketState[i] == BucketState::Occupied) {
                 if (!cb(m_keys[i], m_values[i])) {
                     return;
                 }
@@ -300,7 +305,7 @@ private:
         auto h = core::hash(key);
         size_type addr = size_type(h) & (m_cap - 1);
 
-        while (m_occupied[addr]) {
+        while (m_bucketState[addr] == BucketState::Occupied) {
             if (core::eq(m_keys[addr], key)) {
                 // Key already exists, replace the value.
                 if constexpr (std::is_lvalue_reference_v<TTVal>) {
@@ -328,7 +333,7 @@ private:
         }
 
         // Mark the slot as occupied
-        m_occupied[addr] = true;
+        m_bucketState[addr] = BucketState::Occupied;
         m_len++;
 
         return &m_values[addr];
@@ -343,7 +348,7 @@ private:
         size_type addr        = size_type(h) & (m_cap - 1);
         size_type startAddr   = addr;
 
-        while (addr < m_cap && m_occupied[addr]) {
+        while (addr < m_cap && m_bucketState[addr] != BucketState::Free) {
             if (core::eq(m_keys[addr], key)) {
                 return addr;
             }
@@ -362,7 +367,7 @@ private:
 
     key_type* m_keys;
     value_type* m_values;
-    bool* m_occupied;
+    BucketState* m_bucketState;
     size_type m_cap;
     size_type m_len;
 };

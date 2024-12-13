@@ -530,6 +530,99 @@ i32 earlyStopIterationsTest() {
     return 0;
 }
 
+struct ChainBraking {
+    i32 v;
+};
+
+struct BadlyHashed {
+    i32 v;
+};
+
+namespace core {
+
+template<> inline addr_size hash<ChainBraking>(const ChainBraking& key) {
+    if (key.v == 1) return 0;
+    if (key.v == 2) return 1;
+    if (key.v == 3) return 0;
+    return addr_size(key.v);
+}
+
+template<> inline bool eq<ChainBraking>(const ChainBraking& a, const ChainBraking& b) {
+    return a.v == b.v;
+}
+
+template<> inline addr_size hash<BadlyHashed>(const BadlyHashed&) {
+    return 0;
+}
+
+template<> inline bool eq<BadlyHashed>(const BadlyHashed& a, const BadlyHashed& b) {
+    return a.v == b.v;
+}
+
+} // namespace core
+
+i32 chainBrakeBugTest() {
+    {
+        core::HashMap<ChainBraking, bool> m(4);
+        m.put({ 1 }, true); // insert at possition 0
+        m.put({ 2 }, true); // insert at possition 1
+        m.put({ 3 }, true); // insert at possition 0
+
+        m.remove({ 1 }); // this must not brake the chain!
+
+        {
+            auto* el = m.get({ 2 });
+            CT_CHECK(el != nullptr);
+            CT_CHECK(*el);
+        }
+        {
+            auto* el = m.get({ 3 });
+            CT_CHECK(el != nullptr);
+            CT_CHECK(*el);
+        }
+    }
+
+    {
+        core::HashMap<BadlyHashed, bool> m;
+        m.put({ 1 }, true); // insert at possition 0
+        m.put({ 2 }, true); // insert at possition 1
+        m.put({ 3 }, true); // insert at possition 2
+        m.put({ 4 }, true); // insert at possition 3
+        m.put({ 5 }, true); // insert at possition 4
+        m.put({ 6 }, true); // insert at possition 5
+
+        m.remove({ 3 });
+        CT_CHECK(m.get({ 1 }) != nullptr);
+        CT_CHECK(m.get({ 2 }) != nullptr);
+        CT_CHECK(m.get({ 4 }) != nullptr);
+        CT_CHECK(m.get({ 5 }) != nullptr);
+        CT_CHECK(m.get({ 6 }) != nullptr);
+
+        m.remove({ 4 });
+        CT_CHECK(m.get({ 1 }) != nullptr);
+        CT_CHECK(m.get({ 2 }) != nullptr);
+        CT_CHECK(m.get({ 5 }) != nullptr);
+        CT_CHECK(m.get({ 6 }) != nullptr);
+
+        m.remove({ 5 });
+        CT_CHECK(m.get({ 1 }) != nullptr);
+        CT_CHECK(m.get({ 2 }) != nullptr);
+        CT_CHECK(m.get({ 6 }) != nullptr);
+
+        m.remove({ 2 });
+        CT_CHECK(m.get({ 1 }) != nullptr);
+        CT_CHECK(m.get({ 6 }) != nullptr);
+
+        m.remove({ 1 });
+        CT_CHECK(m.get({ 6 }) != nullptr);
+
+        m.remove({ 6 });
+        CT_CHECK(m.empty());
+    }
+
+    return 0;
+}
+
 constexpr i32 hashMapTraitsTest() {
     static_assert(std::is_standard_layout_v<core::HashMap<i32, i32>>,
                  "HashMap(i32, i32) should be standard layout");
@@ -564,6 +657,8 @@ i32 runHashMapTestsSuite() {
         if (runTest(tInfo, veryPoorlyHashedKeyInMapTest) != 0) { retCode = -1; }
         tInfo.name = FN_NAME_TO_CPTR(earlyStopIterationsTest);
         if (runTest(tInfo, earlyStopIterationsTest) != 0) { retCode = -1; }
+        tInfo.name = FN_NAME_TO_CPTR(chainBrakeBugTest);
+        if (runTest(tInfo, chainBrakeBugTest) != 0) { retCode = -1; }
     };
 
     i32 ret = 0;

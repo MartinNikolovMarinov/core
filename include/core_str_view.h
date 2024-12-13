@@ -32,7 +32,7 @@ constexpr inline StrView trimWhiteSpaceRight(StrView s) {
 
     addr_off boff = addr_off(s.len());
     for (; boff >= 0; boff--) {
-        if (!core::isWhiteSpace(s[boff])) break;
+        if (!core::isWhiteSpace(s[addr_size(boff)])) break;
     }
 
     return StrView{s.data(), addr_size(boff)};

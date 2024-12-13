@@ -15,6 +15,9 @@
 #include "f2s_intrinsics.h"
 #include "digit_table.h"
 
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_SUPPRESS_ALL
+
 namespace ryu {
 
 #define FLOAT_MANTISSA_BITS 23
@@ -327,3 +330,5 @@ char* f2s(float f) {
 }
 
 } // namespace ryu
+
+PRAGMA_WARNING_POP

@@ -102,10 +102,10 @@ template <typename T>               constexpr T           absGeneric(T a);
                                     constexpr radians     degToRad(f32 n);
                                     constexpr f32         radToDeg(const radians& n);
 
-template <typename T>               constexpr T           core_max(T a, T b);
-template <typename T>               constexpr T           core_min(T a, T b);
-template <typename T>               constexpr tuple<T, T> minmax(T a, T b);
-template <typename T>               constexpr T           clamp(T value, T min, T max);
+template <typename T>               constexpr T           core_max(const T& a, const T& b);
+template <typename T>               constexpr T           core_min(const T& a, const T& b);
+template <typename T>               constexpr tuple<T, T> minmax(const T& a, const T& b);
+template <typename T>               constexpr T           clamp(const T& value, const T& min, const T& max);
 
                                     constexpr bool        isPositive(f32 a);
                                     constexpr bool        isPositive(f64 a);
@@ -786,24 +786,24 @@ constexpr f32 radToDeg(const radians& n) {
 #pragma region Min/Max/Clamp -----------------------------------------------------------------------------------------
 
 template <typename T>
-constexpr T core_max(T a, T b) { // apparently Windows defines a max macro, so this is core_max instead of max.
+constexpr T core_max(const T& a, const T& b) { // apparently Windows defines a max macro, so this is core_max instead of max.
     if (a < b) return b;
     return a;
 }
 
 template <typename T>
-constexpr T core_min(T a, T b) { // naming this core_min for consistency with core_max.
+constexpr T core_min(const T& a, const T& b) { // naming this core_min for consistency with core_max.
     if (a > b) return b;
     return a;
 }
 
 template <typename T>
-constexpr tuple<T, T> minmax(T a, T b) {
+constexpr tuple<T, T> minmax(const T& a, const T& b) {
     return core::createTuple(core::core_min(a, b), core::core_max(a, b));
 }
 
 template <typename T>
-constexpr T clamp(T value, T min, T max) {
+constexpr T clamp(const T& value, const T& min, const T& max) {
     return core::core_max(min, core::core_min(max, value));
 }
 

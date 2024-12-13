@@ -10,9 +10,9 @@ constexpr i32 checkWithOriginalNormal(auto in, const char* got, u32 gotN, const 
         u32 n;
 
         if constexpr (std::is_same_v<decltype(in), f32>)
-            n = ryu::f2s_buffered_n(in, buf);
+            n = u32(ryu::f2s_buffered_n(in, buf));
         else if constexpr (std::is_same_v<decltype(in), f64>)
-            n = ryu::d2s_buffered_n(in, buf);
+            n = u32(ryu::d2s_buffered_n(in, buf));
         else
             static_assert(core::always_false<decltype(in)>, "invalid type passed");
 

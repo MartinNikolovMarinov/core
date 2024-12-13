@@ -361,9 +361,9 @@ struct FloatTraits<f32> {
         i32 exponent;
     };
 
-    static constexpr i32 MAX_MANTISSA_DIGITS = core::maxMantissaDigitsBase10<f32>();
-    static constexpr i32 MANTISSA_BITS = core::mantissaBits<f32>();
-    static constexpr i32 EXPONENT_BITS = core::exponentBits<f32>();
+    static constexpr u32 MAX_MANTISSA_DIGITS = core::maxMantissaDigitsBase10<f32>();
+    static constexpr u32 MANTISSA_BITS = core::mantissaBits<f32>();
+    static constexpr u32 EXPONENT_BITS = core::exponentBits<f32>();
     static constexpr u32 EXPONENT_BIAS = core::exponentBias<f32>();
     static constexpr u32 POW5_BITCOUNT = 61;
     static constexpr u32 POW5_INV_BITCOUNT = 59;
@@ -463,28 +463,28 @@ struct FloatTraits<f32> {
             //
             // We use floor(log2(5^exponent)) so that we get at least this many bits; better to
             // have an additional bit than to not have enough bits.
-            e2 = floorLog2(mantissa) + exponent + log2pow5(exponent) - (MANTISSA_BITS + 1);
+            e2 = i32(floorLog2(mantissa)) + exponent + log2pow5(exponent) - i32(MANTISSA_BITS + 1);
 
             // We now compute [mantissa * 10^exponent / 2^e2] = [mantissa * 5^exponent / 2^(e2-exponent)].
             // To that end, we use the POW5_SPLIT table.
-            int j = e2 - exponent - ceilLog2pow5(exponent) + POW5_BITCOUNT;
+            i32 j = e2 - exponent - ceilLog2pow5(exponent) + i32(POW5_BITCOUNT);
             Assert(j >= 0);
 
-            m2 = mulShift(mantissa, POW5_SPLIT[exponent], j);
+            m2 = mulShift(mantissa, POW5_SPLIT[exponent], u32(j));
 
             // We also compute if the result is exact, i.e.,
             //   [mantissa * 10^exponent / 2^e2] == mantissa * 10^exponent / 2^e2.
             // This can only be the case if 2^e2 divides mantissa * 10^exponent, which in turn requires that the
             // largest power of 2 that divides mantissa + exponent is greater than e2. If e2 is less than exponent, then
             // the result must be exact. Otherwise we use the existing multipleOfPowerOf2 function.
-            trailingZeros = e2 < exponent || (e2 - exponent < 32 && multipleOfPowerOf2(mantissa, e2 - exponent));
+            trailingZeros = e2 < exponent || (e2 - exponent < 32 && multipleOfPowerOf2(mantissa, u32(e2 - exponent)));
         }
         else {
-            e2 = floorLog2(mantissa) + exponent - ceilLog2pow5(-exponent) - (MANTISSA_BITS + 1);
+            e2 = i32(floorLog2(mantissa)) + exponent - ceilLog2pow5(-exponent) - i32(MANTISSA_BITS + 1);
 
             // We now compute [mantissa * 10^exponent / 2^e2] = [mantissa / (5^(-exponent) 2^(e2-exponent))].
-            int j = e2 - exponent + ceilLog2pow5(-exponent) - 1 + POW5_INV_BITCOUNT;
-            m2 = mulShift(mantissa, POW5_INV_SPLIT[-exponent], j);
+            i32 j = e2 - exponent + ceilLog2pow5(-exponent) - 1 + i32(POW5_INV_BITCOUNT);
+            m2 = mulShift(mantissa, POW5_INV_SPLIT[-exponent], u32(j));
 
             // We also compute if the result is exact, i.e.,
             //   [mantissa / (5^(-exponent) 2^(e2-exponent))] == mantissa / (5^(-exponent) 2^(e2-exponent))
@@ -495,8 +495,8 @@ struct FloatTraits<f32> {
             // If e2-exponent < 0, we have actually computed [mantissa * 2^(exponent e2) / 5^(-exponent)] above,
             // and we need to check whether 5^(-exponent) divides (mantissa * 2^(exponent-e2)), which is the case iff
             // pow5(mantissa * 2^(exponent-e2)) = pow5(mantissa) >= -exponent.
-            trailingZeros = (e2 < exponent || (e2 - exponent < 32 && multipleOfPowerOf2(mantissa, e2 - exponent)))
-                && multipleOfPowerOf5(mantissa, u32(-exponent));
+            trailingZeros = (e2 < exponent || (e2 - exponent < 32 && multipleOfPowerOf2(mantissa, u32(e2 - exponent))))
+                            && multipleOfPowerOf5(mantissa, u32(-exponent));
         }
 
         return trailingZeros;
@@ -512,9 +512,9 @@ struct FloatTraits<f64> {
         i32 exponent;
     };
 
-    static constexpr i32 MAX_MANTISSA_DIGITS = core::maxMantissaDigitsBase10<f64>();
-    static constexpr i32 MANTISSA_BITS = core::mantissaBits<f64>();
-    static constexpr i32 EXPONENT_BITS = core::exponentBits<f64>();
+    static constexpr u32 MAX_MANTISSA_DIGITS = core::maxMantissaDigitsBase10<f64>();
+    static constexpr u32 MANTISSA_BITS = core::mantissaBits<f64>();
+    static constexpr u32 EXPONENT_BITS = core::exponentBits<f64>();
     static constexpr u32 EXPONENT_BIAS = core::exponentBias<f64>();
     static constexpr u32 POW5_INV_BITCOUNT = 125;
     static constexpr u32 POW5_BITCOUNT = 125;
@@ -5323,28 +5323,28 @@ struct FloatTraits<f64> {
             //
             // We use floor(log2(5^exponent)) so that we get at least this many bits; better to
             // have an additional bit than to not have enough bits.
-            e2 = floorLog2(mantissa) + exponent + log2pow5(exponent) - (MANTISSA_BITS + 1);
+            e2 = i32(floorLog2(mantissa)) + exponent + log2pow5(exponent) - i32(MANTISSA_BITS + 1);
 
             // We now compute [mantissa * 10^exponent / 2^e2] = [mantissa * 5^exponent / 2^(e2-exponent)].
             // To that end, we use the POW5_SPLIT table.
-            int j = e2 - exponent - ceilLog2pow5(exponent) + POW5_BITCOUNT;
+            i32 j = e2 - exponent - ceilLog2pow5(exponent) + i32(POW5_BITCOUNT);
             Assert(j >= 0);
 
             Assert(exponent < i32(POW5_TABLE_SIZE));
-            m2 = mulShift(mantissa, POW5_SPLIT[exponent], j);
+            m2 = mulShift(mantissa, POW5_SPLIT[exponent], u32(j));
             // We also compute if the result is exact, i.e.,
             //   [mantissa * 10^exponent / 2^e2] == mantissa * 10^exponent / 2^e2.
             // This can only be the case if 2^e2 divides mantissa * 10^exponent, which in turn requires that the
             // largest power of 2 that divides mantissa + exponent is greater than e2. If e2 is less than exponent, then
             // the result must be exact. Otherwise we use the existing multipleOfPowerOf2 function.
-            trailingZeros = e2 < exponent || (e2 - exponent < 64 && multipleOfPowerOf2(mantissa, e2 - exponent));
+            trailingZeros = e2 < exponent || (e2 - exponent < 64 && multipleOfPowerOf2(mantissa, u32(e2 - exponent)));
         }
         else {
-            e2 = floorLog2(mantissa) + exponent - ceilLog2pow5(-exponent) - (MANTISSA_BITS + 1);
-            int j = e2 - exponent + ceilLog2pow5(-exponent) - 1 + POW5_INV_BITCOUNT;
+            e2 = i32(floorLog2(mantissa)) + exponent - ceilLog2pow5(-exponent) - i32(MANTISSA_BITS + 1);
+            i32 j = e2 - exponent + ceilLog2pow5(-exponent) - 1 + i32(POW5_INV_BITCOUNT);
 
             Assert(-exponent < i32(POW5_INV_TABLE_SIZE));
-            m2 = mulShift(mantissa, POW5_INV_SPLIT[-exponent], j);
+            m2 = mulShift(mantissa, POW5_INV_SPLIT[-exponent], u32(j));
             trailingZeros = multipleOfPowerOf5(mantissa, u32(-exponent));
         }
 
@@ -5425,9 +5425,9 @@ constexpr core::expected<TFloat, ParseError> cstrToFloatImpl(const char* s, u32 
     using Traits = FloatTraits<TFloat>;
     using UInt = typename Traits::UInt;
 
-    constexpr i32 MAX_MANTISSA_DIGITS = Traits::MAX_MANTISSA_DIGITS;
-    constexpr i32 MANTISSA_BITS = Traits::MANTISSA_BITS;
-    constexpr i32 EXPONENT_BITS = Traits::EXPONENT_BITS;
+    constexpr u32 MAX_MANTISSA_DIGITS = Traits::MAX_MANTISSA_DIGITS;
+    constexpr u32 MANTISSA_BITS = Traits::MANTISSA_BITS;
+    constexpr u32 EXPONENT_BITS = Traits::EXPONENT_BITS;
     constexpr u32 EXPONENT_BIAS = Traits::EXPONENT_BIAS;
     constexpr i32 MIN_EXPONENT_AFTER_WHICH_ROUND_TO_ZERO = Traits::MIN_EXPONENT_AFTER_WHICH_ROUND_TO_ZERO;
     constexpr i32 MAX_EXPONENT_AFTER_WHICH_ROUND_TO_INF = Traits::MAX_EXPONENT_AFTER_WHICH_ROUND_TO_INF;
@@ -5479,7 +5479,7 @@ constexpr core::expected<TFloat, ParseError> cstrToFloatImpl(const char* s, u32 
         }
         else {
             if (!core::isDigit(c)) break;
-            if (mantissaDigits >= MAX_MANTISSA_DIGITS) return core::unexpected(ParseError::InputNumberTooLarge);
+            if (u32(mantissaDigits) >= MAX_MANTISSA_DIGITS) return core::unexpected(ParseError::InputNumberTooLarge);
             mantissa = 10 * mantissa + core::toDigit<UInt>(c);
             if (mantissa != 0) mantissaDigits++;
         }
@@ -5512,14 +5512,14 @@ constexpr core::expected<TFloat, ParseError> cstrToFloatImpl(const char* s, u32 
     }
 
     if (mantissa == 0) {
-        return isNegative ? -0.0f : 0.0f;
+        return isNegative ? -TFloat(0.0) : TFloat(0.0);
     }
 
     if (exponentIsNegative) {
         exponent = -exponent;
     }
 
-    exponent -= (dotIndex < eIndex) ? (eIndex - i32(dotIndex) - 1) : 0;
+    exponent -= (dotIndex < eIndex) ? (i32(eIndex) - i32(dotIndex) - 1) : 0;
 
     if (mantissaDigits + exponent <= MIN_EXPONENT_AFTER_WHICH_ROUND_TO_ZERO) {
         UInt ieee = UInt(isNegative) << (EXPONENT_BITS + MANTISSA_BITS);
@@ -5534,7 +5534,7 @@ constexpr core::expected<TFloat, ParseError> cstrToFloatImpl(const char* s, u32 
     bool trailingZeros = Traits::convertFloatToBinary(mantissa, exponent, m2, e2);
 
     // Compute the final IEEE exponent.
-    u32 ieee_e2 = std::max(0, e2 + i32(EXPONENT_BIAS) + i32(Traits::floorLog2(m2)));
+    u32 ieee_e2 = u32(core::core_max(0, e2 + i32(EXPONENT_BIAS) + i32(Traits::floorLog2(m2))));
     constexpr u32 MAX_IEEE_EXPONENT = ((1u << EXPONENT_BITS) - 2);
     if (ieee_e2 > MAX_IEEE_EXPONENT) {
         // Overflow to infinity
@@ -5543,7 +5543,7 @@ constexpr core::expected<TFloat, ParseError> cstrToFloatImpl(const char* s, u32 
     }
 
     // Shift and round
-    i32 shift = (ieee_e2 == 0 ? 1 : ieee_e2) - e2 - i32(EXPONENT_BIAS) - MANTISSA_BITS;
+    i32 shift = i32(ieee_e2 == 0 ? 1 : ieee_e2) - e2 - i32(EXPONENT_BIAS) - i32(MANTISSA_BITS);
     Assert(shift >= 0);
 
     trailingZeros &= (m2 & ((UInt(1) << (shift - 1)) - 1)) == 0;
@@ -5566,7 +5566,7 @@ constexpr FloatTraits<f32>::FloatDecimal floatToDecimal(u32 ieeeMantissa, u32 ie
     using FloatDecimal = Traits::FloatDecimal;
 
     constexpr u32 FLOAT_BIAS = Traits::EXPONENT_BIAS;
-    constexpr i32 MANTISSA_BITS = Traits::MANTISSA_BITS;
+    constexpr u32 MANTISSA_BITS = Traits::MANTISSA_BITS;
     constexpr u32 POW5_INV_BITCOUNT = Traits::POW5_INV_BITCOUNT;
     constexpr u32 POW5_BITCOUNT = Traits::POW5_BITCOUNT;
 
@@ -5574,11 +5574,11 @@ constexpr FloatTraits<f32>::FloatDecimal floatToDecimal(u32 ieeeMantissa, u32 ie
     u32 m2;
     if (ieeeExponent == 0) {
         // We subtract 2 so that the bounds computation has 2 additional bits.
-        e2 = 1 - i32(FLOAT_BIAS) - MANTISSA_BITS - 2;
+        e2 = 1 - i32(FLOAT_BIAS) - i32(MANTISSA_BITS) - 2;
         m2 = ieeeMantissa;
     }
     else {
-        e2 = i32(ieeeExponent) - FLOAT_BIAS - MANTISSA_BITS - 2;
+        e2 = i32(ieeeExponent) - i32(FLOAT_BIAS) - i32(MANTISSA_BITS) - 2;
         m2 = (1u << MANTISSA_BITS) | ieeeMantissa;
     }
     bool even = (m2 & 1) == 0;
@@ -5603,15 +5603,15 @@ constexpr FloatTraits<f32>::FloatDecimal floatToDecimal(u32 ieeeMantissa, u32 ie
         i32 k = i32(POW5_INV_BITCOUNT) + pow5bits(i32(q)) - 1;
         i32 i = -e2 + i32(q) + k;
 
-        vr = Traits::mulShift(mv, Traits::POW5_INV_SPLIT[q], i);
-        vp = Traits::mulShift(mp, Traits::POW5_INV_SPLIT[q], i);
-        vm = Traits::mulShift(mm, Traits::POW5_INV_SPLIT[q], i);
+        vr = Traits::mulShift(mv, Traits::POW5_INV_SPLIT[q], u32(i));
+        vp = Traits::mulShift(mp, Traits::POW5_INV_SPLIT[q], u32(i));
+        vm = Traits::mulShift(mm, Traits::POW5_INV_SPLIT[q], u32(i));
 
         if (q != 0 && (vp - 1) / 10 <= vm / 10) {
             // We need to know one removed digit even if we are not going to loop below. We could use
             // q = X - 1 above, except that would require 33 bits for the result, and we've found that
             // 32-bit arithmetic is faster even on 64-bit machines.
-            i32 l = POW5_INV_BITCOUNT + pow5bits(i32(q - 1)) - 1;
+            i32 l = i32(POW5_INV_BITCOUNT) + pow5bits(i32(q - 1)) - 1;
             i32 shift = -e2 + i32(q) - 1 + l;
             lastRemovedDigit = u8(Traits::mulShift(mv, Traits::POW5_INV_SPLIT[q - 1], u32(shift)) % 10);
         }
@@ -5632,16 +5632,16 @@ constexpr FloatTraits<f32>::FloatDecimal floatToDecimal(u32 ieeeMantissa, u32 ie
         e10 = i32(q) + e2;
 
         i32 i = -e2 - i32(q);
-        i32 k = pow5bits(i) - POW5_BITCOUNT;
+        i32 k = pow5bits(i) - i32(POW5_BITCOUNT);
         i32 j = i32(q) - k;
 
-        vr = Traits::mulShift(mv, Traits::POW5_SPLIT[i], j);
-        vp = Traits::mulShift(mp, Traits::POW5_SPLIT[i], j);
-        vm = Traits::mulShift(mm, Traits::POW5_SPLIT[i], j);
+        vr = Traits::mulShift(mv, Traits::POW5_SPLIT[i], u32(j));
+        vp = Traits::mulShift(mp, Traits::POW5_SPLIT[i], u32(j));
+        vm = Traits::mulShift(mm, Traits::POW5_SPLIT[i], u32(j));
 
         if (q != 0 && (vp - 1) / 10 <= vm / 10) {
-            j = i32(q) - 1 - (pow5bits(i + 1) - POW5_BITCOUNT);
-            lastRemovedDigit = u8(Traits::mulShift(mv, Traits::POW5_SPLIT[i + 1], j) % 10);
+            j = i32(q) - 1 - (pow5bits(i + 1) - i32(POW5_BITCOUNT));
+            lastRemovedDigit = u8(Traits::mulShift(mv, Traits::POW5_SPLIT[i + 1], u32(j)) % 10);
         }
 
         if (q <= 1) {
@@ -5716,7 +5716,7 @@ constexpr FloatTraits<f64>::FloatDecimal floatToDecimal(u64 ieeeMantissa, u32 ie
     using FloatDecimal = Traits::FloatDecimal;
 
     constexpr u32 DOUBLE_BIAS = Traits::EXPONENT_BIAS;
-    constexpr i32 MANTISSA_BITS = Traits::MANTISSA_BITS;
+    constexpr u32 MANTISSA_BITS = Traits::MANTISSA_BITS;
     constexpr u32 POW5_INV_BITCOUNT = Traits::POW5_INV_BITCOUNT;
     constexpr u32 POW5_BITCOUNT = Traits::POW5_BITCOUNT;
 
@@ -5724,11 +5724,11 @@ constexpr FloatTraits<f64>::FloatDecimal floatToDecimal(u64 ieeeMantissa, u32 ie
     u64 m2;
     if (ieeeExponent == 0) {
         // We subtract 2 so that the bounds computation has 2 additional bits.
-        e2 = 1 - i32(DOUBLE_BIAS) - MANTISSA_BITS - 2;
+        e2 = 1 - i32(DOUBLE_BIAS) - i32(MANTISSA_BITS) - 2;
         m2 = ieeeMantissa;
     }
     else {
-        e2 = i32(ieeeExponent) - DOUBLE_BIAS - MANTISSA_BITS - 2;
+        e2 = i32(ieeeExponent) - i32(DOUBLE_BIAS) - i32(MANTISSA_BITS) - 2;
         m2 = (1ull << MANTISSA_BITS) | ieeeMantissa;
     }
     bool even = (m2 & 1) == 0;
@@ -5746,7 +5746,7 @@ constexpr FloatTraits<f64>::FloatDecimal floatToDecimal(u64 ieeeMantissa, u32 ie
     if (e2 >= 0) {
         u32 q = log10pow2(e2) - (e2 > 3);
         e10 = i32(q);
-        i32 k = POW5_INV_BITCOUNT + pow5bits(i32(q)) - 1;
+        i32 k = i32(POW5_INV_BITCOUNT) + pow5bits(i32(q)) - 1;
         i32 i = -e2 + i32(q) + k;
 
         vr = Traits::mulShiftAll64(m2, Traits::POW5_INV_SPLIT[q], i, &vp, &vm, mmShift);
@@ -5774,7 +5774,7 @@ constexpr FloatTraits<f64>::FloatDecimal floatToDecimal(u64 ieeeMantissa, u32 ie
         u32 q = log10pow5(-e2) - (-e2 > 1);
         e10 = i32(q) + e2;
         i32 i = -e2 - i32(q);
-        i32 k = pow5bits(i) - POW5_BITCOUNT;
+        i32 k = pow5bits(i) - i32(POW5_BITCOUNT);
         i32 j = i32(q) - k;
 
         vr = Traits::mulShiftAll64(m2, Traits::POW5_SPLIT[i], j, &vp, &vm, mmShift);
@@ -6174,12 +6174,12 @@ constexpr core::expected<u32, ParseError> float64ToCstr(f64 n, char* out, u32 ol
     using FloatDecimal = Traits::FloatDecimal;
 
     constexpr u32 MANTISSA_BITS = Traits::MANTISSA_BITS;
-    constexpr i32 EXPONENT_BITS = Traits::EXPONENT_BITS;
-    constexpr i32 DOUBLE_BIAS = Traits::EXPONENT_BIAS;
+    constexpr u32 EXPONENT_BITS = Traits::EXPONENT_BITS;
+    constexpr u32 DOUBLE_BIAS = Traits::EXPONENT_BIAS;
 
     auto isSmallInt = [](u64 ieeeMantissa, u32 ieeeExponent, FloatDecimal& v) -> bool {
         u64 m2 = (1ull << MANTISSA_BITS) | ieeeMantissa;
-        i32 e2 = i32(ieeeExponent) - DOUBLE_BIAS - MANTISSA_BITS;
+        i32 e2 = i32(ieeeExponent) - i32(DOUBLE_BIAS) - i32(MANTISSA_BITS);
 
         if (e2 > 0) {
             return false;
@@ -6296,7 +6296,7 @@ constexpr u32 float64ToFixedCstr(f64 n, u32 precision, char* out, u32 olen) {
     }
 
     if (ieeeExponent == 0 && ieeeMantissa == 0) {
-        int index = 0;
+        i32 index = 0;
         if (ieeeSign) {
             out[index++] = '-';
         }
@@ -6306,17 +6306,17 @@ constexpr u32 float64ToFixedCstr(f64 n, u32 precision, char* out, u32 olen) {
             core::memset(out + index, '0', precision);
             index += precision;
         }
-        return index;
+        return u32(index);
     }
 
     i32 e2;
     u64 m2;
     if (ieeeExponent == 0) {
-        e2 = 1 - DOUBLE_BIAS - MANTISSA_BITS;
+        e2 = 1 - i32(DOUBLE_BIAS) - i32(MANTISSA_BITS);
         m2 = ieeeMantissa;
     }
     else {
-        e2 = i32(ieeeExponent) - DOUBLE_BIAS - MANTISSA_BITS;
+        e2 = i32(ieeeExponent) - i32(DOUBLE_BIAS) - i32(MANTISSA_BITS);
         m2 = u64(1ull << MANTISSA_BITS) | ieeeMantissa;
     }
 
@@ -6331,7 +6331,7 @@ constexpr u32 float64ToFixedCstr(f64 n, u32 precision, char* out, u32 olen) {
         u32 p10bits = pow10BitsForIndex(idx);
         i32 len = i32(lengthForIndex(idx));
         for (i32 i = len - 1; i >= 0; --i) {
-            u32 j = p10bits - e2;
+            u32 j = u32(i32(p10bits) - e2);
             u32 digits = Traits::mulShiftMod1e9(m2 << 8, Traits::POW10_SPLIT[Traits::POW10_OFFSET[idx] + i], i32(j + 8));
             if (nonzero) {
                 appendNineDigits(digits, out + index);
@@ -6371,7 +6371,7 @@ constexpr u32 float64ToFixedCstr(f64 n, u32 precision, char* out, u32 olen) {
         }
 
         for (; i < blocks; ++i) {
-            i32 j = Traits::ADDITIONAL_BITS_2 + (-e2 - 16 * idx);
+            i32 j = i32(Traits::ADDITIONAL_BITS_2) + (-e2 - 16 * idx);
             u32 p = Traits::POW10_OFFSET_2[idx] + i - Traits::MIN_BLOCK_2[idx];
             if (p >= Traits::POW10_OFFSET_2[idx + 1]) {
                 // If the remaining digits are all 0, then we might as well use memset.
@@ -6457,7 +6457,7 @@ constexpr u32 float64ToFixedCstr(f64 n, u32 precision, char* out, u32 olen) {
         index += precision;
     }
 
-    return index;
+    return u32(index);
 }
 
 } // namespace detail

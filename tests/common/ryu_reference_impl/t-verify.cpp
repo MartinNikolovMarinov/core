@@ -33,7 +33,7 @@ void verify(u32 x, u32 to) {
 
         // TO STRING
         {
-            n = ryu::f2s_buffered_n(f, obuf);
+            n = u32(ryu::f2s_buffered_n(f, obuf));
             obuf[n] = '\0';
 
             // Handle difference for cases that end with zero exponent = E0
@@ -87,7 +87,7 @@ void verify(u32 x, u32 to) {
             }
 
             f32 e = 0;
-            auto status = ryu::s2f_n(obuf, n, &e);
+            auto status = ryu::s2f_n(obuf, i32(n), &e);
 
             // Verify status
             if (res.hasValue()) {
@@ -119,19 +119,19 @@ void verify(u32 x, u32 to) {
 i32 verifyRyuAlgorithm() {
     i32 coresN = core::Unpack(core::threadingGetNumCores());
 
-    core::ArrList<core::Thread> threads (coresN);
+    auto threads = core::ArrList<core::Thread>(addr_size(coresN));
 
     u32 x = 0;
     constexpr u32 xMax = core::limitMax<u32>();
-    u32 dx = xMax / coresN;
+    u32 dx = xMax / u32(coresN);
 
     struct TArgs {
         u32 x;
         u32 dx;
     };
 
-    for (i32 i = 0; i < coresN; i++) {
-        core::Thread& t = threads[i];
+    for (i32 i = 0; i < i32(coresN); i++) {
+        core::Thread& t = threads[addr_size(i)];
         core::Expect(core::threadInit(t));
 
         TArgs* tArgs = reinterpret_cast<TArgs*>(core::alloc(1, sizeof(TArgs)));
@@ -149,8 +149,8 @@ i32 verifyRyuAlgorithm() {
 
     verify(x, xMax);
 
-    for (i32 i = 0; i < coresN; i++) {
-        core::Thread& t = threads[i];
+    for (i32 i = 0; i < i32(coresN); i++) {
+        core::Thread& t = threads[addr_size(i)];
         Expect(core::threadJoin(t));
     }
 

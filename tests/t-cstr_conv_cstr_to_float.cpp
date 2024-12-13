@@ -47,7 +47,7 @@ constexpr i32 checkWithOriginal(const auto& v, const auto& c, const char* cErr, 
 
         if constexpr (std::is_same_v<decltype(value), f32>) {
             f32 expected = 0;
-            auto status = ryu::s2f_n(c.input, u32(core::cstrLen(c.input)), &expected);
+            auto status = ryu::s2f_n(c.input, i32(core::cstrLen(c.input)), &expected);
             if (c.err ==  ParseError::None) {
                 CT_CHECK(status == ryu::Status::SUCCESS, cErr);
                 CT_CHECK(eqFloats(value, expected, eqPossible));
@@ -59,7 +59,7 @@ constexpr i32 checkWithOriginal(const auto& v, const auto& c, const char* cErr, 
         else if constexpr (std::is_same_v<decltype(value), f64>) {
 
             f64 expected = 0;
-            auto status = ryu::s2d_n(c.input, u32(core::cstrLen(c.input)), &expected);
+            auto status = ryu::s2d_n(c.input, i32(core::cstrLen(c.input)), &expected);
             if (c.err ==  ParseError::None) {
                 CT_CHECK(status == ryu::Status::SUCCESS, cErr);
                 CT_CHECK(eqFloats(value, expected, eqPossible));

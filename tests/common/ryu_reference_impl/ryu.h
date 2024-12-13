@@ -1,6 +1,10 @@
 #pragma once
 
 #include <inttypes.h>
+#include <core_compiler.h>
+
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_SUPPRESS_ALL
 
 namespace ryu {
 
@@ -21,3 +25,5 @@ void d2exp_buffered(double d, uint32_t precision, char* result);
 char* d2exp(double d, uint32_t precision);
 
 } // namespace ryu
+
+PRAGMA_WARNING_POP

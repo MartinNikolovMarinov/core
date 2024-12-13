@@ -109,7 +109,7 @@ template <addr_size PLen, typename TCase, addr_size NCases, typename Afunc>
     }
     char* appendIdx = &errMsg[PLen - 1];
     for (auto& c : cases) {
-        core::intToCstr(i, appendIdx, PLen - 1, maxTestDigits);
+        core::intToCstr(i, appendIdx, PLen - 1, u32(maxTestDigits));
         if (assertionFn(c, errMsg) != 0) return -1;
         i++;
     }

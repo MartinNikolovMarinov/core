@@ -40,6 +40,32 @@ const char* __cmd_flag_test_input_2[] = {
 };
 constexpr addr_size __cmd_flag_test_input_2_len = sizeof(__cmd_flag_test_input_2) / sizeof(__cmd_flag_test_input_2[0]);
 
+const char* __cmd_flag_test_input_3[] = {
+    "name_of_program",
+    "-bool-1 ", " t",
+    "-bool-2   ", "T",
+    "-bool-3  ", " true",
+    "  -bool-4", "  TRUE",
+    " -bool-5  ", "True  ",
+    "    -bool-6", "1",
+    "-bool-7", "false",
+
+    " -int32", "0004",
+    "-int64  ", "  -13",
+    "\t-uint32", "19 ",
+    "   -uint64", "\t99 ",
+
+    "-string", "  banicata   fsa  ",
+
+    "-float32-1", "  1.2",
+    "-float32-2", "  .5 ",
+    "-float32-3", " 1. ",
+    "-float32-4", " -1.2",
+    "-float64-5", "-1.2",
+    "-float64-6", "00012.000005  ",
+};
+constexpr addr_size __cmd_flag_test_input_3_len = sizeof(__cmd_flag_test_input_3) / sizeof(__cmd_flag_test_input_3[0]);
+
 i32 cmdFlagParserSymbolParsingTest() {
     using CmdFlagParser = core::CmdFlagParser;
     using core::sv;
@@ -416,7 +442,6 @@ i32 cmdFlagParserFriendlyInputMatchingTest() {
     bool bool_5 = false;
     bool bool_6 = false;
     bool bool_7 = false;
-    bool bool_8 = false;
     parser.setFlagBool(&bool_1, sv("bool-1"));
     parser.setFlagBool(&bool_2, sv("bool-2"));
     parser.setFlagBool(&bool_3, sv("bool-3"));
@@ -424,21 +449,18 @@ i32 cmdFlagParserFriendlyInputMatchingTest() {
     parser.setFlagBool(&bool_5, sv("bool-5"));
     parser.setFlagBool(&bool_6, sv("bool-6"));
     parser.setFlagBool(&bool_7, sv("bool-7"));
-    parser.setFlagBool(&bool_8, sv("bool-8"));
 
     f32 fa = 0, fb = 0, fc = 0, fd = 0;
-    f64 fe = 0, ff = 0, fg = 0, fh = 0;
+    f64 fe = 0, ff = 0;
     parser.setFlagFloat32(&fa, sv("float32-1"));
     parser.setFlagFloat32(&fb, sv("float32-2"));
     parser.setFlagFloat32(&fc, sv("float32-3"));
     parser.setFlagFloat32(&fd, sv("float32-4"));
     parser.setFlagFloat64(&fe, sv("float64-5"));
     parser.setFlagFloat64(&ff, sv("float64-6"));
-    parser.setFlagFloat64(&fg, sv("float64-7"));
-    parser.setFlagFloat64(&fh, sv("float64-8"));
 
     {
-        auto ret = parser.parse(__cmd_flag_test_input_2_len, __cmd_flag_test_input_2);
+        auto ret = parser.parse(__cmd_flag_test_input_3_len, __cmd_flag_test_input_3);
         CT_CHECK(!ret.hasErr());
     }
 
@@ -470,7 +492,6 @@ i32 cmdFlagParserFriendlyInputMatchingTest() {
         CT_CHECK(bool_5);
         CT_CHECK(bool_6);
         CT_CHECK(!bool_7);
-        CT_CHECK(!bool_8);
     }
 
     // Check float parsing:
@@ -479,11 +500,8 @@ i32 cmdFlagParserFriendlyInputMatchingTest() {
         CT_CHECK(core::safeEq(fb, 0.5f, 0.00001f));
         CT_CHECK(core::safeEq(fc, 1.0f, 0.00001f));
         CT_CHECK(core::safeEq(fd, -1.2f, 0.00001f));
-        CT_CHECK(core::safeEq(fe, 1.2, 0.00001));
-        CT_CHECK(core::safeEq(ff, 7.0, 0.00001));
-        CT_CHECK(core::safeEq(fg, -1.2, 0.00001));
-        CT_CHECK(core::safeEq(fh, 12.000005, 0.00001));
-
+        CT_CHECK(core::safeEq(fe, -1.2, 0.00001));
+        CT_CHECK(core::safeEq(ff, 12.000005, 0.00001));
     }
 
     return 0;
@@ -701,9 +719,6 @@ i32 cmdParserAliasTest() {
 }
 
 i32 runCmdParserTestsSuite() {
-    // FIXME: Decide what to do when parsing input like "123asd", "12.3asxzc", "12.3 ", etc., because they currently fail and that is probably not correct behaviour.
-    return 0;
-
     using namespace core::testing;
 
     auto runTests = [] (TestInfo& tInfo, const char* description, i32& retCode) {

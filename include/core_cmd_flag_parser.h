@@ -245,7 +245,9 @@ struct CORE_API_EXPORT CmdFlagParser {
             if (s.type == ParsedSymbolType::FlagName) {
                 const ParsedSymbol* next = (i + 1 < m_parsedSymbols.len()) ? &m_parsedSymbols[i + 1] : nullptr;
                 StrView nextValue = next ? next->value.view() : sv();
-                if (!cb(s.value.view(), nextValue)) {
+                StrView trimmedValue = core::trim(nextValue);
+                StrView trimmedFlag = core::trim(s.value.view());
+                if (!cb(trimmedFlag, trimmedValue)) {
                     return;
                 }
             }

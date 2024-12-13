@@ -67,13 +67,13 @@ constexpr inline addr_size cstrLenImpl(const TChar* p) {
 constexpr inline addr_size cstrLen(const char* p)  { return detail::cstrLenImpl(p); }
 constexpr inline addr_size cstrLen(const uchar* p) { return detail::cstrLenImpl(p); }
 
-constexpr const char* cstrSkipSpace(const char* s) {
+constexpr inline const char* cstrSkipSpace(const char* s) {
     if (s == nullptr) return s;
     while (isWhiteSpace(*s)) s++;
     return s;
 }
 
-constexpr char* cstrSkipSpace(char* s) {
+constexpr inline char* cstrSkipSpace(char* s) {
     if (s == nullptr) return s;
     while (isWhiteSpace(*s)) s++;
     return s;

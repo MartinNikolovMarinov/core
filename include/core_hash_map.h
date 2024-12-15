@@ -1,9 +1,10 @@
 #pragma once
 
 #include <core_alloc.h>
+#include <core_hash.h>
+#include <core_logger.h>
 #include <core_traits.h>
 #include <core_types.h>
-#include <core_hash.h>
 
 #include <new>
 
@@ -294,6 +295,26 @@ struct HashMap {
         }
     }
 
+    void __debug_log() {
+        for (size_type i = 0; i < m_cap; i++) {
+            core::logDirectStd("\t(%llu)", i);
+            core::logDirectStd(" -> ");
+            if (m_bucketState[i] == BucketState::Deleted) {
+                core::logDirectStd("deleted");
+            }
+            else if (m_bucketState[i] == BucketState::Free) {
+                core::logDirectStd("free");
+            }
+            else if (m_bucketState[i] == BucketState::Occupied) {
+                core::logDirectStd("[ ");
+                __debug_logBytes(reinterpret_cast<void*>(m_keys + i), sizeof(TKey));
+                core::logDirectStd("] -> ");
+                __debug_logBytes(reinterpret_cast<void*>(m_values + i), sizeof(TValue));
+            }
+            core::logDirectStd("\n");
+        }
+    }
+
 private:
 
     template <typename TTVal>
@@ -349,7 +370,10 @@ private:
         size_type startAddr   = addr;
 
         while (addr < m_cap && m_bucketState[addr] != BucketState::Free) {
-            if (core::eq(m_keys[addr], key)) {
+            if (
+                m_bucketState[addr] == BucketState::Occupied &&
+                core::eq(m_keys[addr], key)
+            ) {
                 return addr;
             }
 

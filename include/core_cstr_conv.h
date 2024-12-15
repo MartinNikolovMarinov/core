@@ -147,7 +147,7 @@ constexpr core::expected<u32, ParseError> intToHex(TInt v, char* out, addr_size 
         out[i] = detail::hexDigits[(v >> j) & 0x0F];
     }
 
-    return hexLen;
+    return u32(hexLen);
 }
 
 } // namespace detail

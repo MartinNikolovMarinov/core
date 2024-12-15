@@ -45,7 +45,7 @@ CORE_API_EXPORT void muteLogger(bool mute);
 CORE_API_EXPORT void useAnsiInLogger(bool use);
 
 CORE_API_EXPORT bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, const char* format, ...);
-CORE_API_EXPORT bool logf(const char* format, ...);
+CORE_API_EXPORT bool logDirectStd(const char* format, ...);
 
 #define logTrace(format, ...) __log(0, core::LogLevel::L_TRACE,   core::LogSpecialMode::NONE, __func__, format, ##__VA_ARGS__)
 #define logDebug(format, ...) __log(0, core::LogLevel::L_DEBUG,   core::LogSpecialMode::NONE, __func__, format, ##__VA_ARGS__)
@@ -67,5 +67,12 @@ CORE_API_EXPORT bool logf(const char* format, ...);
 #define logSectionTitleWarnTagged(tag, format, ...)  __log(tag, core::LogLevel::L_WARNING, core::LogSpecialMode::SECTION_TITLE, __func__, format, ##__VA_ARGS__)
 #define logSectionTitleErrTagged(tag, format, ...)   __log(tag, core::LogLevel::L_ERROR,   core::LogSpecialMode::SECTION_TITLE, __func__, format, ##__VA_ARGS__)
 #define logSectionTitleFatalTagged(tag, format, ...) __log(tag, core::LogLevel::L_FATAL,   core::LogSpecialMode::SECTION_TITLE, __func__, format, ##__VA_ARGS__)
+
+inline void __debug_logBytes(const void *ptr, addr_size size) {
+    const u8* bytePtr = reinterpret_cast<const u8*>(ptr);
+    for (addr_off i = addr_off(size) - 1; i >= 0; i--) {
+        logDirectStd("%02x ", bytePtr[i]);
+    }
+}
 
 } // namespace core

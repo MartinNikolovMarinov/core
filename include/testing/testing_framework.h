@@ -2,6 +2,7 @@
 
 #include <core_ansi_escape_codes.h>
 #include <core_API.h>
+#include <core_assert.h>
 #include <core_cstr_conv.h>
 #include <core_exec_ctx.h>
 #include <core_hash.h>
@@ -129,7 +130,6 @@ struct TestInfo {
     bool trackTime = true;
     bool trackTicks = true;
     bool detectLeaks = false;
-    bool exitOnFailure = false;
 
     TestInfo() = default;
     TestInfo(const char* _name) : name(_name) {}
@@ -219,11 +219,6 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
 
     if (!isFirst) std::cout << " ]";
 
-    if (info.exitOnFailure && returnCode != 0) {
-        std::cout << std::endl;
-        Panic(false, "Test failed, exiting...");
-    }
-
     core::clearActiveAllocatorForThread();
     std::cout << std::endl;
     return returnCode;
@@ -260,23 +255,22 @@ i32 runTestSuite(const TestSuiteInfo& info, TSuite suite) {
 #endif
 
 // CORE TEST CHECK Macro
-#define CT_CHECK(...) C_VFUNC(CT_CHECK, __VA_ARGS__)
-#define CT_CHECK1(expr) CT_CHECK3(expr, "", false)
-#define CT_CHECK2(expr, msg) CT_CHECK3(expr, msg, false)
-#define CT_CHECK3(expr, msg, crash)                                              \
-    if (!(expr)) {                                                               \
-        std::cerr << "\t\t[Test failed] ";                                       \
-        if (core::cstrLen((msg)) > 0) {                                          \
-            std::cerr << "message: \"" << (msg) << "\" ";                        \
-        }                                                                        \
-        std::cerr << "at " << __FILE__ << ":" << __LINE__ << " in " << __func__; \
-        std::cerr << std::endl;                                                  \
-        if (!!(crash)) {                                                         \
-            volatile i32* __forceCrash = nullptr;                                \
-            [[maybe_unused]] i32 __ignored = *__forceCrash;                      \
-        }                                                                        \
-        return -1;                                                               \
-    }
+#if defined(CORE_TESTS_STOP_ON_FIRST_FAILED) && CORE_TESTS_STOP_ON_FIRST_FAILED == 1
+    #define CT_CHECK(...) Assert(__VA_ARGS__)
+#else
+    #define CT_CHECK(...) C_VFUNC(CT_CHECK, __VA_ARGS__)
+    #define CT_CHECK1(expr) CT_CHECK2(expr, "")
+    #define CT_CHECK2(expr, msg)                                                     \
+        if (!(expr)) {                                                               \
+            std::cerr << "\t\t[Test failed] ";                                       \
+            if (core::cstrLen((msg)) > 0) {                                          \
+                std::cerr << "message: \"" << (msg) << "\" ";                        \
+            }                                                                        \
+            std::cerr << "at " << __FILE__ << ":" << __LINE__ << " in " << __func__; \
+            std::cerr << std::endl;                                                  \
+            return -1;                                                               \
+        }
+#endif
 
 } // namespace core::testing
 

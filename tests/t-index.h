@@ -34,12 +34,6 @@ constexpr bool g_useAnsi = true;
 constexpr bool g_useAnsi = false;
 #endif
 
-#if defined(CORE_TESTS_STOP_ON_FIRST_FAILED) && CORE_TESTS_STOP_ON_FIRST_FAILED == 1
-constexpr bool g_stopOnFirstFailure = true;
-#else
-constexpr bool g_stopOnFirstFailure = false;
-#endif
-
 constexpr inline core::testing::TestInfo createTestInfo() {
     core::testing::TestInfo tInfo = {};
     tInfo.trackTicks = true;
@@ -47,7 +41,6 @@ constexpr inline core::testing::TestInfo createTestInfo() {
     tInfo.trackMemory = false;
     tInfo.detectLeaks = false;
     tInfo.useAnsiColors = g_useAnsi;
-    tInfo.exitOnFailure = g_stopOnFirstFailure;
     return tInfo;
 }
 

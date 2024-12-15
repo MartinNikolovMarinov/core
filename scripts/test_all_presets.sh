@@ -12,6 +12,16 @@ check_exit_code() {
     fi
 }
 
+function prompt_user_to_continue() {
+    while true; do
+        read -p "$* [y/n]: " yn
+        case $yn in
+            [Yy]*) return 0 ;;
+            [Nn]*) return 1 ;;
+        esac
+    done
+}
+
 build_preset() {
     echo "BUILD WITH PRESET = $1"
     cmake .. --preset "$1"
@@ -34,7 +44,7 @@ test_preset() {
     popd # go back to root
 }
 
-main() {
+run_tests_for_all_presets() {
     test_preset "default"
     test_preset "default release"
     test_preset "debug test static"
@@ -43,4 +53,22 @@ main() {
     test_preset "release test shared"
 }
 
-main
+echo "Start running the test on all presets with /usr/bin/g++"
+export CC=/usr/bin/gcc
+export CXX=/usr/bin/g++
+prompt_user_to_continue
+if [ $? -eq 0 ]; then
+    run_tests_for_all_presets
+else
+    echo "Skipped GCC"
+fi
+
+echo "Start running the test on all presets with /usr/bin/clang++"
+export CC=/usr/bin/clang
+export CXX=/usr/bin/clang++
+prompt_user_to_continue
+if [ $? -eq 0 ]; then
+    run_tests_for_all_presets
+else
+    echo "Skipped Clang"
+fi

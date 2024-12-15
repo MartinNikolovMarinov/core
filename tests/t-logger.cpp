@@ -1,5 +1,8 @@
 #include "t-index.h"
 
+#include <stdio.h>
+#include <stdarg.h>
+
 void devNullLogHandler(const char*, ...) {}
 
 i32 testLoggerLevelsTest() {
@@ -128,7 +131,7 @@ i32 verifyPrintingFnTest() {
     CT_CHECK(logWarn("w"));
     CT_CHECK(logErr("e"));
     CT_CHECK(logFatal("f"));
-    CT_CHECK(core::logf("direct"));
+    CT_CHECK(core::logDirectStd("direct"));
 
     // std::cout << buffer << std::endl;
     clearBuffer();
@@ -141,7 +144,7 @@ i32 verifyPrintingFnTest() {
     CT_CHECK(logWarn("w"));
     CT_CHECK(logErr("e"));
     CT_CHECK(logFatal("f"));
-    CT_CHECK(core::logf("direct"));
+    CT_CHECK(core::logDirectStd("direct"));
 
     // std::cout << buffer << std::endl;
     clearBuffer();
@@ -154,7 +157,7 @@ i32 verifyPrintingFnTest() {
     CT_CHECK(logWarnTagged(0, "w"));
     CT_CHECK(logErrTagged(0, "e"));
     CT_CHECK(logFatalTagged(0, "f"));
-    CT_CHECK(core::logf("direct"));
+    CT_CHECK(core::logDirectStd("direct"));
 
     CT_CHECK(!logTraceTagged(1, "t"));
     CT_CHECK(!logDebugTagged(1, "d"));
@@ -162,7 +165,7 @@ i32 verifyPrintingFnTest() {
     CT_CHECK(!logWarnTagged(1, "w"));
     CT_CHECK(!logErrTagged(1, "e"));
     CT_CHECK(!logFatalTagged(1, "f"));
-    CT_CHECK(core::logf(" direct2"));
+    CT_CHECK(core::logDirectStd(" direct2"));
 
     // std::cout << buffer << std::endl;
     clearBuffer();
@@ -173,7 +176,7 @@ i32 verifyPrintingFnTest() {
     CT_CHECK(logSectionTitleWarnTagged(0, "w"));
     CT_CHECK(logSectionTitleErrTagged(0, "e"));
     CT_CHECK(logSectionTitleFatalTagged(0, "f"));
-    CT_CHECK(core::logf("direct"));
+    CT_CHECK(core::logDirectStd("direct"));
 
     CT_CHECK(!logSectionTitleTraceTagged(1, "t"));
     CT_CHECK(!logSectionTitleDebugTagged(1, "d"));
@@ -181,7 +184,7 @@ i32 verifyPrintingFnTest() {
     CT_CHECK(!logSectionTitleWarnTagged(1, "w"));
     CT_CHECK(!logSectionTitleErrTagged(1, "e"));
     CT_CHECK(!logSectionTitleFatalTagged(1, "f"));
-    CT_CHECK(core::logf(" direct2"));
+    CT_CHECK(core::logDirectStd(" direct2"));
 
     // std::cout << buffer << std::endl;
     clearBuffer();
@@ -194,7 +197,7 @@ i32 verifyPrintingFnTest() {
     CT_CHECK(logSectionTitleWarnTagged(0, "w"));
     CT_CHECK(logSectionTitleErrTagged(0, "e"));
     CT_CHECK(logSectionTitleFatalTagged(0, "f"));
-    CT_CHECK(core::logf("direct"));
+    CT_CHECK(core::logDirectStd("direct"));
 
     // std::cout << buffer << std::endl;
     clearBuffer();

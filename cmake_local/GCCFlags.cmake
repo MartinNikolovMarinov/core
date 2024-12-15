@@ -5,7 +5,7 @@ macro(target_set_default_flags
     is_debug
     save_temporary_files)
 
-    set(common_flags "-std=c++20" "-pthread")
+    set(common_flags -std=c++20 -pthread)
     set(debug_flags "")
     set(release_flags "")
 

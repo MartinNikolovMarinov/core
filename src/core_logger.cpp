@@ -176,12 +176,14 @@ bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, co
     return true;
 }
 
-bool logf(const char* format, ...) {
+bool logDirectStd(const char* format, ...) {
     if (muted) return false;
 
     va_list args;
     va_start(args, format);
-    printHandler(format, args);
+    // TODO2: I need to find a way to write this function in a template with arguments. Because I cant call the print
+    //        handler here and that is annoying.
+    vprintf(format, args);
     va_end(args);
 
     return true;

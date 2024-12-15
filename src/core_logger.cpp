@@ -15,8 +15,9 @@ constexpr addr_size BUFFER_SIZE = core::CORE_KILOBYTE * 32;
 thread_local static char loggingBuffer[BUFFER_SIZE];
 
 LogLevel minimumLogLevel = LogLevel::L_INFO;
-bool ignoredTagsTable[MAX_NUMBER_OF_TAGS] = {};
+bool ignoredTagIndices[MAX_NUMBER_OF_TAGS] = {};
 bool muted = false;
+bool useAnsi = true;
 
 char tagTranslationTable[MAX_NUMBER_OF_TAGS][MAX_TAG_LEN] = {};
 i32 tagTranslationTableCount = 0;
@@ -33,23 +34,23 @@ PrintFunction printHandler = defaultPrint;
 } // namespace
 
 bool initLogger(const LoggerCreateInfo& createInfo) {
-    auto tagsToIgnore = createInfo.tagsToIgnore;
-    auto tagsToIgnoreCount = createInfo.tagsToIgnoreCount;
+    auto tagIndicesToIgnore = createInfo.tagIndicesToIgnore;
 
-    if (tagsToIgnore != nullptr) {
-        for (addr_size i = 0; i < tagsToIgnoreCount; ++i) {
-            ignoredTagsTable[addr_size(tagsToIgnore[i])] = true;
-        }
+    for (addr_size i = 0; i < tagIndicesToIgnore.len(); ++i) {
+        Panic(tagIndicesToIgnore[i] < i32(MAX_NUMBER_OF_TAGS), "Trying to ignore tag index that is out of range.");
+        ignoredTagIndices[addr_size(tagIndicesToIgnore[i])] = true;
     }
 
     if (createInfo.print != nullptr) {
         printHandler = createInfo.print;
     }
 
+    useAnsi = createInfo.useAnsi;
+
     return true;
 }
 
-bool addTag(core::StrView tag) {
+bool addLoggerTag(core::StrView tag) {
     Panic(tagTranslationTableCount < i32(MAX_NUMBER_OF_TAGS), "Cannot add more tags to the logger.");
     Panic(tag.len() < MAX_TAG_LEN, "Tag is too long.");
     core::memcopy(tagTranslationTable[tagTranslationTableCount], tag.data(), tag.len());
@@ -57,7 +58,7 @@ bool addTag(core::StrView tag) {
     return true;
 }
 
-void setLogLevel(LogLevel level) {
+void setLoggerLevel(LogLevel level) {
     minimumLogLevel = level;
 }
 
@@ -65,11 +66,15 @@ void muteLogger(bool mute) {
     muted = mute;
 }
 
+void useAnsiInLogger(bool use) {
+    useAnsi = use;
+}
+
 bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, const char* format, ...) {
     if (muted) return false;
     if (level < minimumLogLevel) return false;
     if (tagTranslationTableCount > 0) {
-        if (ignoredTagsTable[tag]) return false;
+        if (ignoredTagIndices[tag]) return false;
         Panic(tagTranslationTableCount > tag, "Tag is not in the translation table.");
     }
 
@@ -118,22 +123,28 @@ bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, co
     // Print Level
     switch (level) {
         case LogLevel::L_DEBUG:
-            printHandler(ANSI_BOLD("[DEBUG]"));
+            if (useAnsi) printHandler(ANSI_BOLD("[DEBUG]"));
+            else         printHandler("[DEBUG]");
             break;
         case LogLevel::L_INFO:
-            printHandler(ANSI_BOLD(ANSI_BRIGHT_BLUE("[INFO]")));
+            if (useAnsi) printHandler(ANSI_BOLD(ANSI_BRIGHT_BLUE("[INFO]")));
+            else         printHandler("[INFO]");
             break;
         case LogLevel::L_WARNING:
-            printHandler(ANSI_BOLD(ANSI_BRIGHT_YELLOW("[WARNING]")));
+            if (useAnsi) printHandler(ANSI_BOLD(ANSI_BRIGHT_YELLOW("[WARNING]")));
+            else         printHandler("[WARNING]");
             break;
         case LogLevel::L_ERROR:
-            printHandler(ANSI_BOLD(ANSI_RED("[ERROR]")));
+            if (useAnsi) printHandler(ANSI_BOLD(ANSI_RED("[ERROR]")));
+            else         printHandler("[ERROR]");
             break;
         case LogLevel::L_FATAL:
-            printHandler(ANSI_BOLD(ANSI_BACKGROUND_RED(ANSI_BRIGHT_WHITE("[FATAL]"))));
+            if (useAnsi) printHandler(ANSI_BOLD(ANSI_BACKGROUND_RED(ANSI_BRIGHT_WHITE("[FATAL]"))));
+            else         printHandler(ANSI_BRIGHT_WHITE("[FATAL]"));
             break;
         case LogLevel::L_TRACE:
-            printHandler(ANSI_BOLD(ANSI_BRIGHT_GREEN("[TRACE]")));
+            if (useAnsi) printHandler(ANSI_BOLD(ANSI_BRIGHT_GREEN("[TRACE]")));
+            else         printHandler("[TRACE]");
             break;
 
         case LogLevel::SENTINEL: [[fallthrough]];
@@ -144,12 +155,15 @@ bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, co
 
     // Print Tag
     if (tagTranslationTableCount > 0) {
-        printHandler("%s[%s]%s", ANSI_BOLD_START(), tagTranslationTable[tag], ANSI_RESET());
+        if (useAnsi) printHandler("%s[%s]%s", ANSI_BOLD_START(), tagTranslationTable[tag], ANSI_RESET());
+        else         printHandler("[%s]", tagTranslationTable[tag]);
     }
 
     // Print Message
     if (mode == LogSpecialMode::SECTION_TITLE) {
-        constexpr const char* separator = ANSI_BOLD(ANSI_BRIGHT_WHITE("---------------------------------------------------------------------"));
+        const char* separator = useAnsi
+            ? ANSI_BOLD(ANSI_BRIGHT_WHITE("---------------------------------------------------------------------"))
+            : "---------------------------------------------------------------------";
         printHandler(" _fn_(%s):\n", funcName);
         printHandler("%s\n", separator);
         printHandler("%s\n", buffer);
@@ -167,7 +181,7 @@ bool logf(const char* format, ...) {
 
     va_list args;
     va_start(args, format);
-    vprintf(format, args);
+    printHandler(format, args);
     va_end(args);
 
     return true;

@@ -60,7 +60,7 @@ constexpr bool isValidUtf8Encoding(const uchar* utf, u32 len) {
 
 constexpr rune runeFromBytesSkipCheck(const uchar* utf, u32 len) {
     rune r = 0;
-    const u32 ubpec = detail::UTF8_BYTES_PER_ENCODED_CHUNK;
+    constexpr u32 ubpec = detail::UTF8_BYTES_PER_ENCODED_CHUNK;
 
     switch(len) {
         case 1: {
@@ -110,8 +110,8 @@ constexpr u32 runeToBytes(const rune r, uchar* utf) {
     else if (r <= rune(detail::UTF8_MAX_3_BYTE_ENCODING)) len = 3;
     else if (r <= rune(detail::UTF8_MAX_4_BYTE_ENCODING)) len = 4;
 
-    const u32 ubpec = detail::UTF8_BYTES_PER_ENCODED_CHUNK;
-    const u32 mask = detail::UTF8_CHUNK_DECODING_MASK;
+    constexpr u32 ubpec = detail::UTF8_BYTES_PER_ENCODED_CHUNK;
+    constexpr u32 mask = detail::UTF8_CHUNK_DECODING_MASK;
 
     switch (len) {
         case 1:

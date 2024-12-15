@@ -98,7 +98,7 @@ struct Memory {
         if (slen == 0) return Memory(nullptr, 0);
         Assert(offset < length, "offset for slice outside memory boundary");
         Assert(slen <= length, "slen for slice outside memory boundary");
-        Assert(offset + slen <= length, "slice outside memory boundary.");
+        Assert(offset + slen <= length, "slice outside memory boundary");
         return Memory(ptr + offset, slen);
     }
 

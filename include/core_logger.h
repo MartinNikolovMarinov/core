@@ -4,8 +4,6 @@
 #include <core_types.h>
 #include <core_str_view.h>
 
-// FIXME: No option to stop ansi logging.
-
 namespace core {
 
 using namespace coretypes;
@@ -35,15 +33,16 @@ enum struct LogSpecialMode : u8 {
 using PrintFunction = void(*)(const char* format, ...);
 
 struct LoggerCreateInfo {
-    u8* tagsToIgnore;
-    addr_size tagsToIgnoreCount;
-    PrintFunction print;
+    core::Memory<i32> tagIndicesToIgnore;
+    PrintFunction print = nullptr;
+    bool useAnsi = true;
 };
 
 CORE_API_EXPORT bool initLogger(const LoggerCreateInfo& createInfo);
-CORE_API_EXPORT bool addTag(core::StrView tag);
-CORE_API_EXPORT void setLogLevel(LogLevel level);
+CORE_API_EXPORT bool addLoggerTag(core::StrView tag);
+CORE_API_EXPORT void setLoggerLevel(LogLevel level);
 CORE_API_EXPORT void muteLogger(bool mute);
+CORE_API_EXPORT void useAnsiInLogger(bool use);
 
 CORE_API_EXPORT bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, const char* format, ...);
 CORE_API_EXPORT bool logf(const char* format, ...);

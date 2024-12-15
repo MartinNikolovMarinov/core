@@ -1,6 +1,5 @@
 #include "t-index.h"
 
-// FIXME: Check error cases for all the tests. Add more tests if needed.
 constexpr i32 cstrToIntTest() {
     {
         struct TestCase {
@@ -233,7 +232,8 @@ constexpr i32 intToCstrTest() {
         i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             char buf[12] = {};
             auto res = core::intToCstr(c.in, buf, 12, c.digitCount);
-            CT_CHECK(core::cstrLen(buf) == res, cErr);
+            CT_CHECK(res.hasValue(), cErr);
+            CT_CHECK(core::cstrLen(buf) == res.value(), cErr);
             CT_CHECK(core::cstrLen(buf) == core::cstrLen(c.expected));
             CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
@@ -266,7 +266,8 @@ constexpr i32 intToCstrTest() {
         i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             char buf[21] = {};
             auto res = core::intToCstr(c.in, buf, 21, c.digitCount);
-            CT_CHECK(core::cstrLen(buf) == res, cErr);
+            CT_CHECK(res.hasValue(), cErr);
+            CT_CHECK(core::cstrLen(buf) == res.value(), cErr);
             CT_CHECK(core::cstrLen(buf) == core::cstrLen(c.expected));
             CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
@@ -294,7 +295,8 @@ constexpr i32 intToCstrTest() {
         i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             char buf[11] = {};
             auto res = core::intToCstr(c.in, buf, 11, c.digitCount);
-            CT_CHECK(core::cstrLen(buf) == res, cErr);
+            CT_CHECK(res.hasValue(), cErr);
+            CT_CHECK(core::cstrLen(buf) == res.value(), cErr);
             CT_CHECK(core::cstrLen(buf) == core::cstrLen(c.expected));
             CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
@@ -324,7 +326,8 @@ constexpr i32 intToCstrTest() {
         i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
             char buf[20] = {};
             auto res = core::intToCstr(c.in, buf, 20, c.digitCount);
-            CT_CHECK(core::cstrLen(buf) == res, cErr);
+            CT_CHECK(res.hasValue(), cErr);
+            CT_CHECK(core::cstrLen(buf) == res.value(), cErr);
             CT_CHECK(core::cstrLen(buf) == core::cstrLen(c.expected));
             CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
@@ -348,7 +351,8 @@ constexpr i32 intHexTest() {
 
         i32 ret = core::testing::executeTestTable("test case failed for i8 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
-            core::intToHex(c.in, buf);
+            auto res = core::intToHex(c.in, buf, 20);
+            CT_CHECK(res.hasValue(), cErr);
             CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
@@ -369,7 +373,8 @@ constexpr i32 intHexTest() {
         };
         i32 ret = core::testing::executeTestTable("test case failed for i16 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
-            core::intToHex(c.in, buf);
+            auto res = core::intToHex(c.in, buf, 20);
+            CT_CHECK(res.hasValue());
             CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
@@ -391,7 +396,8 @@ constexpr i32 intHexTest() {
         };
         i32 ret = core::testing::executeTestTable("test case failed for i32 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
-            core::intToHex(c.in, buf);
+            auto res = core::intToHex(c.in, buf, 20);
+            CT_CHECK(res.hasValue());
             CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
@@ -412,7 +418,8 @@ constexpr i32 intHexTest() {
         };
         i32 ret = core::testing::executeTestTable("test case failed for i64 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
-            core::intToHex(c.in, buf);
+            auto res = core::intToHex(c.in, buf, 20);
+            CT_CHECK(res.hasValue());
             CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
@@ -428,7 +435,8 @@ constexpr i32 intHexTest() {
         };
         i32 ret = core::testing::executeTestTable("test case failed for u8 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
-            core::intToHex(c.in, buf);
+            auto res = core::intToHex(c.in, buf, 20);
+            CT_CHECK(res.hasValue());
             CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
@@ -446,7 +454,8 @@ constexpr i32 intHexTest() {
         };
         i32 ret = core::testing::executeTestTable("test case failed for u16 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
-            core::intToHex(c.in, buf);
+            auto res = core::intToHex(c.in, buf, 20);
+            CT_CHECK(res.hasValue());
             CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
@@ -465,7 +474,8 @@ constexpr i32 intHexTest() {
         };
         i32 ret = core::testing::executeTestTable("test case failed for u32 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
-            core::intToHex(c.in, buf);
+            auto res = core::intToHex(c.in, buf, 20);
+            CT_CHECK(res.hasValue());
             CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });
@@ -485,7 +495,8 @@ constexpr i32 intHexTest() {
         };
         i32 ret = core::testing::executeTestTable("test case failed for u64 at index: ", cases, [&](auto& c, const char* cErr) {
             char buf[20] = {};
-            core::intToHex(c.in, buf);
+            auto res = core::intToHex(c.in, buf, 20);
+            CT_CHECK(res.hasValue());
             CT_CHECK(core::memcmp(buf, core::cstrLen(buf), c.expected, core::cstrLen(c.expected)) == 0, cErr);
             return 0;
         });

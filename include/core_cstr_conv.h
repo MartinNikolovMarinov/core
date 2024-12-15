@@ -38,41 +38,38 @@ constexpr const char* parseErrorToCstr(ParseError err) {
 
 template <typename TInt> constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen);
 
-constexpr u32  intToCstr(u32 n, char* out, addr_size outMax, u32 digits = 0);
-constexpr u32  intToCstr(u64 n, char* out, addr_size outMax, u32 digits = 0);
-constexpr u32  intToCstr(i32 n, char* out, addr_size outMax, u32 digits = 0);
-constexpr u32  intToCstr(i64 n, char* out, addr_size outMax, u32 digits = 0);
-constexpr void intToHex(u8 v, char* out, u64 hexLen = (sizeof(u8) << 1)); // TODO: alter the to hex api to match the behaviour of toCstr
-constexpr void intToHex(u16 v, char* out, u64 hexLen = (sizeof(u16) << 1));
-constexpr void intToHex(u32 v, char* out, u64 hexLen = (sizeof(u32) << 1));
-constexpr void intToHex(u64 v, char* out, u64 hexLen = (sizeof(u64) << 1));
-constexpr void intToHex(i8 v, char* out, u64 hexLen = (sizeof(i8) << 1));
-constexpr void intToHex(i16 v, char* out, u64 hexLen = (sizeof(i16) << 1));
-constexpr void intToHex(i32 v, char* out, u64 hexLen = (sizeof(i32) << 1));
-constexpr void intToHex(i64 v, char* out, u64 hexLen = (sizeof(i64) << 1));
+constexpr core::expected<u32, ParseError> intToCstr(u32 n, char* out, addr_size olen, u32 digits = 0);
+constexpr core::expected<u32, ParseError> intToCstr(u64 n, char* out, addr_size olen, u32 digits = 0);
+constexpr core::expected<u32, ParseError> intToCstr(i32 n, char* out, addr_size olen, u32 digits = 0);
+constexpr core::expected<u32, ParseError> intToCstr(i64 n, char* out, addr_size olen, u32 digits = 0);
+
+constexpr core::expected<u32, ParseError> intToHex(u8 v, char* out, addr_size olen, u32 hexLen = (sizeof(u8) << 1));
+constexpr core::expected<u32, ParseError> intToHex(u16 v, char* out, addr_size olen, u32 hexLen = (sizeof(u16) << 1));
+constexpr core::expected<u32, ParseError> intToHex(u32 v, char* out, addr_size olen, u32 hexLen = (sizeof(u32) << 1));
+constexpr core::expected<u32, ParseError> intToHex(u64 v, char* out, addr_size olen, u32 hexLen = (sizeof(u64) << 1));
+constexpr core::expected<u32, ParseError> intToHex(i8 v, char* out, addr_size olen, u32 hexLen = (sizeof(i8) << 1));
+constexpr core::expected<u32, ParseError> intToHex(i16 v, char* out, addr_size olen, u32 hexLen = (sizeof(i16) << 1));
+constexpr core::expected<u32, ParseError> intToHex(i32 v, char* out, addr_size olen, u32 hexLen = (sizeof(i32) << 1));
+constexpr core::expected<u32, ParseError> intToHex(i64 v, char* out, addr_size olen, u32 hexLen = (sizeof(i64) << 1));
 
 template <typename TFloat> constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen);
                            constexpr core::expected<u32, ParseError>    floatToCstr(f32 n, char* out, u32 olen);
                            constexpr core::expected<u32, ParseError>    floatToCstr(f64 n, char* out, u32 olen);
-                           constexpr u32 floatToFixedCstr(f64 n, u32 precision, char* out, u32 olen);
+                        //    constexpr u32 floatToFixedCstr(f64 n, u32 precision, char* out, u32 olen); // TODO: finish this
 
 namespace detail {
 
 template<typename TInt>
-constexpr u32 intToCstr(TInt n, char* out, addr_size outMax, u32 digits) {
+constexpr core::expected<u32, ParseError> intToCstr(TInt n, char* out, addr_size olen, u32 digits) {
     static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
     Assert(out);
 
     u32 idx = 0;
 
-    auto safeAppend = [&idx, out, outMax](char c) {
-        Assert(addr_size(idx) < outMax);
-        out[idx++] = c;
-    };
-
     if constexpr (core::is_signed_v<TInt>) {
         if (n < 0) {
-            safeAppend('-');
+            if (addr_size(idx) < olen) out[idx++] = '-';
+            else return core::unexpected(ParseError::OutputBufferTooSmall);
             n = -n;
         }
     }
@@ -81,7 +78,9 @@ constexpr u32 intToCstr(TInt n, char* out, addr_size outMax, u32 digits) {
     for (i32 i = dc - 1; i >= 0; i--) {
         // There is a lot of believe in all this static casting, but it 'should not' be dangerous.
         TInt curr = TInt(n / TInt(pow10(u32(i)))) % 10;
-        safeAppend(digitToChar(curr));
+        char c = digitToChar(curr);
+        if (addr_size(idx) < olen) out[idx++] = c;
+        else return core::unexpected(ParseError::OutputBufferTooSmall);
         dc--;
     }
 
@@ -90,10 +89,10 @@ constexpr u32 intToCstr(TInt n, char* out, addr_size outMax, u32 digits) {
 
 } // detail namespace
 
-constexpr u32 intToCstr(u32 n, char* out, addr_size outMax, u32 digits) { return detail::intToCstr(n, out, outMax, digits); }
-constexpr u32 intToCstr(u64 n, char* out, addr_size outMax, u32 digits) { return detail::intToCstr(n, out, outMax, digits); }
-constexpr u32 intToCstr(i32 n, char* out, addr_size outMax, u32 digits) { return detail::intToCstr(n, out, outMax, digits); }
-constexpr u32 intToCstr(i64 n, char* out, addr_size outMax, u32 digits) { return detail::intToCstr(n, out, outMax, digits); }
+constexpr core::expected<u32, ParseError> intToCstr(u32 n, char* out, addr_size olen, u32 digits) { return detail::intToCstr(n, out, olen, digits); }
+constexpr core::expected<u32, ParseError> intToCstr(u64 n, char* out, addr_size olen, u32 digits) { return detail::intToCstr(n, out, olen, digits); }
+constexpr core::expected<u32, ParseError> intToCstr(i32 n, char* out, addr_size olen, u32 digits) { return detail::intToCstr(n, out, olen, digits); }
+constexpr core::expected<u32, ParseError> intToCstr(i64 n, char* out, addr_size olen, u32 digits) { return detail::intToCstr(n, out, olen, digits); }
 
 // This function does not handle TInt overflows!
 template <typename TInt>
@@ -139,22 +138,28 @@ static constexpr const char* hexDigits = "0123456789ABCDEF";
 
 // The out argument must have enough space to hold the result!
 template <typename TInt>
-constexpr void intToHex(TInt v, char* out, u64 hexLen) {
-    for (addr_size i = 0, j = (hexLen - 1) * 4; i < hexLen; i++, j-=4) {
-        out[i] = detail::hexDigits[(v >> j) & 0x0f];
+constexpr core::expected<u32, ParseError> intToHex(TInt v, char* out, addr_size olen, u32 hexLen) {
+    if (olen <= hexLen) {
+        return core::unexpected(ParseError::InputHasInvalidSymbol);
     }
+
+    for (addr_size i = 0, j = (hexLen - 1) * 4; i < hexLen; i++, j-=4) {
+        out[i] = detail::hexDigits[(v >> j) & 0x0F];
+    }
+
+    return hexLen;
 }
 
 } // namespace detail
 
-constexpr void intToHex(u8 v, char* out, u64 hexLen)  { detail::intToHex(v, out, hexLen); }
-constexpr void intToHex(u16 v, char* out, u64 hexLen) { detail::intToHex(v, out, hexLen); }
-constexpr void intToHex(u32 v, char* out, u64 hexLen) { detail::intToHex(v, out, hexLen); }
-constexpr void intToHex(u64 v, char* out, u64 hexLen) { detail::intToHex(v, out, hexLen); }
-constexpr void intToHex(i8 v, char* out, u64 hexLen)  { detail::intToHex(v, out, hexLen); }
-constexpr void intToHex(i16 v, char* out, u64 hexLen) { detail::intToHex(v, out, hexLen); }
-constexpr void intToHex(i32 v, char* out, u64 hexLen) { detail::intToHex(v, out, hexLen); }
-constexpr void intToHex(i64 v, char* out, u64 hexLen) { detail::intToHex(v, out, hexLen); }
+constexpr core::expected<u32, ParseError> intToHex(u8 v, char* out, addr_size olen, u32 hexLen)  { return detail::intToHex(v, out, olen, hexLen); }
+constexpr core::expected<u32, ParseError> intToHex(u16 v, char* out, addr_size olen, u32 hexLen) { return detail::intToHex(v, out, olen, hexLen); }
+constexpr core::expected<u32, ParseError> intToHex(u32 v, char* out, addr_size olen, u32 hexLen) { return detail::intToHex(v, out, olen, hexLen); }
+constexpr core::expected<u32, ParseError> intToHex(u64 v, char* out, addr_size olen, u32 hexLen) { return detail::intToHex(v, out, olen, hexLen); }
+constexpr core::expected<u32, ParseError> intToHex(i8 v, char* out, addr_size olen, u32 hexLen)  { return detail::intToHex(v, out, olen, hexLen); }
+constexpr core::expected<u32, ParseError> intToHex(i16 v, char* out, addr_size olen, u32 hexLen) { return detail::intToHex(v, out, olen, hexLen); }
+constexpr core::expected<u32, ParseError> intToHex(i32 v, char* out, addr_size olen, u32 hexLen) { return detail::intToHex(v, out, olen, hexLen); }
+constexpr core::expected<u32, ParseError> intToHex(i64 v, char* out, addr_size olen, u32 hexLen) { return detail::intToHex(v, out, olen, hexLen); }
 
 #pragma region Cptr to float
 

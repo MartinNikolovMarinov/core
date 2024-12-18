@@ -1,7 +1,7 @@
 #include "../t-index.h"
 #include "../common/wrapping_math_test_tables.h"
 
-#if CPU_ARCH_X86_64
+#if defined(CPU_ARCH_X86_64) && CPU_ARCH_X86_64 == 1
 
 i32 asmAddWithWrappingCheck_x86_64() {
     using Type = __Wrapping_Math_TestCase::Type;
@@ -140,7 +140,7 @@ i32 runAsmTestsSuite() {
     i32 ret = 0;
     TestInfo tInfo = createTestInfo();
 
-#if CPU_ARCH_X86_64
+#if defined(CPU_ARCH_X86_64) && CPU_ARCH_X86_64 == 1
 
     tInfo.name = FN_NAME_TO_CPTR(asmAddWithWrappingCheck_x86_64);
     if (runTest(tInfo, asmAddWithWrappingCheck_x86_64) != 0) { ret = -1; }

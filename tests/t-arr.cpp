@@ -84,7 +84,7 @@ i32 initializeArrTest() {
 
         PRAGMA_WARNING_PUSH
 
-        DISABLE_CLANG_WARNING(-Wself-move) // this is what I am testing here. I know it's wrong to do.
+        DISABLE_GCC_AND_CLANG_WARNING(-Wself-move) // this is what I am testing here. I know it's wrong to do.
 
         a = std::move(a); // self assignment should not do anything
 

@@ -234,7 +234,7 @@ i32 moveAndCopyStrBuilderTest() {
     {
         PRAGMA_WARNING_PUSH
 
-        DISABLE_CLANG_WARNING(-Wself-move) // this is what I am testing here. I know it's wrong to do.
+        DISABLE_GCC_AND_CLANG_WARNING(-Wself-move) // this is what I am testing here. I know it's wrong to do.
 
         StrBuilder sb("aaa"_sv);
         sb = std::move(sb);

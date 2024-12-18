@@ -202,7 +202,7 @@ constexpr inline bool intrin_safeAdd(T a, T b, T& out) {
 
 #if COMPILER_CLANG == 1 || COMPILER_GCC == 1
     return !__builtin_add_overflow(a, b, &out);
-#elif CPU_ARCH_X86_64
+#elif defined(CPU_ARCH_X86_64) && CPU_ARCH_X86_64 == 1
     return core::x86_asm_add_no_overflow(a, b, out);
 #else
     // fallback
@@ -240,7 +240,7 @@ constexpr inline bool intrin_safeSub(T a, T b, T& out) {
 
 #if COMPILER_CLANG == 1 || COMPILER_GCC == 1
     return !__builtin_sub_overflow(a, b, &out);
-#elif CPU_ARCH_X86_64
+#elif defined(CPU_ARCH_X86_64) && CPU_ARCH_X86_64 == 1
     return core::x86_asm_sub_no_overflow(a, b, out);
 #else
     // fallback
@@ -302,7 +302,7 @@ constexpr inline bool intrin_safeMul(T a, T b, T& out) {
 
 #if COMPILER_CLANG == 1 || COMPILER_GCC == 1
     return !__builtin_mul_overflow(a, b, &out);
-#elif CPU_ARCH_X86_64
+#elif defined(CPU_ARCH_X86_64) && CPU_ARCH_X86_64 == 1
     return core::x86_asm_mul_overflow(a, b, out);
 #else
     // fallback

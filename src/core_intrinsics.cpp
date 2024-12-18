@@ -2,7 +2,7 @@
 
 #if COMPILER_MSVC
 #include <intrin.h>
-#elif defined(CPU_ARCH_X86_64)
+#elif defined(CPU_ARCH_X86_64) && CPU_ARCH_X86_64 == 1
 #include <x86intrin.h>
 #elif defined(CPU_ARCH_ARM64) && defined(OS_MAC) && OS_MAC == 1
 #include <mach/mach_time.h>
@@ -11,7 +11,7 @@
 namespace core {
 
 u64 intrin_getCpuTicks() {
-#if defined(CPU_ARCH_X86_64)
+#if defined(CPU_ARCH_X86_64) && CPU_ARCH_X86_64 == 1
     return __rdtsc();
 #elif CPU_ARCH_ARM64 && defined(OS_MAC) && OS_MAC == 1
     return mach_absolute_time();

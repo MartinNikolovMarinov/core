@@ -149,8 +149,6 @@ i32 runAsmTestsSuite() {
     tInfo.name = FN_NAME_TO_CPTR(asmMulWithWrappingCheck_x86_64);
     if (runTest(tInfo, asmMulWithWrappingCheck_x86_64) != 0) { ret = -1; }
 
-    // FIXME: Write division tests.
-
 #endif
 
     return ret;

@@ -13,7 +13,8 @@ namespace core {
  * TODO2: If there is a need for generating random bits, in really large arrays, there is a version of xorshift-ing
  *       called "xorwow", which is used by default in Nvidia's CUDA toolkit.
  *
- * TODO2: Run the TestU01 suite to test the quality of the random numbers generated.
+ * TODO2: Run the TestU01 suite to test the quality of the random numbers generated. This can be a whole new fun project
+ *        to do at some point.
 */
 
 namespace {

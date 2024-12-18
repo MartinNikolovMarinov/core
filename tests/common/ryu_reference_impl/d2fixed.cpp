@@ -16,6 +16,9 @@
 #include "d2fixed_full_table.h"
 #include "d2s_intrinsics.h"
 
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_SUPPRESS_ALL
+
 namespace ryu {
 
 #define DOUBLE_MANTISSA_BITS 52
@@ -307,7 +310,6 @@ static inline uint32_t lengthForIndex(const uint32_t idx) {
 
 static inline int copy_special_str_printf(char* const result, const bool sign, const uint64_t mantissa) {
 #if defined(_MSC_VER)
-  // TODO: Check that -nan is expected output on Windows.
   if (sign) {
     result[0] = '-';
   }
@@ -796,3 +798,5 @@ char* d2exp(double d, uint32_t precision) {
 }
 
 } // namespace ryu
+
+PRAGMA_WARNING_POP

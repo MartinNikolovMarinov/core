@@ -16,6 +16,9 @@
 #include "d2s_intrinsics.h"
 #include "d2s_full_table.h"
 
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_SUPPRESS_ALL
+
 namespace ryu {
 
 #define DOUBLE_MANTISSA_BITS 52
@@ -476,3 +479,5 @@ char* d2s(double f) {
 }
 
 } // namespace ryu
+
+PRAGMA_WARNING_POP

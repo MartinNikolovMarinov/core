@@ -387,7 +387,6 @@ constexpr i32 safeAddTest() {
 }
 
 constexpr i32 safeSubTest() {
-
     using Type = __Wrapping_Math_TestCase::Type;
 
     i32 ret = core::testing::executeTestTable("test case failed at index: ", __wrapping_sub_testCases, [](auto& c, const char* cErr) {

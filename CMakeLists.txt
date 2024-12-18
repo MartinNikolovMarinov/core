@@ -121,10 +121,19 @@ elseif(OS STREQUAL "windows")
     )
 endif()
 
-if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
-    set(core_src ${core_src}
-        src/asm/core_asm_x86_64.cpp
-    )
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        set(core_src ${core_src}
+            src/asm/core_asm_x86_64_msvc.cpp
+            src/asm/msvc_add_no_overflow.asm
+            src/asm/msvc_sub_no_overflow.asm
+            src/asm/msvc_mul_no_overflow.asm
+        )
+    else()
+        set(core_src ${core_src}
+            src/asm/core_asm_x86_64.cpp
+        )
+    endif()
 endif()
 
 # ---------------------------------------- End Declare Source Files ----------------------------------------------------

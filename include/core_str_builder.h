@@ -10,7 +10,7 @@ namespace core {
 
 using namespace coretypes;
 
-// TODO2: [PERFORMANCE] Might want to do some small string optimization.
+// TODO2: [PERFORMANCE] Might want to implement small string optimization.
 
 struct CORE_API_EXPORT StrBuilder;
 

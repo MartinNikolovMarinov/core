@@ -4,7 +4,7 @@
 
 #include <windows.h>
 
-// TODO2: It's important to note that this API does not support Unicode paths!
+// TODO: It's important to note that this API does not support Unicode paths!
 //       This is because a unicode compliant implementations must use the wide character versions of the Windows API.
 //       This would require a conversion from char* to wchar_t* which is too expensive and is not necessary for 99% of
 //       use cases. I should, however, support a setting that allows unicode support.

@@ -1,9 +1,14 @@
 #include <asm/core_asm.h>
 
-namespace core {
+// IMPORTANT:
+// These are written more as a learning experiment and an example for inline assembly. Clang's and GCC's intrinsics
+// generate perfect code for these functions. Since they are well tests I will not remove them, but generally they
+// should not be used, instead use the __builtin_* variants.
+//
+// For future reference: it's probably a better practice to create a separate asm file and compile it, instead of
+// writing inline assembly.
 
-// FIXME: Add more comments to add sub and mul. There is a lot of documentation to do for multiplication especially!
-// FIXME: Write the MSVC inline asm code as well.
+namespace core {
 
 #pragma region ADD
 
@@ -107,8 +112,6 @@ bool x86_asm_sub_no_overflow(u64 a, u64 b, u64& out) { return x86_asm_sub_no_ove
 #pragma endregion
 
 #pragma region MUL
-
-// TODO2: The number of unnecessary instructions can be reduced for some integer sizes. Only i16, i32 and i64 are optimal.
 
 namespace  {
 

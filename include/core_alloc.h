@@ -7,7 +7,7 @@
 
 #include <plt/core_atomics.h>
 
-// TODO: I need to think about alignment in these allocators. Aligning every allocation to 8 bytes might not be the best idea for all cases.
+// TODO2: I need to think about alignment in these allocators. Aligning every allocation to 8 bytes might not be the best idea for all cases.
 
 namespace core {
 
@@ -54,8 +54,6 @@ static_assert(AllocatorConcept<StdAllocator>);
 struct StdStatsAllocator {
     // NOTE: This type exports functions instead of the whole struct because the use of atomic types in the triggers C4251
     //       warning on MSVC. It's a valid warning and it's caused by the fact that the atomic types are not exported.
-    // TODO2: This raises another potential issue. Perhaps, exproting only the functions, should become the rule in the
-    //        entire project. That is tedious refactoring... push it for the future, or never.
 
     OOMHandlerFn oomHandler = nullptr;
 

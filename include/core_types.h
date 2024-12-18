@@ -11,6 +11,7 @@
 #include <stddef.h>
 
 #include <type_traits>
+#include <core_compiler.h>
 
 namespace coretypes {
 
@@ -33,19 +34,19 @@ using rune      = u32; // Runes represent a single UTF-32 encoded character.
 static constexpr i32 BYTE_SIZE = 8;
 
 // Storage Sizes
-static constexpr u64 CORE_BYTE     = static_cast<u64>(1);
-static constexpr u64 CORE_KILOBYTE = static_cast<u64>(1024 * CORE_BYTE);
-static constexpr u64 CORE_MEGABYTE = static_cast<u64>(1024 * CORE_KILOBYTE);
-static constexpr u64 CORE_GIGABYTE = static_cast<u64>(1024 * CORE_MEGABYTE);
-static constexpr u64 CORE_TERABYTE = static_cast<u64>(1024 * CORE_GIGABYTE);
+static constexpr u64 CORE_BYTE     = u64(1);
+static constexpr u64 CORE_KILOBYTE = u64(1024 * CORE_BYTE);
+static constexpr u64 CORE_MEGABYTE = u64(1024 * CORE_KILOBYTE);
+static constexpr u64 CORE_GIGABYTE = u64(1024 * CORE_MEGABYTE);
+static constexpr u64 CORE_TERABYTE = u64(1024 * CORE_GIGABYTE);
 
 // Duration constants in ns
-static constexpr u64 CORE_NANOSECOND  = static_cast<u64>(1);                       //                 1ns
-static constexpr u64 CORE_MICROSECOND = static_cast<u64>(1000 * CORE_NANOSECOND);  //             1_000ns
-static constexpr u64 CORE_MILLISECOND = static_cast<u64>(1000 * CORE_MICROSECOND); //         1_000_000ns
-static constexpr u64 CORE_SECOND      = static_cast<u64>(1000 * CORE_MILLISECOND); //     1_000_000_000ns
-static constexpr u64 CORE_MINUTE      = static_cast<u64>(60 * CORE_SECOND);        //    60_000_000_000ns
-static constexpr u64 CORE_HOUR        = static_cast<u64>(60 * CORE_MINUTE);        // 3_600_000_000_000ns
+static constexpr u64 CORE_NANOSECOND  = u64(1);                       //                 1ns
+static constexpr u64 CORE_MICROSECOND = u64(1000 * CORE_NANOSECOND);  //             1_000ns
+static constexpr u64 CORE_MILLISECOND = u64(1000 * CORE_MICROSECOND); //         1_000_000ns
+static constexpr u64 CORE_SECOND      = u64(1000 * CORE_MILLISECOND); //     1_000_000_000ns
+static constexpr u64 CORE_MINUTE      = u64(60 * CORE_SECOND);        //    60_000_000_000ns
+static constexpr u64 CORE_HOUR        = u64(60 * CORE_MINUTE);        // 3_600_000_000_000ns
 
 template <typename T>
 constexpr T limitMax() {
@@ -63,6 +64,9 @@ constexpr T limitMax() {
 
 template <typename T>
 constexpr T limitMin() {
+    PRAGMA_WARNING_PUSH
+    DISABLE_MSVC_WARNING(4146)
+
     if constexpr (std::is_same_v<T, u8>)       return u8(0x0);                  // 0
     else if constexpr (std::is_same_v<T, u16>) return u16(0x0);                 // 0
     else if constexpr (std::is_same_v<T, u32>) return u32(0x0);                 // 0
@@ -73,6 +77,8 @@ constexpr T limitMin() {
     else if constexpr (std::is_same_v<T, i64>) return i64(-0x8000000000000000); // -9223372036854775808
     else if constexpr (std::is_same_v<T, f32>) return f32(0x1.0p-126);          // Minimum positive subnormal f32
     else if constexpr (std::is_same_v<T, f64>) return f64(0x1.0p-1022);         // Minimum positive subnormal f64
+
+    PRAGMA_WARNING_POP
 }
 
 // TODO2: If I need the lowest normal f32 it's just equal to "-limitMax<TFloat>()"

@@ -2,6 +2,9 @@
 
 #include <stdint.h>
 
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_SUPPRESS_ALL
+
 namespace ryu {
 
 #define TABLE_SIZE 64
@@ -4403,3 +4406,5 @@ static const uint64_t POW10_SPLIT_2[3133][3] = {
 };
 
 } // namespace ryu
+
+PRAGMA_WARNING_POP

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core_bits.h>
+#include <core_compiler.h>
 #include <core_cstr.h>
 #include <core_expected.h>
 #include <core_ints.h>
@@ -9,7 +10,11 @@
 
 #include <math/core_math.h>
 
+// FIXME: Add acknowledgement for the author of the ryu algorithm and the c++ reference library!
 // TODO2: [PERFORMACE] Everything in this file can be much faster.
+
+PRAGMA_WARNING_PUSH
+DISABLE_MSVC_WARNING(4554) //  warning C4554: '<<': check operator precedence for possible error; is useless here.
 
 namespace core {
 
@@ -5904,12 +5909,12 @@ constexpr FloatTraits<f64>::FloatDecimal floatToDecimal(u64 ieeeMantissa, u32 ie
 struct OutputBuffer {
     char* out;
     u32 widx;
-    u32 max;
+    u32 omax;
 
-    constexpr OutputBuffer(char* buf, u32 blen) : out(buf), widx(0), max(blen) {}
+    constexpr OutputBuffer(char* buf, u32 blen) : out(buf), widx(0), omax(blen) {}
 
     [[nodiscard]] constexpr inline bool writeCharAt(char a, u32 idx) {
-        if (idx >= max) return false;
+        if (idx >= omax) return false;
         out[idx] = a;
         return true;
     }
@@ -5921,7 +5926,7 @@ struct OutputBuffer {
     }
 
     [[nodiscard]] constexpr inline bool writeAt(const char* in, u32 inLen, u32 offset) {
-        if (offset + inLen >= max) return false;
+        if (offset + inLen >= omax) return false;
         core::memcopy(out + offset, in, inLen);
         return true;
     }
@@ -5933,7 +5938,7 @@ struct OutputBuffer {
     }
 
     [[nodiscard]] constexpr inline bool advance(u32 len) {
-        if (widx + len >= max) return false;
+        if (widx + len >= omax) return false;
         widx += len;
         return true;
     }
@@ -6487,3 +6492,5 @@ constexpr core::expected<u32, ParseError> floatToCstr(f64 n, char* out, u32 olen
 #pragma endregion
 
 } // namespace core
+
+PRAGMA_WARNING_POP

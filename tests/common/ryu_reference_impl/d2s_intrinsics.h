@@ -14,15 +14,16 @@ PRAGMA_WARNING_SUPPRESS_ALL
 // #define HAS_UINT128
 #elif defined(_MSC_VER) && !defined(RYU_ONLY_64_BIT_OPS) && defined(_M_X64)
 #define HAS_64_BIT_INTRINSICS
+#include <intrin.h>
 #endif
+
+namespace ryu {
 
 #if defined(HAS_UINT128)
 typedef __uint128_t uint128_t;
 #endif
 
 #if defined(HAS_64_BIT_INTRINSICS)
-
-#include <intrin.h>
 
 static inline uint64_t umul128(const uint64_t a, const uint64_t b, uint64_t* const productHi) {
   return _umul128(a, b, productHi);
@@ -37,7 +38,7 @@ static inline uint64_t shiftright128(const uint64_t lo, const uint64_t hi, const
   // RYU_OPTIMIZE_SIZE == 0, the shift value is in the range [49, 58].
   // Otherwise in the range [2, 59].)
   // However, this function is now also called by s2d, which requires supporting
-  // the larger shift range (TODO: what is the actual range?).
+  // the larger shift range.
   // Check this here in case a future change requires larger shift
   // values. In this case this function needs to be adjusted.
   assert(dist < 64);
@@ -45,8 +46,6 @@ static inline uint64_t shiftright128(const uint64_t lo, const uint64_t hi, const
 }
 
 #else // defined(HAS_64_BIT_INTRINSICS)
-
-namespace ryu {
 
 static inline uint64_t umul128(const uint64_t a, const uint64_t b, uint64_t* const productHi) {
   // The casts here help MSVC to avoid calls to the __allmul library function.
@@ -342,3 +341,5 @@ static inline uint64_t mulShiftAll64(uint64_t m, const uint64_t* const mul, cons
 #endif // HAS_64_BIT_INTRINSICS
 
 } // namespace ryu
+
+PRAGMA_WARNING_POP

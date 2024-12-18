@@ -1,8 +1,5 @@
 #include <core_compiler.h>
 
-PRAGMA_WARNING_PUSH
-PRAGMA_WARNING_SUPPRESS_ALL
-
 #include "ryu_parse.h"
 
 #include <assert.h>
@@ -24,6 +21,9 @@ PRAGMA_WARNING_SUPPRESS_ALL
 
 #if defined(_MSC_VER)
 #include <intrin.h>
+
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_SUPPRESS_ALL
 
 static inline uint32_t floor_log2(const uint32_t value) {
   unsigned long index;
@@ -101,7 +101,7 @@ enum Status s2f_n(const char * buffer, const int len, float * result) {
         return MALFORMED_INPUT;
       }
       if (e10digits > 3) {
-        // TODO: Be more lenient. Return +/-Infinity or +/-0 instead.
+        // TODO Be more lenient. Return +/-Infinity or +/-0 instead.
         return INPUT_TOO_LONG;
       }
       e10 = 10 * e10 + (c - '0');

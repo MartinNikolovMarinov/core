@@ -92,7 +92,7 @@ constexpr i32 toExponentNotationTest() {
             { 6.0898E-39f, "6.0898E-39" },
             { 0.0010310042f, "1.0310042E-3" },
             { 2.8823261E17f, "2.882326E17" },
-            { 7.038531E-26f, "7.038531E-26" }, // TODO2: verify on MSVC, which might have a problem with this, and round to ASSERT_F2S("7.038531E-26", 7.0385309E-26f);
+            { 7.038531E-26f, "7.038531E-26" },
             { 9.2234038E17f, "9.223404E17" },
             { 6.7108872E7f, "6.710887E7" },
             { 1.0E-44f, "1E-44" },

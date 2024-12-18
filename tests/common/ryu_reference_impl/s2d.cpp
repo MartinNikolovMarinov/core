@@ -22,7 +22,7 @@ PRAGMA_WARNING_SUPPRESS_ALL
 #include <intrin.h>
 
 static inline uint32_t floor_log2(const uint64_t value) {
-  long index;
+  unsigned long index;
   return _BitScanReverse64(&index, value) ? index : 64;
 }
 
@@ -97,7 +97,7 @@ enum Status s2d_n(const char * buffer, const int len, double * result) {
         return MALFORMED_INPUT;
       }
       if (e10digits > 3) {
-        // TODO: Be more lenient. Return +/-Infinity or +/-0 instead.
+        // TODO Be more lenient. Return +/-Infinity or +/-0 instead.
         return INPUT_TOO_LONG;
       }
       e10 = 10 * e10 + (c - '0');
@@ -242,3 +242,5 @@ enum Status s2d(const char * buffer, double * result) {
 }
 
 } // namespace ryu
+
+PRAGMA_WARNING_POP

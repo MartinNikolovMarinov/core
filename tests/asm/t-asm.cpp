@@ -138,7 +138,7 @@ i32 runAsmTestsSuite() {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo = createTestInfo();
+    [[maybe_unused]] TestInfo tInfo = createTestInfo();
 
 #if defined(CPU_ARCH_X86_64) && CPU_ARCH_X86_64 == 1
 

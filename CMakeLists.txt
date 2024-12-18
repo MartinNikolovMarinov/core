@@ -130,7 +130,7 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
             src/asm/msvc_mul_no_overflow.asm
         )
 
-        enable_language(ASM_MASM)
+        # FIXME: Find a way to fix the problem of passing cpp msvc arguments to the asm compiler. This breaks the windows pipeline.
         set_source_files_properties(
             src/asm/msvc_add_no_overflow.asm
             src/asm/msvc_sub_no_overflow.asm
@@ -138,7 +138,8 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
             PROPERTIES
             LANGUAGE ASM_MASM
         )
-        set(CMAKE_ASM_MASM_FLAGS "/nologo /W3")
+        enable_language(ASM_MASM)
+        set(CMAKE_ASM_MASM_FLAGS "/nologo")
     else()
         set(core_src ${core_src}
             src/asm/core_asm_x86_64.cpp

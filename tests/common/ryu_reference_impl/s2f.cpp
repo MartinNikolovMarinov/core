@@ -19,11 +19,12 @@
 #define FLOAT_EXPONENT_BITS 8
 #define FLOAT_EXPONENT_BIAS 127
 
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_SUPPRESS_ALL
+
 #if defined(_MSC_VER)
 #include <intrin.h>
 
-PRAGMA_WARNING_PUSH
-PRAGMA_WARNING_SUPPRESS_ALL
 
 static inline uint32_t floor_log2(const uint32_t value) {
   unsigned long index;

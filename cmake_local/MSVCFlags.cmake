@@ -5,11 +5,6 @@ macro(target_set_default_flags
     is_debug
     save_temporary_files)
 
-    if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
-        # Enable Microsoft Macro Assembler on x86 machines.
-        enable_language(ASM_MASM)
-    endif()
-
     set(common_flags "/std:c++20")
     set(debug_flags "")
     set(release_flags "")

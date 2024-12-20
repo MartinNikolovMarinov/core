@@ -14,20 +14,30 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Generates compile_commands.json
 
 # Download and update git submodules:
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake_local")
-
-include(UpdateGitSubmodules)
-
-update_git_submodules()
+find_package(Git QUIET)
+if (GIT_FOUND)
+    message(STATUS "Submodule update")
+    execute_process(
+        COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        RESULT_VARIABLE GIT_SUBMOD_RESULT
+    )
+    if (NOT GIT_SUBMOD_RESULT EQUAL "0")
+        message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+    endif()
+else()
+    message(WARNING "Git is not found. It is required to update submodules.")
+endif()
 
 # Include cmake modules from git submodules:
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake_local")
 
 include(DetectOS)
 include(CompilerOptions)
 include(Logger)
-include(DefaultFlags)
+include(CoreDefaultFlags)
 
 init_logger("[CORE]")
 
@@ -189,7 +199,7 @@ target_compile_definitions(${target_core} PUBLIC
 
 # Set Default Flags:
 
-target_set_default_flags(${target_core} ${CORE_DEBUG} ${CORE_SAVE_TEMPORARY_FILES})
+core_target_set_default_flags(${target_core} ${CORE_DEBUG} ${CORE_SAVE_TEMPORARY_FILES})
 
 if(CORE_BUILD_TESTS)
     # ------------------------------------- Begin Testing --------------------------------------------------------------
@@ -260,7 +270,7 @@ if(CORE_BUILD_TESTS)
         "CORE_TESTS_STOP_ON_FIRST_FAILED=$<BOOL:${CORE_TESTS_STOP_ON_FIRST_FAILED}>"
     )
 
-    target_set_default_flags(${target_test} ${CORE_DEBUG} ${CORE_SAVE_TEMPORARY_FILES})
+    core_target_set_default_flags(${target_test} ${CORE_DEBUG} ${CORE_SAVE_TEMPORARY_FILES})
 
     if(CORE_CODE_COVERAGE)
         if (CMAKE_COMPILER_IS_GNUCXX)

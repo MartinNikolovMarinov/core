@@ -1,6 +1,6 @@
 include(CompilerOptions)
 
-macro(target_set_default_flags
+macro(core_target_set_default_flags
     target
     is_debug
     save_temporary_files)

@@ -158,9 +158,6 @@ jobs:
     - name: Run tests
       shell: cmake -P {0}
       run: |
-        # include(ProcessorCount)
-        # ProcessorCount(N)
-
         set(ENV{CTEST_OUTPUT_ON_FAILURE} "ON")
 
         message("\n\nPassed Configuration: ${{ matrix.config.ctest_config }}\n\n")

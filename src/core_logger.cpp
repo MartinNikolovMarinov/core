@@ -140,7 +140,7 @@ bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, co
             break;
         case LogLevel::L_FATAL:
             if (useAnsi) printHandler(ANSI_BOLD(ANSI_BACKGROUND_RED(ANSI_BRIGHT_WHITE("[FATAL]"))));
-            else         printHandler(ANSI_BRIGHT_WHITE("[FATAL]"));
+            else         printHandler("[FATAL]");
             break;
         case LogLevel::L_TRACE:
             if (useAnsi) printHandler(ANSI_BOLD(ANSI_BRIGHT_GREEN("[TRACE]")));

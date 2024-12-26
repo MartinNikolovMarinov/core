@@ -32,7 +32,6 @@ struct CORE_API_EXPORT AllocatorContext {
     AllocatorContext(void* allocatorData = nullptr);
     AllocatorContext(const AllocatorContext& other) = default;
     AllocatorContext(AllocatorContext&& other);
-    ~AllocatorContext();
 
     AllocatorContext& operator=(const AllocatorContext& other) = default;
     AllocatorContext& operator=(AllocatorContext&& other);

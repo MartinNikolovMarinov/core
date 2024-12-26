@@ -54,10 +54,11 @@ AllocatorContext& AllocatorContext::operator=(AllocatorContext&& other) {
     return *this;
 }
 
-AllocatorContext::~AllocatorContext() {
-    if (clear) clear(allocatorData);
-    zeroOutAllocatorContext(*this);
-}
+// IMPORTANT: The correct time to destory the allocator context seems to be never!
+// void AllocatorContext::destroy() {
+//     if (clear) clear(allocatorData);
+//     zeroOutAllocatorContext(*this);
+// }
 
 void initProgramCtx(GlobalAssertHandlerFn assertHandler,
                     const AllocatorContext* defaultAllocatorCtx) {

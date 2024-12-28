@@ -8,9 +8,9 @@ i32 findAlgorithmTest() {
     {
         constexpr addr_size BUFF_LEN = 5;
         i32 arr[BUFF_LEN] = {1, 2, 3, 4, 5};
-        addr_off found = core::find(arr, BUFF_LEN, [](i32 elem, addr_off) -> bool { return elem == 3; });
+        addr_off found = core::find(arr, BUFF_LEN, [](i32 elem, addr_size) -> bool { return elem == 3; });
         CT_CHECK(found == 2);
-        found = core::find(arr, BUFF_LEN, [] (i32 elem, addr_off) -> bool { return elem == 6; });
+        found = core::find(arr, BUFF_LEN, [] (i32 elem, addr_size) -> bool { return elem == 6; });
         CT_CHECK(found == -1);
     }
     {
@@ -23,9 +23,9 @@ i32 findAlgorithmTest() {
         arr.push(TestStruct{1, 2});
         arr.push(TestStruct{3, 4});
         arr.push(TestStruct{5, 6});
-        addr_off found = core::find(arr, [](const TestStruct& elem, addr_off) -> bool { return elem.a == 3; });
+        addr_off found = core::find(arr, [](const TestStruct& elem, addr_size) -> bool { return elem.a == 3; });
         CT_CHECK(found == 1);
-        found = core::find(arr, [] (const TestStruct& elem, addr_off) -> bool { return elem.a == 6; });
+        found = core::find(arr, [] (const TestStruct& elem, addr_size) -> bool { return elem.a == 6; });
         CT_CHECK(found == -1);
     }
 
@@ -115,9 +115,9 @@ constexpr i32 constFindAlgorithmTest() {
         staticArr.push(TestStruct{1, 2});
         staticArr.push(TestStruct{3, 4});
         staticArr.push(TestStruct{5, 6});
-        auto found = core::find(staticArr, [](const TestStruct& elem, addr_off) -> bool { return elem.a == 3; });
+        auto found = core::find(staticArr, [](const TestStruct& elem, addr_size) -> bool { return elem.a == 3; });
         CT_CHECK(found == 1);
-        found = core::find(staticArr, [] (const TestStruct& elem, addr_off) -> bool { return elem.a == 6; });
+        found = core::find(staticArr, [] (const TestStruct& elem, addr_size) -> bool { return elem.a == 6; });
         CT_CHECK(found == -1);
     }
 

@@ -2,6 +2,7 @@
 
 #include <core_arr.h>
 #include <core_hash_map.h>
+#include <core_mem.h>
 #include <core_traits.h>
 #include <core_types.h>
 
@@ -30,7 +31,7 @@ template <typename T, typename TPredicate>
 inline constexpr addr_off find(const T* arr, addr_size len, TPredicate pred) {
     for (addr_off i = 0; i < addr_off(len); ++i) {
         auto& v = arr[addr_size(i)];
-        if (pred(v, i)) return i;
+        if (pred(v, addr_size(i))) return i;
     }
     return -1;
 }
@@ -43,6 +44,11 @@ inline addr_off find(const ArrList<T>& arr, TPredicate pred) {
 template <typename T, addr_size N, typename TPredicate>
 inline constexpr addr_off find(const ArrStatic<T, N>& arr, TPredicate pred) {
     return find(arr.data(), arr.len(), pred);
+}
+// Find element in Memory.
+template <typename T, typename TPredicate>
+inline constexpr addr_off find(const Memory<T>& memory, TPredicate pred) {
+    return find(memory.data(), memory.len(), pred);
 }
 
 namespace detail {

@@ -1,13 +1,6 @@
 #include "tests/t-index.h"
 
-#include <iomanip>
-#include <sstream>
 #include <iostream>
-#include <bitset>
-#include <cstdio>
-
-#include "tests/common/ryu_reference_impl/ryu.h"
-#include "tests/common/ryu_reference_impl/ryu_parse.h"
 
 void assertHandler(const char* failedExpr, const char* file, i32 line, const char* funcName, const char* errMsg) {
     constexpr u32 stackFramesToSkip = 2;
@@ -35,31 +28,8 @@ void assertHandler(const char* failedExpr, const char* file, i32 line, const cha
     throw std::runtime_error("Assertion failed!");
 };
 
-// constexpr double d64_max = std::numeric_limits<double>::max();
-// constexpr double d64_lowest = std::numeric_limits<double>::lowest();
-// constexpr double d64_denorm_min = std::numeric_limits<double>::denorm_min();
-// constexpr double d64_min = std::numeric_limits<double>::min();
-
-// constexpr f64 tt = core::bitCast<f64>(1ull);
-
 i32 main() {
     core::initProgramCtx(assertHandler, nullptr);
-
-    {
-        char buff[64];
-        core::memset(buff, 5, 64);
-        i32 n = core::floatToCstr(5.2f, buff, 64);
-        buff[n] = '\0';
-        std::cout << "buff = " << buff << " n = " << n << std::endl;
-    }
-
-    {
-        char buff[64];
-        i32 n = ryu::f2s_buffered_n(5.2f, buff);
-        buff[n] = '\0';
-        std::cout << "buff = " << buff << " n = " << n << std::endl;
-    }
-
 
     return 0;
 }

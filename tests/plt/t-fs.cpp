@@ -749,7 +749,7 @@ i32 basicListDirectoryContentsTest() {
             const char* got = de.name;
 
             if (de.type == core::FileType::Regular) {
-                addr_off foundIdx = core::find(fileNames, fileNamesLen, [&] (const char* elem, addr_off) -> bool {
+                addr_off foundIdx = core::find(fileNames, fileNamesLen, [&] (const char* elem, addr_size) -> bool {
                     bool ret = core::memcmp(elem, core::cstrLen(elem), got, core::cstrLen(got)) == 0;
                     return ret;
                 });
@@ -757,7 +757,7 @@ i32 basicListDirectoryContentsTest() {
                 fileCount++;
             }
             else if (de.type == core::FileType::Directory) {
-                addr_off foundIdx = core::find(dirNames, dirNamesLen, [&] (const char* elem, addr_off) -> bool {
+                addr_off foundIdx = core::find(dirNames, dirNamesLen, [&] (const char* elem, addr_size) -> bool {
                     bool ret = core::memcmp(elem, core::cstrLen(elem), got, core::cstrLen(got)) == 0;
                     return ret;
                 });

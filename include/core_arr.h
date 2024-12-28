@@ -11,13 +11,15 @@ namespace core {
 
 using namespace coretypes;
 
-template <typename T>              struct ArrList;
-template <typename T, addr_size N> struct ArrStatic;
+template <typename T, AllocatorId TAllocId = DEFAULT_ALLOCATOR_ID> struct ArrList;
+template <typename T, addr_size N>                                 struct ArrStatic;
 
 template<typename ...Args> constexpr auto createArrStatic(Args... args);
 
-template <typename T>
+template <typename T, AllocatorId TAllocId>
 struct ArrList {
+    inline static core::AllocatorContext& allocator = core::getAllocator(TAllocId);
+
     using value_type = T;
     using size_type = addr_size;
 
@@ -26,12 +28,12 @@ struct ArrList {
     ArrList() : m_data(nullptr), m_cap(0), m_len(0) {}
     ArrList(size_type cap) : m_data(nullptr), m_cap(cap), m_len(0) {
         if (m_cap > 0) {
-            m_data = reinterpret_cast<value_type *>(core::alloc(m_cap, sizeof(value_type)));
+            m_data = reinterpret_cast<value_type *>(allocator.alloc(m_cap, sizeof(value_type)));
         }
     }
     ArrList(size_type len, const T& v) : m_data(nullptr), m_cap(len), m_len(len) {
         if (m_cap > 0) {
-            m_data = reinterpret_cast<value_type *>(core::alloc(m_cap, sizeof(value_type)));
+            m_data = reinterpret_cast<value_type *>(allocator.alloc(m_cap, sizeof(value_type)));
             if constexpr (dataIsTrivial) {
                 core::memfill(m_data, m_len, v);
             }
@@ -103,7 +105,7 @@ struct ArrList {
     ArrList copy() const {
         value_type* dataCopy = nullptr;
         if (m_cap > 0) {
-            dataCopy = reinterpret_cast<value_type *>(core::alloc(m_cap, sizeof(value_type)));
+            dataCopy = reinterpret_cast<value_type *>(allocator.alloc(m_cap, sizeof(value_type)));
             if constexpr (dataIsTrivial) {
                 core::memcopy(dataCopy, m_data, m_len);
             }
@@ -126,7 +128,7 @@ struct ArrList {
 
         clear();
 
-        core::free(m_data, m_cap, sizeof(value_type));
+        allocator.free(m_data, m_cap, sizeof(value_type));
         m_cap = 0;
         m_data = nullptr;
     }
@@ -171,10 +173,10 @@ struct ArrList {
         }
 
         // reallocate
-        value_type* newData = reinterpret_cast<value_type *>(core::alloc(newCap, sizeof(value_type)));
+        value_type* newData = reinterpret_cast<value_type *>(allocator.alloc(newCap, sizeof(value_type)));
         if (m_data != nullptr) {
             core::memcopy(newData, m_data, m_len);
-            core::free(m_data, m_cap, sizeof(value_type));
+            allocator.free(m_data, m_cap, sizeof(value_type));
         }
 
         m_data = newData;

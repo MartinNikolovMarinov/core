@@ -721,48 +721,24 @@ i32 cmdParserAliasTest() {
 i32 runCmdParserTestsSuite() {
     using namespace core::testing;
 
-    auto runTests = [] (TestInfo& tInfo, const char* description, i32& retCode) {
-        tInfo.description = description;
+    TestInfo tInfo = createTestInfo();
 
-        tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserSymbolParsingTest);
-        if (runTest(tInfo, cmdFlagParserSymbolParsingTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserSymbolParsingLongerTest);
-        if (runTest(tInfo, cmdFlagParserSymbolParsingLongerTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserBasicErrorsTest);
-        if (runTest(tInfo, cmdFlagParserBasicErrorsTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserDoubleParsingTest);
-        if (runTest(tInfo, cmdFlagParserDoubleParsingTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserFriendlyInputMatchingTest);
-        if (runTest(tInfo, cmdFlagParserFriendlyInputMatchingTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserMatchingEdgecasesTest);
-        if (runTest(tInfo, cmdFlagParserMatchingEdgecasesTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(cmdParserValidationRulesTest);
-        if (runTest(tInfo, cmdParserValidationRulesTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(cmdParserAliasTest);
-        if (runTest(tInfo, cmdParserAliasTest) != 0) { retCode = -1; }
-    };
+    tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserSymbolParsingTest);
+    if (runTest(tInfo, cmdFlagParserSymbolParsingTest) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserSymbolParsingLongerTest);
+    if (runTest(tInfo, cmdFlagParserSymbolParsingLongerTest) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserBasicErrorsTest);
+    if (runTest(tInfo, cmdFlagParserBasicErrorsTest) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserDoubleParsingTest);
+    if (runTest(tInfo, cmdFlagParserDoubleParsingTest) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserFriendlyInputMatchingTest);
+    if (runTest(tInfo, cmdFlagParserFriendlyInputMatchingTest) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserMatchingEdgecasesTest);
+    if (runTest(tInfo, cmdFlagParserMatchingEdgecasesTest) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cmdParserValidationRulesTest);
+    if (runTest(tInfo, cmdParserValidationRulesTest) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cmdParserAliasTest);
+    if (runTest(tInfo, cmdParserAliasTest) != 0) { return -1; }
 
-    i32 ret = 0;
-    runForAllGlobalAllocatorVariants(runTests, ret);
-
-    {
-        constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE * 15;
-        char buf[BUFFER_SIZE];
-        USE_STACK_BASED_BUMP_ALLOCATOR_FOR_BLOCK_SCOPE(buf, BUFFER_SIZE);
-
-        TestInfo tInfo = createTestInfo();
-        tInfo.trackMemory = true;
-        runTests(tInfo, "STACK BASED BUMP Allocator", ret);
-    }
-
-    {
-        constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE * 8;
-        USE_CUSTOM_ARENA_ALLOCATOR_FOR_FOR_BLOCK_SCOPE(BUFFER_SIZE);
-
-        TestInfo tInfo = createTestInfo();
-        tInfo.trackMemory = true;
-        runTests(tInfo, "CUSTOM ARENA Allocator", ret);
-    }
-
-    return ret;
+    return 0;
 }

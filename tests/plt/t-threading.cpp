@@ -117,14 +117,14 @@ i32 start2ThreadsAndJoinThemTest() {
         // In this case arguments could be on the stack, because the threads are joined before the function returns, but
         // in general started threads will outlive the current stack frame, dus the lifetime of the arguments must be
         // managed on the heap.
-        Args* t1Args = reinterpret_cast<Args*>(core::alloc(1, sizeof(Args)));
+        Args* t1Args = reinterpret_cast<Args*>(core::getAllocator(core::DEFAULT_ALLOCATOR_ID).alloc(1, sizeof(Args)));
         CT_CHECK(t1Args != nullptr);
         *t1Args = {&t1Done};
-        defer { core::free(t1Args, 1, sizeof(Args)); };
-        Args* t2Args = reinterpret_cast<Args*>(core::alloc(1, sizeof(Args)));
+        defer { core::getAllocator(core::DEFAULT_ALLOCATOR_ID).free(t1Args, 1, sizeof(Args)); };
+        Args* t2Args = reinterpret_cast<Args*>(core::getAllocator(core::DEFAULT_ALLOCATOR_ID).alloc(1, sizeof(Args)));
         CT_CHECK(t2Args != nullptr);
         *t2Args = {&t2Done};
-        defer { core::free(t2Args, 1, sizeof(Args)); };
+        defer { core::getAllocator(core::DEFAULT_ALLOCATOR_ID).free(t2Args, 1, sizeof(Args)); };
 
         {
             auto res = core::threadStart(t1, reinterpret_cast<void*>(t1Args), [](void* arg) {
@@ -169,12 +169,12 @@ i32 mutexPreventsRaceConditionsTest() {
     Expect(core::mutexInit(mu));
     defer { Expect(core::mutexDestroy(mu)); };
 
-    Args* t1Args = reinterpret_cast<Args*>(core::alloc(1, sizeof(Args)));
+    Args* t1Args = reinterpret_cast<Args*>(core::getAllocator(core::DEFAULT_ALLOCATOR_ID).alloc(1, sizeof(Args)));
     *t1Args = Args{&counter};
-    defer { core::free(t1Args, 1, sizeof(Args)); };
-    Args* t2Args = reinterpret_cast<Args*>(core::alloc(1, sizeof(Args)));
+    defer { core::getAllocator(core::DEFAULT_ALLOCATOR_ID).free(t1Args, 1, sizeof(Args)); };
+    Args* t2Args = reinterpret_cast<Args*>(core::getAllocator(core::DEFAULT_ALLOCATOR_ID).alloc(1, sizeof(Args)));
     *t2Args = Args{&counter};
-    defer { core::free(t2Args, 1, sizeof(Args)); };
+    defer { core::getAllocator(core::DEFAULT_ALLOCATOR_ID).free(t2Args, 1, sizeof(Args)); };
 
     {
         auto res = core::threadStart(t1, reinterpret_cast<void*>(t1Args), [](void* arg) {

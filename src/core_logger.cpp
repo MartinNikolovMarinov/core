@@ -11,6 +11,8 @@ namespace core {
 
 namespace {
 
+inline auto& allocator = getAllocator(DEFAULT_ALLOCATOR_ID);
+
 constexpr addr_size BUFFER_SIZE = core::CORE_KILOBYTE * 32;
 thread_local static char loggingBuffer[BUFFER_SIZE];
 
@@ -102,7 +104,7 @@ bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, co
             logWarn("Using dynamic memory for logging!");
 
             bufferSize = addr_size(n);
-            buffer = reinterpret_cast<char*>(core::alloc(bufferSize, sizeof(char)));
+            buffer = reinterpret_cast<char*>(allocator.alloc(bufferSize, sizeof(char)));
 
             va_list args;
             va_start(args, format);
@@ -116,7 +118,7 @@ bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, co
     defer {
         // If dynamic memory was allocated, free it.
         if (bufferSize != BUFFER_SIZE) {
-            core::free(buffer, bufferSize, sizeof(char));
+            allocator.free(buffer, bufferSize, sizeof(char));
         }
     };
 

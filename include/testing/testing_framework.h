@@ -123,6 +123,7 @@ CORE_API_EXPORT char* elapsedTimeToStr(char out[256], std::chrono::nanoseconds d
 CORE_API_EXPORT char* memoryUsedToStr(char out[128], addr_size deltaMemory);
 
 struct TestInfo {
+    core::AllocatorContext* allocatorContext = &getAllocator(DEFAULT_ALLOCATOR_ID);
     const char* name = nullptr;
     const char* description = nullptr;
     bool useAnsiColors = true;
@@ -154,8 +155,8 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
     const char* testName = info.name;
     bool useAnsiColors = info.useAnsiColors;
 
-    auto allocatedBefore = core::totalMemoryAllocated();
-    auto inUseBefore = core::inUseMemory();
+    auto allocatedBefore = info.allocatorContext->totalMemoryAllocated();
+    auto inUseBefore = info.allocatorContext->inUseMemory();
     auto startTicks = core::intrin_getCpuTicks();
     auto start = std::chrono::steady_clock::now();
 
@@ -167,8 +168,8 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
 
     auto returnCode = fn(args...);
 
-    auto allocatedAfter = core::totalMemoryAllocated();
-    auto inUseAfter = core::inUseMemory();
+    auto allocatedAfter = info.allocatorContext->totalMemoryAllocated();
+    auto inUseAfter = info.allocatorContext->inUseMemory();
     auto endTicks = core::intrin_getCpuTicks();
     auto end = std::chrono::steady_clock::now();
 
@@ -187,6 +188,10 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
     if (info.detectLeaks && deltaInUseMemory != 0) {
         std::cout << ANSI_RED(" !!LEAKED MEMORY!!");
         returnCode = -1;
+#if defined(CORE_TESTS_STOP_ON_FIRST_FAILED) && CORE_TESTS_STOP_ON_FIRST_FAILED == 1
+        std::cout << std::endl;
+        Assert(false, "Memory Leak Detected");
+#endif
     }
 
     bool isFirst = true;
@@ -219,7 +224,6 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
 
     if (!isFirst) std::cout << " ]";
 
-    core::clearActiveAllocatorForThread();
     std::cout << std::endl;
     return returnCode;
 }

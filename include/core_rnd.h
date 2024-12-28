@@ -17,7 +17,7 @@ using namespace coretypes;
  * - The random number generation is not thread safe.
  * - None of the provided parameters, in any of the functions, will
  *   be checked for validity. If, for example, a min value is bigger
- *   that max value the behaviour is undefined.
+ *   that max value the behavior is undefined.
 */
 CORE_API_EXPORT void  rndInit();
 CORE_API_EXPORT void  rndInit(u64 seed64, u32 seed32);

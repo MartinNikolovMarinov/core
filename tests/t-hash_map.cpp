@@ -1,7 +1,57 @@
 #include "t-index.h"
 
-// ----------------------------------------------- Begin Helpers -------------------------------------------------------
+struct VeryPoorlyHashed {
+    i32 a;
+    i32 b;
+    i32 c;
+};
 
+namespace core {
+
+template <> addr_size hash(const VeryPoorlyHashed&) {
+    return 12;
+}
+
+template <> bool eq(const VeryPoorlyHashed& a, const VeryPoorlyHashed& b) {
+    return a.a == b.a && a.b == b.b && a.c == b.c;
+}
+
+} // namespace core
+
+struct ChainBraking {
+    i32 v;
+};
+
+struct BadlyHashed {
+    i32 v;
+};
+
+namespace core {
+
+template<> inline addr_size hash<ChainBraking>(const ChainBraking& key) {
+    if (key.v == 1) return 0;
+    if (key.v == 2) return 1;
+    if (key.v == 3) return 0;
+    return addr_size(key.v);
+}
+
+template<> inline bool eq<ChainBraking>(const ChainBraking& a, const ChainBraking& b) {
+    return a.v == b.v;
+}
+
+template<> inline addr_size hash<BadlyHashed>(const BadlyHashed&) {
+    return 0;
+}
+
+template<> inline bool eq<BadlyHashed>(const BadlyHashed& a, const BadlyHashed& b) {
+    return a.v == b.v;
+}
+
+} // namespace core
+
+namespace {
+
+// ----------------------------------------------- Begin Helpers -------------------------------------------------------
 
 template <typename M, typename K, typename V>
 inline i32 __test_verifyKeyVal(const M& m, const core::tuple<K, V>& kv) {
@@ -73,9 +123,10 @@ inline i32 __test_verifyNoValues(const M& m) {
 
 // ----------------------------------------------- End Helpers ---------------------------------------------------------
 
+template <core::AllocatorId TAllocId>
 i32 initializeHashMapTest() {
     {
-        core::HashMap<i32, i32> m;
+        core::HashMap<i32, i32, TAllocId> m;
         CT_CHECK(m.len() == 0);
         CT_CHECK(m.byteLen() == 0);
         CT_CHECK(m.cap() == 0);
@@ -85,7 +136,7 @@ i32 initializeHashMapTest() {
         CT_CHECK(__test_verifyNoValues(m) == 0);
     }
     {
-        core::HashMap<core::StrView, core::StrView> m;
+        core::HashMap<core::StrView, core::StrView, TAllocId> m;
         CT_CHECK(m.len() == 0);
         CT_CHECK(m.byteLen() == 0);
         CT_CHECK(m.cap() == 0);
@@ -95,7 +146,7 @@ i32 initializeHashMapTest() {
         CT_CHECK(__test_verifyNoValues(m) == 0);
     }
     {
-        core::HashMap<i32, i32> m(7);
+        core::HashMap<i32, i32, TAllocId> m(7);
         CT_CHECK(m.len() == 0);
         CT_CHECK(m.byteLen() == 0);
         CT_CHECK(m.cap() > 0);
@@ -105,7 +156,7 @@ i32 initializeHashMapTest() {
         CT_CHECK(__test_verifyNoValues(m) == 0);
     }
     {
-        core::HashMap<core::StrView, core::StrView> m(7);
+        core::HashMap<core::StrView, core::StrView, TAllocId> m(7);
         CT_CHECK(m.len() == 0);
         CT_CHECK(m.byteLen() == 0);
         CT_CHECK(m.cap() > 0);
@@ -115,7 +166,7 @@ i32 initializeHashMapTest() {
         CT_CHECK(__test_verifyNoValues(m) == 0);
     }
     {
-        core::HashMap<i32, i32> m(0);
+        core::HashMap<i32, i32, TAllocId> m(0);
         CT_CHECK(m.len() == 0);
         CT_CHECK(m.byteLen() == 0);
         CT_CHECK(m.cap() == 0);
@@ -128,13 +179,14 @@ i32 initializeHashMapTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 basicPushToHashMapTest() {
     using namespace core::testing;
     using core::sv;
     using core::createTuple;
 
     {
-        core::HashMap<i32, i32> m;
+        core::HashMap<i32, i32, TAllocId> m;
 
         m.put(1, 1);
         CT_CHECK(m.len() == 1);
@@ -161,7 +213,7 @@ i32 basicPushToHashMapTest() {
     }
 
     {
-        core::HashMap<i32, f32> m;
+        core::HashMap<i32, f32, TAllocId> m;
 
         m.put(1, 1.0f);
         CT_CHECK(m.len() == 1);
@@ -188,7 +240,7 @@ i32 basicPushToHashMapTest() {
     }
 
     {
-        core::HashMap<core::StrView, core::StrView> m;
+        core::HashMap<core::StrView, core::StrView, TAllocId> m;
 
         m.put(sv("1"), "abc"_sv);
         CT_CHECK(m.len() == 1);
@@ -222,7 +274,7 @@ i32 basicPushToHashMapTest() {
         CT::resetAll(); // Reset the counters for the previous line.
 
         {
-            core::HashMap<CT, i32> m;
+            core::HashMap<CT, i32, TAllocId> m;
             CT_CHECK(CT::noCtorsCalled());
 
             m.put(k1, 9);
@@ -264,7 +316,7 @@ i32 basicPushToHashMapTest() {
         i32 keys[N_KEYS] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
         f64 values[N_KEYS] = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };
 
-        core::HashMap<i32, f64> m;
+        core::HashMap<i32, f64, TAllocId> m;
         for (addr_size i = 0; i < N_KEYS; i++) {
             m.put(keys[i], values[i]);
         }
@@ -279,8 +331,9 @@ i32 basicPushToHashMapTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 basicGetFromHashMapTest() {
-    core::HashMap<i32, i32> m;
+    core::HashMap<i32, i32, TAllocId> m;
 
     CT_CHECK(m.get(1) == nullptr);
 
@@ -299,8 +352,9 @@ i32 basicGetFromHashMapTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 getWhenHashMapIsFilledToCapacityTest() {
-    core::HashMap<i32, i32> m(2);
+    core::HashMap<i32, i32, TAllocId> m(2);
 
     m.put(1, 1);
     m.put(2, 1);
@@ -317,9 +371,10 @@ i32 getWhenHashMapIsFilledToCapacityTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 removeFromHashMapTest() {
     constexpr i32 N = 5;
-    core::HashMap<i32, i32> m(N);
+    core::HashMap<i32, i32, TAllocId> m(N);
 
     auto c = m.cap();
 
@@ -342,9 +397,10 @@ i32 removeFromHashMapTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 brokenRemovingFromABrokenChainTest() {
     {
-        core::HashMap<i32, i32> m(2);
+        core::HashMap<i32, i32, TAllocId> m(2);
         m.put(1, 1);
         m.put(5, 5);
         m.remove(5);
@@ -355,16 +411,17 @@ i32 brokenRemovingFromABrokenChainTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 moveAndCopyHashMapTest() {
     using namespace core::testing;
 
     {
-        auto m = core::createHashMap<i32, f64>();
+        auto m = core::createHashMap<i32, f64, TAllocId>();
         m.put(1, 1.0); m.put(2, 2.0); m.put(3, 3.0); m.put(4, 4.0); m.put(5, 5.0);
         m.put(6, 6.0); m.put(7, 7.0); m.put(8, 8.0); m.put(9, 10.0); m.put(10, 10.0);
 
         bool ok = false;
-        core::HashMap<i32, f64> m2 = m.copy();
+        core::HashMap<i32, f64, TAllocId> m2 = m.copy();
         auto areTheSame = [](const auto& key, const auto& val, const auto& other) {
             auto a = other.get(key);
             if (a == nullptr || *a != val) {
@@ -382,7 +439,7 @@ i32 moveAndCopyHashMapTest() {
         ok = core::forAll(m, m2, areTheSame);
         CT_CHECK(ok);
 
-        core::HashMap<i32, f64> m3 = std::move(m);
+        core::HashMap<i32, f64, TAllocId> m3 = std::move(m);
 
         CT_CHECK(m.len() == 0);
         CT_CHECK(m.empty());
@@ -401,7 +458,7 @@ i32 moveAndCopyHashMapTest() {
         CT::resetAll(); // Reset the counters for the previous line.
 
         {
-            core::HashMap<CT, CT> m(2);
+            core::HashMap<CT, CT, TAllocId> m(2);
 
             CT_CHECK(!m.remove(k2));
             CT_CHECK(CT::totalCtorsCalled() == 0);
@@ -441,7 +498,7 @@ i32 moveAndCopyHashMapTest() {
             CT_CHECK(CT::assignmentsTotalCalled() == 0);
 
             {
-                core::HashMap<CT, CT> m2;
+                core::HashMap<CT, CT, TAllocId> m2;
                 m2 = std::move(m);
                 CT_CHECK(CT::totalCtorsCalled() == 0);
                 CT_CHECK(CT::dtorsCalled() == 0);
@@ -463,27 +520,10 @@ i32 moveAndCopyHashMapTest() {
     return 0;
 }
 
-struct VeryPoorlyHashed {
-    i32 a;
-    i32 b;
-    i32 c;
-};
-
-namespace core {
-
-template <> addr_size hash(const VeryPoorlyHashed&) {
-    return 12;
-}
-
-template <> bool eq(const VeryPoorlyHashed& a, const VeryPoorlyHashed& b) {
-    return a.a == b.a && a.b == b.b && a.c == b.c;
-}
-
-} // namespace core
-
+template <core::AllocatorId TAllocId>
 i32 veryPoorlyHashedKeyInMapTest() {
     constexpr i32 N = 1000;
-    core::HashMap<VeryPoorlyHashed, i32> m;
+    core::HashMap<VeryPoorlyHashed, i32, TAllocId> m;
 
     for (i32 i = 0; i < N; i++) {
         m.put({ i, i * 2, i * 3 }, i);
@@ -500,8 +540,9 @@ i32 veryPoorlyHashedKeyInMapTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 earlyStopIterationsTest() {
-    core::HashMap<i32, i32> m(3);
+    core::HashMap<i32, i32, TAllocId> m(3);
     m.put(1, 1); m.put(2, 1); m.put(3, 1);
 
     i32 once;
@@ -530,40 +571,10 @@ i32 earlyStopIterationsTest() {
     return 0;
 }
 
-struct ChainBraking {
-    i32 v;
-};
-
-struct BadlyHashed {
-    i32 v;
-};
-
-namespace core {
-
-template<> inline addr_size hash<ChainBraking>(const ChainBraking& key) {
-    if (key.v == 1) return 0;
-    if (key.v == 2) return 1;
-    if (key.v == 3) return 0;
-    return addr_size(key.v);
-}
-
-template<> inline bool eq<ChainBraking>(const ChainBraking& a, const ChainBraking& b) {
-    return a.v == b.v;
-}
-
-template<> inline addr_size hash<BadlyHashed>(const BadlyHashed&) {
-    return 0;
-}
-
-template<> inline bool eq<BadlyHashed>(const BadlyHashed& a, const BadlyHashed& b) {
-    return a.v == b.v;
-}
-
-} // namespace core
-
+template <core::AllocatorId TAllocId>
 i32 chainBrakeBugTest() {
     {
-        core::HashMap<ChainBraking, bool> m(4);
+        core::HashMap<ChainBraking, bool, TAllocId> m(4);
         m.put({ 1 }, true); // insert at possition 0
         m.put({ 2 }, true); // insert at possition 1
         m.put({ 3 }, true); // insert at possition 0
@@ -583,7 +594,7 @@ i32 chainBrakeBugTest() {
     }
 
     {
-        core::HashMap<BadlyHashed, bool> m;
+        core::HashMap<BadlyHashed, bool, TAllocId> m;
         m.put({ 1 }, true); // insert at possition 0
         m.put({ 2 }, true); // insert at possition 1
         m.put({ 3 }, true); // insert at possition 2
@@ -632,58 +643,58 @@ constexpr i32 hashMapTraitsTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
+i32 runTests() {
+    using namespace core::testing;
+
+    TestInfo tInfo = createTestInfoFor(RegisteredAllocators(TAllocId));
+
+    defer { core::getAllocator(TAllocId).clear(); };
+
+    tInfo.name = FN_NAME_TO_CPTR(initializeHashMapTest);
+    if (runTest(tInfo, initializeHashMapTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(basicPushToHashMapTest);
+    if (runTest(tInfo, basicPushToHashMapTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(basicGetFromHashMapTest);
+    if (runTest(tInfo, basicGetFromHashMapTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(getWhenHashMapIsFilledToCapacityTest);
+    if (runTest(tInfo, getWhenHashMapIsFilledToCapacityTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(removeFromHashMapTest);
+    if (runTest(tInfo, removeFromHashMapTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(brokenRemovingFromABrokenChainTest);
+    if (runTest(tInfo, brokenRemovingFromABrokenChainTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(moveAndCopyHashMapTest);
+    if (runTest(tInfo, moveAndCopyHashMapTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(veryPoorlyHashedKeyInMapTest);
+    if (runTest(tInfo, veryPoorlyHashedKeyInMapTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(earlyStopIterationsTest);
+    if (runTest(tInfo, earlyStopIterationsTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(chainBrakeBugTest);
+    if (runTest(tInfo, chainBrakeBugTest<TAllocId>) != 0) { return -1; }
+
+    return 0;
+};
+
+}
+
 i32 runHashMapTestsSuite() {
     using namespace core::testing;
 
-    auto runTests = [] (TestInfo& tInfo, const char* description, i32& retCode) {
-        tInfo.description = description;
-        tInfo.useAnsiColors = g_useAnsi;
+    if (runTests<RA_STD_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runTests<RA_STD_STATS_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runTests<RA_THREAD_LOCAL_BUMP_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runTests<RA_THREAD_LOCAL_ARENA_ALLOCATOR_ID>() != 0) { return -1; }
 
-        tInfo.name = FN_NAME_TO_CPTR(initializeHashMapTest);
-        if (runTest(tInfo, initializeHashMapTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(basicPushToHashMapTest);
-        if (runTest(tInfo, basicPushToHashMapTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(basicGetFromHashMapTest);
-        if (runTest(tInfo, basicGetFromHashMapTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(getWhenHashMapIsFilledToCapacityTest);
-        if (runTest(tInfo, getWhenHashMapIsFilledToCapacityTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(removeFromHashMapTest);
-        if (runTest(tInfo, removeFromHashMapTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(brokenRemovingFromABrokenChainTest);
-        if (runTest(tInfo, brokenRemovingFromABrokenChainTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(moveAndCopyHashMapTest);
-        if (runTest(tInfo, moveAndCopyHashMapTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(veryPoorlyHashedKeyInMapTest);
-        if (runTest(tInfo, veryPoorlyHashedKeyInMapTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(earlyStopIterationsTest);
-        if (runTest(tInfo, earlyStopIterationsTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(chainBrakeBugTest);
-        if (runTest(tInfo, chainBrakeBugTest) != 0) { retCode = -1; }
-    };
+    constexpr u32 BUFFER_SIZE = core::CORE_MEGABYTE / 2;
+    char buf[BUFFER_SIZE];
+    setBufferForBumpAllocator(buf, BUFFER_SIZE);
+    if (runTests<RA_BUMP_ALLOCATOR_ID>() != 0) { return -1; }
 
-    i32 ret = 0;
-    runForAllGlobalAllocatorVariants(runTests, ret);
+    // NOTE: Some single allocations are large in this tests. Which is why the block size for the arena allocator needs to be bigger than normal.
+    setBlockSizeForArenaAllocator(core::CORE_MEGABYTE / 2);
+    if (runTests<RA_ARENA_ALLOCATOR_ID>() != 0) { return -1; }
 
-    {
-        constexpr u32 BUFFER_SIZE = core::CORE_MEGABYTE / 2;
-        char buf[BUFFER_SIZE];
-        USE_STACK_BASED_BUMP_ALLOCATOR_FOR_BLOCK_SCOPE(buf, BUFFER_SIZE);
-
-        TestInfo tInfo = createTestInfo();
-        tInfo.trackMemory = true;
-        runTests(tInfo, "STACK BASED BUMP Allocator", ret);
-    }
-
-    {
-        constexpr u32 BUFFER_SIZE = core::CORE_MEGABYTE / 2; // intentially small to test overflow.
-        USE_CUSTOM_ARENA_ALLOCATOR_FOR_FOR_BLOCK_SCOPE(BUFFER_SIZE);
-
-        TestInfo tInfo = createTestInfo();
-        tInfo.trackMemory = true;
-        runTests(tInfo, "CUSTOM ARENA Allocator", ret);
-    }
-
-    return ret;
+    return 0;
 }
 
 constexpr i32 runCompiletimeHashMapTestsSuite() {

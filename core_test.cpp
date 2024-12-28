@@ -2,6 +2,14 @@
 
 #include <iostream>
 
+// FIXME: Things to do after allocator refactor.
+// 0. Replace `core::getAllocator(core::DEFAULT_ALLOCATOR_ID)` with something more readable.
+// 1. Fix all failing tests.
+// 2. Verify arena allocator memory usage statics.
+// 3. Check other Operating systems.
+// 4. Structures that use default allocation should also be tested for memory leaks?
+// 5. Everything in t-* files should be in a private namespace to avoid templated function name collisions !!
+
 i32 main() {
     std::cout << "[CORE VERSION] "
               << CORE_VERSION_MAJOR << "."

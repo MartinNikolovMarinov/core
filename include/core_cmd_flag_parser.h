@@ -13,6 +13,8 @@
 #include <core_str_view.h>
 #include <core_types.h>
 
+// TODO: The flag parser should probably work with variable allocator types.
+
 namespace core {
 
 using namespace coretypes;
@@ -70,7 +72,7 @@ struct CORE_API_EXPORT CmdFlagParser {
 
     struct ParsedSymbol {
         ParsedSymbolType type;
-        StrBuilder value;
+        StrBuilder<> value;
     };
 
     enum struct FlagType {
@@ -89,7 +91,7 @@ struct CORE_API_EXPORT CmdFlagParser {
     };
 
     struct FlagData {
-        StrBuilder name;
+        StrBuilder<> name;
         FlagType type = FlagType::None;
         void* data = nullptr;
         bool isSet = false;
@@ -377,7 +379,7 @@ struct CORE_API_EXPORT CmdFlagParser {
                     }
                     case FlagType::String:
                     {
-                        auto v = reinterpret_cast<StrBuilder*>(fd->data);
+                        auto v = reinterpret_cast<StrBuilder<>*>(fd->data);
                         v->clear();
                         v->append(core::sv(value.data()));
                         fd->isSet = true;
@@ -426,7 +428,7 @@ struct CORE_API_EXPORT CmdFlagParser {
         return {};
     }
 
-    void setFlagString(StrBuilder* out, StrView flagName, bool required = false, FlagValidationFn validation = nullptr) {
+    void setFlagString(StrBuilder<>* out, StrView flagName, bool required = false, FlagValidationFn validation = nullptr) {
         _insertFlag(out, flagName, required, validation, FlagType::String);
     }
 

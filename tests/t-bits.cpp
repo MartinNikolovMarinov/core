@@ -10,7 +10,7 @@ constexpr i32 leastSignificantNBitsTest() {
         { 0b0, 0b1, 1, false },
 
         { 0b11, 0b11, 2, true },
-        { 0b11, 0b11, 1, false }, // This is undefined behaviour, maybe I should not test for it.
+        { 0b11, 0b11, 1, false }, // This is undefined behavior, maybe I should not test for it.
 
         { 0b100, 0b100, 3, true },
         { 0b1001, 0b1001, 4, true },

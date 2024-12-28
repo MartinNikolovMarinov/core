@@ -927,77 +927,51 @@ i32 seekWriteAndReadTest() {
 i32 runPltFileSystemTestsSuite() {
     using namespace core::testing;
 
-    auto runTests = [] (TestInfo& tInfo, const char* description, i32& retCode) {
-        tInfo.description = description;
-
-        if (!createTestDirecotry()) {
-            retCode = -1;
-            return;
-        }
-
-        tInfo.name = FN_NAME_TO_CPTR(createAndDeleteFileTest);
-        if (runTest(tInfo, createAndDeleteFileTest) != 0) { retCode = -1; }
-        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
-
-        tInfo.name = FN_NAME_TO_CPTR(createFilesAndCheckIfTheyExistTest);
-        if (runTest(tInfo, createFilesAndCheckIfTheyExistTest) != 0) { retCode = -1; }
-        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
-
-        tInfo.name = FN_NAME_TO_CPTR(checkFileStatsTest);
-        if (runTest(tInfo, checkFileStatsTest) != 0) { retCode = -1; }
-        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
-
-        tInfo.name = FN_NAME_TO_CPTR(commonErrorsTest);
-        if (runTest(tInfo, commonErrorsTest) != 0) { retCode = -1; }
-        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
-
-        tInfo.name = FN_NAME_TO_CPTR(edgeErrorCasesTest);
-        if (runTest(tInfo, edgeErrorCasesTest) != 0) { retCode = -1; }
-        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
-
-        tInfo.name = FN_NAME_TO_CPTR(directoriesCreateRenameAndDeleteTest);
-        if (runTest(tInfo, directoriesCreateRenameAndDeleteTest) != 0) { retCode = -1; }
-        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
-
-        tInfo.name = FN_NAME_TO_CPTR(mostBasicReadAndWriteTest);
-        if (runTest(tInfo, mostBasicReadAndWriteTest) != 0) { retCode = -1; }
-        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
-
-        tInfo.name = FN_NAME_TO_CPTR(basicListDirectoryContentsTest);
-        if (runTest(tInfo, basicListDirectoryContentsTest) != 0) { retCode = -1; }
-        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
-
-        tInfo.name = FN_NAME_TO_CPTR(readAndWriteEntireFileTest);
-        if (runTest(tInfo, readAndWriteEntireFileTest) != 0) { retCode = -1; }
-        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
-
-        tInfo.name = FN_NAME_TO_CPTR(seekWriteAndReadTest);
-        if (runTest(tInfo, seekWriteAndReadTest) != 0) { retCode = -1; }
-        if (!checkTestDirecotryIsCleanned()) { retCode = -1; return; }
-    };
-
-
-    i32 ret = 0;
-    runForAllGlobalAllocatorVariants(runTests, ret);
-
-    {
-        constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE * 3;
-        char buf[BUFFER_SIZE];
-        USE_STACK_BASED_BUMP_ALLOCATOR_FOR_BLOCK_SCOPE(buf, BUFFER_SIZE);
-
-        TestInfo tInfo = createTestInfo();
-        tInfo.trackMemory = true;
-        runTests(tInfo, "STACK BASED BUMP Allocator", ret);
+    if (!createTestDirecotry()) {
+        return -1;
     }
 
-    {
-        constexpr u32 BUFFER_SIZE = 256; // intentially small to test overflow.
-        USE_CUSTOM_ARENA_ALLOCATOR_FOR_FOR_BLOCK_SCOPE(BUFFER_SIZE);
+    TestInfo tInfo = createTestInfo();
 
-        TestInfo tInfo = createTestInfo();
-        tInfo.trackMemory = true;
-        runTests(tInfo, "CUSTOM ARENA Allocator", ret);
-    }
+    tInfo.name = FN_NAME_TO_CPTR(createAndDeleteFileTest);
+    if (runTest(tInfo, createAndDeleteFileTest) != 0) { return -1; }
+    if (!checkTestDirecotryIsCleanned()) { return -1; }
 
-    return ret;
+    tInfo.name = FN_NAME_TO_CPTR(createFilesAndCheckIfTheyExistTest);
+    if (runTest(tInfo, createFilesAndCheckIfTheyExistTest) != 0) { return -1; }
+    if (!checkTestDirecotryIsCleanned()) { return -1; }
+
+    tInfo.name = FN_NAME_TO_CPTR(checkFileStatsTest);
+    if (runTest(tInfo, checkFileStatsTest) != 0) { return -1; }
+    if (!checkTestDirecotryIsCleanned()) { return -1; }
+
+    tInfo.name = FN_NAME_TO_CPTR(commonErrorsTest);
+    if (runTest(tInfo, commonErrorsTest) != 0) { return -1; }
+    if (!checkTestDirecotryIsCleanned()) { return -1; }
+
+    tInfo.name = FN_NAME_TO_CPTR(edgeErrorCasesTest);
+    if (runTest(tInfo, edgeErrorCasesTest) != 0) { return -1; }
+    if (!checkTestDirecotryIsCleanned()) { return -1; }
+
+    tInfo.name = FN_NAME_TO_CPTR(directoriesCreateRenameAndDeleteTest);
+    if (runTest(tInfo, directoriesCreateRenameAndDeleteTest) != 0) { return -1; }
+    if (!checkTestDirecotryIsCleanned()) { return -1; }
+
+    tInfo.name = FN_NAME_TO_CPTR(mostBasicReadAndWriteTest);
+    if (runTest(tInfo, mostBasicReadAndWriteTest) != 0) { return -1; }
+    if (!checkTestDirecotryIsCleanned()) { return -1; }
+
+    tInfo.name = FN_NAME_TO_CPTR(basicListDirectoryContentsTest);
+    if (runTest(tInfo, basicListDirectoryContentsTest) != 0) { return -1; }
+    if (!checkTestDirecotryIsCleanned()) { return -1; }
+
+    tInfo.name = FN_NAME_TO_CPTR(readAndWriteEntireFileTest);
+    if (runTest(tInfo, readAndWriteEntireFileTest) != 0) { return -1; }
+    if (!checkTestDirecotryIsCleanned()) { return -1; }
+
+    tInfo.name = FN_NAME_TO_CPTR(seekWriteAndReadTest);
+    if (runTest(tInfo, seekWriteAndReadTest) != 0) { return -1; }
+    if (!checkTestDirecotryIsCleanned()) { return -1; }
+
+    return 0;
 }

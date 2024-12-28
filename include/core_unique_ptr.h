@@ -6,11 +6,13 @@
 
 namespace core {
 
-template <typename T> struct UniquePtr;
-template <typename T, typename... Args> UniquePtr<T> makeUnique(Args&&... args);
+template <typename T, AllocatorId TAllocId = DEFAULT_ALLOCATOR_ID> struct UniquePtr;
+template <typename T, AllocatorId TAllocId = DEFAULT_ALLOCATOR_ID, typename... Args> UniquePtr<T, TAllocId> makeUnique(Args&&... args);
 
-template <typename T>
+template <typename T, AllocatorId TAllocId>
 struct UniquePtr {
+    inline static core::AllocatorContext& allocator = core::getAllocator(TAllocId);
+
     using value_type = T;
 
     NO_COPY(UniquePtr);
@@ -35,14 +37,14 @@ struct UniquePtr {
 
     UniquePtr copy() const {
         UniquePtr ret;
-        ret.m_ptr = core::construct<value_type>(*m_ptr);
+        ret.m_ptr = allocator.construct<value_type>(*m_ptr);
         return ret;
     }
 
     void reset(value_type* newPtr = nullptr) {
         if (m_ptr) {
             m_ptr->~T();
-            core::free(m_ptr, 1, sizeof(value_type));
+            allocator.free(m_ptr, 1, sizeof(value_type));
         }
         m_ptr = newPtr;
     }
@@ -72,10 +74,10 @@ private:
     value_type* m_ptr;
 };
 
-template <typename T, typename... Args>
-UniquePtr<T> makeUnique(Args&&... args) {
-    T* rawPtr = core::construct<T>(args...);
-    UniquePtr<T> ret (rawPtr);
+template <typename T, AllocatorId TAllocId, typename... Args>
+UniquePtr<T, TAllocId> makeUnique(Args&&... args) {
+    T* rawPtr = getAllocator(TAllocId).construct<T>(args...);
+    UniquePtr<T, TAllocId> ret (rawPtr);
     return ret;
 }
 

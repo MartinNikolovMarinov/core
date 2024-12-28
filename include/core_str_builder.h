@@ -2,6 +2,8 @@
 
 #include <core_API.h>
 #include <core_assert.h>
+#include <core_exec_ctx.h>
+#include <core_mem.h>
 #include <core_str_view.h>
 #include <core_traits.h>
 #include <core_types.h>
@@ -12,28 +14,82 @@ using namespace coretypes;
 
 // TODO2: [PERFORMANCE] Might want to implement small string optimization.
 
-struct CORE_API_EXPORT StrBuilder;
-
+template <AllocatorId TAllocId = DEFAULT_ALLOCATOR_ID>
 struct CORE_API_EXPORT StrBuilder {
+    inline static core::AllocatorContext& allocator = core::getAllocator(TAllocId);
+
     using value_type = char;
     using size_type  = addr_size;
 
     NO_COPY(StrBuilder);
 
-    StrBuilder();
-    StrBuilder(StrBuilder&& other);
+    StrBuilder() : m_data(nullptr), m_cap(0), m_len(0) {}
+    StrBuilder(StrBuilder&& other)
+        : m_data(other.m_data)
+        , m_cap(other.m_cap)
+        , m_len(other.m_len) {
+            if (this == &other) return;
+            other.m_data = nullptr;
+            other.m_cap = 0;
+            other.m_len = 0;
+        }
 
-    explicit StrBuilder(size_type cap);
-    StrBuilder(size_type len, const value_type& val);
-    explicit StrBuilder(const StrView& view);
-    explicit StrBuilder(StrView&& view);
+    StrBuilder(size_type cap) {
+        if (cap > 0) {
+            m_len = 0;
+            m_cap = cap + 1;
+            m_data = reinterpret_cast<value_type*>(allocator.zeroAlloc(m_cap, sizeof(value_type)));
+        }
+        else {
+            m_data = nullptr;
+            m_cap = 0;
+            m_len = 0;
+        }
+    }
+    StrBuilder(size_type len, const value_type& val) {
+        m_len = len;
+        m_cap = len + 1;
+        m_data = reinterpret_cast<value_type*>(allocator.alloc(m_cap, sizeof(value_type)));
+        core::memfill(m_data, m_len, val);
+        m_data[m_len] = '\0';
+    }
+    StrBuilder(const StrView& view) {
+        assignFromCstr(&this->m_data, this->m_len, this->m_cap, view.data(), view.len());
+    }
+    StrBuilder(StrView&& view) {
+        assignFromCstr(&this->m_data, this->m_len, this->m_cap, view.data(), view.len());
+        view.ptr = nullptr;
+        view.length = 0;
+    }
 
-    ~StrBuilder();
+    ~StrBuilder() { free(); }
 
-    StrBuilder& operator=(size_type) = delete; // prevent len assignment
-    StrBuilder& operator=(StrBuilder&& other);
-    StrBuilder& operator=(const StrView& view);
-    StrBuilder& operator=(StrView&& view);
+    StrBuilder& operator=(StrBuilder&& other) {
+        if (this == &other) return *this;
+
+        free(); // very important to free before assigning new data.
+
+        m_data = other.m_data;
+        m_cap = other.m_cap;
+        m_len = other.m_len;
+
+        other.m_data = nullptr;
+        other.m_cap = 0;
+        other.m_len = 0;
+
+        return *this;
+    }
+    StrBuilder& operator=(const StrView& view) {
+        clear();
+        return append(view.data(), view.len());
+    }
+    StrBuilder& operator=(StrView&& view) {
+        clear();
+        auto& ret = append(view.data(), view.len());
+        view.ptr = nullptr;
+        view.length = 0;
+        return ret;
+    }
 
     size_type cap()     const { return m_cap; }
     size_type byteCap() const { return m_cap * sizeof(value_type); }
@@ -43,13 +99,24 @@ struct CORE_API_EXPORT StrBuilder {
 
     StrView view() const { return core::sv(m_data, m_len); }
 
-    bool eq(const StrBuilder& other) const;
-    bool eq(const StrView& other) const;
+    bool eq(const StrBuilder& other) const {
+        return view().eq(other.view());
+    }
 
-    void clear();
-    void free();
+    bool eq(const StrView& other) const {
+        return view().eq(other);
+    }
 
-    StrBuilder copy() const;
+    void clear() { m_len = 0; }
+
+    void free() {
+        if (m_data != nullptr) {
+            allocator.free(m_data, m_cap, sizeof(value_type));
+            m_data = nullptr;
+        }
+        m_len = 0;
+        m_cap = 0;
+    }
 
     value_type& at(size_type idx)                     { Assert(idx < m_len); return m_data[idx]; }
     const value_type& at(size_type idx)         const { Assert(idx < m_len); return m_data[idx]; }
@@ -61,21 +128,104 @@ struct CORE_API_EXPORT StrBuilder {
     value_type& last()              { return at(m_len - 1); }
     const value_type& last()  const { return at(m_len - 1); }
 
-    void reset(value_type** ptr, addr_size len, addr_size cap);
-    value_type* release(addr_size& len, addr_size& cap);
+    StrBuilder copy() const {
+        StrBuilder cpy;
+        cpy.m_data = reinterpret_cast<value_type*>(allocator.alloc(m_cap, sizeof(value_type)));
+        cpy.m_cap = m_cap;
+        cpy.m_len = m_len;
+        core::memcopy(cpy.m_data, m_data, cpy.m_cap);
+        return cpy;
+    }
 
-    StrBuilder& append(const value_type& val);
-    StrBuilder& append(const value_type* cstr, size_type len);
-    StrBuilder& append(const StrView& view);
+    void reset(value_type** ptr, addr_size len, addr_size cap) {
+        free();
 
-    void ensureCap(size_type newCap);
+        if (ptr) {
+            m_data = *ptr;
+            *ptr = nullptr;
+        }
+        else {
+            m_data = nullptr;
+        }
+
+        m_len = len;
+        m_cap = cap;
+    }
+
+    value_type* release(addr_size& len, addr_size& cap) {
+        value_type* res = m_data;
+        cap = m_cap;
+        len = m_len;
+
+        m_data = nullptr;
+        m_cap = 0;
+        m_len = 0;
+
+        return res;
+    }
+
+    StrBuilder& append(const value_type& val) {
+        if (m_len + 1 >= m_cap) {
+            ensureCap(m_cap == 0 ? 2 : m_cap * 2);
+        }
+        m_data[m_len] = val;
+        m_len++;
+        return *this;
+    }
+
+    StrBuilder& append(const value_type* cstr, size_type len) {
+        if (len == 0) return *this;
+
+        addr_size effectiveLen = m_len + len;
+        if (effectiveLen + 1 >= m_cap) {
+            ensureCap(effectiveLen + m_cap * 2 + 1);
+        }
+
+        core::memcopy(m_data + m_len, cstr, len);
+        m_len += len;
+        return *this;
+    }
+
+    StrBuilder& append(const StrView& view) {
+        return append(view.data(), view.len());
+    }
+
+    void ensureCap(size_type newCap) {
+        if (newCap <= m_cap) {
+            return;
+        }
+
+        value_type* newData = reinterpret_cast<value_type *>(allocator.zeroAlloc(newCap, sizeof(value_type)));
+        if (m_data != nullptr) {
+            core::memcopy(newData, m_data, m_len);
+            allocator.free(m_data, m_cap, sizeof(value_type));
+        }
+        m_data = newData;
+        m_cap = newCap;
+    }
 
 private:
+    void assignFromCstr(value_type** value, size_type& len, size_type& cap,
+                    const char* cstr, size_type cstrLen) {
+        if (cstrLen > 0) {
+            len = cstrLen;
+            cap = cstrLen + 1;
+            *value = reinterpret_cast<value_type*>(allocator.alloc(cap, sizeof(value_type)));
+            core::memcopy(*value, cstr, len);
+            (*value)[len] = '\0';
+        }
+        else {
+            *value = nullptr;
+            len = 0;
+            cap = 0;
+        }
+    }
+
     value_type* m_data;
     size_type  m_cap;
     size_type  m_len;
 };
 
-static_assert(std::is_standard_layout_v<StrBuilder>);
+static_assert(std::is_standard_layout_v<StrBuilder<>>);
 
 } // namespace core

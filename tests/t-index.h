@@ -12,27 +12,22 @@ using namespace coretypes;
 
 // #################### TESTING HELPERS ################################################################################
 
-enum AllocatorId : i32 {
-    STD_STATS_ALLOCATOR,
-    BUMP_ALLOCATOR,
-    ARENA_ALLOCATOR,
-
-    SENTINEL
-};
-
-core::AllocatorContext* getAllocatorCtx(AllocatorId id);
-
-template <typename TAllocatorPtr>
-inline TAllocatorPtr gatAllocatorByType(void* allocatorData) {
-    static_assert(std::is_pointer_v<TAllocatorPtr>, "TAllocatorPtr must be a pointer type");
-    return reinterpret_cast<TAllocatorPtr>(allocatorData);
-}
-
 #if defined(CORE_TESTS_USE_ANSI) && CORE_TESTS_USE_ANSI == 1
 constexpr bool g_useAnsi = true;
 #else
 constexpr bool g_useAnsi = false;
 #endif
+
+enum RegisteredAllocators : core::AllocatorId {
+    RA_STD_ALLOCATOR_ID,
+    RA_STD_STATS_ALLOCATOR_ID,
+    RA_BUMP_ALLOCATOR_ID,
+    RA_ARENA_ALLOCATOR_ID,
+    RA_THREAD_LOCAL_BUMP_ALLOCATOR_ID,
+    RA_THREAD_LOCAL_ARENA_ALLOCATOR_ID,
+
+    RA_SENTINEL
+};
 
 constexpr inline core::testing::TestInfo createTestInfo() {
     core::testing::TestInfo tInfo = {};
@@ -44,71 +39,56 @@ constexpr inline core::testing::TestInfo createTestInfo() {
     return tInfo;
 }
 
-template <typename TCallback>
-void runForAllGlobalAllocatorVariants(TCallback cb, i32& retCode) {
+constexpr inline core::testing::TestInfo createTestInfoFor(RegisteredAllocators id) {
     using namespace core::testing;
 
-    {
-        TestInfo tInfo = createTestInfo();
-        tInfo.trackMemory = false; // the default allocator can't track memory allocations.
-        tInfo.detectLeaks = false; // the default allocator can't detect memory leaks.
-        cb(tInfo, "Default Allocator", retCode);
+    TestInfo tInfo = createTestInfo();
+
+    switch (id) {
+        case RA_STD_ALLOCATOR_ID:
+            tInfo.trackMemory = false; // the default allocator can't track memory allocations.
+            tInfo.detectLeaks = false; // the default allocator can't detect memory leaks.
+            tInfo.description = "STD Allocator";
+            tInfo.allocatorContext = &core::getAllocator(id);
+            return tInfo;
+        case RA_STD_STATS_ALLOCATOR_ID:
+            tInfo.trackMemory = true;
+            tInfo.detectLeaks = true;
+            tInfo.description = "Stats STD Allocator";
+            tInfo.allocatorContext = &core::getAllocator(id);
+            return tInfo;
+        case RA_BUMP_ALLOCATOR_ID:
+            tInfo.trackMemory = true;
+            tInfo.description = "BUMP Allocator";
+            tInfo.allocatorContext = &core::getAllocator(id);
+            return tInfo;
+        case RA_ARENA_ALLOCATOR_ID:
+            tInfo.trackMemory = true;
+            tInfo.description = "ARENA Allocator";
+            tInfo.allocatorContext = &core::getAllocator(id);
+            return tInfo;
+        case RA_THREAD_LOCAL_BUMP_ALLOCATOR_ID:
+            tInfo.trackMemory = true;
+            tInfo.description = "THREAD LOCAL BUMP Allocator";
+            tInfo.allocatorContext = &core::getAllocator(id);
+            return tInfo;
+        case RA_THREAD_LOCAL_ARENA_ALLOCATOR_ID:
+            tInfo.trackMemory = true;
+            tInfo.description = "THREAD LOCAL ARENA Allocator";
+            tInfo.allocatorContext = &core::getAllocator(id);
+            return tInfo;
+
+        case RA_SENTINEL: [[fallthrough]];
+        default:
+            break;
     }
-    {
-        core::AllocatorContext* actx = getAllocatorCtx(AllocatorId::STD_STATS_ALLOCATOR);
-        core::setActiveAllocatorForThread(actx);
-        defer {
-            actx->clear();
-            core::setActiveAllocatorForThread(nullptr);
-        };
-        TestInfo tInfo = createTestInfo();
-        tInfo.trackMemory = true;
-        tInfo.detectLeaks = true;
-        cb(tInfo, "Stats STD Allocator", retCode);
-    }
-    {
-        core::AllocatorContext* actx = getAllocatorCtx(AllocatorId::BUMP_ALLOCATOR);
-        core::setActiveAllocatorForThread(actx);
-        defer {
-            actx->clear();
-            core::setActiveAllocatorForThread(nullptr);
-        };
-        TestInfo tInfo = createTestInfo();
-        tInfo.trackMemory = true;
-        cb(tInfo, "THREAD LOCAL BUMP Allocator", retCode);
-    }
-    {
-        core::AllocatorContext* actx = getAllocatorCtx(AllocatorId::ARENA_ALLOCATOR);
-        core::setActiveAllocatorForThread(actx);
-        defer {
-            actx->clear();
-            core::setActiveAllocatorForThread(nullptr);
-        };
-        TestInfo tInfo = createTestInfo();
-        tInfo.trackMemory = true;
-        cb(tInfo, "THREAD LOCAL ARENA Allocator", retCode);
-    }
+
+    Assert(false, "Invalid allocator id");
+    return tInfo;
 }
 
-// a bit of macro magic never hurt nobody!@
-
-#define USE_STACK_BASED_BUMP_ALLOCATOR_FOR_BLOCK_SCOPE(buff, size)          \
-    core::BumpAllocator __lba__((buff), (size));                            \
-    core::AllocatorContext __lbaCtx__ = core::createAllocatorCtx(&__lba__); \
-    core::setActiveAllocatorForThread(&__lbaCtx__);                         \
-    defer {                                                                 \
-        __lba__.clear();                                                    \
-        core::setActiveAllocatorForThread(nullptr);                         \
-    }
-
-#define USE_CUSTOM_ARENA_ALLOCATOR_FOR_FOR_BLOCK_SCOPE(regionSize)        \
-    core::StdArenaAllocator __la__(regionSize);                           \
-    core::AllocatorContext __laCtx__ = core::createAllocatorCtx(&__la__); \
-    core::setActiveAllocatorForThread(&__laCtx__);                        \
-    defer {                                                               \
-        __la__.clear();                                                   \
-        core::setActiveAllocatorForThread(nullptr);                       \
-    }
+void setBufferForBumpAllocator(void* data, addr_size size);
+void setBlockSizeForArenaAllocator(addr_size size);
 
 // ##################### TEST SUITES ###################################################################################
 

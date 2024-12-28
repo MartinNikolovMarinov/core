@@ -130,6 +130,11 @@ StdArenaAllocator::StdArenaAllocator(StdArenaAllocator&& other) {
     other.oomHandler = nullptr;
 }
 
+void StdArenaAllocator::setBlockSize(addr_size blockSize) {
+    clear();
+    m_blockSize = blockSize;
+}
+
 void* StdArenaAllocator::alloc(addr_size count, addr_size size) {
     return _alloc(&m_blocks, &m_blockCount, m_blockSize, oomHandler, size, count);
 }

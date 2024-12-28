@@ -1,7 +1,9 @@
 #include "t-index.h"
 
-[[nodiscard]]
-i32 sbIsUninitialized(const core::StrBuilder& sb) {
+namespace {
+
+template <core::AllocatorId TAllocId>
+i32 sbIsUninitialized(const core::StrBuilder<TAllocId>& sb) {
     CT_CHECK(sb.empty());
     CT_CHECK(sb.len() == 0);
     CT_CHECK(sb.cap() == 0);
@@ -12,9 +14,10 @@ i32 sbIsUninitialized(const core::StrBuilder& sb) {
     return 0;
 };
 
+template <core::AllocatorId TAllocId>
 i32 initializeStrBuilderTest() {
-    using core::StrBuilder;
-    using value_type = core::StrBuilder::value_type;
+    using StrBuilder = core::StrBuilder<TAllocId>;
+    using value_type = typename core::StrBuilder<TAllocId>::value_type;
 
     {
         // StrBuilder();
@@ -78,10 +81,11 @@ i32 initializeStrBuilderTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 appendToStrBuilderTest() {
-    using core::StrBuilder;
+    using StrBuilder = core::StrBuilder<TAllocId>;
     using core::StrView;
-    using value_type = core::StrBuilder::value_type;
+    using value_type = typename core::StrBuilder<TAllocId>::value_type;
 
     {
         StrBuilder a;
@@ -186,15 +190,16 @@ i32 appendToStrBuilderTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 moveAndCopyStrBuilderTest() {
-    using core::StrBuilder;
+    using StrBuilder = core::StrBuilder<TAllocId>;
     using core::StrView;
 
     {
         static constexpr StrView view = "testing"_sv;
-        static const StrBuilder checksb (view);
+        StrBuilder checksb (view);
 
-        auto check = [](const StrBuilder& sb) {
+        auto check = [&](const StrBuilder& sb) {
             CT_CHECK(sb.len() == view.len());
             CT_CHECK(sb.cap() > sb.len());
             CT_CHECK(sb.eq(view));
@@ -249,11 +254,12 @@ i32 moveAndCopyStrBuilderTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 resetAndReleaseStrBuilderTest() {
-    using core::StrBuilder;
+    using StrBuilder = core::StrBuilder<TAllocId>;
     using core::StrView;
-    using size_type = core::StrBuilder::size_type;
-    using value_type = core::StrBuilder::value_type;
+    using size_type = typename core::StrBuilder<TAllocId>::size_type;
+    using value_type = typename core::StrBuilder<TAllocId>::value_type;
 
     {
         StrBuilder sb ("some string"_sv);
@@ -262,7 +268,8 @@ i32 resetAndReleaseStrBuilderTest() {
         size_type len = 0;
         value_type* released = sb.release(len, cap);
         defer {
-            core::free(released, cap, sizeof(value_type)); // memory leak will be detected if this function is not called;
+            // memory leak will be detected if this function is not called;
+            core::getAllocator(TAllocId).free(released, cap, sizeof(value_type));
         };
 
         CT_CHECK(sbIsUninitialized(sb) == 0);
@@ -290,9 +297,10 @@ i32 resetAndReleaseStrBuilderTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 ensureCapStrBuilderTest() {
-    using core::StrBuilder;
-    using size_type = core::StrBuilder::size_type;
+    using StrBuilder = core::StrBuilder<TAllocId>;
+    using size_type = typename core::StrBuilder<TAllocId>::size_type;
 
     // This test checks internal details, like the exact capcity, which might change in the future.
     // It's still worth it to check that the growth algorithm is working as expected.
@@ -350,45 +358,45 @@ i32 ensureCapStrBuilderTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
+i32 runTests() {
+    using namespace core::testing;
+
+    TestInfo tInfo = createTestInfoFor(RegisteredAllocators(TAllocId));
+
+    defer { core::getAllocator(TAllocId).clear(); };
+
+    tInfo.name = FN_NAME_TO_CPTR(initializeStrBuilderTest);
+    if (runTest(tInfo, initializeStrBuilderTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(appendToStrBuilderTest);
+    if (runTest(tInfo, appendToStrBuilderTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(moveAndCopyStrBuilderTest);
+    if (runTest(tInfo, moveAndCopyStrBuilderTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(resetAndReleaseStrBuilderTest);
+    if (runTest(tInfo, resetAndReleaseStrBuilderTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(ensureCapStrBuilderTest);
+    if (runTest(tInfo, ensureCapStrBuilderTest<TAllocId>) != 0) { return -1; }
+
+    return 0;
+};
+
+} // namespace
+
 i32 runStrBuilderTestsSuite() {
     using namespace core::testing;
 
-    auto runTests = [] (TestInfo& tInfo, const char* description, i32& retCode) {
-        tInfo.description = description;
+    if (runTests<RA_STD_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runTests<RA_STD_STATS_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runTests<RA_THREAD_LOCAL_BUMP_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runTests<RA_THREAD_LOCAL_ARENA_ALLOCATOR_ID>() != 0) { return -1; }
 
-        tInfo.name = FN_NAME_TO_CPTR(initializeStrBuilderTest);
-        if (runTest(tInfo, initializeStrBuilderTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(appendToStrBuilderTest);
-        if (runTest(tInfo, appendToStrBuilderTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(moveAndCopyStrBuilderTest);
-        if (runTest(tInfo, moveAndCopyStrBuilderTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(resetAndReleaseStrBuilderTest);
-        if (runTest(tInfo, resetAndReleaseStrBuilderTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(ensureCapStrBuilderTest);
-        if (runTest(tInfo, ensureCapStrBuilderTest) != 0) { retCode = -1; }
-    };
+    constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE * 3;
+    char buf[BUFFER_SIZE];
+    setBufferForBumpAllocator(buf, BUFFER_SIZE);
+    if (runTests<RA_BUMP_ALLOCATOR_ID>() != 0) { return -1; }
 
-    i32 ret = 0;
-    runForAllGlobalAllocatorVariants(runTests, ret);
+    setBlockSizeForArenaAllocator(256);
+    if (runTests<RA_ARENA_ALLOCATOR_ID>() != 0) { return -1; }
 
-    {
-        constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE * 3;
-        char buf[BUFFER_SIZE];
-        USE_STACK_BASED_BUMP_ALLOCATOR_FOR_BLOCK_SCOPE(buf, BUFFER_SIZE);
-
-        TestInfo tInfo = createTestInfo();
-        tInfo.trackMemory = true;
-        runTests(tInfo, "STACK BASED BUMP Allocator", ret);
-    }
-
-    {
-        constexpr u32 BUFFER_SIZE = 256; // intentially small to test overflow.
-        USE_CUSTOM_ARENA_ALLOCATOR_FOR_FOR_BLOCK_SCOPE(BUFFER_SIZE);
-
-        TestInfo tInfo = createTestInfo();
-        tInfo.trackMemory = true;
-        runTests(tInfo, "CUSTOM ARENA Allocator", ret);
-    }
-
-    return ret;
+    return 0;
 }

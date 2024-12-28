@@ -29,7 +29,7 @@ concept AllocatorConcept = requires(T a) {
 
 struct CORE_API_EXPORT StdAllocator;
 struct                 StdStatsAllocator;
-struct CORE_API_EXPORT BumpAllocator ;
+struct CORE_API_EXPORT BumpAllocator;
 struct CORE_API_EXPORT ThreadLocalStdArenaAllocator;
 struct CORE_API_EXPORT ThreadLocalBumpAllocator;
 struct CORE_API_EXPORT StdArenaAllocator;
@@ -65,7 +65,7 @@ struct StdStatsAllocator {
     CORE_API_EXPORT void* alloc(addr_size count, addr_size size);
     CORE_API_EXPORT void* calloc(addr_size count, addr_size size);
     CORE_API_EXPORT void free(void* ptr, addr_size count, addr_size size);
-    CORE_API_EXPORT void clear(); // does nothing
+    CORE_API_EXPORT void clear();
     CORE_API_EXPORT addr_size totalMemoryAllocated();
     CORE_API_EXPORT addr_size inUseMemory();
 

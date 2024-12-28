@@ -1,15 +1,6 @@
 #include "t-index.h"
 
 namespace {
-core::AllocatorContext g_allocators[AllocatorId::SENTINEL];
-} // namespace
-
-core::AllocatorContext* getAllocatorCtx(AllocatorId id) {
-    auto* allocator =  &g_allocators[id];
-    return allocator;
-}
-
-namespace {
 
 void assertHandler(const char* failedExpr, const char* file, i32 line, const char* funcName, const char* errMsg) {
     constexpr u32 stackFramesToSkip = 2;
@@ -38,20 +29,24 @@ void assertHandler(const char* failedExpr, const char* file, i32 line, const cha
 };
 
 static core::StdStatsAllocator g_stdStatsAllocator;
+static core::BumpAllocator g_bumpAllocator;
+static core::StdArenaAllocator g_arenaAllocator(256);
 
 constexpr addr_size THREAD_LOCAL_GLOBAL_BUMP_ALLOCATOR_BUFFER_SIZE = core::CORE_MEGABYTE;
 thread_local u8 tl_bumpGlobalBuffer[THREAD_LOCAL_GLOBAL_BUMP_ALLOCATOR_BUFFER_SIZE];
-static auto g_bumpGlobalBufferAllocator = core::ThreadLocalBumpAllocator::create(tl_bumpGlobalBuffer, THREAD_LOCAL_GLOBAL_BUMP_ALLOCATOR_BUFFER_SIZE);
+static auto g_threadLocalBumpAllocator = core::ThreadLocalBumpAllocator::create(tl_bumpGlobalBuffer, THREAD_LOCAL_GLOBAL_BUMP_ALLOCATOR_BUFFER_SIZE);
 
 constexpr addr_size THREAD_LOCAL_ARENA_ALLOCATOR_REGION_SIZE = core::CORE_MEGABYTE;
-static auto g_arenaAllocator = core::ThreadLocalStdArenaAllocator::create(THREAD_LOCAL_ARENA_ALLOCATOR_REGION_SIZE);
+static auto g_threadLocalArenaAllocator = core::ThreadLocalStdArenaAllocator::create(THREAD_LOCAL_ARENA_ALLOCATOR_REGION_SIZE);
 
 void coreInit() {
-    core::initProgramCtx(assertHandler, nullptr);
+    core::initProgramCtx(assertHandler);
 
-    g_allocators[AllocatorId::STD_STATS_ALLOCATOR] = core::createAllocatorCtx(&g_stdStatsAllocator);
-    g_allocators[AllocatorId::BUMP_ALLOCATOR] = core::createAllocatorCtx(&g_bumpGlobalBufferAllocator);
-    g_allocators[AllocatorId::ARENA_ALLOCATOR] = core::createAllocatorCtx(&g_arenaAllocator);
+    core::registerAllocator(core::createAllocatorCtx(&g_stdStatsAllocator), RA_STD_STATS_ALLOCATOR_ID);
+    core::registerAllocator(core::createAllocatorCtx(&g_bumpAllocator), RA_BUMP_ALLOCATOR_ID);
+    core::registerAllocator(core::createAllocatorCtx(&g_arenaAllocator), RA_ARENA_ALLOCATOR_ID);
+    core::registerAllocator(core::createAllocatorCtx(&g_threadLocalBumpAllocator), RA_THREAD_LOCAL_BUMP_ALLOCATOR_ID);
+    core::registerAllocator(core::createAllocatorCtx(&g_threadLocalArenaAllocator), RA_THREAD_LOCAL_ARENA_ALLOCATOR_ID);
 }
 
 void coreShutdown() {
@@ -59,6 +54,14 @@ void coreShutdown() {
 }
 
 } // namespace
+
+void setBufferForBumpAllocator(void* data, addr_size size) {
+    g_bumpAllocator.setBuffer(data, size);
+}
+
+void setBlockSizeForArenaAllocator(addr_size size) {
+    g_arenaAllocator.setBlockSize(size);
+}
 
 i32 runAllTests() {
     using namespace core::testing;
@@ -76,10 +79,10 @@ i32 runAllTests() {
     if (runTestSuite(sInfo, runAlgorithmsTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runArrTestsSuite);
     if (runTestSuite(sInfo, runArrTestsSuite) != 0) { ret = -1; }
-    sInfo.name = FN_NAME_TO_CPTR(runCmdParserTestsSuite);
-    if (runTestSuite(sInfo, runCmdParserTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runBitsTestsSuite);
     if (runTestSuite(sInfo, runBitsTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runCmdParserTestsSuite);
+    if (runTestSuite(sInfo, runCmdParserTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runCstrConvTestsSuite);
     if (runTestSuite(sInfo, runCstrConvTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runCstrConv_CstrToFloat_TestsSuite);

@@ -2,8 +2,8 @@
 
 namespace {
 
-template <typename T>
-inline i32 checkEmptynessOfArr(const core::ArrList<T>& arr) {
+template <typename T, core::AllocatorId TAllocId>
+inline i32 checkEmptynessOfArr(const core::ArrList<T, TAllocId>& arr) {
     CT_CHECK(arr.len() == 0);
     CT_CHECK(arr.cap() == 0);
     CT_CHECK(arr.data() == nullptr);
@@ -11,25 +11,24 @@ inline i32 checkEmptynessOfArr(const core::ArrList<T>& arr) {
     return 0;
 }
 
-} // namespace
-
+template <core::AllocatorId TAllocId>
 i32 initializeArrTest() {
     using namespace core::testing;
 
     {
-        core::ArrList<i32> arr;
+        core::ArrList<i32, TAllocId> arr;
         CT_CHECK(checkEmptynessOfArr(arr) == 0);
     }
 
     {
-        core::ArrList<i32> arr(10);
+        core::ArrList<i32, TAllocId> arr(10);
         CT_CHECK(arr.len() == 0);
         CT_CHECK(arr.cap() == 10);
         CT_CHECK(arr.empty());
     }
 
     {
-        core::ArrList<i32> arr(10, 7);
+        core::ArrList<i32, TAllocId> arr(10, 7);
         CT_CHECK(arr.len() == 10);
         CT_CHECK(arr.cap() == 10);
         CT_CHECK(!arr.empty());
@@ -49,7 +48,7 @@ i32 initializeArrTest() {
         };
 
         TestStruct v;
-        core::ArrList<TestStruct> arr(10, v);
+        core::ArrList<TestStruct, TAllocId> arr(10, v);
 
         CT_CHECK(arr.len() == 10);
         CT_CHECK(arr.byteLen() == 10 * sizeof(TestStruct));
@@ -65,8 +64,8 @@ i32 initializeArrTest() {
 
     // Move constructor and assignment
     {
-        core::ArrList<i32> a(7, 1);
-        core::ArrList<i32> b(std::move(a));
+        core::ArrList<i32, TAllocId> a(7, 1);
+        core::ArrList<i32, TAllocId> b(std::move(a));
 
         CT_CHECK(a.len() == 0);
 
@@ -94,7 +93,7 @@ i32 initializeArrTest() {
 
         PRAGMA_WARNING_POP
 
-        a = core::ArrList<i32>(3, 9); // should work and should not leak memory
+        a = core::ArrList<i32, TAllocId>(3, 9); // should work and should not leak memory
 
         CT_CHECK(a.len() == 3);
         CT_CHECK(a.cap() == 3);
@@ -103,8 +102,8 @@ i32 initializeArrTest() {
 
     // Copy via the move constructor and assignment
     {
-        core::ArrList<i32> a(7, 1);
-        core::ArrList<i32> b(a.copy());
+        core::ArrList<i32, TAllocId> a(7, 1);
+        core::ArrList<i32, TAllocId> b(a.copy());
 
         CT_CHECK(a.len() == 7);
         CT_CHECK(a.cap() == 7);
@@ -116,7 +115,7 @@ i32 initializeArrTest() {
 
         CT_CHECK(b.data() != a.data());
 
-        core::ArrList<i32> c;
+        core::ArrList<i32, TAllocId> c;
         c = a.copy();
 
         CT_CHECK(c.len() == 7);
@@ -134,7 +133,7 @@ i32 initializeArrTest() {
         CT::resetCtors(); // Don't count constructor calls for x
 
         {
-            core::ArrList<CT> arr(testCount, x);
+            core::ArrList<CT, TAllocId> arr(testCount, x);
             for (addr_size i = 0; i < arr.len(); ++i) {
                 CT_CHECK(arr[i].a == 7);
             }
@@ -161,8 +160,9 @@ i32 initializeArrTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 ensureArrCapacity() {
-    core::ArrList<i32> arr;
+    core::ArrList<i32, TAllocId> arr;
     CT_CHECK(checkEmptynessOfArr(arr) == 0);
 
     arr.ensureCap(10);
@@ -186,11 +186,12 @@ i32 ensureArrCapacity() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 pushIntoArrTests() {
     using CT = core::testing::CT;
 
     {
-        core::ArrList<i32> arr;
+        core::ArrList<i32, TAllocId> arr;
 
         arr.push(1);
         for (addr_size i = 0; i < 1; ++i) {
@@ -246,7 +247,7 @@ i32 pushIntoArrTests() {
         CT::resetCtors(); // Don't count the default ctors of the above code
 
         {
-            core::ArrList<CT> arr;
+            core::ArrList<CT, TAllocId> arr;
             arr.push(lv);
             arr.push(std::move(lv2));
             CT_CHECK(CT::copyCtorCalled() == 1, "push should call the copy ctor.");
@@ -262,7 +263,7 @@ i32 pushIntoArrTests() {
 
         // Testing a combination of append and ensureCap.
         {
-            core::ArrList<CT> arr;
+            core::ArrList<CT, TAllocId> arr;
             arr.ensureCap(1);
             CT_CHECK(arr.len() == 0);
             CT_CHECK(arr.cap() == 1);
@@ -290,7 +291,7 @@ i32 pushIntoArrTests() {
         CT staticArr[5];
         CT::resetCtors(); // Don't count the default ctors of the above code
         {
-            core::ArrList<CT> arr;
+            core::ArrList<CT, TAllocId> arr;
             arr.push(staticArr, 5);
 
             CT_CHECK(arr.len() == 5);
@@ -312,8 +313,8 @@ i32 pushIntoArrTests() {
 
     {
         // Appending arrays that are bigger than double current capacity.
-        core::ArrList<i32> arr;
-        core::ArrList<i32> arr2;
+        core::ArrList<i32, TAllocId> arr;
+        core::ArrList<i32, TAllocId> arr2;
         arr2.push(1); arr2.push(2); arr2.push(3); arr2.push(4); arr2.push(5);
         arr2.push(6); arr2.push(7); arr2.push(8); arr2.push(9); arr2.push(10);
 
@@ -328,7 +329,7 @@ i32 pushIntoArrTests() {
     }
 
     {
-        core::ArrList<i32> arr (15, 999);
+        core::ArrList<i32, TAllocId> arr (15, 999);
         i32 arr2[5] = { 1, 2, 3, 4, 5 };
 
         arr.push(arr2, 5);
@@ -346,12 +347,13 @@ i32 pushIntoArrTests() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 arrayOfArraysArrTest() {
     {
-        core::ArrList<i32> arr;
-        core::ArrList<i32> arr2;
-        core::ArrList<i32> arr3;
-        core::ArrList<core::ArrList<i32>> multi;
+        core::ArrList<i32, TAllocId> arr;
+        core::ArrList<i32, TAllocId> arr2;
+        core::ArrList<i32, TAllocId> arr3;
+        core::ArrList<core::ArrList<i32, TAllocId>> multi;
 
         arr.push(1);
         arr.push(2);
@@ -399,6 +401,7 @@ i32 arrayOfArraysArrTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 clearArrayShouldCallDtorsTest() {
     using CT = core::testing::CT;
 
@@ -408,7 +411,7 @@ i32 clearArrayShouldCallDtorsTest() {
     CT::resetAll(); // Don't count the default ctors for x
 
     constexpr i32 testCount = 10;
-    auto arr = core::ArrList<CT>(testCount, x);
+    auto arr = core::ArrList<CT, TAllocId>(testCount, x);
     arr.clear();
     CT_CHECK(CT::dtorsCalled() == testCount, "Clear should call dtors on all elements.");
     CT_CHECK(arr.cap() == testCount, "Clear should not change the capacity of the array.");
@@ -416,7 +419,7 @@ i32 clearArrayShouldCallDtorsTest() {
     CT::resetDtors();
 
     arr.clear();
-    arr = core::ArrList<CT>(testCount, x);
+    arr = core::ArrList<CT, TAllocId>(testCount, x);
     arr.clear();
     CT_CHECK(CT::dtorsCalled() == testCount, "Clear should call dtors on all elements.");
     CT_CHECK(arr.cap() == testCount, "Clear should not change the capacity of the array.");
@@ -424,11 +427,12 @@ i32 clearArrayShouldCallDtorsTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 removeFromArrayTest() {
     using CT = core::testing::CT;
 
     {
-        core::ArrList<i32> arr;
+        core::ArrList<i32, TAllocId> arr;
 
         {
             arr.push(1);
@@ -455,7 +459,7 @@ i32 removeFromArrayTest() {
     }
 
     {
-        core::ArrList<CT> arr;
+        core::ArrList<CT, TAllocId> arr;
 
         defer { CT::resetAll(); };
 
@@ -492,12 +496,13 @@ i32 removeFromArrayTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 resetArrayTest() {
     constexpr i32 ALLOCATION_SIZE = 256;
-    auto unmanaged = reinterpret_cast<u8*>(core::zeroAlloc(ALLOCATION_SIZE, sizeof(u8)));
+    auto unmanaged = reinterpret_cast<u8*>(core::getAllocator(TAllocId).zeroAlloc(ALLOCATION_SIZE, sizeof(u8)));
     core::memset(unmanaged, 5, ALLOCATION_SIZE);
 
-    core::ArrList<u8> arr (5, 10); // the previously allocated also needs to be freed.
+    core::ArrList<u8, TAllocId> arr (5, 10); // the previously allocated also needs to be freed.
     arr.reset(&unmanaged, ALLOCATION_SIZE); // arr becomes the owner and thus must free the memory when it goes out of scope.
 
     CT_CHECK(arr.len() == ALLOCATION_SIZE);
@@ -512,8 +517,9 @@ i32 resetArrayTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 releaseArrayTest() {
-    core::ArrList<u8> arr (15, 123);
+    core::ArrList<u8, TAllocId> arr (15, 123);
 
     addr_size l = 0, c = 0;
     auto data = arr.release(l, c);
@@ -524,56 +530,57 @@ i32 releaseArrayTest() {
         CT_CHECK(data[i] == 123);
     }
 
-    core::free(data, c, sizeof(u8)); // without this a memory leak will be detected.
+    // There should be a memory leak if the released data is not freed!
+    core::getAllocator(TAllocId).free(data, c, sizeof(u8));
 
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
+i32 runTests() {
+    using namespace core::testing;
+
+    TestInfo tInfo = createTestInfoFor(RegisteredAllocators(TAllocId));
+
+    defer { core::getAllocator(TAllocId).clear(); };
+
+    tInfo.name = FN_NAME_TO_CPTR(initializeArrTest);
+    if (runTest(tInfo, initializeArrTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(ensureArrCapacity);
+    if (runTest(tInfo, ensureArrCapacity<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(pushIntoArrTests);
+    if (runTest(tInfo, pushIntoArrTests<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(arrayOfArraysArrTest);
+    if (runTest(tInfo, arrayOfArraysArrTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(clearArrayShouldCallDtorsTest);
+    if (runTest(tInfo, clearArrayShouldCallDtorsTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(removeFromArrayTest);
+    if (runTest(tInfo, removeFromArrayTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(resetArrayTest);
+    if (runTest(tInfo, resetArrayTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(releaseArrayTest);
+    if (runTest(tInfo, releaseArrayTest<TAllocId>) != 0) { return -1; }
+
+    return 0;
+};
+
+} // namespace
+
 i32 runArrTestsSuite() {
     using namespace core::testing;
 
-    auto runTests = [] (TestInfo& tInfo, const char* description, i32& retCode) {
-        tInfo.description = description;
+    if (runTests<RA_STD_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runTests<RA_STD_STATS_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runTests<RA_THREAD_LOCAL_BUMP_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runTests<RA_THREAD_LOCAL_ARENA_ALLOCATOR_ID>() != 0) { return -1; }
 
-        tInfo.name = FN_NAME_TO_CPTR(initializeArrTest);
-        if (runTest(tInfo, initializeArrTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(ensureArrCapacity);
-        if (runTest(tInfo, ensureArrCapacity) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(pushIntoArrTests);
-        if (runTest(tInfo, pushIntoArrTests) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(arrayOfArraysArrTest);
-        if (runTest(tInfo, arrayOfArraysArrTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(clearArrayShouldCallDtorsTest);
-        if (runTest(tInfo, clearArrayShouldCallDtorsTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(removeFromArrayTest);
-        if (runTest(tInfo, removeFromArrayTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(resetArrayTest);
-        if (runTest(tInfo, resetArrayTest) != 0) { retCode = -1; }
-        tInfo.name = FN_NAME_TO_CPTR(releaseArrayTest);
-        if (runTest(tInfo, releaseArrayTest) != 0) { retCode = -1; }
-    };
+    constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE * 3;
+    char buf[BUFFER_SIZE];
+    setBufferForBumpAllocator(buf, BUFFER_SIZE);
+    if (runTests<RA_BUMP_ALLOCATOR_ID>() != 0) { return -1; }
 
-    i32 ret = 0;
-    runForAllGlobalAllocatorVariants(runTests, ret);
+    setBlockSizeForArenaAllocator(256);
+    if (runTests<RA_ARENA_ALLOCATOR_ID>() != 0) { return -1; }
 
-    {
-        constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE * 3;
-        char buf[BUFFER_SIZE];
-        USE_STACK_BASED_BUMP_ALLOCATOR_FOR_BLOCK_SCOPE(buf, BUFFER_SIZE);
-
-        TestInfo tInfo = createTestInfo();
-        tInfo.trackMemory = true;
-        runTests(tInfo, "STACK BASED BUMP Allocator", ret);
-    }
-
-    {
-        constexpr u32 BUFFER_SIZE = 256; // intentially small to test overflow.
-        USE_CUSTOM_ARENA_ALLOCATOR_FOR_FOR_BLOCK_SCOPE(BUFFER_SIZE);
-
-        TestInfo tInfo = createTestInfo();
-        tInfo.trackMemory = true;
-        runTests(tInfo, "CUSTOM ARENA Allocator", ret);
-    }
-
-    return ret;
+    return 0;
 }

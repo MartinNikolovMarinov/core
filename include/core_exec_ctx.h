@@ -2,6 +2,7 @@
 
 #include <core_alloc.h>
 #include <core_API.h>
+#include <core_assert.h>
 #include <core_types.h>
 
 #include <new>
@@ -91,7 +92,7 @@ CORE_API_EXPORT void initProgramCtx(GlobalAssertHandlerFn assertHandler, Allocat
 
 CORE_API_EXPORT void destroyProgramCtx();
 
-CORE_API_EXPORT void registerAllocator(AllocatorContext&& ctx);
+CORE_API_EXPORT void registerAllocator(AllocatorContext&& ctx, AllocatorId id);
 CORE_API_EXPORT AllocatorContext& getAllocator(AllocatorId id);
 
 } // namespace core

@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.2)
-project(core VERSION 0.4.0)
+project(core VERSION 0.5.0)
 
 set(target_core core)
 set(target_core_upper CORE)
-# set(target_test core_test)
-set(target_test core_sandbox)
+set(target_test core_test)
+# set(target_test core_sandbox)
 
 # Standard Requirements:
 
@@ -88,7 +88,6 @@ set(core_src
     src/core_intrinsics.cpp
     src/core_logger.cpp
     src/core_rnd.cpp
-    src/core_str_builder.cpp
 
     src/allocators/bump_allocator.cpp
     src/allocators/std_allocator.cpp
@@ -163,7 +162,7 @@ endif()
 
 if(CORE_LIBRARY_SHARED)
     add_library(${target_core} SHARED ${core_src})
-    # Set symbols visibility to be hidden by default. This is done to unify behaviour across platforms.
+    # Set symbols visibility to be hidden by default. This is done to unify behavior across platforms.
     set_target_properties(${target_core} PROPERTIES
         C_VISIBILITY_PRESET hidden
         C_VISIBILITY_INLINE_PRESET hidden
@@ -209,55 +208,55 @@ if(CORE_BUILD_TESTS)
     add_executable(${target_test}
         ${target_test}.cpp
 
-        # tests/t-index_core_init.cpp
+        tests/t-index_core_init.cpp
 
-        # tests/t-algorithms.cpp
-        # tests/t-arr.cpp
-        # tests/t-bits.cpp
-        # tests/t-cmd_flag_parser.cpp
-        # tests/t-cstr_conv.cpp
-        # tests/t-cstr_conv_cstr_to_float.cpp
-        # tests/t-cstr_conv_float_to_cstr.cpp
-        # tests/t-cstr.cpp
-        # tests/t-defer.cpp
-        # tests/t-expected.cpp
-        # tests/t-hash_map.cpp
-        # tests/t-hash.cpp
-        # tests/t-intrinsics.cpp
-        # tests/t-ints.cpp
-        # tests/t-logger.cpp
-        # tests/t-mem.cpp
-        # tests/t-rnd.cpp
-        # tests/t-sarr.cpp
-        # tests/t-str_builder.cpp
-        # tests/t-tuple.cpp
-        # tests/t-unique_ptr.cpp
-        # tests/t-utf.cpp
+        tests/t-algorithms.cpp
+        tests/t-arr.cpp
+        tests/t-bits.cpp
+        tests/t-cmd_flag_parser.cpp
+        tests/t-cstr_conv.cpp
+        tests/t-cstr_conv_cstr_to_float.cpp
+        tests/t-cstr_conv_float_to_cstr.cpp
+        tests/t-cstr.cpp
+        tests/t-defer.cpp
+        tests/t-expected.cpp
+        tests/t-hash_map.cpp
+        tests/t-hash.cpp
+        tests/t-intrinsics.cpp
+        tests/t-ints.cpp
+        tests/t-logger.cpp
+        tests/t-mem.cpp
+        tests/t-rnd.cpp
+        tests/t-sarr.cpp
+        tests/t-str_builder.cpp
+        tests/t-tuple.cpp
+        tests/t-unique_ptr.cpp
+        tests/t-utf.cpp
 
-        # tests/allocators/t-bump_allocator.cpp
-        # tests/allocators/t-std_allocator.cpp
-        # tests/allocators/t-std_arena_allocator.cpp
-        # tests/allocators/t-std_stats_allocator.cpp
+        tests/allocators/t-bump_allocator.cpp
+        tests/allocators/t-std_allocator.cpp
+        tests/allocators/t-std_arena_allocator.cpp
+        tests/allocators/t-std_stats_allocator.cpp
 
-        # tests/math/t-math.cpp
-        # tests/math/t-matrix.cpp
-        # tests/math/t-transforms.cpp
-        # tests/math/t-vec.cpp
+        tests/math/t-math.cpp
+        tests/math/t-matrix.cpp
+        tests/math/t-transforms.cpp
+        tests/math/t-vec.cpp
 
-        # tests/plt/t-pages.cpp
-        # tests/plt/t-plt_err.cpp
-        # tests/plt/t-stacktrace.cpp
-        # tests/plt/t-threading.cpp
-        # tests/plt/t-time.cpp
-        # tests/plt/t-fs.cpp
+        tests/plt/t-pages.cpp
+        tests/plt/t-plt_err.cpp
+        tests/plt/t-stacktrace.cpp
+        tests/plt/t-threading.cpp
+        tests/plt/t-time.cpp
+        tests/plt/t-fs.cpp
 
-        # tests/asm/t-asm.cpp
+        tests/asm/t-asm.cpp
 
-        # tests/common/ryu_reference_impl/s2f.cpp
-        # tests/common/ryu_reference_impl/s2d.cpp
-        # tests/common/ryu_reference_impl/f2s.cpp
-        # tests/common/ryu_reference_impl/d2s.cpp
-        # tests/common/ryu_reference_impl/t-verify.cpp
+        tests/common/ryu_reference_impl/s2f.cpp
+        tests/common/ryu_reference_impl/s2d.cpp
+        tests/common/ryu_reference_impl/f2s.cpp
+        tests/common/ryu_reference_impl/d2s.cpp
+        tests/common/ryu_reference_impl/t-verify.cpp
     )
 
     # Link core

@@ -12,7 +12,6 @@ StdAllocator g_defaultStdAllocator;
 
 constexpr u32 MAX_REGISTERABLE_ALLOCATORS = 5;
 AllocatorContext g_registeredAllocators[MAX_REGISTERABLE_ALLOCATORS] = {};
-u32 g_registeredAllocatorsCount = 0;
 
 void zeroOutAllocatorContext(AllocatorContext& actx) {
     actx.allocFn = nullptr;
@@ -95,10 +94,9 @@ void destroyProgramCtx() {
     core::setGlobalAssertHandler(nullptr);
 }
 
-void registerAllocator(AllocatorContext&& ctx) {
-    Assert(g_registeredAllocatorsCount + 1 < MAX_REGISTERABLE_ALLOCATORS, "Reached the maximum registered allocators count");
-    g_registeredAllocators[g_registeredAllocatorsCount] = std::move(ctx);
-    g_registeredAllocatorsCount++;
+void registerAllocator(AllocatorContext&& ctx, AllocatorId id) {
+    Assert(id - 1 < MAX_REGISTERABLE_ALLOCATORS);
+    g_registeredAllocators[id - 1] = std::move(ctx);
 }
 
 AllocatorContext& getAllocator(AllocatorId id) {
@@ -107,7 +105,7 @@ AllocatorContext& getAllocator(AllocatorId id) {
     // This function may be called at static initialization time, before any custom allocators have been registered,
     // which makes checking `id < g_registeredAllocatorsCount` impossible.
 
-    Assert(id <= MAX_REGISTERABLE_ALLOCATORS, "Reached the maximum registered allocators count");
+    Assert(id <= MAX_REGISTERABLE_ALLOCATORS);
 
     if (id == 0) {
         return g_defaultAllocatorContext;

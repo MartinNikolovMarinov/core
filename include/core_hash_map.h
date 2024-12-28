@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core_alloc.h>
+#include <core_exec_ctx.h>
 #include <core_hash.h>
 #include <core_logger.h>
 #include <core_traits.h>
@@ -10,8 +11,8 @@
 
 namespace core {
 
-template <typename TKey, typename TValue> struct HashMap;
-template <typename TKey, typename TValue> HashMap<TKey, TValue> createHashMap();
+template <typename TKey, typename TValue, AllocatorId TAllocId = DEFAULT_ALLOCATOR_ID> struct HashMap;
+template <typename TKey, typename TValue, AllocatorId TAllocId = DEFAULT_ALLOCATOR_ID> HashMap<TKey, TValue, TAllocId> createHashMap();
 
 namespace detail {
 
@@ -38,8 +39,10 @@ constexpr inline addr_size nextPowerOf2ForCap(addr_size cap) {
 
 } // namespace detail
 
-template <typename TKey, typename TValue>
+template <typename TKey, typename TValue, AllocatorId TAllocId>
 struct HashMap {
+    inline static core::AllocatorContext& allocator = core::getAllocator(TAllocId);
+
     using key_type    = TKey;
     using value_type  = TValue;
     using size_type   = addr_size;
@@ -64,9 +67,9 @@ struct HashMap {
         m_cap = cap > 0 ? detail::nextPowerOf2ForCap(cap) : 0;
         m_len = 0;
         if (m_cap > 0) {
-            m_keys        = reinterpret_cast<key_type*>(core::alloc(m_cap, sizeof(key_type)));
-            m_values      = reinterpret_cast<value_type*>(core::alloc(m_cap, sizeof(value_type)));
-            m_bucketState = reinterpret_cast<BucketState*>(core::zeroAlloc(m_cap, sizeof(BucketState)));
+            m_keys        = reinterpret_cast<key_type*>(allocator.alloc(m_cap, sizeof(key_type)));
+            m_values      = reinterpret_cast<value_type*>(allocator.alloc(m_cap, sizeof(value_type)));
+            m_bucketState = reinterpret_cast<BucketState*>(allocator.zeroAlloc(m_cap, sizeof(BucketState)));
         }
         else {
             m_keys = nullptr;
@@ -138,9 +141,9 @@ struct HashMap {
 
         clear();
 
-        core::free(m_keys, m_cap, sizeof(key_type));
-        core::free(m_values, m_cap, sizeof(value_type));
-        core::free(m_bucketState, m_cap, sizeof(BucketState));
+        allocator.free(m_keys, m_cap, sizeof(key_type));
+        allocator.free(m_values, m_cap, sizeof(value_type));
+        allocator.free(m_bucketState, m_cap, sizeof(BucketState));
 
         m_cap = 0;
         m_keys = nullptr;
@@ -154,9 +157,9 @@ struct HashMap {
         BucketState* copyBucketState = nullptr;
 
         if (m_cap > 0) {
-            copyData        = reinterpret_cast<value_type *>(core::alloc(m_cap, sizeof(value_type)));
-            copyKeys        = reinterpret_cast<key_type *>(core::alloc(m_cap, sizeof(key_type)));
-            copyBucketState = reinterpret_cast<BucketState *>(core::alloc(m_cap, sizeof(BucketState)));
+            copyData        = reinterpret_cast<value_type *>(allocator.alloc(m_cap, sizeof(value_type)));
+            copyKeys        = reinterpret_cast<key_type *>(allocator.alloc(m_cap, sizeof(key_type)));
+            copyBucketState = reinterpret_cast<BucketState *>(allocator.alloc(m_cap, sizeof(BucketState)));
 
             for (size_type i = 0; i < m_cap; i++) {
                 new (&copyData[i]) value_type(m_values[i]);
@@ -224,9 +227,9 @@ struct HashMap {
 
         newCap = detail::nextPowerOf2ForCap(newCap);
 
-        key_type* newKeys           = reinterpret_cast<key_type*>(core::alloc(newCap, sizeof(key_type)));
-        value_type* newValues       = reinterpret_cast<value_type*>(core::alloc(newCap, sizeof(value_type)));
-        BucketState* newBucketState = reinterpret_cast<BucketState*>(core::zeroAlloc(newCap, sizeof(BucketState)));
+        key_type* newKeys           = reinterpret_cast<key_type*>(allocator.alloc(newCap, sizeof(key_type)));
+        value_type* newValues       = reinterpret_cast<value_type*>(allocator.alloc(newCap, sizeof(value_type)));
+        BucketState* newBucketState = reinterpret_cast<BucketState*>(allocator.zeroAlloc(newCap, sizeof(BucketState)));
 
         for (size_type i = 0; i < m_cap; i++) {
             if (m_bucketState[i] == BucketState::Occupied) {
@@ -246,9 +249,9 @@ struct HashMap {
         }
 
         if (m_keys) {
-            core::free(m_keys, m_cap, sizeof(key_type));
-            core::free(m_values, m_cap, sizeof(value_type));
-            core::free(m_bucketState, m_cap, sizeof(BucketState));
+            allocator.free(m_keys, m_cap, sizeof(key_type));
+            allocator.free(m_values, m_cap, sizeof(value_type));
+            allocator.free(m_bucketState, m_cap, sizeof(BucketState));
         }
 
         m_cap = newCap;
@@ -396,10 +399,10 @@ private:
     size_type m_len;
 };
 
-template <typename TKey, typename TValue>
-HashMap<TKey, TValue> createHashMap() {
+template <typename TKey, typename TValue, AllocatorId TAllocId>
+HashMap<TKey, TValue, TAllocId> createHashMap() {
     constexpr addr_size DEFAULT_CAP = 16;
-    return HashMap<TKey, TValue>(DEFAULT_CAP);
+    return HashMap<TKey, TValue, TAllocId>(DEFAULT_CAP);
 }
 
 // TODO: Implement Hash Set.

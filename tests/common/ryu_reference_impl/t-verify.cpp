@@ -134,7 +134,7 @@ i32 verifyRyuAlgorithm() {
         core::Thread& t = threads[addr_size(i)];
         core::Expect(core::threadInit(t));
 
-        TArgs* tArgs = reinterpret_cast<TArgs*>(core::alloc(1, sizeof(TArgs)));
+        TArgs* tArgs = reinterpret_cast<TArgs*>(core::getAllocator(core::DEFAULT_ALLOCATOR_ID).alloc(1, sizeof(TArgs)));
         x += dx;
         tArgs->x = x;
         tArgs->dx = dx;

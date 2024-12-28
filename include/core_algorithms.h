@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core_arr.h>
+#include <core_exec_ctx.h>
 #include <core_hash_map.h>
 #include <core_mem.h>
 #include <core_traits.h>
@@ -10,21 +11,23 @@ namespace core {
 
 using namespace coretypes;
 
-template <typename T, typename TPredicate>                    inline constexpr addr_off find(const T* arr, addr_size len, TPredicate pred);
-template <typename T, typename TPredicate>                    inline addr_off           find(const ArrList<T>& arr, TPredicate pred);
-template <typename T, addr_size N, typename TPredicate>       inline constexpr addr_off find(const ArrStatic<T, N>& arr, TPredicate pred);
+template <typename T, typename TPredicate>                      inline constexpr addr_off find(const T* arr, addr_size len, TPredicate pred);
+template <typename T, AllocatorId AllocId, typename TPredicate> inline addr_off           find(const ArrList<T, AllocId>& arr, TPredicate pred);
+template <typename T, addr_size N, typename TPredicate>         inline constexpr addr_off find(const ArrStatic<T,  N>& arr, TPredicate pred);
 
-template <typename T, typename TEq>                           inline constexpr void     pushUnique(T* arr, addr_size len, const T& el, TEq eqFn);
-template <typename T, typename TEq>                           inline constexpr void     pushUnique(T* arr, addr_size len, T&& el, TEq eqFn);
-template <typename T, typename TEq>                           inline void               pushUnique(ArrList<T>& arr, const T& el, TEq eqFn);
-template <typename T, typename TEq>                           inline void               pushUnique(ArrList<T>& arr, T&& el, TEq eqFn);
-template <typename T, addr_size N, typename TEq>              inline constexpr void     pushUnique(ArrStatic<T, N>& arr, const T& el, TEq eqFn);
-template <typename T, addr_size N, typename TEq>              inline constexpr void     pushUnique(ArrStatic<T, N>& arr, T&& el, TEq eqFn);
+template <typename T, typename TEq>                           inline constexpr void pushUnique(T* arr, addr_size len, const T& el, TEq eqFn);
+template <typename T, typename TEq>                           inline constexpr void pushUnique(T* arr, addr_size len, T&& el, TEq eqFn);
+template <typename T, AllocatorId AllocId, typename TEq>      inline void           pushUnique(ArrList<T, AllocId>& arr, const T& el, TEq eqFn);
+template <typename T, AllocatorId AllocId, typename TEq>      inline void           pushUnique(ArrList<T, AllocId>& arr, T&& el, TEq eqFn);
+template <typename T, addr_size N, typename TEq>              inline constexpr void pushUnique(ArrStatic<T, N>& arr, const T& el, TEq eqFn);
+template <typename T, addr_size N, typename TEq>              inline constexpr void pushUnique(ArrStatic<T, N>& arr, T&& el, TEq eqFn);
 
-template <typename T, typename TPredicate>                    inline bool forAll(const T* arr, addr_size len, TPredicate pred);
-template <typename T, typename TPredicate>                    inline bool forAll(const core::ArrList<T>& arr, TPredicate pred);
-template <typename T, addr_size N, typename TPredicate>       inline bool forAll(const core::ArrStatic<T, N>& arr, TPredicate pred);
-template <typename TKey, typename TVal, typename TPredicate>  inline bool forAll(const core::HashMap<TKey, TVal>& a, const core::HashMap<TKey, TVal>& b, TPredicate pred);
+template <typename T, typename TPredicate>                                         inline bool forAll(const T* arr, addr_size len, TPredicate pred);
+template <typename T, AllocatorId AllocId, typename TPredicate>                    inline bool forAll(const core::ArrList<T, AllocId>& arr, TPredicate pred);
+template <typename T, addr_size N, typename TPredicate>                            inline bool forAll(const core::ArrStatic<T, N>& arr, TPredicate pred);
+template <typename TKey, typename TVal, AllocatorId AllocId, typename TPredicate>  inline bool forAll(const core::HashMap<TKey, TVal, AllocId>& a,
+                                                                                                      const core::HashMap<TKey, TVal, AllocId>& b,
+                                                                                                      TPredicate pred);
 
 // Find element in raw pointer.
 template <typename T, typename TPredicate>
@@ -36,8 +39,9 @@ inline constexpr addr_off find(const T* arr, addr_size len, TPredicate pred) {
     return -1;
 }
 // Find element in ArrList.
-template <typename T, typename TPredicate>
-inline addr_off find(const ArrList<T>& arr, TPredicate pred) {
+
+template <typename T, AllocatorId AllocId, typename TPredicate>
+inline addr_off find(const ArrList<T, AllocId>& arr, TPredicate pred) {
     return find(arr.data(), arr.len(), pred);
 }
 // Find element in ArrStatic.
@@ -91,16 +95,16 @@ inline constexpr void pushUnique(T* arr, addr_size len, T&& el, TEq eqFn) {
 }
 
 // Append unique element to ArrList.
-template <typename T, typename TEq>
-inline void pushUnique(ArrList<T>& arr, const T& el, TEq eqFn) {
-    using T1 = ArrList<T>&;
+template <typename T, AllocatorId AllocId, typename TEq>
+inline void pushUnique(ArrList<T, AllocId>& arr, const T& el, TEq eqFn) {
+    using T1 = ArrList<T, AllocId>&;
     using T2 = const T&;
     using T3 = TEq;
     detail::pushUniqueFreeTmpl<T1, T2, T3>(arr, el, eqFn);
 }
-template <typename T, typename TEq>
-inline void pushUnique(ArrList<T>& arr, T&& el, TEq eqFn) {
-    using T1 = ArrList<T>&;
+template <typename T, AllocatorId AllocId, typename TEq>
+inline void pushUnique(ArrList<T, AllocId>& arr, T&& el, TEq eqFn) {
+    using T1 = ArrList<T, AllocId>&;
     using T2 = T&&;
     using T3 = TEq;
     detail::pushUniqueFreeTmpl<T1, T2, T3>(arr, std::move(el), eqFn);
@@ -135,8 +139,8 @@ inline bool forAll(const T* arr, addr_size len, TPredicate pred) {
     return ret;
 }
 // Call predicate for each element in ArrList.
-template <typename T, typename TPredicate>
-inline bool forAll(const core::ArrList<T>& arr, TPredicate pred) {
+template <typename T, AllocatorId AllocId, typename TPredicate>
+inline bool forAll(const core::ArrList<T, AllocId>& arr, TPredicate pred) {
     return forAll(arr.data(), arr.len(), pred);
 }
 // Call predicate for each element in ArrStatic.
@@ -145,8 +149,11 @@ inline bool forAll(const core::ArrStatic<T, N>& arr, TPredicate pred) {
     return forAll(arr.data(), arr.len(), pred);
 }
 // Call predicate for each element in HashMap.
-template <typename TKey, typename TVal, typename TPredicate>
-inline bool forAll(const core::HashMap<TKey, TVal>& a, const core::HashMap<TKey, TVal>& b, TPredicate pred) {
+
+template <typename TKey, typename TVal, AllocatorId AllocId, typename TPredicate>
+inline bool forAll(const core::HashMap<TKey, TVal, AllocId>& a,
+                   const core::HashMap<TKey, TVal, AllocId>& b,
+                   TPredicate pred) {
     bool ret = true;
     a.entries([&](const auto& key, const auto& val) -> bool {
         if (!pred(key, val, b)) {

@@ -856,7 +856,7 @@ constexpr bool isPositive(i64 a) {
 
 /**
  * @brief Safely very basic epsilon comparison.
- *        Passing NaN or infinity to any of the arguments is undefined behaviour.
+ *        Passing NaN or infinity to any of the arguments is undefined behavior.
 */
 constexpr bool safeEq(f32 a, f32 b, f32 epsilon) {
     Assert(a == a && b == b && epsilon == epsilon, "NaN is not supported.");
@@ -865,7 +865,7 @@ constexpr bool safeEq(f32 a, f32 b, f32 epsilon) {
 
 /**
  * @brief Safely very basic epsilon comparison.
- *        Passing NaN or infinity to any of the arguments is undefined behaviour.
+ *        Passing NaN or infinity to any of the arguments is undefined behavior.
 */
 constexpr bool safeEq(f64 a, f64 b, f64 epsilon) {
     Assert(a == a && b == b && epsilon == epsilon, "NaN is not supported.");
@@ -875,7 +875,7 @@ constexpr bool safeEq(f64 a, f64 b, f64 epsilon) {
 /**
  * @brief Compares two floating point numbers for being nearly equal, depending on the given epsilon.
  *        This is much more precise than the safeEq function, but also significantly slower.
- *        Passing NaN or infinity to any of the arguments is undefined behaviour.
+ *        Passing NaN or infinity to any of the arguments is undefined behavior.
 */
 constexpr bool nearlyEq(f32 a, f32 b, f32 epsilon) {
     Assert(a == a && b == b && epsilon == epsilon, "NaN is not supported.");
@@ -892,7 +892,7 @@ constexpr bool nearlyEq(f32 a, f32 b, f32 epsilon) {
 /**
  * @brief Compares two floating point numbers for being nearly equal, depending on the given epsilon.
  *        This is much more precise than the safeEq function, but also significantly slower.
- *        Passing NaN or infinity to any of the arguments is undefined behaviour.
+ *        Passing NaN or infinity to any of the arguments is undefined behavior.
 */
 constexpr bool nearlyEq(f64 a, f64 b, f64 epsilon) {
     Assert(a == a && b == b && epsilon == epsilon, "NaN is not supported.");

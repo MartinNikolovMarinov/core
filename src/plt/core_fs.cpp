@@ -30,7 +30,7 @@ expected<PltErrCode> fileReadEntire(const char* path, ArrList<u8>& out) {
 
     if (out.len() < size) {
         // Deliberately avoiding zeroing out memory here!
-        auto data = reinterpret_cast<value_type*>(core::alloc(size, sizeof(u8)));
+        auto data = reinterpret_cast<value_type*>(getAllocator(DEFAULT_ALLOCATOR_ID).alloc(size, sizeof(u8)));
         out.reset(&data, size);
     }
 
@@ -75,7 +75,7 @@ core::expected<PltErrCode> fileWriteEntire(const char* path, const core::ArrList
 
 core::expected<PltErrCode> dirDeleteRec(const char* path) {
     using core::StrBuilder;
-    using DirectoryNames = core::ArrList<core::StrBuilder>;
+    using DirectoryNames = core::ArrList<core::StrBuilder<>>;
 
     StrBuilder fileNameTmpSb;
     DirectoryNames dirNames;
@@ -84,7 +84,7 @@ core::expected<PltErrCode> dirDeleteRec(const char* path) {
 
     struct Closure {
         DirectoryNames& dirNames;
-        StrBuilder& fileNameBufferSb;
+        StrBuilder<>& fileNameBufferSb;
         PltErrCode& errCode;
         addr_size idx;
     };

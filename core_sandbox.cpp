@@ -28,32 +28,9 @@ void assertHandler(const char* failedExpr, const char* file, i32 line, const cha
     throw std::runtime_error("Assertion failed!");
 };
 
-using AllocateFn             = void *(*)(addr_size count, addr_size size);
-using ZeroAllocateFn         = void *(*)(addr_size count, addr_size size);
-using FreeFn                 = void (*)(void *ptr, addr_size count, addr_size size);
-using ClearFn                = void (*)();
-using TotalMemoryAllocatedFn = addr_size (*)();
-using InUseMemoryFn          = addr_size (*)();
-
-struct AllocatorContext {
-    AllocateFn alloc;
-    ZeroAllocateFn calloc;
-    FreeFn free;
-    ClearFn clear;
-    TotalMemoryAllocatedFn totalMemoryAllocated;
-    InUseMemoryFn inUseMemory;
-};
-
-AllocatorContext g_registeredAllocators[5];
-
-template <i32 TAllocId>
-inline AllocatorContext& selectAllocator() {
-    return g_registeredAllocators[TAllocId];
-}
-
 template <i32 TAllocId = 0>
 struct Tester {
-    inline static AllocatorContext& allocator = selectAllocator<TAllocId>();
+    inline static core::AllocatorContext& allocator = core::getAllocator(TAllocId);
 
     void* oneByte() {
         return allocator.alloc(1, 1);
@@ -67,38 +44,128 @@ struct Tester {
 };
 
 static_assert(sizeof(Tester<0>) == sizeof(i32), "The allocator must not take any space!");
+static_assert(sizeof(Tester<1>) == sizeof(i32), "The allocator must not take any space!");
+static_assert(sizeof(Tester<2>) == sizeof(i32), "The allocator must not take any space!");
 
-i32 main() {
-    core::initProgramCtx(assertHandler, nullptr);
-
-    g_registeredAllocators[0].alloc = [](addr_size count, addr_size size) {
+struct A0 {
+    void* alloc(addr_size count, addr_size size) {
         void* ret = std::malloc(count * size);
         std::cout << "Called Malloc 0" << std::endl;
         return ret;
-    };
-    g_registeredAllocators[0].free = [](void* ptr, addr_size, addr_size) {
+    }
+
+    void* calloc(addr_size, addr_size) { return nullptr; }
+
+    void free(void* ptr, addr_size, addr_size) {
         std::free(ptr);
         std::cout << "Called Free 0" << std::endl;
-    };
+    }
 
-    g_registeredAllocators[1].alloc = [](addr_size count, addr_size size) {
+    void clear() {}
+
+    addr_size totalMemoryAllocated() { return 0; }
+    addr_size inUseMemory() { return 0; }
+};
+
+struct A1 {
+    void* alloc(addr_size count, addr_size size) {
         void* ret = std::malloc(count * size);
         std::cout << "Called Malloc 1" << std::endl;
         return ret;
-    };
-    g_registeredAllocators[1].free = [](void* ptr, addr_size, addr_size) {
+    }
+
+    void* calloc(addr_size, addr_size) { return nullptr; }
+
+    void free(void* ptr, addr_size, addr_size) {
         std::free(ptr);
         std::cout << "Called Free 1" << std::endl;
-    };
+    }
 
+    void clear() {}
+
+    addr_size totalMemoryAllocated() { return 0; }
+    addr_size inUseMemory() { return 0; }
+};
+
+struct A2 {
+    void* alloc(addr_size count, addr_size size) {
+        void* ret = std::malloc(count * size);
+        std::cout << "Called Malloc 2" << std::endl;
+        return ret;
+    }
+
+    void* calloc(addr_size, addr_size) { return nullptr; }
+
+    void free(void* ptr, addr_size, addr_size) {
+        std::free(ptr);
+        std::cout << "Called Free 2" << std::endl;
+    }
+
+    void clear() {}
+
+    addr_size totalMemoryAllocated() { return 0; }
+    addr_size inUseMemory() { return 0; }
+};
+
+i32 main() {
+    A0 a0;
+    core::initProgramCtx(assertHandler, core::createAllocatorCtx(&a0));
+
+    A1 a1;
+    core::registerAllocator(core::createAllocatorCtx(&a1));
+
+    A2 a2;
+    core::registerAllocator(core::createAllocatorCtx(&a2));
+
+    Tester tester;
+    Tester<0> tester0;
+    Tester<1> tester1;
+    Tester<2> tester2;
+
+    std::cout << "DEFAULT" << std::endl;
     {
-        Tester tester;
         char* byte = reinterpret_cast<char*>(tester.oneByte());
         tester.freeByte(byte);
     }
 
+    std::cout << "ID=0" << std::endl;
     {
-        Tester<1> tester;
+        char* byte = reinterpret_cast<char*>(tester0.oneByte());
+        tester0.freeByte(byte);
+    }
+
+    std::cout << "ID=1" << std::endl;
+    {
+        char* byte = reinterpret_cast<char*>(tester1.oneByte());
+        tester1.freeByte(byte);
+    }
+
+    std::cout << "ID=2" << std::endl;
+    {
+        char* byte = reinterpret_cast<char*>(tester2.oneByte());
+        tester2.freeByte(byte);
+    }
+
+    std::cout << "ID=2" << std::endl;
+    {
+        char* byte = reinterpret_cast<char*>(tester2.oneByte());
+        tester2.freeByte(byte);
+    }
+
+    std::cout << "ID=1" << std::endl;
+    {
+        char* byte = reinterpret_cast<char*>(tester1.oneByte());
+        tester1.freeByte(byte);
+    }
+
+    std::cout << "ID=0" << std::endl;
+    {
+        char* byte = reinterpret_cast<char*>(tester0.oneByte());
+        tester0.freeByte(byte);
+    }
+
+    std::cout << "DEFAULT" << std::endl;
+    {
         char* byte = reinterpret_cast<char*>(tester.oneByte());
         tester.freeByte(byte);
     }

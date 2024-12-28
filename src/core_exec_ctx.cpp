@@ -1,7 +1,7 @@
 #include <core_exec_ctx.h>
 
+#include <core_assert.h>
 #include <core_alloc.h>
-#include <plt/core_threading.h>
 
 namespace core {
 
@@ -10,15 +10,17 @@ namespace {
 AllocatorContext g_defaultAllocatorContext;
 StdAllocator g_defaultStdAllocator;
 
-thread_local AllocatorContext* tl_activeAllocatorContext = nullptr;
+constexpr u32 MAX_REGISTERABLE_ALLOCATORS = 5;
+AllocatorContext g_registeredAllocators[MAX_REGISTERABLE_ALLOCATORS] = {};
+u32 g_registeredAllocatorsCount = 0;
 
 void zeroOutAllocatorContext(AllocatorContext& actx) {
-    actx.alloc = nullptr;
-    actx.calloc = nullptr;
-    actx.free = nullptr;
-    actx.clear = nullptr;
-    actx.totalMemoryAllocated = nullptr;
-    actx.inUseMemory = nullptr;
+    actx.allocFn = nullptr;
+    actx.callocFn = nullptr;
+    actx.freeFn = nullptr;
+    actx.clearFn = nullptr;
+    actx.totalMemoryAllocatedFn = nullptr;
+    actx.inUseMemoryFn = nullptr;
     actx.allocatorData = nullptr;
 }
 
@@ -28,25 +30,26 @@ AllocatorContext::AllocatorContext(void* _allocatorData) {
     zeroOutAllocatorContext(*this);
     allocatorData = _allocatorData;
 }
+
 AllocatorContext::AllocatorContext(AllocatorContext&& other) {
-    alloc = other.alloc;
-    calloc = other.calloc;
-    free = other.free;
-    clear = other.clear;
-    totalMemoryAllocated = other.totalMemoryAllocated;
-    inUseMemory = other.inUseMemory;
+    allocFn = other.allocFn;
+    callocFn = other.callocFn;
+    freeFn = other.freeFn;
+    clearFn = other.clearFn;
+    totalMemoryAllocatedFn = other.totalMemoryAllocatedFn;
+    inUseMemoryFn = other.inUseMemoryFn;
     allocatorData = other.allocatorData;
 
     zeroOutAllocatorContext(other);
 }
 
 AllocatorContext& AllocatorContext::operator=(AllocatorContext&& other) {
-    alloc = other.alloc;
-    calloc = other.calloc;
-    free = other.free;
-    clear = other.clear;
-    totalMemoryAllocated = other.totalMemoryAllocated;
-    inUseMemory = other.inUseMemory;
+    allocFn = other.allocFn;
+    callocFn = other.callocFn;
+    freeFn = other.freeFn;
+    clearFn = other.clearFn;
+    totalMemoryAllocatedFn = other.totalMemoryAllocatedFn;
+    inUseMemoryFn = other.inUseMemoryFn;
     allocatorData = other.allocatorData;
 
     zeroOutAllocatorContext(other);
@@ -54,80 +57,63 @@ AllocatorContext& AllocatorContext::operator=(AllocatorContext&& other) {
     return *this;
 }
 
-// IMPORTANT: The correct time to destory the allocator context seems to be never!
-// void AllocatorContext::destroy() {
-//     if (clear) clear(allocatorData);
-//     zeroOutAllocatorContext(*this);
-// }
+void* AllocatorContext::alloc(addr_size count, addr_size size) {
+    return allocFn(allocatorData, count, size);
+}
 
-void initProgramCtx(GlobalAssertHandlerFn assertHandler,
-                    const AllocatorContext* defaultAllocatorCtx) {
+void* AllocatorContext::zeroAlloc(addr_size count, addr_size size) {
+    return callocFn(allocatorData, count, size);
+}
+
+void AllocatorContext::free(void* ptr, addr_size count, addr_size size) {
+    freeFn(allocatorData, ptr, count, size);
+}
+
+void AllocatorContext::clear() {
+    clearFn(allocatorData);
+}
+
+addr_size AllocatorContext::totalMemoryAllocated() {
+    return totalMemoryAllocatedFn(allocatorData);
+}
+
+addr_size AllocatorContext::inUseMemory() {
+    return inUseMemoryFn(allocatorData);
+}
+
+void initProgramCtx(GlobalAssertHandlerFn assertHandler) {
     core::setGlobalAssertHandler(assertHandler);
+    g_defaultAllocatorContext = createAllocatorCtx(&g_defaultStdAllocator);
+}
 
-    if (defaultAllocatorCtx) {
-        g_defaultAllocatorContext = *defaultAllocatorCtx;
-    }
-    else {
-        g_defaultAllocatorContext = createAllocatorCtx(&g_defaultStdAllocator);
-    }
+void initProgramCtx(GlobalAssertHandlerFn assertHandler, AllocatorContext&& actx) {
+    core::setGlobalAssertHandler(assertHandler);
+    g_defaultAllocatorContext = std::move(actx);
 }
 
 void destroyProgramCtx() {
     core::setGlobalAssertHandler(nullptr);
 }
 
-AllocatorContext* getDefaultAllocatorContext() {
-    return &g_defaultAllocatorContext;
+void registerAllocator(AllocatorContext&& ctx) {
+    Assert(g_registeredAllocatorsCount + 1 < MAX_REGISTERABLE_ALLOCATORS, "Reached the maximum registered allocators count");
+    g_registeredAllocators[g_registeredAllocatorsCount] = std::move(ctx);
+    g_registeredAllocatorsCount++;
 }
 
-void setActiveAllocatorForThread(AllocatorContext* activeContext) {
-    tl_activeAllocatorContext = activeContext;
-}
+AllocatorContext& getAllocator(AllocatorId id) {
+    // IMPORTANT:
+    // If you get a reference to an allocator by some id, MAKE SURE TO REGISTER IT before using it!
+    // This function may be called at static initialization time, before any custom allocators have been registered,
+    // which makes checking `id < g_registeredAllocatorsCount` impossible.
 
-void clearActiveAllocatorForThread() {
-    if (tl_activeAllocatorContext) {
-        tl_activeAllocatorContext->clear(tl_activeAllocatorContext->allocatorData);
+    Assert(id <= MAX_REGISTERABLE_ALLOCATORS, "Reached the maximum registered allocators count");
+
+    if (id == 0) {
+        return g_defaultAllocatorContext;
     }
-}
-
-namespace {
-
-inline AllocatorContext* getActiveAllocatorContext() {
-    if (tl_activeAllocatorContext) {
-        return tl_activeAllocatorContext;
-    }
-    return &g_defaultAllocatorContext;
-}
-
-} // namespace
-
-void* alloc(addr_size count, addr_size size) {
-    auto* actx = getActiveAllocatorContext();
-    void* ret = actx->alloc(actx->allocatorData, count, size);
-    return ret;
-}
-
-void* zeroAlloc(addr_size count, addr_size size) {
-    auto* actx = getActiveAllocatorContext();
-    void* ret = actx->calloc(actx->allocatorData, count, size);
-    return ret;
-}
-
-void free(void* ptr, addr_size count, addr_size size) {
-    auto* actx = getActiveAllocatorContext();
-    actx->free(actx->allocatorData, ptr, count, size);
-}
-
-addr_size totalMemoryAllocated() {
-    auto* actx = getActiveAllocatorContext();
-    addr_size ret = actx->totalMemoryAllocated(actx->allocatorData);
-    return ret;
-}
-
-addr_size inUseMemory() {
-    auto* actx = getActiveAllocatorContext();
-    addr_size ret = actx->inUseMemory(actx->allocatorData);
-    return ret;
+    // the registered allocators have ids offset by one to account for the default allocator.
+    return g_registeredAllocators[id - 1];
 }
 
 } // namespace core

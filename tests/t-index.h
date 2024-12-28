@@ -58,7 +58,7 @@ void runForAllGlobalAllocatorVariants(TCallback cb, i32& retCode) {
         core::AllocatorContext* actx = getAllocatorCtx(AllocatorId::STD_STATS_ALLOCATOR);
         core::setActiveAllocatorForThread(actx);
         defer {
-            actx->clear(actx->allocatorData);
+            actx->clear();
             core::setActiveAllocatorForThread(nullptr);
         };
         TestInfo tInfo = createTestInfo();
@@ -70,7 +70,7 @@ void runForAllGlobalAllocatorVariants(TCallback cb, i32& retCode) {
         core::AllocatorContext* actx = getAllocatorCtx(AllocatorId::BUMP_ALLOCATOR);
         core::setActiveAllocatorForThread(actx);
         defer {
-            actx->clear(actx->allocatorData);
+            actx->clear();
             core::setActiveAllocatorForThread(nullptr);
         };
         TestInfo tInfo = createTestInfo();
@@ -81,7 +81,7 @@ void runForAllGlobalAllocatorVariants(TCallback cb, i32& retCode) {
         core::AllocatorContext* actx = getAllocatorCtx(AllocatorId::ARENA_ALLOCATOR);
         core::setActiveAllocatorForThread(actx);
         defer {
-            actx->clear(actx->allocatorData);
+            actx->clear();
             core::setActiveAllocatorForThread(nullptr);
         };
         TestInfo tInfo = createTestInfo();

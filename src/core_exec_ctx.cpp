@@ -3,6 +3,8 @@
 #include <core_assert.h>
 #include <core_alloc.h>
 
+#include <utility> // std::move aperantly is here.
+
 namespace core {
 
 namespace {

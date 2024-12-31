@@ -52,10 +52,11 @@ bool initLogger(const LoggerCreateInfo& createInfo) {
     return true;
 }
 
-bool addLoggerTag(core::StrView tag) {
-    Panic(tagTranslationTableCount < i32(MAX_NUMBER_OF_TAGS), "Cannot add more tags to the logger.");
+bool setLoggerTag(i32 idx, core::StrView tag) {
     Panic(tag.len() < MAX_TAG_LEN, "Tag is too long.");
-    core::memcopy(tagTranslationTable[tagTranslationTableCount], tag.data(), tag.len());
+    Panic(idx < i32(MAX_NUMBER_OF_TAGS), "Provided Tag index is out of range.");
+    Panic(tagTranslationTable[idx][0] == '\0', "Tag index is already taken.");
+    core::memcopy(tagTranslationTable[idx], tag.data(), tag.len());
     tagTranslationTableCount++;
     return true;
 }
@@ -76,8 +77,9 @@ bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, co
     if (muted) return false;
     if (level < minimumLogLevel) return false;
     if (tagTranslationTableCount > 0) {
+        Panic(tag < MAX_NUMBER_OF_TAGS, "Provided Tag is out of range.");
+        Panic(tagTranslationTable[tag][0] != '\0', "No Tag registered with that index.");
         if (ignoredTagIndices[tag]) return false;
-        Panic(tagTranslationTableCount > tag, "Tag is not in the translation table.");
     }
 
     char* buffer = loggingBuffer;
@@ -96,7 +98,7 @@ bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, co
     // Verify vsnprintf was successful.
     {
         if (n < 0) {
-            Panic(false, "Failed to format log message.\n");
+            Panic(false, "Failed to format log message.");
             return false;
         }
         else if (addr_size(n) >= BUFFER_SIZE) {
@@ -111,7 +113,7 @@ bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, co
             n = vsnprintf(buffer, bufferSize, format, args);
             va_end(args);
 
-            Panic(addr_size(n) != bufferSize - 1, "Failed a sanity check.\n");
+            Panic(addr_size(n) != bufferSize - 1, "Failed a sanity check.");
         }
     }
 

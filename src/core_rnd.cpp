@@ -2,6 +2,7 @@
 
 #include <core_cstr.h>
 #include <core_intrinsics.h>
+#include <plt/core_time.h>
 
 namespace core {
 
@@ -41,8 +42,8 @@ u32 xorShift32(u32 state) {
 }
 
 void rndInit() {
-    seedU64 = core::intrin_getCpuTicks();
-    seedU32 = u32(core::intrin_getCpuTicks());
+    seedU64 = core::getPerfCounter();
+    seedU32 = u32(core::getPerfCounter() ^ seedU64);
 }
 void rndInit(u64 seed64, u32 seed32) {
     seedU64 = seed64;

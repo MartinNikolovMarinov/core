@@ -8,6 +8,7 @@
 #include <core_hash.h>
 #include <core_intrinsics.h>
 #include <core_types.h>
+#include <plt/core_time.h>
 
 #include <iostream>
 #include <chrono>
@@ -157,7 +158,7 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
 
     auto allocatedBefore = info.allocatorContext->totalMemoryAllocated();
     auto inUseBefore = info.allocatorContext->inUseMemory();
-    auto startTicks = core::intrin_getCpuTicks();
+    auto startTicks = core::getPerfCounter();
     auto start = std::chrono::steady_clock::now();
 
     std::cout << "\t[TEST " << "№ " << g_testCount << " RUNNING] " << testName;
@@ -170,7 +171,7 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
 
     auto allocatedAfter = info.allocatorContext->totalMemoryAllocated();
     auto inUseAfter = info.allocatorContext->inUseMemory();
-    auto endTicks = core::intrin_getCpuTicks();
+    auto endTicks = core::getPerfCounter();
     auto end = std::chrono::steady_clock::now();
 
     auto deltaAllocatedMemory = allocatedAfter - allocatedBefore;

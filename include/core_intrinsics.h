@@ -136,8 +136,6 @@ constexpr u32 intrin_numberOfSetBits(TUint n) {
 constexpr u32 intrin_numberOfSetBits(u32 n) { return detail::intrin_numberOfSetBits(n); }
 constexpr u32 intrin_numberOfSetBits(u64 n) { return detail::intrin_numberOfSetBits(n); }
 
-CORE_API_EXPORT u64 intrin_getCpuTicks();
-
 namespace detail {
 
 template<typename TUint>

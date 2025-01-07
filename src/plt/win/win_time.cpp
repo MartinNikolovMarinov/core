@@ -1,6 +1,7 @@
 #include <plt/core_time.h>
 
 #include <windows.h>
+#include <intrin.h> // for __rdtsc
 
 namespace core {
 
@@ -26,6 +27,10 @@ expected<u64, PltErrCode> getCurrentUnixTimestampMs() {
     u64 timeNowMs = timeNowIn100thNanoseconds / 10000;
 
     return timeNowMs;
+}
+
+u64 getPerfCounter() {
+    return __rdtsc();
 }
 
 }

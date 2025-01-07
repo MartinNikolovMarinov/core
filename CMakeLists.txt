@@ -85,7 +85,6 @@ set(core_src
     src/core_assert.cpp
     src/core_exec_ctx.cpp
     src/core_hash.cpp
-    src/core_intrinsics.cpp
     src/core_logger.cpp
     src/core_rnd.cpp
 

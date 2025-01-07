@@ -346,12 +346,6 @@ constexpr i32 numberOfSetBitsTest() {
     return 0;
 }
 
-i32 getCPUTicksTest() {
-    auto res = core::intrin_getCpuTicks();
-    CT_CHECK(res > 0);
-    return 0;
-}
-
 constexpr i32 rotlTest() {
     struct TestCase {
         u32 in; i32 r; u32 expected;
@@ -428,8 +422,6 @@ i32 runIntrinsicsTestsSuite() {
     if (runTest(tInfo, leadingZeroCountTest) != 0) { ret = -1;}
     tInfo.name = FN_NAME_TO_CPTR(numberOfSetBitsTest);
     if (runTest(tInfo, numberOfSetBitsTest) != 0) { ret = -1;}
-    tInfo.name = FN_NAME_TO_CPTR(getCPUTicksTest);
-    if (runTest(tInfo, getCPUTicksTest) != 0) { ret = -1;}
     tInfo.name = FN_NAME_TO_CPTR(rotlTest);
     if (runTest(tInfo, rotlTest) != 0) { ret = -1;}
     tInfo.name = FN_NAME_TO_CPTR(rotrTest);

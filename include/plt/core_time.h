@@ -10,5 +10,6 @@ namespace core {
 using namespace coretypes;
 
 CORE_API_EXPORT expected<u64, PltErrCode> getCurrentUnixTimestampMs();
+CORE_API_EXPORT u64 getPerfCounter();
 
 } // namespace core

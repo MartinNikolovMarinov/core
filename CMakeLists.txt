@@ -129,25 +129,26 @@ elseif(OS STREQUAL "windows")
     )
 endif()
 
+set(AsmMSVCLibBuild OFF)
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
     if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        enable_language(ASM_MASM)
         set(core_src ${core_src}
             src/asm/core_asm_x86_64_msvc.cpp
+        )
+        set(core_src_msvc_asm
             src/asm/msvc_add_no_overflow.asm
             src/asm/msvc_sub_no_overflow.asm
             src/asm/msvc_mul_no_overflow.asm
         )
-
-        # FIXME: Find a way to fix the problem of passing cpp msvc arguments to the asm compiler. This breaks the windows pipeline.
-        set_source_files_properties(
-            src/asm/msvc_add_no_overflow.asm
-            src/asm/msvc_sub_no_overflow.asm
-            src/asm/msvc_mul_no_overflow.asm
+        set_source_files_properties(${core_src_msvc_asm}
             PROPERTIES
-            LANGUAGE ASM_MASM
+                SKIP_PRECOMPILE_HEADERS ON # Projects using PCH via /Yu or /FI flags can sometimes get passed to all files.
+                LANGUAGE ASM_MASM
+                COMPILE_FLAGS "/nologo"
         )
-        enable_language(ASM_MASM)
-        set(CMAKE_ASM_MASM_FLAGS "/nologo")
+        add_library(AsmMSVCLib STATIC ${core_src_msvc_asm})
+        set(AsmMSVCLibBuild ON)
     else()
         set(core_src ${core_src}
             src/asm/core_asm_x86_64.cpp
@@ -170,6 +171,10 @@ if(CORE_LIBRARY_SHARED)
     )
 else()
     add_library(${target_core} STATIC ${core_src})
+endif()
+
+if(AsmMSVCLibBuild)
+    target_link_libraries(${target_core} PRIVATE AsmMSVCLib)
 endif()
 
 # Set Configure File:

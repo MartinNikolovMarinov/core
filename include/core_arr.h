@@ -85,6 +85,9 @@ struct ArrList {
     const value_type* data()    const { return m_data; }
     bool              empty()   const { return m_len == 0; }
 
+    core::Memory<const value_type> memView() const { return { this->data(), this->len() }; };
+    core::Memory<value_type>       mem()           { return { this->data(), this->len() }; };
+
     value_type&       at(size_type idx)               { return m_data[idx]; }
     const value_type& at(size_type idx)         const { return m_data[idx]; }
     value_type&       operator[](size_type idx)       { return at(idx); }
@@ -268,6 +271,9 @@ struct ArrStatic {
     constexpr const value_type* data()    const { return m_data; }
     constexpr bool              empty()   const { return m_len == 0; }
     constexpr void              clear()         { m_len = 0; }
+
+    core::Memory<const value_type> memView() const { return { this->data(), this->len() }; };
+    core::Memory<value_type>       mem()           { return { this->data(), this->len() }; };
 
     constexpr value_type&       at(size_type idx)               { return m_data[idx]; }
     constexpr const value_type& at(size_type idx)         const { return m_data[idx]; }

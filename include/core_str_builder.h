@@ -50,7 +50,7 @@ struct CORE_API_EXPORT StrBuilder {
         m_len = len;
         m_cap = len + 1;
         m_data = reinterpret_cast<value_type*>(allocator.alloc(m_cap, sizeof(value_type)));
-        core::memfill(m_data, m_len, val);
+        core::memset(m_data, val, m_len);
         m_data[m_len] = '\0';
     }
     StrBuilder(const StrView& view) {

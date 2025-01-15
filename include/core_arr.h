@@ -35,7 +35,7 @@ struct ArrList {
         if (m_cap > 0) {
             m_data = reinterpret_cast<value_type *>(allocator.alloc(m_cap, sizeof(value_type)));
             if constexpr (dataIsTrivial) {
-                core::memfill(m_data, m_len, v);
+                core::memset(m_data, v, m_len);
             }
             else {
                 for (size_type i = 0; i < m_len; i++) {

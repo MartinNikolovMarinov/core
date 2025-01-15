@@ -239,6 +239,24 @@ constexpr i32 memsetTest() {
         CT_CHECK(buf[1].x == 1 && buf[1].y == 3.14);
     }
 
+    {
+        struct A {
+            i32 a;
+            u64 b;
+            u8 c;
+        };
+
+        A arr[10] = {};
+
+        core::memset(arr, A{ 1, 2, 3 }, 10);
+
+        for (auto& a : arr) {
+            CT_CHECK(a.a == 1);
+            CT_CHECK(a.b == 2);
+            CT_CHECK(a.c == 3);
+        }
+    }
+
     return 0;
 }
 
@@ -289,26 +307,6 @@ i32 memcmpTest() {
 
     CT_CHECK(core::memcmp(a, c, 4) < 0);
     CT_CHECK(core::memcmp(c, a, 4) > 0);
-
-    return 0;
-}
-
-i32 memfillTest() {
-    struct A {
-        i32 a;
-        u64 b;
-        u8 c;
-    };
-
-    A Arr[10] = {};
-
-    core::memfill(Arr, 10, A{ 1, 2, 3 });
-
-    for (auto& a : Arr) {
-        CT_CHECK(a.a == 1);
-        CT_CHECK(a.b == 2);
-        CT_CHECK(a.c == 3);
-    }
 
     return 0;
 }
@@ -456,8 +454,6 @@ i32 runMemTestsSuite() {
     if (runTest(tInfo, memcmpWithCStrs) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(memcmpTest);
     if (runTest(tInfo, memcmpTest) != 0) { ret = -1; }
-    tInfo.name = FN_NAME_TO_CPTR(memfillTest);
-    if (runTest(tInfo, memfillTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(appendTest);
     if (runTest(tInfo, appendTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(memidxofTest);

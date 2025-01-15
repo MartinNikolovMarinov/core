@@ -23,7 +23,6 @@ template <typename T> constexpr T*       memset(T* dest, const T& v, addr_size l
 template <typename T> i32                memcmp(const T* a, addr_size lena, const T* b, addr_size lenb);
 template <typename T> i32                memcmp(const T* a, const T* b, addr_size len);
 template <typename T> constexpr void     memswap(T* a, T* b, addr_size len);
-template <typename T> void               memfill(T* dest, addr_size dstLen, const T& val);
 template <typename T> addr_off           memidxof(const T* a, addr_size len, const T& val);
                       constexpr addr_off memidxof(const char* a, addr_size len, const char val);
                       constexpr addr_off memidxof(const char* a, addr_size lena, const char* vals, addr_size lenv);
@@ -253,16 +252,6 @@ constexpr void memswap(T* a, T* b, addr_size len) {
     // The below code can byte copy any T.
     if constexpr (!std::is_void_v<T>) len *= sizeof(T);
     detail::memswapImpl(a, b, len);
-}
-
-template <typename T>
-void memfill(T* dest, addr_size dstLen, const T& val) {
-    u8* p = reinterpret_cast<u8*>(dest);
-    const u8* vbytes = reinterpret_cast<const u8*>(&val);
-    addr_size vsize = sizeof(val);
-    for (addr_size i = 0; i < dstLen * vsize; i+=vsize) {
-        core::memcopy(p + i, vbytes, vsize);
-    }
 }
 
 template <typename T> addr_off memidxof(const T* a, addr_size len, const T& val) {

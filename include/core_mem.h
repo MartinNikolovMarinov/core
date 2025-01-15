@@ -11,8 +11,6 @@ namespace core {
 
 using namespace coretypes;
 
-// FIXME: some of these are lazily left non-constexpr. Fix this slop!
-
 template <typename T> constexpr T*       memcopy(T* dest, const T* src, addr_size len);
                       inline void*       memset(void* dest, u8 v, addr_size len);
 template <typename T> constexpr T*       memset(T* dest, const T& v, addr_size len);
@@ -30,7 +28,7 @@ template <typename T> addr_off           memidxof(const T* a, addr_size len, con
                       constexpr addr_size align(addr_size n);
 template <typename T> constexpr T*        append(T* dst, const T& val);
 template <typename T> constexpr void      swap(T& a, T& b);
-                      inline addr_size    ptrDiff(const void* a, const void* b);
+                      inline addr_off     ptrDiff(const void* a, const void* b);
                       inline void*        ptrAdvance(void* ptr, addr_size off);
 
 template <typename T>
@@ -229,6 +227,7 @@ constexpr i32 memcmp(const uchar* a, const uchar* b, addr_size len) {
     return memcmp(a, len, b, len);
 }
 template <typename T> i32 memcmp(const T* a, addr_size lena, const T* b, addr_size lenb) {
+    // TODO2: This can be modified to have a constexpr version, if needed.
     const char* pa = reinterpret_cast<const char*>(a);
     const char* pb = reinterpret_cast<const char*>(b);
     return memcmp(pa, lena, pb, lenb);
@@ -255,6 +254,7 @@ constexpr void memswap(T* a, T* b, addr_size len) {
 }
 
 template <typename T> addr_off memidxof(const T* a, addr_size len, const T& val) {
+    // TODO2: This can be modified to have a constexpr version, if needed.
     return detail::memidxofImpl(a, len, val);
 }
 
@@ -299,11 +299,13 @@ constexpr void swap(T& a, T& b) {
     }
 }
 
-inline addr_size ptrDiff(const void* a, const void* b) {
-    return reinterpret_cast<addr_size>(a) - reinterpret_cast<addr_size>(b);
+inline addr_off ptrDiff(const void* a, const void* b) {
+    // bit casting pointers is not allowed, so reinterpret_cast is needed here.
+    return reinterpret_cast<addr_off>(a) - reinterpret_cast<addr_off>(b);
 }
 
 inline void* ptrAdvance(void* ptr, addr_size off) {
+    // bit casting pointers is not allowed, so reinterpret_cast is needed here.
     return reinterpret_cast<void*>(reinterpret_cast<char*>(ptr) + off);
 }
 

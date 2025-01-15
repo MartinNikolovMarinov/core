@@ -21,7 +21,7 @@ inline void* _alloc(void** currentAddr, const void* startAddr, addr_size cap, co
                     addr_size count, addr_size size) {
     addr_size effectiveSize = count * size;
     effectiveSize = core::align(effectiveSize);
-    if (core::ptrDiff(*currentAddr, startAddr) + effectiveSize > cap) {
+    if (addr_size(core::ptrDiff(*currentAddr, startAddr)) + effectiveSize > cap) {
         if (oomHandler) {
             oomHandler();
         }
@@ -95,7 +95,7 @@ addr_size BumpAllocator::totalMemoryAllocated() {
 }
 
 addr_size BumpAllocator::inUseMemory() {
-    addr_size ret = core::ptrDiff(m_currentAddr, m_startAddr);
+    addr_size ret = addr_size(core::ptrDiff(m_currentAddr, m_startAddr));
     return ret;
 }
 
@@ -133,7 +133,7 @@ addr_size ThreadLocalBumpAllocator::totalMemoryAllocated() {
 }
 
 addr_size ThreadLocalBumpAllocator::inUseMemory() {
-    addr_size ret = core::ptrDiff(tl_currentAddr, tl_startAddr);
+    addr_size ret = addr_size(core::ptrDiff(tl_currentAddr, tl_startAddr));
     return ret;
 }
 

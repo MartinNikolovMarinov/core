@@ -436,6 +436,21 @@ constexpr i32 memidxofTestWithChar() {
     return ret;
 }
 
+i32 ptrDiffTest() {
+    char array[10];
+    char* a = &array[5];
+    char* b = &array[2];
+    {
+        addr_off diff = core::ptrDiff(a, b);
+        CT_CHECK(diff == 3);
+    }
+    {
+        addr_off diff = core::ptrDiff(b, a);
+        CT_CHECK(diff == -3);
+    }
+    return 0;
+}
+
 i32 runMemTestsSuite() {
     using namespace core::testing;
 
@@ -462,7 +477,8 @@ i32 runMemTestsSuite() {
     if (runTest(tInfo, memidxofTestWithCstr) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(memidxofTestWithChar);
     if (runTest(tInfo, memidxofTestWithChar) != 0) { ret = -1; }
-
+    tInfo.name = FN_NAME_TO_CPTR(ptrDiffTest);
+    if (runTest(tInfo, ptrDiffTest) != 0) { ret = -1; }
 
     return ret;
 }

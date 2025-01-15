@@ -28,7 +28,7 @@ inline void* _alloc(ArenaBlock** blocksPtr, addr_size* blockCountPtr, const addr
 
     for (addr_size i = 0; i < blockCount; ++i) {
         void* blockEnd = core::ptrAdvance(blocks[i].begin, blockSize);
-        addr_size freeSpace = core::ptrDiff(blockEnd, blocks[i].curr);
+        addr_size freeSpace = addr_size(core::ptrDiff(blockEnd, blocks[i].curr));
         if (freeSpace >= effectiveSize) {
             // Found a block with enough space
             void* ret = blocks[i].curr;
@@ -97,7 +97,7 @@ constexpr inline addr_size _totalMemoryAllocated(addr_size blockCount, addr_size
 inline addr_size _inUseMemory(ArenaBlock* blocks, addr_size blockCount) {
     addr_size ret = 0;
     for (addr_size i = 0; i < blockCount; ++i) {
-        ret += core::ptrDiff(blocks[i].curr, blocks[i].begin);
+        ret += addr_size(core::ptrDiff(blocks[i].curr, blocks[i].begin));
     }
     return ret;
 }

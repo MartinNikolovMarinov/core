@@ -84,11 +84,11 @@ struct TestPathBuilder {
     }
 
     void resetFilePart() {
-        core::memset(filePart(), 0, filePartLen());
+        core::memset(filePart(), char(0), filePartLen());
     }
 
     void reset() {
-        core::memset(buff, 0, sizeof(buff));
+        core::memset(buff, char(0), sizeof(buff));
         dirPathLen = 0;
     }
 };
@@ -293,7 +293,7 @@ i32 createAndDeleteFileTest() {
     core::FileDesc f;
     TestPathBuilder pb;
 
-    core::memset(pb.buff, 1, 256);
+    core::memset(pb.buff, char(1), 256);
 
     pb.setDirPath(testDirectory);
     pb.setFileName("test.txt");

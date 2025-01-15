@@ -14,8 +14,8 @@ using namespace coretypes;
 // FIXME: some of these are lazily left non-constexpr. Fix this slop!
 
 template <typename T> constexpr T*       memcopy(T* dest, const T* src, addr_size len);
-template <typename T> inline T*          memset(T* dest, u8 v, addr_size len);
-template <typename T> constexpr T*       memset(T* dest, T v, addr_size len);
+                      inline void*       memset(void* dest, u8 v, addr_size len);
+template <typename T> constexpr T*       memset(T* dest, const T& v, addr_size len);
                       constexpr i32      memcmp(const char* a, addr_size lena, const char* b, addr_size lenb);
                       constexpr i32      memcmp(const char* a, const char* b, addr_size len);
                       constexpr i32      memcmp(const uchar* a, addr_size lena, const uchar* b, addr_size lenb);
@@ -117,13 +117,9 @@ inline void* memcopyImpl(void* dest, const void* src, addr_size len) {
 }
 
 inline void* memsetImpl(void* dest, u8 u, addr_size len) {
-    char* pdest = reinterpret_cast<char*>(dest);
-
-    for (addr_size i = 0; i < len; i++) {
-        *pdest++ = static_cast<char>(u);
-    }
-
-    return pdest;
+    // TODO2: [PERFORMANCE] vectorize to acheave better performance.
+    u8* ret = reinterpret_cast<u8*>(std::memset(dest, u, len));
+    return ret + len;
 }
 
 constexpr i32 memcmpImpl(const char* a, addr_size lena, const char* b, addr_size lenb) {
@@ -199,11 +195,22 @@ template <typename T> constexpr T* memcopy(T* dest, const T* src, addr_size len)
     return reinterpret_cast<T*>(detail::memcopyImpl(dest, src, len));
 }
 
-template <typename T> inline T* memset(T* dest, u8 v, addr_size len) {
-    if constexpr (!std::is_void_v<T>) len *= sizeof(T);
-    return reinterpret_cast<T*>(detail::memsetImpl(dest, v, len));
+inline void* memset(void* dest, u8 v, addr_size len) {
+    return detail::memsetImpl(dest, u8(v), len);
 }
-template <typename T> constexpr T* memset(T* dest, T v, addr_size len) {
+
+template <typename T> constexpr T* memset(T* dest, const T& v, addr_size len) {
+    if (len == 0) return dest;
+
+    IS_NOT_CONST_EVALUATED {
+        // In non constexpr context and T-s of size 1 byte prefer using fast memset variant.
+        if constexpr (sizeof(T) == sizeof(u8)) {
+            return reinterpret_cast<T*>(detail::memsetImpl(dest, u8(v), len));
+        }
+    }
+
+    // Fallback for constexpr contexts and types larger than 1 byte.
+    static_assert(std::is_copy_assignable_v<T>);
     for (addr_size i = 0; i < len; i++) {
         *dest++ = v;
     }

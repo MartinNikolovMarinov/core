@@ -192,13 +192,13 @@ constexpr i32 memcopyTest() {
     return 0;
 }
 
-i32 memsetTest() {
+constexpr i32 memsetTest() {
     // Validate sequential calls to set.
     {
         constexpr i32 N = 20;
         for (i32 i = 0; i < N; i++) {
             u8 buf[N] = {};
-            core::memset(buf, 7, addr_size(i)); // set the first i bytes to 7
+            core::memset(buf, u8(7), addr_size(i)); // set the first i bytes to 7
             for (i32 j = 0; j < i; j++) {
                 // CT_CHECK that the first i bytes are 7
                 CT_CHECK(buf[j] == 7);
@@ -213,18 +213,30 @@ i32 memsetTest() {
     // Validate pointer advance after set.
     {
         constexpr addr_size N = 32;
-        char buffer[N] = {};
-        char* ptr = buffer;
+        char buf[N] = {};
+        char* ptr = buf;
 
-        ptr = core::memset(buffer, 'a', N / 2);
+        ptr = core::memset(buf, 'a', N / 2);
         ptr = core::memset(ptr, 'b', N / 2);
 
         for (addr_size i = 0; i < N / 2; i++) {
-            CT_CHECK(buffer[i] == 'a');
+            CT_CHECK(buf[i] == 'a');
         }
         for (addr_size i = N / 2; i < N; i++) {
-            CT_CHECK(buffer[i] == 'b');
+            CT_CHECK(buf[i] == 'b');
         }
+    }
+
+    {
+        struct Complex {
+            int x;
+            f64 y;
+        };
+        Complex buf[2];
+        Complex value = {1, 3.14};
+        core::memset(buf, value, 2);
+        CT_CHECK(buf[0].x == 1 && buf[0].y == 3.14);
+        CT_CHECK(buf[1].x == 1 && buf[1].y == 3.14);
     }
 
     return 0;
@@ -463,6 +475,7 @@ constexpr i32 runCompiletimeMemTestsSuite() {
     RunTestCompileTime(alignTest);
     RunTestCompileTime(memswapTest);
     RunTestCompileTime(memcopyTest);
+    RunTestCompileTime(memsetTest);
     RunTestCompileTime(memcmpWithCStrs);
     RunTestCompileTime(appendTest);
     RunTestCompileTime(memidxofTestWithCstr);

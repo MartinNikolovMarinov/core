@@ -281,7 +281,7 @@ i32 resetAndReleaseStrBuilderTest() {
         size_type cap = 0;
         size_type len = 0;
         value_type* released = sb.release(len, cap);
-        core::memset(released + len, 0, cap - len); // zero out the memory after len.
+        core::memset(released + len, value_type(0), cap - len); // zero out the memory after len.
 
         CT_CHECK(sbIsUninitialized(sb) == 0);
 

@@ -39,7 +39,7 @@ inline void* _calloc(void** currentAddr, const void* startAddr, addr_size cap, c
     if (ret) {
         addr_size effectiveSize = count * size;
         effectiveSize = core::align(effectiveSize);
-        core::memset(ret, 0, effectiveSize);
+        core::memset(reinterpret_cast<u8*>(ret), u8(0), effectiveSize);
     }
     return ret;
 }

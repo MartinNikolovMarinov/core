@@ -6,7 +6,7 @@ namespace core::testing {
 char* elapsedTimeToStr(char out[256], std::chrono::nanoseconds deltaTime) {
     constexpr u32 kBufferSize = 256;
 
-    core::memset(&out[0], 0, kBufferSize);
+    core::memset(reinterpret_cast<u8*>(&out[0]), u8(0), kBufferSize);
 
     if (deltaTime >= std::chrono::hours(1)) {
         i32 hours = i32(std::chrono::duration_cast<std::chrono::hours>(deltaTime).count());
@@ -41,7 +41,7 @@ char* elapsedTimeToStr(char out[256], std::chrono::nanoseconds deltaTime) {
 char* memoryUsedToStr(char out[128], addr_size deltaMemory) {
     constexpr u32 kBufferSize = 128;
 
-    core::memset(&out[0], 0, kBufferSize);
+    core::memset(reinterpret_cast<u8*>(&out[0]), u8(0), kBufferSize);
 
     if (deltaMemory >= 1024 * 1024 * 1024) {
         f64 gb = f64(deltaMemory) / (1024.0 * 1024.0 * 1024.0);

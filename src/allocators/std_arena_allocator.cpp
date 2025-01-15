@@ -74,7 +74,7 @@ inline void* _calloc(ArenaBlock** blocks, addr_size* blockCount, const addr_size
     if (ret) {
         addr_size effectiveSize = size * count;
         effectiveSize = core::align(effectiveSize);
-        core::memset(ret, 0, effectiveSize);
+        core::memset(reinterpret_cast<u8*>(ret), u8(0), effectiveSize);
     }
     return ret;
 }

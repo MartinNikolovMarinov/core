@@ -500,7 +500,7 @@ template <core::AllocatorId TAllocId>
 i32 resetArrayTest() {
     constexpr i32 ALLOCATION_SIZE = 256;
     auto unmanaged = reinterpret_cast<u8*>(core::getAllocator(TAllocId).zeroAlloc(ALLOCATION_SIZE, sizeof(u8)));
-    core::memset(unmanaged, 5, ALLOCATION_SIZE);
+    core::memset(unmanaged, u8(5), ALLOCATION_SIZE);
 
     core::ArrList<u8, TAllocId> arr (5, 10); // the previously allocated also needs to be freed.
     arr.reset(&unmanaged, ALLOCATION_SIZE); // arr becomes the owner and thus must free the memory when it goes out of scope.

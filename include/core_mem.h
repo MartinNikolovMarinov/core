@@ -5,6 +5,8 @@
 #include <core_traits.h>
 #include <core_types.h>
 
+#include <cstring>
+
 namespace core {
 
 using namespace coretypes;
@@ -20,7 +22,7 @@ template <typename T> constexpr T*       memset(T* dest, T v, addr_size len);
                       constexpr i32      memcmp(const uchar* a, const uchar* b, addr_size len);
 template <typename T> i32                memcmp(const T* a, addr_size lena, const T* b, addr_size lenb);
 template <typename T> i32                memcmp(const T* a, const T* b, addr_size len);
-template <typename T> void               memswap(T* a, T* b, addr_size len);
+template <typename T> constexpr void     memswap(T* a, T* b, addr_size len);
 template <typename T> void               memfill(T* dest, addr_size dstLen, const T& val);
 template <typename T> addr_off           memidxof(const T* a, addr_size len, const T& val);
                       constexpr addr_off memidxof(const char* a, addr_size len, const char val);
@@ -109,16 +111,9 @@ struct Memory {
 namespace detail {
 
 inline void* memcopyImpl(void* dest, const void* src, addr_size len) {
-    // TODO2: [PERFORMANCE] William Chan has a good implementation of a fast memcpy.
-
-    char* pdest = reinterpret_cast<char*>(dest);
-    const char* psrc = reinterpret_cast<const char*>(src);
-
-    for (addr_size i = 0; i < len; i++) {
-        *pdest++ = *psrc++;
-    }
-
-    return pdest;
+    // TODO2: [PERFORMANCE] vectorize to acheave better performance.
+    u8* ret = reinterpret_cast<u8*>(std::memcpy(dest, src, len));
+    return ret + len;
 }
 
 inline void* memsetImpl(void* dest, u8 u, addr_size len) {
@@ -153,11 +148,14 @@ constexpr i32 memcmpImpl(const uchar* a, addr_size lena, const uchar* b, addr_si
     else return 0;
 }
 
-template <typename T> void memswapImpl(T* a, T* b, addr_size len) {
+inline void memswapImpl(void* a, void* b, addr_size len) {
     char* pa = reinterpret_cast<char*>(a);
     char* pb = reinterpret_cast<char*>(b);
-    for (addr_size i = 0; i < len; i++) {
-        swap(pa[i], pb[i]);
+
+    for (addr_size i = 0; i < len; ++i) {
+        pa[i] ^= pb[i];
+        pb[i] ^= pa[i];
+        pa[i] ^= pb[i];
     }
 }
 
@@ -200,6 +198,7 @@ template <typename T> constexpr T* memcopy(T* dest, const T* src, addr_size len)
     if constexpr (!std::is_void_v<T>) len *= sizeof(T);
     return reinterpret_cast<T*>(detail::memcopyImpl(dest, src, len));
 }
+
 template <typename T> inline T* memset(T* dest, u8 v, addr_size len) {
     if constexpr (!std::is_void_v<T>) len *= sizeof(T);
     return reinterpret_cast<T*>(detail::memsetImpl(dest, v, len));
@@ -232,8 +231,21 @@ template <typename T> i32 memcmp(const T* a, const T* b, addr_size len) {
     return memcmp(a, len, b, len);
 }
 
-template <typename T> void memswap(T* a, T* b, addr_size len) {
-    return detail::memswapImpl(a, b, len);
+template <typename T>
+constexpr void memswap(T* a, T* b, addr_size len) {
+    if (a == b) return;
+
+    IS_CONST_EVALUATED {
+        // Slow element-wise swapping for constexpr contexts
+        for (addr_size i = 0; i < len; ++i) {
+            swap(a[i], b[i]);
+        }
+        return;
+    }
+
+    // The below code can byte copy any T.
+    if constexpr (!std::is_void_v<T>) len *= sizeof(T);
+    detail::memswapImpl(a, b, len);
 }
 
 template <typename T>
@@ -270,9 +282,25 @@ constexpr T* append(T* dst, const T& val) {
 
 template <typename T>
 constexpr void swap(T& a, T& b) {
-    T tmp = a;
-    a = b;
-    b = tmp;
+    IS_CONST_EVALUATED {
+        if constexpr (std::is_copy_assignable_v<T>) {
+            T tmp = a;
+            a = b;
+            b = tmp;
+            return;
+        }
+    }
+
+    // TODO2: [PERFORMANCE] vectorize to acheave better performance.
+
+    // Byte-wise swap using XOR for runtime context
+    char* pa = reinterpret_cast<char*>(&a);
+    char* pb = reinterpret_cast<char*>(&b);
+    for (std::size_t i = 0; i < sizeof(T); ++i) {
+        pa[i] ^= pb[i];
+        pb[i] ^= pa[i];
+        pa[i] ^= pb[i];
+    }
 }
 
 inline addr_size ptrDiff(const void* a, const void* b) {

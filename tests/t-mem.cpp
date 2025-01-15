@@ -37,7 +37,7 @@ PRAGMA_WARNING_PUSH
 DISABLE_GCC_AND_CLANG_WARNING(-Wconversion)
 DISABLE_MSVC_WARNING(4244)
 
-i32 memswapTest() {
+constexpr i32 memswapTest() {
     auto testCase = [](auto& a, auto& b, addr_size N) {
         for (addr_size i = 0; i < N; ++i) {
             a[i] = i;
@@ -78,7 +78,7 @@ i32 memswapTest() {
 
         A a1 = { core::limitMax<i32>(), core::limitMax<u64>(), core::limitMax<u8>() };
         A a2 = { core::limitMin<i32>(), 0, 0 };
-        core::memswap(&a1, &a2, sizeof(A));
+        core::memswap(&a1, &a2, 1);
         CT_CHECK(a1.a == core::limitMin<i32>());
         CT_CHECK(a1.b == 0);
         CT_CHECK(a1.c == 0);
@@ -95,7 +95,7 @@ i32 memswapTest() {
 
         A a1 = { 1, {2, 3, 4}, 5 };
         A a2 = { 5, {6, 7, 8}, 9 };
-        core::memswap(&a1, &a2, sizeof(A));
+        core::memswap(&a1, &a2, 1);
         CT_CHECK(a1.a == 5);
         CT_CHECK(a1.b[0] == 6);
         CT_CHECK(a1.b[1] == 7);
@@ -113,7 +113,7 @@ i32 memswapTest() {
 
 PRAGMA_WARNING_POP
 
-i32 memcopyTest() {
+constexpr i32 memcopyTest() {
     // Validate sequential calls to copy.
     {
         constexpr i32 N = 20;
@@ -461,6 +461,8 @@ i32 runMemTestsSuite() {
 
 constexpr i32 runCompiletimeMemTestsSuite() {
     RunTestCompileTime(alignTest);
+    RunTestCompileTime(memswapTest);
+    RunTestCompileTime(memcopyTest);
     RunTestCompileTime(memcmpWithCStrs);
     RunTestCompileTime(appendTest);
     RunTestCompileTime(memidxofTestWithCstr);

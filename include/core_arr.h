@@ -222,6 +222,9 @@ struct ArrList {
         m_len += len;
     }
 
+    void push(core::Memory<const value_type> val) { push(val.data(), val.len()); }
+    void push(core::Memory<value_type> val) { push(val.data(), val.len()); }
+
     void remove(size_type idx) {
         m_data[idx].~T();
 
@@ -232,6 +235,34 @@ struct ArrList {
         }
 
         m_len--;
+    }
+
+    void assign(const value_type& val, size_type from, size_type to) {
+        Assert(from >= to, "Invalid range for assign operation.");
+        Assert(from <= m_len, "Invalid range for assign operation.");
+        Assert(to <= m_len, "Invalid range for assign operation.");
+
+        if (to > from) {
+            if constexpr (dataIsTrivial) {
+                core::memset(m_data + from, val, to - from);
+            }
+            else {
+                for (size_type i = from; i < to; i++) {
+                    new (&m_data[i]) T(val);
+                }
+            }
+        }
+    }
+
+    void replaceWith(const value_type& val, size_type count) {
+        if (count > m_len) {
+            // Very slow path.
+            *this = ArrList(count, val);
+        }
+        else {
+            m_len = count;
+            assign(val, 0, m_len);
+        }
     }
 
 private:

@@ -437,7 +437,7 @@ constexpr i32 memidxofTestWithChar() {
 }
 
 i32 ptrDiffTest() {
-    char array[10];
+    char array[10] = {};
     char* a = &array[5];
     char* b = &array[2];
     {

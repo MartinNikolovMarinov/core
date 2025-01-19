@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <core_mem.h>
@@ -275,8 +276,8 @@ private:
 template <typename From, typename To,
           typename = std::enable_if_t<std::is_rvalue_reference_v<From&&>>>
 inline To castFromTo(From&& arr) {
-    using size_type = To::size_type;
-    using value_type = To::value_type;
+    using size_type = typename To::size_type;
+    using value_type = typename To::value_type;
 
     size_type len, cap;
     value_type* data = reinterpret_cast<value_type*>(arr.release(len, cap));

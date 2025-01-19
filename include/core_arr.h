@@ -359,6 +359,10 @@ struct ArrStatic {
         m_len--;
     }
 
+    constexpr void replaceWith(const value_type& val, size_type count) {
+        *this = ArrStatic(count, val);
+    }
+
 private:
     value_type m_data[N];
     size_type m_len;

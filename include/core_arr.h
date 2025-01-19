@@ -14,6 +14,7 @@ using namespace coretypes;
 template <typename T, AllocatorId TAllocId = DEFAULT_ALLOCATOR_ID> struct ArrList;
 template <typename T, addr_size N>                                 struct ArrStatic;
 
+template <typename From, typename To> inline To castFromTo(From arr);
 template<typename ...Args> constexpr auto createArrStatic(Args... args);
 
 template <typename T, AllocatorId TAllocId>
@@ -138,7 +139,7 @@ struct ArrList {
 
     // This is the "I know what I am doing" method. Gives ownership of data to the array. The array's destructor will
     // free it, so if a different allocator was used to allocate the data the results are undefined.
-    void reset(value_type** data, size_type len) {
+    void reset(value_type** data, size_type len, size_type cap) {
         free();
 
         if (data) {
@@ -149,7 +150,7 @@ struct ArrList {
             m_data = nullptr;
         }
 
-        m_cap = len;
+        m_cap = cap;
         m_len = len;
     }
 
@@ -270,6 +271,20 @@ private:
     size_type m_cap;
     size_type m_len;
 };
+
+template <typename From, typename To,
+          typename = std::enable_if_t<std::is_rvalue_reference_v<From&&>>>
+inline To castFromTo(From&& arr) {
+    using size_type = To::size_type;
+    using value_type = To::value_type;
+
+    size_type len, cap;
+    value_type* data = reinterpret_cast<value_type*>(arr.release(len, cap));
+
+    To ret;
+    ret.reset(&data, len, cap);
+    return ret;
+}
 
 template <typename T, addr_size N>
 struct ArrStatic {

@@ -503,7 +503,7 @@ i32 resetArrayTest() {
     core::memset(unmanaged, u8(5), ALLOCATION_SIZE);
 
     core::ArrList<u8, TAllocId> arr (5, 10); // the previously allocated also needs to be freed.
-    arr.reset(&unmanaged, ALLOCATION_SIZE); // arr becomes the owner and thus must free the memory when it goes out of scope.
+    arr.reset(&unmanaged, ALLOCATION_SIZE, ALLOCATION_SIZE); // arr becomes the owner and thus must free the memory when it goes out of scope.
 
     CT_CHECK(arr.len() == ALLOCATION_SIZE);
     CT_CHECK(arr.cap() == ALLOCATION_SIZE);

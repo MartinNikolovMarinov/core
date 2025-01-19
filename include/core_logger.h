@@ -41,6 +41,7 @@ struct LoggerCreateInfo {
 CORE_API_EXPORT bool initLogger(const LoggerCreateInfo& createInfo);
 CORE_API_EXPORT bool setLoggerTag(i32 idx, core::StrView tag);
 CORE_API_EXPORT void setLoggerLevel(LogLevel level);
+CORE_API_EXPORT LogLevel getLogLevel();
 CORE_API_EXPORT void muteLogger(bool mute);
 CORE_API_EXPORT void useAnsiInLogger(bool use);
 

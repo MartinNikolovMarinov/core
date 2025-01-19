@@ -31,7 +31,7 @@ expected<PltErrCode> fileReadEntire(const char* path, ArrList<u8>& out) {
     if (out.len() < size) {
         // Deliberately avoiding zeroing out memory here!
         auto data = reinterpret_cast<value_type*>(getAllocator(DEFAULT_ALLOCATOR_ID).alloc(size, sizeof(u8)));
-        out.reset(&data, size);
+        out.reset(&data, size, size);
     }
 
     {

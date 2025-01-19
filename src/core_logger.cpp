@@ -65,6 +65,10 @@ void setLoggerLevel(LogLevel level) {
     minimumLogLevel = level;
 }
 
+LogLevel getLogLevel() {
+    return minimumLogLevel;
+}
+
 void muteLogger(bool mute) {
     muted = mute;
 }

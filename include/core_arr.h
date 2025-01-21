@@ -240,7 +240,7 @@ struct ArrList {
     }
 
     void assign(const value_type& val, size_type from, size_type to) {
-        Assert(from >= to, "Invalid range for assign operation.");
+        Assert(from <= to, "Invalid range for assign operation.");
         Assert(from <= m_len, "Invalid range for assign operation.");
         Assert(to <= m_len, "Invalid range for assign operation.");
 
@@ -357,6 +357,14 @@ struct ArrStatic {
         }
 
         m_len--;
+    }
+
+    constexpr void assign(const value_type& val, size_type from, size_type to) {
+        if (to > from) {
+            for (size_type i = from; i < to; i++) {
+                m_data[i] = val;
+            }
+        }
     }
 
     constexpr void replaceWith(const value_type& val, size_type count) {

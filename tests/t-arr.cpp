@@ -402,7 +402,7 @@ i32 arrayOfArraysArrTest() {
 }
 
 template <core::AllocatorId TAllocId>
-i32 clearArrayShouldCallDtorsTest() {
+i32 clearArrShouldCallDtorsTest() {
     using CT = core::testing::CT;
 
     defer { CT::resetAll(); };
@@ -428,7 +428,7 @@ i32 clearArrayShouldCallDtorsTest() {
 }
 
 template <core::AllocatorId TAllocId>
-i32 removeFromArrayTest() {
+i32 removeFromArrTest() {
     using CT = core::testing::CT;
 
     {
@@ -497,7 +497,7 @@ i32 removeFromArrayTest() {
 }
 
 template <core::AllocatorId TAllocId>
-i32 resetArrayTest() {
+i32 resetArrTest() {
     constexpr i32 ALLOCATION_SIZE = 256;
     auto unmanaged = reinterpret_cast<u8*>(core::getAllocator(TAllocId).zeroAlloc(ALLOCATION_SIZE, sizeof(u8)));
     core::memset(unmanaged, u8(5), ALLOCATION_SIZE);
@@ -518,7 +518,7 @@ i32 resetArrayTest() {
 }
 
 template <core::AllocatorId TAllocId>
-i32 releaseArrayTest() {
+i32 releaseArrTest() {
     core::ArrList<u8, TAllocId> arr (15, 123);
 
     addr_size l = 0, c = 0;
@@ -532,6 +532,47 @@ i32 releaseArrayTest() {
 
     // There should be a memory leak if the released data is not freed!
     core::getAllocator(TAllocId).free(data, c, sizeof(u8));
+
+    return 0;
+}
+
+template <core::AllocatorId TAllocId>
+i32 assignArrTest() {
+    constexpr addr_size N = 15;
+    core::ArrList<u8, TAllocId> arr (N, 0);
+
+    for (addr_size i = 0; i < N; i++) {
+        arr.assign(u8(1), 0, i);
+        for (addr_size j = 0; j < i; j++) {
+            CT_CHECK(arr[j] == 1);
+        }
+        arr.replaceWith(0, N);
+
+        arr.assign(u8(1), i, N);
+        for (addr_size j = i; j < N; j++) {
+            CT_CHECK(arr[j] == 1);
+        }
+        arr.replaceWith(0, N);
+    }
+
+    return 0;
+}
+
+template <core::AllocatorId TAllocId>
+i32 replaceWithArrTest() {
+    constexpr addr_size N = 15;
+    core::ArrList<u8, TAllocId> arr;
+
+    arr.replaceWith(7, 8);
+    for (addr_size i = 0; i < 8; i++) CT_CHECK(arr[i] == 7);
+
+    arr.replaceWith(9, N);
+    for (addr_size i = 0; i < N; i++) CT_CHECK(arr[i] == 9);
+
+    arr.replaceWith(0, N);
+    for (addr_size i = 0; i < N; i++) CT_CHECK(arr[i] == 0);
+
+    arr.replaceWith(0, 0); // should not crash
 
     return 0;
 }
@@ -552,14 +593,18 @@ i32 runTests() {
     if (runTest(tInfo, pushIntoArrTests<TAllocId>) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(arrayOfArraysArrTest);
     if (runTest(tInfo, arrayOfArraysArrTest<TAllocId>) != 0) { return -1; }
-    tInfo.name = FN_NAME_TO_CPTR(clearArrayShouldCallDtorsTest);
-    if (runTest(tInfo, clearArrayShouldCallDtorsTest<TAllocId>) != 0) { return -1; }
-    tInfo.name = FN_NAME_TO_CPTR(removeFromArrayTest);
-    if (runTest(tInfo, removeFromArrayTest<TAllocId>) != 0) { return -1; }
-    tInfo.name = FN_NAME_TO_CPTR(resetArrayTest);
-    if (runTest(tInfo, resetArrayTest<TAllocId>) != 0) { return -1; }
-    tInfo.name = FN_NAME_TO_CPTR(releaseArrayTest);
-    if (runTest(tInfo, releaseArrayTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(clearArrShouldCallDtorsTest);
+    if (runTest(tInfo, clearArrShouldCallDtorsTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(removeFromArrTest);
+    if (runTest(tInfo, removeFromArrTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(resetArrTest);
+    if (runTest(tInfo, resetArrTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(releaseArrTest);
+    if (runTest(tInfo, releaseArrTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(assignArrTest);
+    if (runTest(tInfo, assignArrTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(replaceWithArrTest<TAllocId>);
+    if (runTest(tInfo, replaceWithArrTest<TAllocId>) != 0) { return -1; }
 
     return 0;
 };

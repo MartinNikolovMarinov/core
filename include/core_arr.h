@@ -15,8 +15,23 @@ using namespace coretypes;
 template <typename T, AllocatorId TAllocId = DEFAULT_ALLOCATOR_ID> struct ArrList;
 template <typename T, addr_size N>                                 struct ArrStatic;
 
-template <typename From, typename To> inline To castFromTo(From arr);
 template<typename ...Args> constexpr auto createArrStatic(Args... args);
+
+template <typename From, typename To,
+          typename = std::enable_if_t<std::is_rvalue_reference_v<From&&>>>
+inline void reinterpretArrList(To& to, From&& from) {
+    static_assert(sizeof(From) == sizeof(To), "sizeof From and To types should be the same");
+    static_assert(sizeof(typename From::size_type) == sizeof(typename To::size_type), "size types for From and To should match");
+
+    using size_type = typename To::size_type;
+    using value_type = typename To::value_type;
+
+    size_type len, cap;
+    value_type* data = reinterpret_cast<value_type*>(from.release(len, cap));
+    to.reset(&data, len, cap);
+}
+
+#define CORE_C_ARRLEN(x) sizeof(x) / sizeof(x[0])
 
 template <typename T, AllocatorId TAllocId>
 struct ArrList {
@@ -272,20 +287,6 @@ private:
     size_type m_cap;
     size_type m_len;
 };
-
-template <typename From, typename To,
-          typename = std::enable_if_t<std::is_rvalue_reference_v<From&&>>>
-inline To castFromTo(From&& arr) {
-    using size_type = typename To::size_type;
-    using value_type = typename To::value_type;
-
-    size_type len, cap;
-    value_type* data = reinterpret_cast<value_type*>(arr.release(len, cap));
-
-    To ret;
-    ret.reset(&data, len, cap);
-    return ret;
-}
 
 template <typename T, addr_size N>
 struct ArrStatic {

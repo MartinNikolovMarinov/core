@@ -673,13 +673,13 @@ i32 basicListDirectoryContentsTest() {
         "test1.txt",
         "test2.txt",
     };
-    constexpr addr_size basicFileNamesLen = sizeof(basicFileNames) / sizeof(basicFileNames[0]);
+    constexpr addr_size basicFileNamesLen = CORE_C_ARRLEN(basicFileNames);
 
     const char* basicDirNames[] = {
         "test_sub_directory_0",
         "test_sub_directory_1",
     };
-    constexpr addr_size basicDirNamesLen = sizeof(basicDirNames) / sizeof(basicDirNames[0]);
+    constexpr addr_size basicDirNamesLen = CORE_C_ARRLEN(basicDirNames);
 
     // Create directory
     {

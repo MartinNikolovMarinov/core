@@ -35,8 +35,6 @@ template <typename T>
 struct Memory {
     using size_type = addr_size;
 
-    // FIXME: I should test this struct. Especially the slice boundary checking.
-
     constexpr Memory() : ptr(nullptr), length(0) {}
     constexpr Memory(T* _ptr, size_type _len) : ptr(_ptr), length(_len) {}
     constexpr Memory(const Memory&) = default;
@@ -230,7 +228,7 @@ template <typename T> i32 memcmp(const T* a, addr_size lena, const T* b, addr_si
     // TODO2: This can be modified to have a constexpr version, if needed.
     const char* pa = reinterpret_cast<const char*>(a);
     const char* pb = reinterpret_cast<const char*>(b);
-    return memcmp(pa, lena, pb, lenb);
+    return memcmp(pa, lena * sizeof(T), pb, lenb * sizeof(T));
 }
 template <typename T> i32 memcmp(const T* a, const T* b, addr_size len) {
     return memcmp(a, len, b, len);

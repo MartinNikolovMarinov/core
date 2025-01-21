@@ -334,11 +334,11 @@ i32 memidxofTest() {
     };
 
     const i32 a1[] = {1};
-    constexpr addr_size a1Len = sizeof(a1) / sizeof(a1[0]);
+    constexpr addr_size a1Len = CORE_C_ARRLEN(a1);
     const i32 a2[] = {core::limitMin<i32>(), 0, core::limitMax<i32>()};
-    constexpr addr_size a2Len = sizeof(a2) / sizeof(a2[0]);
+    constexpr addr_size a2Len = CORE_C_ARRLEN(a2);
     const i32 a3[] = {core::limitMin<i32>(), 0, core::limitMax<i32>(), core::limitMax<i32>() / 2};
-    constexpr addr_size a3Len = sizeof(a3) / sizeof(a3[0]);
+    constexpr addr_size a3Len = CORE_C_ARRLEN(a3);
 
     TestCase cases[] = {
         { {}, 0, 0, -1 },
@@ -451,6 +451,90 @@ i32 ptrDiffTest() {
     return 0;
 }
 
+i32 ptrAdvanceTest() {
+    char arr[] = { 'a', 'b', 'c', 'd', 'e' };
+    constexpr addr_size N = CORE_C_ARRLEN(arr);
+
+    for (addr_size i = 0; i < N; i++) {
+        void* a = reinterpret_cast<void*>(&arr[0]);
+        a = core::ptrAdvance(a, i * sizeof(char));
+        CT_CHECK(reinterpret_cast<char*>(a)[0] == arr[i]);
+    }
+
+    return 0;
+}
+
+constexpr i32 memoryTests() {
+    // Test basic functions
+    {
+        i32 arr[] = {1, 2, 3, 4, 5};
+        addr_size N = CORE_C_ARRLEN(arr);
+        core::Memory<i32> m(arr, N);
+        CT_CHECK(m.len() == N);
+        for (addr_size i = 0; i < N; i++) {
+            CT_CHECK(m[i] == arr[i]);
+            CT_CHECK(m.at(i) != nullptr && *m.at(i) == arr[i]);
+        }
+    }
+
+    // Test slice()
+    {
+        i32 arr[] = {1, 2, 3, 4, 5};
+        core::Memory<i32> m(arr, 5);
+
+        auto s1 = m.slice(2);
+        CT_CHECK(s1.data() == arr + 2);
+        CT_CHECK(s1.len() == 3);
+
+        auto s2 = m.slice(2, 2);
+        CT_CHECK(s2.data() == arr + 2);
+        CT_CHECK(s2.len() == 2);
+
+        for (addr_size i = 0; i < m.len(); i++) {
+            {
+                auto s = m.slice(0, i);
+                for (addr_size j = 0; j < i; j++) {
+                    CT_CHECK(s[j] == arr[j]);
+                }
+            }
+            {
+                auto s = m.slice(i, m.len() - i);
+                for (addr_size j = 0; j < s.len(); j++) {
+                    CT_CHECK(s[j] == arr[j + i]);
+                }
+            }
+        }
+    }
+
+    // Test eq() and cmp()
+    {
+        i32 arr1[] = {1, 2, 3};
+        i32 arr2[] = {1, 2, 3};
+        i32 arr3[] = {1, 2, 4};
+
+        core::Memory<i32> m1(arr1, 3);
+        core::Memory<i32> m2(arr2, 3);
+        core::Memory<i32> m3(arr3, 3);
+
+        CT_CHECK(m1.eq(m2));
+        CT_CHECK(!m1.eq(m3));
+        CT_CHECK(m1.cmp(m3) < 0);
+        CT_CHECK(m3.cmp(m1) > 0);
+    }
+
+    // Test contains()
+    {
+        i32 arr[] = { 1, 2, 3, 4, 5 };
+        core::Memory<i32> m(arr, 4);
+
+        CT_CHECK(m.contains(1));
+        CT_CHECK(m.contains(4));
+        CT_CHECK(!m.contains(5));
+    }
+
+    return 0;
+}
+
 i32 runMemTestsSuite() {
     using namespace core::testing;
 
@@ -479,6 +563,10 @@ i32 runMemTestsSuite() {
     if (runTest(tInfo, memidxofTestWithChar) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(ptrDiffTest);
     if (runTest(tInfo, ptrDiffTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(ptrAdvanceTest);
+    if (runTest(tInfo, ptrAdvanceTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(memoryTests);
+    if (runTest(tInfo, memoryTests) != 0) { ret = -1; }
 
     return ret;
 }

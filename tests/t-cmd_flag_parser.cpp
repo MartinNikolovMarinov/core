@@ -9,7 +9,7 @@ const char* __cmd_flag_test_input_1[] = {
     "--bb",
     "--zz"
 };
-constexpr addr_size __cmd_flag_test_input_1_len = sizeof(__cmd_flag_test_input_1) / sizeof(__cmd_flag_test_input_1[0]);
+constexpr addr_size __cmd_flag_test_input_1_len = CORE_C_ARRLEN(__cmd_flag_test_input_1);
 
 const char* __cmd_flag_test_input_2[] = {
     "name_of_program",
@@ -38,7 +38,7 @@ const char* __cmd_flag_test_input_2[] = {
     "-float64-7", "-1.2",
     "-float64-8", "00012.000005",
 };
-constexpr addr_size __cmd_flag_test_input_2_len = sizeof(__cmd_flag_test_input_2) / sizeof(__cmd_flag_test_input_2[0]);
+constexpr addr_size __cmd_flag_test_input_2_len = CORE_C_ARRLEN(__cmd_flag_test_input_2);
 
 const char* __cmd_flag_test_input_3[] = {
     "name_of_program",
@@ -64,7 +64,7 @@ const char* __cmd_flag_test_input_3[] = {
     "-float64-5", "-1.2",
     "-float64-6", "00012.000005  ",
 };
-constexpr addr_size __cmd_flag_test_input_3_len = sizeof(__cmd_flag_test_input_3) / sizeof(__cmd_flag_test_input_3[0]);
+constexpr addr_size __cmd_flag_test_input_3_len = CORE_C_ARRLEN(__cmd_flag_test_input_3);
 
 i32 cmdFlagParserSymbolParsingTest() {
     using CmdFlagParser = core::CmdFlagParser;
@@ -340,21 +340,21 @@ i32 cmdFlagParserBasicErrorsTest() {
     }
     {
         const char* input[] = { nullptr };
-        constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+        constexpr addr_size len = CORE_C_ARRLEN(input);
         auto ret = parser.parse(len, input);
         CT_CHECK(ret.hasErr());
         CT_CHECK(ret.err() == CmdFlagParser::ParseError::InvalidArgvElement);
     }
     {
         const char* input[] = { "a", "asd", nullptr };
-        constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+        constexpr addr_size len = CORE_C_ARRLEN(input);
         auto ret = parser.parse(len, input);
         CT_CHECK(ret.hasErr());
         CT_CHECK(ret.err() == CmdFlagParser::ParseError::InvalidArgvElement);
     }
     {
         const char* input[] = { "a", "-a", nullptr };
-        constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+        constexpr addr_size len = CORE_C_ARRLEN(input);
         auto ret = parser.parse(len, input);
         CT_CHECK(ret.hasErr());
         CT_CHECK(ret.err() == CmdFlagParser::ParseError::InvalidArgvElement);
@@ -362,7 +362,7 @@ i32 cmdFlagParserBasicErrorsTest() {
     {
         // Values must be associated with flags not options.
         const char* input[] = { "a", "--b", "c" };
-        constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+        constexpr addr_size len = CORE_C_ARRLEN(input);
         auto ret = parser.parse(len, input);
         CT_CHECK(ret.hasErr());
         CT_CHECK(ret.err() == CmdFlagParser::ParseError::IncorrectValue);
@@ -370,7 +370,7 @@ i32 cmdFlagParserBasicErrorsTest() {
     {
         // Multiple values for a single flag are not allowed.
         const char* input[] = { "a", "-b", "c", "d", "--f" };
-        constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+        constexpr addr_size len = CORE_C_ARRLEN(input);
         auto ret = parser.parse(len, input);
         CT_CHECK(ret.hasErr());
         CT_CHECK(ret.err() == CmdFlagParser::ParseError::IncorrectValue);
@@ -378,7 +378,7 @@ i32 cmdFlagParserBasicErrorsTest() {
     {
         // Dangling flag.
         const char* input[] = { "a", "-b", "c", "-d" };
-        constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+        constexpr addr_size len = CORE_C_ARRLEN(input);
         auto ret = parser.parse(len, input);
         CT_CHECK(ret.hasErr());
         CT_CHECK(ret.err() == CmdFlagParser::ParseError::FlagWithoutValue);
@@ -386,7 +386,7 @@ i32 cmdFlagParserBasicErrorsTest() {
     {
         // Dangling flag.
         const char* input[] = { "a", "-b" };
-        constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+        constexpr addr_size len = CORE_C_ARRLEN(input);
         auto ret = parser.parse(len, input);
         CT_CHECK(ret.hasErr());
         CT_CHECK(ret.err() == CmdFlagParser::ParseError::FlagWithoutValue);
@@ -519,7 +519,7 @@ i32 cmdFlagParserMatchingEdgecasesTest() {
 
         {
             const char* input[] = { "exe", "-int32 5", "8" };
-            constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+            constexpr addr_size len = CORE_C_ARRLEN(input);
             auto ret = parser.parse(len, input);
             CT_CHECK(!ret.hasErr());
         }
@@ -536,7 +536,7 @@ i32 cmdFlagParserMatchingEdgecasesTest() {
 
         {
             const char* input[] = { "exe", "-int32", "8" };
-            constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+            constexpr addr_size len = CORE_C_ARRLEN(input);
             auto ret = parser.parse(len, input);
             CT_CHECK(!ret.hasErr());
         }
@@ -564,7 +564,7 @@ i32 cmdFlagParserMatchingEdgecasesTest() {
 
         {
             const char* input[] = { "exe", "-int64", "8" };
-            constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+            constexpr addr_size len = CORE_C_ARRLEN(input);
             auto ret = parser.parse(len, input);
             CT_CHECK(!ret.hasErr());
         }
@@ -575,7 +575,7 @@ i32 cmdFlagParserMatchingEdgecasesTest() {
         }
         {
             const char* input[] = { "exe", "-int32", "8" };
-            constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+            constexpr addr_size len = CORE_C_ARRLEN(input);
             auto ret = parser.parse(len, input);
             CT_CHECK(!ret.hasErr());
         }
@@ -591,7 +591,7 @@ i32 cmdFlagParserMatchingEdgecasesTest() {
 
         {
             const char* input[] = { "exe", "-int32", "8", "-int64", "8" };
-            constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+            constexpr addr_size len = CORE_C_ARRLEN(input);
             auto ret = parser.parse(len, input);
             CT_CHECK(!ret.hasErr());
         }
@@ -631,13 +631,13 @@ i32 cmdParserValidationRulesTest() {
 
     {
         const char* input[] = { "exe", "-a", "1", "-b", "5" };
-        constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+        constexpr addr_size len = CORE_C_ARRLEN(input);
         Expect(parser.parse(len, input));
         Expect(parser.matchFlags());
     }
     {
         const char* input[] = { "exe", "-a", "0", "-b", "5" };
-        constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+        constexpr addr_size len = CORE_C_ARRLEN(input);
         Expect(parser.parse(len, input));
         auto res = parser.matchFlags();
         CT_CHECK(res.hasErr());
@@ -645,13 +645,13 @@ i32 cmdParserValidationRulesTest() {
     }
     {
         const char* input[] = { "exe", "-a", "1", "-b", "10" };
-        constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+        constexpr addr_size len = CORE_C_ARRLEN(input);
         Expect(parser.parse(len, input));
         Expect(parser.matchFlags());
     }
     {
         const char* input[] = { "exe", "-a", "0", "-b", "11" };
-        constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+        constexpr addr_size len = CORE_C_ARRLEN(input);
         Expect(parser.parse(len, input));
         auto res = parser.matchFlags();
         CT_CHECK(res.hasErr());
@@ -659,13 +659,13 @@ i32 cmdParserValidationRulesTest() {
     }
     {
         const char* input[] = { "exe", "-a", "1", "-b", "10" };
-        constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+        constexpr addr_size len = CORE_C_ARRLEN(input);
         Expect(parser.parse(len, input));
         Expect(parser.matchFlags());
     }
     {
         const char* input[] = { "bin", "-a", "1" }; // b is not required, the custom validator should not fail this case!
-        constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+        constexpr addr_size len = CORE_C_ARRLEN(input);
         Expect(parser.parse(len, input));
         Expect(parser.matchFlags());
     }
@@ -689,7 +689,7 @@ i32 cmdParserAliasTest() {
         parser.alias(core::sv("full_name_2"), core::sv("b"));
 
         const char* input[] = { "bin", "-a", "1", "-b", "true" };
-        constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+        constexpr addr_size len = CORE_C_ARRLEN(input);
         Expect(parser.parse(len, input));
         Expect(parser.matchFlags());
 
@@ -708,7 +708,7 @@ i32 cmdParserAliasTest() {
         parser.alias(core::sv("full_name"), core::sv("b"));
 
         const char* input[] = { "bin", "-a", "value", "-b", "override" };
-        constexpr addr_size len = sizeof(input) / sizeof(input[0]);
+        constexpr addr_size len = CORE_C_ARRLEN(input);
         Expect(parser.parse(len, input));
         Expect(parser.matchFlags());
 

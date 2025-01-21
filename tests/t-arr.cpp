@@ -578,6 +578,23 @@ i32 replaceWithArrTest() {
 }
 
 template <core::AllocatorId TAllocId>
+i32 reinterpretArrTest() {
+    constexpr addr_size N = 17;
+    core::ArrList<u8, TAllocId> arr1(N, u8('a'));
+    core::ArrList<char, TAllocId> arr2;
+    core::reinterpretArrList(arr2, std::move(arr1));
+
+    // Data was moved not copied!
+    CT_CHECK(arr1.len() == 0);
+    CT_CHECK(arr1.cap() == 0);
+    CT_CHECK(arr1.data() == nullptr);
+
+    for (addr_size i = 0; i < N; i++) CT_CHECK(i32('a') == i32(arr2[i]));
+
+    return 0;
+}
+
+template <core::AllocatorId TAllocId>
 i32 runTests() {
     using namespace core::testing;
 
@@ -605,6 +622,8 @@ i32 runTests() {
     if (runTest(tInfo, assignArrTest<TAllocId>) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(replaceWithArrTest<TAllocId>);
     if (runTest(tInfo, replaceWithArrTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(reinterpretArrTest<TAllocId>);
+    if (runTest(tInfo, reinterpretArrTest<TAllocId>) != 0) { return -1; }
 
     return 0;
 };

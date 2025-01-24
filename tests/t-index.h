@@ -31,7 +31,6 @@ enum RegisteredAllocators : core::AllocatorId {
 
 constexpr inline core::testing::TestInfo createTestInfo() {
     core::testing::TestInfo tInfo = {};
-    tInfo.trackTicks = true;
     tInfo.trackTime = true;
     tInfo.trackMemory = false;
     tInfo.detectLeaks = false;

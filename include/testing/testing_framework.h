@@ -11,7 +11,6 @@
 #include <plt/core_time.h>
 
 #include <iostream>
-#include <chrono>
 
 namespace core::testing {
 
@@ -120,7 +119,7 @@ template <addr_size PLen, typename TCase, addr_size NCases, typename Afunc>
 
 inline i32 g_testCount = 0;
 
-CORE_API_EXPORT char* elapsedTimeToStr(char out[256], std::chrono::nanoseconds deltaTime);
+CORE_API_EXPORT char* elapsedTimeToStr(char out[256], u64 deltaTimeNs);
 CORE_API_EXPORT char* memoryUsedToStr(char out[128], addr_size deltaMemory);
 
 struct TestInfo {
@@ -130,7 +129,6 @@ struct TestInfo {
     bool useAnsiColors = true;
     bool trackMemory = true;
     bool trackTime = true;
-    bool trackTicks = true;
     bool detectLeaks = false;
 
     TestInfo() = default;
@@ -158,8 +156,7 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
 
     auto allocatedBefore = info.allocatorContext->totalMemoryAllocated();
     auto inUseBefore = info.allocatorContext->inUseMemory();
-    auto startTicks = core::getPerfCounter();
-    auto start = std::chrono::steady_clock::now();
+    auto start = core::getPerfCounter();
 
     std::cout << "\t[TEST " << "№ " << g_testCount << " RUNNING] " << testName;
     if (info.description) {
@@ -171,12 +168,10 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
 
     auto allocatedAfter = info.allocatorContext->totalMemoryAllocated();
     auto inUseAfter = info.allocatorContext->inUseMemory();
-    auto endTicks = core::getPerfCounter();
-    auto end = std::chrono::steady_clock::now();
+    auto end = core::getPerfCounter();
 
     auto deltaAllocatedMemory = allocatedAfter - allocatedBefore;
     auto deltaInUseMemory = inUseAfter - inUseBefore;
-    auto deltaTicks = endTicks - startTicks;
     auto deltaTimeNs = end - start;
 
     std::cout << "\t[TEST " << "№ " << g_testCount << " "
@@ -205,13 +200,6 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
         isFirst = false;
     }
 
-    if (info.trackTicks) {
-        if (isFirst) std::cout << " [ ";
-        else std::cout << ", ";
-        std::cout << "ticks: " << deltaTicks;
-        isFirst = false;
-    }
-
     if (info.trackMemory) {
         char buff[256];
         if (isFirst) std::cout << " [ ";
@@ -232,6 +220,7 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
 struct TestSuiteInfo {
     const char* name = nullptr;
     bool useAnsiColors = true;
+    bool trackTime = true;
 
     TestSuiteInfo() = default;
     TestSuiteInfo(const char* _name) : name(_name), useAnsiColors(true) {}
@@ -240,14 +229,30 @@ struct TestSuiteInfo {
 
 template <typename TSuite>
 i32 runTestSuite(const TestSuiteInfo& info, TSuite suite) {
-
     const char* suiteName = info.name;
     bool useAnsiColors = info.useAnsiColors;
+    auto start = core::getPerfCounter();
 
     std::cout << "[SUITE RUNNING] " << suiteName << std::endl;
     i32 returnCode = suite();
 
-    std::cout << "[SUITE " << detail::passedOrFailedStr(returnCode == 0, useAnsiColors) << "] " << suiteName << std::endl;
+    std::cout << "[SUITE " << detail::passedOrFailedStr(returnCode == 0, useAnsiColors) << "] " << suiteName;
+
+    bool isFirst = true;
+    auto end = core::getPerfCounter();
+    auto deltaTimeNs = end - start;
+
+    if (info.trackTime) {
+        char elapsedTimeBuffer[256];
+        if (isFirst) std::cout << " [ ";
+        else std::cout << ", ";
+        std::cout << "time: " << elapsedTimeToStr(elapsedTimeBuffer, deltaTimeNs);
+        isFirst = false;
+    }
+
+    if (!isFirst) std::cout << " ]";
+
+    std::cout << std::endl;
     return returnCode;
 }
 

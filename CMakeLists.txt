@@ -108,6 +108,7 @@ if(OS STREQUAL "linux")
         src/plt/unix/unix_pages.cpp
         src/plt/unix/unix_fs.cpp
         src/plt/unix/unix_stacktrace.cpp
+        src/plt/unix/unix_process.cpp
     )
 elseif(OS STREQUAL "darwin")
     set(core_src ${core_src}
@@ -117,6 +118,7 @@ elseif(OS STREQUAL "darwin")
         src/plt/unix/unix_pages.cpp
         src/plt/unix/unix_fs.cpp
         src/plt/unix/unix_stacktrace.cpp
+        src/plt/unix/unix_process.cpp>
     )
 elseif(OS STREQUAL "windows")
     set(core_src ${core_src}
@@ -126,6 +128,7 @@ elseif(OS STREQUAL "windows")
         src/plt/win/win_pages.cpp
         src/plt/win/win_fs.cpp
         src/plt/win/win_stacktrace.cpp
+        src/plt/win/win_process.cpp
     )
 endif()
 

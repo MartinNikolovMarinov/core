@@ -21,6 +21,7 @@ constexpr u32 MAX_THREAD_NAME_LENGTH = 16;
 
 CORE_API_EXPORT expected<i32, PltErrCode> threadingGetNumCores() noexcept;
 CORE_API_EXPORT expected<PltErrCode>      threadingGetCurrent(Thread& out) noexcept;
+CORE_API_EXPORT expected<u64, PltErrCode> threadingGetCurrentId() noexcept;
 CORE_API_EXPORT expected<PltErrCode>      threadingSleep(u64 ms) noexcept;
 CORE_API_EXPORT expected<PltErrCode>      threadingSetName(const char* name) noexcept;
 CORE_API_EXPORT expected<PltErrCode>      threadingGetName(char out[MAX_THREAD_NAME_LENGTH]) noexcept;

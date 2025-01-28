@@ -106,6 +106,17 @@ expected<PltErrCode> threadingGetCurrent(Thread& out) noexcept {
     return {};
 }
 
+expected<u64, PltErrCode> threadingGetCurrentId() noexcept {
+    auto threadId = pthread_self();  // Get the thread ID using pthread_self.
+
+    if (threadId == 0) {
+        // pthread_self() does not typically fail, but handle any unexpected behavior.
+        return core::unexpected(PltErrCode(errno));
+    }
+
+    return u64(threadId); // Cast thread ID to u64.
+}
+
 namespace {
 
 timespec timespecFromMiliseconds(u64 ms) noexcept {

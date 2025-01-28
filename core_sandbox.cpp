@@ -39,10 +39,10 @@ struct TraceEvent {
     char category[TRACE_EVENT_CATEGORY_MAX_SIZE]; // Category of the event
     i8 ph;    // Phase: 0 -> Begin (B), 1 -> End (E)
     u64 ts;   // Timestamp (microseconds)
-    i32 pid;  // Process ID
-    i32 tid;  // Thread ID
+    u64 pid;  // Process ID
+    u64 tid;  // Thread ID
 
-    static TraceEvent create(const char* n, const char* c, i8 phase, u64 timestamp, i32 p, i32 t) {
+    static TraceEvent create(const char* n, const char* c, i8 phase, u64 timestamp, u64 p, u64 t) {
         TraceEvent ret;
         std::snprintf(ret.name,     TRACE_EVENT_NAME_MAX_SIZE,     "%s", n);
         std::snprintf(ret.category, TRACE_EVENT_CATEGORY_MAX_SIZE, "%s", c);
@@ -68,17 +68,30 @@ struct TraceEvent {
     }
 };
 
+thread_local u64 g_threadId = core::Unpack(core::threadingGetCurrentId());
+u64 g_processId = core::Unpack(core::processGetId());
+std::vector<TraceEvent> g_events;
+
+#define TRACE_FUNCTION(functionName) \
+    TraceEvent __start_ev = TraceEvent::create(functionName, "tracing", 0, core::getPerfCounter() / 1000000, g_processId, g_threadId); \
+    g_events.push_back(__start_ev); \
+    defer { \
+        TraceEvent __end_ev = TraceEvent::create(functionName, "tracing", 1, core::getPerfCounter() / 1000000, g_processId, g_threadId); \
+        g_events.push_back(__end_ev); \
+    }
+
+void exampleFunction() {
+    TRACE_FUNCTION("exampleFunction");
+
+    // Simulate work
+    core::threadingSleep(1000);
+}
+
 int main() {
     core::initProgramCtx(assertHandler);
 
     // Create some example TraceEvents
-    TraceEvent event1 = TraceEvent::create("Task A", "Category1", 0, 1000, 1, 101);
-    TraceEvent event2 = TraceEvent::create("Task A", "Category1", 1, 2000, 1, 101);
-    TraceEvent event3 = TraceEvent::create("Task B", "Category2", 0, 1500, 1, 102);
-    TraceEvent event4 = TraceEvent::create("Task B", "Category2", 1, 2500, 1, 102);
-
-    // Collect them in a vector
-    std::vector<TraceEvent> events = {event1, event2, event3, event4};
+    exampleFunction();
 
     // Write JSON array to a file
     std::ofstream outFile("trace_events.json", std::ios::out);
@@ -88,9 +101,9 @@ int main() {
     }
 
     outFile << "[\n";
-    for (size_t i = 0; i < events.size(); ++i) {
-        outFile << "  " << events[i].toJson();
-        if (i + 1 < events.size()) {
+    for (size_t i = 0; i < g_events.size(); ++i) {
+        outFile << "  " << g_events[i].toJson();
+        if (i + 1 < g_events.size()) {
             outFile << ",";
         }
         outFile << "\n";

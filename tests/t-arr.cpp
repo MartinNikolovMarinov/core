@@ -578,18 +578,73 @@ i32 replaceWithArrTest() {
 }
 
 template <core::AllocatorId TAllocId>
-i32 reinterpretArrTest() {
-    constexpr addr_size N = 17;
-    core::ArrList<u8, TAllocId> arr1(N, u8('a'));
-    core::ArrList<char, TAllocId> arr2;
-    core::reinterpretArrList(arr2, std::move(arr1));
+i32 convArrTest() {
+    // First Test: Reinterpret u8 to char
+    {
+        constexpr addr_size N = 17;
+        core::ArrList<u8, TAllocId> arr1(N, u8('a'));
+        core::ArrList<char, TAllocId> arr2;
+        core::convArrList(arr2, std::move(arr1));
 
-    // Data was moved not copied!
-    CT_CHECK(arr1.len() == 0);
-    CT_CHECK(arr1.cap() == 0);
-    CT_CHECK(arr1.data() == nullptr);
+        CT_CHECK(arr1.len() == 0);
+        CT_CHECK(arr1.cap() == 0);
+        CT_CHECK(arr1.data() == nullptr);
 
-    for (addr_size i = 0; i < N; i++) CT_CHECK(i32('a') == i32(arr2[i]));
+        for (addr_size i = 0; i < N; i++) {
+            CT_CHECK(i32('a') == i32(arr2[i]));
+        }
+    }
+
+    // Second Test: Reinterpret u8 to u16
+    {
+        constexpr addr_size N = 10; // Total bytes = N * sizeof(u8)
+        core::ArrList<u8, TAllocId> arr1(N * 2, 0xAB);
+        core::ArrList<u16, TAllocId> arr2;
+        core::convArrList(arr2, std::move(arr1));
+
+        CT_CHECK(arr1.len() == 0);
+        CT_CHECK(arr1.cap() == 0);
+        CT_CHECK(arr1.data() == nullptr);
+
+        constexpr u16 expectedValue = 0xABAB;
+        for (addr_size i = 0; i < N; i++) {
+            CT_CHECK(arr2[i] == expectedValue);
+        }
+    }
+
+    // Third Test: Reinterpret struct of u8 and u32 to u8
+    {
+        struct TestStruct {
+            u8 byteVal;
+            u32 intVal;
+        };
+
+        constexpr addr_size N = 1; // Total structs
+        core::ArrList<TestStruct, TAllocId> structArr(N, {0xAB, 0x12345678});
+        core::ArrList<u8, TAllocId> byteArr;
+        core::convArrList(byteArr, std::move(structArr));
+
+        CT_CHECK(structArr.len() == 0);
+        CT_CHECK(structArr.cap() == 0);
+        CT_CHECK(structArr.data() == nullptr);
+
+        constexpr addr_size structSize = sizeof(TestStruct);
+        CT_CHECK(byteArr.len() == N * structSize);
+
+        for (addr_size i = 0; i < N; i++) {
+            addr_size offset = i * structSize;
+
+            // Check the u8 value
+            CT_CHECK(byteArr[offset] == 0xAB);
+
+            // Calculate the offset for the u32 value based on alignment
+            constexpr addr_size intOffset = offsetof(TestStruct, intVal);
+            u32 intValue = *reinterpret_cast<u32*>(byteArr.data() + offset + intOffset);
+
+            // Check the u32 value
+            CT_CHECK(intValue == 0x12345678);
+        }
+    }
 
     return 0;
 }
@@ -622,8 +677,8 @@ i32 runTests() {
     if (runTest(tInfo, assignArrTest<TAllocId>) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(replaceWithArrTest<TAllocId>);
     if (runTest(tInfo, replaceWithArrTest<TAllocId>) != 0) { return -1; }
-    tInfo.name = FN_NAME_TO_CPTR(reinterpretArrTest<TAllocId>);
-    if (runTest(tInfo, reinterpretArrTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(convArrTest<TAllocId>);
+    if (runTest(tInfo, convArrTest<TAllocId>) != 0) { return -1; }
 
     return 0;
 };

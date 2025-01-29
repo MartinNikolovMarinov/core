@@ -19,16 +19,40 @@ template<typename ...Args> constexpr auto createArrStatic(Args... args);
 
 template <typename From, typename To,
           typename = std::enable_if_t<std::is_rvalue_reference_v<From&&>>>
-inline void reinterpretArrList(To& to, From&& from) {
-    static_assert(sizeof(From) == sizeof(To), "sizeof From and To types should be the same");
-    static_assert(sizeof(typename From::size_type) == sizeof(typename To::size_type), "size types for From and To should match");
-
+inline void convArrList(To& to, From&& from) {
+    using from_value_type = typename From::value_type;
+    using to_value_type = typename To::value_type;
     using size_type = typename To::size_type;
-    using value_type = typename To::value_type;
+
+    // Validate size compatibility
+    static_assert(sizeof(from_value_type) % sizeof(to_value_type) == 0 ||
+                  sizeof(to_value_type) % sizeof(from_value_type) == 0,
+                  "The size of From's and To's value types must be compatible (i.e. divisible)");
 
     size_type len, cap;
-    value_type* data = reinterpret_cast<value_type*>(from.release(len, cap));
-    to.reset(&data, len, cap);
+    from_value_type* rawData = from.release(len, cap);
+
+    // Alignment check
+    Assert(reinterpret_cast<addr_size>(rawData) % alignof(to_value_type) == 0,
+           "Data alignment mismatch: From's value type is not properly aligned for To's value type");
+
+    // Compute new length and capacity for the target type
+    addr_size totalBytesLen = len * sizeof(from_value_type);
+    addr_size totalBytesCap = cap * sizeof(from_value_type);
+
+    Assert(totalBytesLen % sizeof(to_value_type) == 0,
+           "Length in bytes is not divisible by To's value type size");
+    Assert(totalBytesCap % sizeof(to_value_type) == 0,
+           "Capacity in bytes is not divisible by To's value type size");
+
+    size_type toLen = totalBytesLen / sizeof(to_value_type);
+    size_type toCap = totalBytesCap / sizeof(to_value_type);
+
+    // Cast raw data to the target value type
+    to_value_type* castData = reinterpret_cast<to_value_type*>(rawData);
+
+    // Transfer ownership
+    to.reset(&castData, toLen, toCap);
 }
 
 #define CORE_C_ARRLEN(x) sizeof(x) / sizeof(x[0])

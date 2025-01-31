@@ -34,11 +34,13 @@ expected<PltErrCode> fileReadEntire(const char* path, ArrList<u8>& out) {
         out.reset(&data, size, size);
     }
 
-    {
-        auto res = fileRead(file, out.data(), out.len());
+    addr_size readbytes = 0;
+    while (readbytes < size) {
+        auto res = fileRead(file, out.data() + readbytes, size - readbytes);
         if (res.hasErr()) {
             return core::unexpected(res.err());
         }
+        readbytes += res.value();
     }
 
     return {};
@@ -59,11 +61,13 @@ core::expected<PltErrCode> fileWriteEntire(const char* path, const u8* data, add
         fileClose(file);
     };
 
-    {
-        auto res = fileWrite(file, data, size);
+    addr_size written = 0;
+    while (written < size) {
+        auto res = fileWrite(file, data + written, size - written);
         if (res.hasErr()) {
             return core::unexpected(res.err());
         }
+        written += res.value();
     }
 
     return {};

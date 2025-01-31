@@ -30,7 +30,9 @@ expected<u64, PltErrCode> getCurrentUnixTimestampMs() {
 }
 
 u64 getPerfCounter() {
-    return __rdtsc();
+    LARGE_INTEGER counter;
+    QueryPerformanceCounter(&counter);
+    return u64(counter.QuadPart);
 }
 
 }

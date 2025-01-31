@@ -80,37 +80,97 @@ std::vector<TraceEvent> g_events;
         g_events.push_back(__end_ev); \
     }
 
-void exampleFunction() {
-    TRACE_FUNCTION("exampleFunction");
+// void exampleFunction() {
+//     TRACE_FUNCTION("exampleFunction");
 
-    // Simulate work
-    core::threadingSleep(1000);
+//     // Simulate work
+//     core::threadingSleep(1000);
+// }
+
+// int main() {
+//     core::initProgramCtx(assertHandler);
+
+//     // Create some example TraceEvents
+//     exampleFunction();
+
+//     // Write JSON array to a file
+//     std::ofstream outFile("trace_events.json", std::ios::out);
+//     if (!outFile) {
+//         std::cerr << "Failed to open trace_events.json for writing\n";
+//         return 1;
+//     }
+
+//     outFile << "[\n";
+//     for (size_t i = 0; i < g_events.size(); ++i) {
+//         outFile << "  " << g_events[i].toJson();
+//         if (i + 1 < g_events.size()) {
+//             outFile << ",";
+//         }
+//         outFile << "\n";
+//     }
+//     outFile << "]\n";
+//     outFile.close();
+
+//     std::cout << "Wrote trace_events.json. Load it via chrome://tracing or Perfetto UI.\n";
+//     return 0;
+// }
+
+#include <x86intrin.h>
+#include <sys/time.h>
+
+u64 GetOSTimerFreq() {
+    return 1000000;
 }
 
-int main() {
-    core::initProgramCtx(assertHandler);
+u64 ReadOSTimer() {
+    // NOTE(casey): The "struct" keyword is not necessary here when compiling in C++,
+    // but just in case anyone is using this file from C, I include it.
+    struct timeval Value;
+    gettimeofday(&Value, 0);
 
-    // Create some example TraceEvents
-    exampleFunction();
+    u64 Result = GetOSTimerFreq()*(u64)Value.tv_sec + (u64)Value.tv_usec;
+    return Result;
+}
 
-    // Write JSON array to a file
-    std::ofstream outFile("trace_events.json", std::ios::out);
-    if (!outFile) {
-        std::cerr << "Failed to open trace_events.json for writing\n";
-        return 1;
-    }
+inline u64 ReadCPUTimer(void) {
+    return __rdtsc();
+}
 
-    outFile << "[\n";
-    for (size_t i = 0; i < g_events.size(); ++i) {
-        outFile << "  " << g_events[i].toJson();
-        if (i + 1 < g_events.size()) {
-            outFile << ",";
-        }
-        outFile << "\n";
-    }
-    outFile << "]\n";
-    outFile.close();
+i32 main(int ArgCount, char **Args)
+{
+	u64 MillisecondsToWait = 1000;
+	if(ArgCount == 2)
+	{
+		MillisecondsToWait = atol(Args[1]);
+	}
 
-    std::cout << "Wrote trace_events.json. Load it via chrome://tracing or Perfetto UI.\n";
+	u64 OSFreq = GetOSTimerFreq();
+	printf("    OS Freq: %llu (reported)\n", OSFreq);
+
+	u64 CPUStart = ReadCPUTimer();
+	u64 OSStart = ReadOSTimer();
+	u64 OSEnd = 0;
+	u64 OSElapsed = 0;
+	u64 OSWaitTime = OSFreq * MillisecondsToWait / 1000;
+	while(OSElapsed < OSWaitTime)
+	{
+		OSEnd = ReadOSTimer();
+		OSElapsed = OSEnd - OSStart;
+	}
+
+	u64 CPUEnd = ReadCPUTimer();
+	u64 CPUElapsed = CPUEnd - CPUStart;
+	u64 CPUFreq = 0;
+	if(OSElapsed)
+	{
+		CPUFreq = OSFreq * CPUElapsed / OSElapsed;
+	}
+
+	printf("   OS Timer: %llu -> %llu = %llu elapsed\n", OSStart, OSEnd, OSElapsed);
+	printf(" OS Seconds: %.4f\n", (f64)OSElapsed/(f64)OSFreq);
+
+	printf("  CPU Timer: %llu -> %llu = %llu elapsed\n", CPUStart, CPUEnd, CPUElapsed);
+	printf("   CPU Freq: %llu (guessed)\n", CPUFreq);
+
     return 0;
 }

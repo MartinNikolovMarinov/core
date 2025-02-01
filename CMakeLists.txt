@@ -103,22 +103,24 @@ set(core_src
 if(OS STREQUAL "linux")
     set(core_src ${core_src}
         src/plt/unix/unix_threading.cpp
-        src/plt/unix/unix_time.cpp
         src/plt/unix/unix_plt_error.cpp
         src/plt/unix/unix_pages.cpp
         src/plt/unix/unix_fs.cpp
         src/plt/unix/unix_stacktrace.cpp
         src/plt/unix/unix_process.cpp
+
+        src/plt/linux/linux_time.cpp
     )
 elseif(OS STREQUAL "darwin")
     set(core_src ${core_src}
         src/plt/unix/unix_threading.cpp
-        src/plt/unix/unix_time.cpp
         src/plt/unix/unix_plt_error.cpp
         src/plt/unix/unix_pages.cpp
         src/plt/unix/unix_fs.cpp
         src/plt/unix/unix_stacktrace.cpp
-        src/plt/unix/unix_process.cpp>
+        src/plt/unix/unix_process.cpp
+
+        src/plt/mac/mac_time.cpp
     )
 elseif(OS STREQUAL "windows")
     set(core_src ${core_src}

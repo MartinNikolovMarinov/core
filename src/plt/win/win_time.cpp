@@ -5,34 +5,81 @@
 
 namespace core {
 
-expected<u64, PltErrCode> getCurrentUnixTimestampMs() {
+u64 getUnixTimestampNowMs() {
     FILETIME ft;
     GetSystemTimeAsFileTime(&ft);
 
-    u64 timeNowIn100thNanoseconds;
-    timeNowIn100thNanoseconds = u64(ft.dwLowDateTime);
-    timeNowIn100thNanoseconds += u64(ft.dwHighDateTime) << 32;
+    // FILETIME is in 100-nanosecond intervals since January 1, 1601 (UTC).
+    ULARGE_INTEGER ull;
+    ull.LowPart  = ft.dwLowDateTime;
+    ull.HighPart = ft.dwHighDateTime;
 
-    // January 1, 1601 (UTC) is the epoch for FILETIME.
-    // January 1, 1970 (UTC) is the epoch for Unix time.
-    // The FILETIME epoch needs to be converted to Unix epoch.
+    // Offset between 1601 and 1970 in 100-ns units.
+    constexpr u64 EPOCH_DIFF = 116444736000000000ULL;
+    ull.QuadPart -= EPOCH_DIFF;
 
-    // This magic number is the number of 100 nanosecond intervals between the two epochs:
-    const u64 START_OF_EPOCH_IN_NS = 116444736000000000ULL;
-
-    // Subtract the epoch to get the Unix timestamp since 1970:
-    timeNowIn100thNanoseconds -= START_OF_EPOCH_IN_NS;
-
-    // Convert to milliseconds:
-    u64 timeNowMs = timeNowIn100thNanoseconds / 10000;
-
-    return timeNowMs;
+    return ull.QuadPart / 10000; // Convert to milliseconds
 }
 
-u64 getPerfCounter() {
-    LARGE_INTEGER counter;
+u64 getMonotonicNowNs() {
+    LARGE_INTEGER counter, freq;
     QueryPerformanceCounter(&counter);
-    return u64(counter.QuadPart);
+    QueryPerformanceFrequency(&freq);
+
+    // Split into whole seconds and remainder to avoid overflow.
+    u64 sec = counter.QuadPart / freq.QuadPart;
+    u64 rem = counter.QuadPart % freq.QuadPart;
+    u64 ns = sec * 1000000000ULL + (rem * 1000000000ULL) / freq.QuadPart;
+
+    return ns;
 }
+
+// Returns a high-resolution performance counter value.
+// For x86_64, we use __rdtsc(); for other architectures we fall back to the monotonic counter.
+u64 getPerfCounter() {
+#if defined(CPU_ARCH_X86_64) && (CPU_ARCH_X86_64 == 1)
+    return __rdtsc();
+#elif defined(CPU_ARCH_ARM64) && (CPU_ARCH_ARM64 == 1)
+    // On Windows ARM, there's no direct equivalent to __rdtsc.
+    return getMonotonicNowNs();
+#else
+    return getMonotonicNowNs();
+#endif
+}
+
+// Returns the estimated CPU frequency in Hz.
+// On x86_64 this function calibrates the TSC by measuring over a fixed 100ms Sleep interval.
+// On Windows ARM, we use QueryPerformanceFrequency as an approximation.
+u64 getCPUFrequencyHz() {
+#if defined(CPU_ARCH_X86_64) && (CPU_ARCH_X86_64 == 1)
+    LARGE_INTEGER start, end, perfFreq;
+    QueryPerformanceCounter(&start);
+    u64 tscStart = getPerfCounter();
+
+    Sleep(100); // Sleep for 100 ms.
+
+    QueryPerformanceCounter(&end);
+    u64 tscEnd = getPerfCounter();
+    QueryPerformanceFrequency(&perfFreq);
+
+    // Calculate elapsed time in nanoseconds.
+    u64 elapsedNs = ((end.QuadPart - start.QuadPart) * 1000000000ULL) / perfFreq.QuadPart;
+    u64 tscDiff   = tscEnd - tscStart;
+
+    if (elapsedNs == 0) return 0;
+
+    // Compute frequency: (tsc ticks * 1e9) / elapsed time in ns.
+    u64 frequency = (tscDiff * 1000000000ULL) / elapsedNs;
+    return frequency;
+#elif defined(CPU_ARCH_ARM64) && (CPU_ARCH_ARM64 == 1)
+    // As a fallback on Windows ARM, use the performance counter frequency.
+    LARGE_INTEGER perfFreq;
+    QueryPerformanceFrequency(&perfFreq);
+    return u64(perfFreq.QuadPart);
+#else
+    return 0;
+#endif
+}
+
 
 }

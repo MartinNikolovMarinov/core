@@ -45,6 +45,11 @@ using namespace coretypes;
 
 #define NO_MANGLE extern "C"
 
+// Concat macro:
+
+#define CORE_NAME_CONCAT2(A, B) A##B
+#define CORE_NAME_CONCAT(A, B) CORE_NAME_CONCAT2(A, B)
+
 // Take the name of a function:
 
 #define FN_NAME_TO_CPTR(test) #test

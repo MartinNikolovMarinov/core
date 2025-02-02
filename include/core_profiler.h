@@ -17,6 +17,7 @@ struct ProfileTimePoint {
     u64 elapsedInclusiveTsc;
     u64 hitCount;
     const char* label;
+    u64 processedBytes;
     constexpr bool isUsed() { return hitCount > 0; }
 };
 
@@ -43,7 +44,7 @@ void logProfileResult(const ProfileResult& result, core::LogLevel logLevel);
 void __setGlobalProfileBlock(u32 idx);
 u32 __getGlobalProfileBlock();
 
-#define TIME_BLOCK2(name, idx)                                                                                     \
+#define TIME_BLOCK2(name, idx, size)                                                                               \
     /* Create a unique block variable for this time block */                                                       \
     core::ProfileBlock CORE_NAME_CONCAT(block, __LINE__);                                                          \
     CORE_NAME_CONCAT(block, __LINE__).label = name;                                                                \
@@ -66,8 +67,10 @@ u32 __getGlobalProfileBlock();
         currentBlock.elapsedInclusiveTsc = CORE_NAME_CONCAT(block, __LINE__).oldElapsedInclusiveTsc + elapsedTsc;  \
         currentBlock.hitCount++;                                                                                   \
         currentBlock.label = name;                                                                                 \
+        currentBlock.processedBytes = size;                                                                        \
     }
-#define TIME_BLOCK(name) TIME_BLOCK2(name, __COUNTER__ + 1)
+#define TIME_BLOCK(name) TIME_BLOCK2(name, __COUNTER__ + 1, 0)
+#define THROUGHPUT_BLOCK(name, size) TIME_BLOCK2(name, __COUNTER__ + 1, size)
 #define TIME_FUNCTION TIME_BLOCK(__func__)
 
 } // namespace core

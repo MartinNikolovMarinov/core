@@ -75,6 +75,14 @@ inline void logElapsed(addr_size i, u64 totalElapsedTsc, u64 freq, const Profile
         f64 percent = 100.0 * (f64(tsc) / f64(totalElapsedTsc));
         core::logDirectStd("    - Total Time : %s (%llu, %.2f%%)\n", buffer, tsc, percent);
     }
+
+    // Print Throughput
+    if (a.processedBytes > 0) {
+        u64 tsc = a.elapsedExclusiveTsc;
+        char memBuffer[core::testing::MEMORY_USED_TO_STR_BUFFER_SIZE];
+        core::testing::memoryUsedToStr(memBuffer, u64(f64(a.processedBytes) / (f64(tsc) / f64(freq))));
+        core::logDirectStd("    - Throughput : %s/s \n", memBuffer);
+    }
 };
 
 } // namespace
@@ -94,7 +102,7 @@ void logProfileResult(const ProfileResult& result, core::LogLevel logLevel) {
     core::logDirectStd("--- CPU Profile Summary ---\n");
     core::logDirectStd("CPU Frequency : %llu Hz (%.4f GHz)\n", freq, f64(freq) / 1000000000.0);
     core::logDirectStd("Total         : %s, %llu\n", totalElapsedStr, totalElapsedTsc);
-     core::logDirectStd("\n");
+    core::logDirectStd("\n");
 
     for (addr_size i = 0; i < result.timepoints.len(); i++) {
         auto& a = result.timepoints[i];

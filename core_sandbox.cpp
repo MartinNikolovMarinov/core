@@ -32,8 +32,6 @@ void assertHandler(const char* failedExpr, const char* file, i32 line, const cha
 };
 
 i32 main() {
-    // FIXME: This needs to be a test!
-
     u64 beginUnixTs = core::getUnixTimestampNowMs();
     u64 beginMonotonicTs = core::getMonotonicNowNs();
     u64 beginTsc = core::getPerfCounter();

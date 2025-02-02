@@ -1,0 +1,184 @@
+{
+   edgeErrorCasesTest suppression
+   Memcheck:Param
+   write(buf)
+   fun:write
+   fun:_ZN4core9fileWriteERNS_8FileDescEPKvm
+   fun:_Z18edgeErrorCasesTestv
+   fun:_ZN4core7testing7runTestIPFivEJEEEiRKNS0_8TestInfoET_DpT0_
+   fun:_Z26runPltFileSystemTestsSuitev
+   fun:_ZN4core7testing12runTestSuiteIPFivEEEiRKNS0_13TestSuiteInfoET_
+   fun:_Z11runAllTestsv
+   fun:main
+}
+
+{
+   onOOMStdAllocatorTest suppression
+   Memcheck:FishyValue
+   malloc(size)
+   fun:malloc
+   fun:_ZN4core12StdAllocator5allocEmm
+   fun:_Z21onOOMStdAllocatorTestv
+   fun:_ZN4core7testing7runTestIPFivEJEEEiRKNS0_8TestInfoET_DpT0_
+   fun:_Z25runStdAllocatorTestsSuitev
+   fun:_ZN4core7testing12runTestSuiteIPFivEEEiRKNS0_13TestSuiteInfoET_
+   fun:_Z11runAllTestsv
+   fun:main
+}
+
+{
+   onOOMStdAllocatorTest suppression
+   Memcheck:FishyValue
+   malloc(size)
+   fun:malloc
+   fun:_ZN4core12StdAllocator5allocEmm
+   fun:_Z21onOOMStdAllocatorTestv
+   fun:_ZN4core7testing7runTestIPFivEJEEEiRKNS0_8TestInfoET_DpT0_
+   fun:_Z25runStdAllocatorTestsSuitev
+   fun:_ZN4core7testing12runTestSuiteIPFivEEEiRKNS0_13TestSuiteInfoET_
+   fun:_Z11runAllTestsv
+   fun:main
+}
+
+{
+   onOOMStdStatsAllocatorTest suppression
+   Memcheck:FishyValue
+   malloc(size)
+   fun:malloc
+   fun:_ZN4core17StdStatsAllocator5allocEmm
+   fun:_Z26onOOMStdStatsAllocatorTestv
+   fun:_ZN4core7testing7runTestIPFivEJEEEiRKNS0_8TestInfoET_DpT0_
+   fun:_Z30runStdStatsAllocatorTestsSuitev
+   fun:_ZN4core7testing12runTestSuiteIPFivEEEiRKNS0_13TestSuiteInfoET_
+   fun:_Z11runAllTestsv
+   fun:main
+}
+
+{
+   onOOMStdStatsAllocatorTest suppression
+   Memcheck:FishyValue
+   malloc(size)
+   fun:malloc
+   fun:_ZN4core17StdStatsAllocator5allocEmm
+   fun:_Z26onOOMStdStatsAllocatorTestv
+   fun:_ZN4core7testing7runTestIPFivEJEEEiRKNS0_8TestInfoET_DpT0_
+   fun:_Z30runStdStatsAllocatorTestsSuitev
+   fun:_ZN4core7testing12runTestSuiteIPFivEEEiRKNS0_13TestSuiteInfoET_
+   fun:_Z11runAllTestsv
+   fun:main
+}
+
+{
+   commonErrorsTest suppression
+   Memcheck:Param
+   openat(filename)
+   fun:open
+   fun:_ZN4core8fileOpenEPKcNS_8OpenModeE
+   fun:_Z16commonErrorsTestv
+   fun:_ZN4core7testing7runTestIPFivEJEEEiRKNS0_8TestInfoET_DpT0_
+   fun:_Z26runPltFileSystemTestsSuitev
+   fun:_ZN4core7testing12runTestSuiteIPFivEEEiRKNS0_13TestSuiteInfoET_
+   fun:_Z11runAllTestsv
+   fun:main
+}
+
+{
+   commonErrorsTest suppression
+   Memcheck:Param
+   unlink(pathname)
+   fun:unlink
+   fun:_ZN4core10fileDeleteEPKc
+   fun:_Z16commonErrorsTestv
+   fun:_ZN4core7testing7runTestIPFivEJEEEiRKNS0_8TestInfoET_DpT0_
+   fun:_Z26runPltFileSystemTestsSuitev
+   fun:_ZN4core7testing12runTestSuiteIPFivEEEiRKNS0_13TestSuiteInfoET_
+   fun:_Z11runAllTestsv
+   fun:main
+}
+
+{
+   commonErrorsTest suppression
+   Memcheck:Param
+   rename(oldpath)
+   fun:rename
+   fun:_ZN4core10fileRenameEPKcS1_
+   fun:_Z16commonErrorsTestv
+   fun:_ZN4core7testing7runTestIPFivEJEEEiRKNS0_8TestInfoET_DpT0_
+   fun:_Z26runPltFileSystemTestsSuitev
+   fun:_ZN4core7testing12runTestSuiteIPFivEEEiRKNS0_13TestSuiteInfoET_
+   fun:_Z11runAllTestsv
+   fun:main
+}
+
+{
+   commonErrorsTest suppression
+   Memcheck:Param
+   openat(filename)
+   fun:open
+   fun:_ZN4core8fileOpenEPKcNS_8OpenModeE
+   fun:_ZN4core14fileReadEntireEPKcRNS_7ArrListIhLj0EEE
+   fun:_Z16commonErrorsTestv
+   fun:_ZN4core7testing7runTestIPFivEJEEEiRKNS0_8TestInfoET_DpT0_
+   fun:_Z26runPltFileSystemTestsSuitev
+   fun:_ZN4core7testing12runTestSuiteIPFivEEEiRKNS0_13TestSuiteInfoET_
+   fun:_Z11runAllTestsv
+   fun:main
+}
+
+{
+   commonErrorsTest suppression
+   Memcheck:Param
+   openat(filename)
+   fun:open
+   fun:_ZN4core8fileOpenEPKcNS_8OpenModeE
+   fun:_ZN4core15fileWriteEntireEPKcPKhm
+   fun:_ZN4core15fileWriteEntireEPKcRKNS_7ArrListIhLj0EEE
+   fun:_Z16commonErrorsTestv
+   fun:_ZN4core7testing7runTestIPFivEJEEEiRKNS0_8TestInfoET_DpT0_
+   fun:_Z26runPltFileSystemTestsSuitev
+   fun:_ZN4core7testing12runTestSuiteIPFivEEEiRKNS0_13TestSuiteInfoET_
+   fun:_Z11runAllTestsv
+   fun:main
+}
+
+{
+   commonErrorsTest suppression
+   Memcheck:Param
+   mkdir(pathname)
+   fun:mkdir
+   fun:_ZN4core9dirCreateEPKc
+   fun:_Z16commonErrorsTestv
+   fun:_ZN4core7testing7runTestIPFivEJEEEiRKNS0_8TestInfoET_DpT0_
+   fun:_Z26runPltFileSystemTestsSuitev
+   fun:_ZN4core7testing12runTestSuiteIPFivEEEiRKNS0_13TestSuiteInfoET_
+   fun:_Z11runAllTestsv
+   fun:main
+}
+
+{
+   commonErrorsTest suppression
+   Memcheck:Param
+   rename(oldpath)
+   fun:rename
+   fun:_ZN4core9dirRenameEPKcS1_
+   fun:_Z16commonErrorsTestv
+   fun:_ZN4core7testing7runTestIPFivEJEEEiRKNS0_8TestInfoET_DpT0_
+   fun:_Z26runPltFileSystemTestsSuitev
+   fun:_ZN4core7testing12runTestSuiteIPFivEEEiRKNS0_13TestSuiteInfoET_
+   fun:_Z11runAllTestsv
+   fun:main
+}
+
+{
+   commonErrorsTest suppression
+   Memcheck:Param
+   rmdir(pathname)
+   fun:rmdir
+   fun:_ZN4core9dirDeleteEPKc
+   fun:_Z16commonErrorsTestv
+   fun:_ZN4core7testing7runTestIPFivEJEEEiRKNS0_8TestInfoET_DpT0_
+   fun:_Z26runPltFileSystemTestsSuitev
+   fun:_ZN4core7testing12runTestSuiteIPFivEEEiRKNS0_13TestSuiteInfoET_
+   fun:_Z11runAllTestsv
+   fun:main
+}

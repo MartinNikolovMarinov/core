@@ -5,10 +5,10 @@
 
 namespace core::testing {
 
-char* elapsedTimeToStr(char out[256], u64 deltaTimeNs) {
-    constexpr u32 OUT_BUFFER_SIZE = 256;
+char* elapsedTimeToStr(char out[ELAPSED_TIME_TO_STR_BUFFER_SIZE], u64 deltaTimeNs) {
+    constexpr u32 kBufferSize = MEMORY_USED_TO_STR_BUFFER_SIZE;
 
-    core::memset(&out[0], char(0), OUT_BUFFER_SIZE); // Clear the output buffer
+    core::memset(&out[0], char(0), kBufferSize); // Clear the output buffer
 
     // TODO2: [Implement a sane snprintf variant]
     //
@@ -21,33 +21,33 @@ char* elapsedTimeToStr(char out[256], u64 deltaTimeNs) {
         u32 minutes = static_cast<u32>((deltaTimeNs % core::CORE_HOUR) / core::CORE_MINUTE);
         u32 seconds = static_cast<u32>((deltaTimeNs % core::CORE_MINUTE) / core::CORE_SECOND);
         unsigned long long milliseconds = (deltaTimeNs % core::CORE_SECOND) / core::CORE_MILLISECOND;
-        std::snprintf(&out[0], OUT_BUFFER_SIZE, "%02uh %02um %02us %llums", hours, minutes, seconds, milliseconds);
+        std::snprintf(&out[0], kBufferSize, "%02uh %02um %02us %llums", hours, minutes, seconds, milliseconds);
     }
     else if (deltaTimeNs >= core::CORE_MINUTE) {
         u32 minutes = static_cast<u32>(deltaTimeNs / core::CORE_MINUTE);
         u32 seconds = static_cast<u32>((deltaTimeNs % core::CORE_MINUTE) / core::CORE_SECOND);
         unsigned long long milliseconds = (deltaTimeNs % core::CORE_SECOND) / core::CORE_MILLISECOND;
-        std::snprintf(&out[0], OUT_BUFFER_SIZE, "%02um %02us %llums", minutes, seconds, milliseconds);
+        std::snprintf(&out[0], kBufferSize, "%02um %02us %llums", minutes, seconds, milliseconds);
     }
     else if (deltaTimeNs >= core::CORE_SECOND) {
         u32 seconds = static_cast<u32>(deltaTimeNs / core::CORE_SECOND);
         unsigned long long milliseconds = (deltaTimeNs % core::CORE_SECOND) / core::CORE_MILLISECOND;
-        std::snprintf(&out[0], OUT_BUFFER_SIZE, "%02us %llums", seconds, milliseconds);
+        std::snprintf(&out[0], kBufferSize, "%02us %llums", seconds, milliseconds);
     }
     else if (deltaTimeNs >= core::CORE_MILLISECOND) {
         unsigned long long milliseconds = deltaTimeNs / core::CORE_MILLISECOND;
-        std::snprintf(&out[0], OUT_BUFFER_SIZE, "%llums", milliseconds);
+        std::snprintf(&out[0], kBufferSize, "%llums", milliseconds);
     }
     else {
         unsigned long long nanoseconds = deltaTimeNs;
-        std::snprintf(&out[0], OUT_BUFFER_SIZE, "%lluns", nanoseconds);
+        std::snprintf(&out[0], kBufferSize, "%lluns", nanoseconds);
     }
 
     return out;
 }
 
-char* memoryUsedToStr(char out[128], addr_size deltaMemory) {
-    constexpr u32 kBufferSize = 128;
+char* memoryUsedToStr(char out[MEMORY_USED_TO_STR_BUFFER_SIZE], addr_size deltaMemory) {
+    constexpr u32 kBufferSize = MEMORY_USED_TO_STR_BUFFER_SIZE;
 
     core::memset(reinterpret_cast<u8*>(&out[0]), u8(0), kBufferSize);
 

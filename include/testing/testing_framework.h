@@ -119,8 +119,10 @@ template <addr_size PLen, typename TCase, addr_size NCases, typename Afunc>
 
 inline i32 g_testCount = 0;
 
-CORE_API_EXPORT char* elapsedTimeToStr(char out[256], u64 deltaTimeNs);
-CORE_API_EXPORT char* memoryUsedToStr(char out[128], addr_size deltaMemory);
+constexpr u32 ELAPSED_TIME_TO_STR_BUFFER_SIZE = 256;
+CORE_API_EXPORT char* elapsedTimeToStr(char out[ELAPSED_TIME_TO_STR_BUFFER_SIZE], u64 deltaTimeNs);
+constexpr u32 MEMORY_USED_TO_STR_BUFFER_SIZE = 128;
+CORE_API_EXPORT char* memoryUsedToStr(char out[MEMORY_USED_TO_STR_BUFFER_SIZE], addr_size deltaMemory);
 
 struct TestInfo {
     core::AllocatorContext* allocatorContext = &getAllocator(DEFAULT_ALLOCATOR_ID);
@@ -156,7 +158,7 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
 
     auto allocatedBefore = info.allocatorContext->totalMemoryAllocated();
     auto inUseBefore = info.allocatorContext->inUseMemory();
-    auto start = core::getPerfCounter();
+    auto start = core::getMonotonicNowNs();
 
     std::cout << "\t[TEST " << "№ " << g_testCount << " RUNNING] " << testName;
     if (info.description) {
@@ -168,7 +170,7 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
 
     auto allocatedAfter = info.allocatorContext->totalMemoryAllocated();
     auto inUseAfter = info.allocatorContext->inUseMemory();
-    auto end = core::getPerfCounter();
+    auto end = core::getMonotonicNowNs();
 
     auto deltaAllocatedMemory = allocatedAfter - allocatedBefore;
     auto deltaInUseMemory = inUseAfter - inUseBefore;
@@ -231,7 +233,7 @@ template <typename TSuite>
 i32 runTestSuite(const TestSuiteInfo& info, TSuite suite) {
     const char* suiteName = info.name;
     bool useAnsiColors = info.useAnsiColors;
-    auto start = core::getPerfCounter();
+    auto start = core::getMonotonicNowNs();
 
     std::cout << "[SUITE RUNNING] " << suiteName << std::endl;
     i32 returnCode = suite();
@@ -239,7 +241,7 @@ i32 runTestSuite(const TestSuiteInfo& info, TSuite suite) {
     std::cout << "[SUITE " << detail::passedOrFailedStr(returnCode == 0, useAnsiColors) << "] " << suiteName;
 
     bool isFirst = true;
-    auto end = core::getPerfCounter();
+    auto end = core::getMonotonicNowNs();
     auto deltaTimeNs = end - start;
 
     if (info.trackTime) {

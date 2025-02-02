@@ -1,7 +1,5 @@
 #include "../t-index.h"
 
-// FIXME: Valgrind reports about 50 problems for the test suite! Fix this at some point.
-
 constexpr const char* testDirectory = PATH_TO_TEST_DATA "/testing_directory";
 
 constexpr const char* testNamesTable[] = {

@@ -87,6 +87,7 @@ set(core_src
     src/core_hash.cpp
     src/core_logger.cpp
     src/core_rnd.cpp
+    src/core_profiler.cpp
 
     src/allocators/bump_allocator.cpp
     src/allocators/std_allocator.cpp

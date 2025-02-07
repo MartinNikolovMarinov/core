@@ -118,6 +118,7 @@ i32 runTupleTestsSuite();
 i32 runUniquePtrTestsSuite();
 i32 runUtfTestsSuite();
 i32 runVecTestsSuite();
+i32 runFormatTestsSuite();
 
 i32 runBumpAllocatorTestsSuite();
 i32 runStdAllocatorTestsSuite();

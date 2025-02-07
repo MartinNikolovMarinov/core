@@ -32,36 +32,17 @@ void assertHandler(const char* failedExpr, const char* file, i32 line, const cha
 };
 
 i32 main() {
-    u64 beginUnixTs = core::getUnixTimestampNowMs();
-    u64 beginMonotonicTs = core::getMonotonicNowNs();
-    u64 beginTsc = core::getPerfCounter();
+    core::initProgramCtx(assertHandler);
 
-    core::threadingSleep(5300);
+    char buffer[256] = {};
 
-    u64 endUnixTs = core::getUnixTimestampNowMs();
-    u64 endMonotonicTs = core::getMonotonicNowNs();
-    u64 endTsc = core::getPerfCounter();
+    i32 len = core::Unpack(
+        core::format(buffer, CORE_C_ARRLEN(buffer),
+        "{} {} {} Iskam da si kupq {} {}",
+        i8(-10), u8(15), f32(4.3512f), "RTX 4090 ", "yo"_sv)
+    );
 
-    u64 freq = core::getCPUFrequencyHz();
-
-    u64 elapsedTsc = endTsc - beginTsc;
-    u64 elapsedNs = u64(f64(core::CORE_SECOND) * (f64(elapsedTsc) / f64(freq)));
-    char elapsedTscStr[256];
-    core::testing::elapsedTimeToStr(elapsedTscStr, elapsedNs);
-
-    u64 elapsedUnixMs = endUnixTs - beginUnixTs;
-    char elapsedUnixStr[256];
-    core::testing::elapsedTimeToStr(elapsedUnixStr, elapsedUnixMs * core::CORE_MILLISECOND);
-
-    u64 elapsedMonotonicNs = endMonotonicTs - beginMonotonicTs;
-    char elapsedMonotonicStr[256];
-    core::testing::elapsedTimeToStr(elapsedMonotonicStr, elapsedMonotonicNs);
-
-    logInfo("CPU Frequency: %lluHz (%.4fGHz)", freq, f64(freq) / 1000000000.0);
-    logInfo("Elapsed Timestamp Counter: %llu", elapsedTsc);
-    logInfo("Elapsed Time: %s", elapsedTscStr);
-    logInfo("Elapsed in Unix Timestamp: %s", elapsedUnixStr);
-    logInfo("Elapsed in Monotonic Timestamp: %s", elapsedMonotonicStr);
+    logInfo("%s[%d]", buffer, len);
 
     return 0;
 }

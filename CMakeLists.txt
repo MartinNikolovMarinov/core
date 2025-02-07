@@ -224,9 +224,10 @@ if(CORE_BUILD_TESTS)
         tests/t-arr.cpp
         tests/t-bits.cpp
         tests/t-cmd_flag_parser.cpp
-        tests/t-cstr_conv.cpp
         tests/t-cstr_conv_cstr_to_float.cpp
         tests/t-cstr_conv_float_to_cstr.cpp
+        tests/t-cstr_conv.cpp
+        tests/t-cstr_format.cpp
         tests/t-cstr.cpp
         tests/t-defer.cpp
         tests/t-expected.cpp

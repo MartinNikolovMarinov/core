@@ -127,6 +127,8 @@ i32 runAllTests() {
     if (runTestSuite(sInfo, runUniquePtrTestsSuite)) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runLoggerTestsSuite);
     if (runTestSuite(sInfo, runLoggerTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runFormatTestsSuite);
+    if (runTestSuite(sInfo, runFormatTestsSuite) != 0) { ret = -1; }
 
     sInfo.name = FN_NAME_TO_CPTR(runBumpAllocatorTestsSuite);
     if (runTestSuite(sInfo, runBumpAllocatorTestsSuite) != 0) { ret = -1; }

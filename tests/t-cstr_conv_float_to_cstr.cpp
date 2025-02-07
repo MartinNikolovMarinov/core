@@ -444,8 +444,7 @@ constexpr i32 shortBufferWritesTest() {
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for f32 short writes at index: ", cases, [](auto& c, const char* cErr) {
-            constexpr u32 BUFF_LEN = 64;
-            char buff[BUFF_LEN];
+            char buff[64];
             auto got = core::floatToCstr(c.input, buff, c.bufferSize);
             CT_CHECK(got.hasErr(), cErr);
             CT_CHECK(got.err() == core::ParseError::OutputBufferTooSmall, cErr);
@@ -570,8 +569,7 @@ constexpr i32 shortBufferWritesTest() {
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for overflow at index: ", cases, [](auto& c, const char* cErr) {
-            constexpr u32 BUFF_LEN = 64;
-            char buff[BUFF_LEN];
+            char buff[64];
             auto got = core::floatToCstr(c.input, buff, c.bufferSize);
             CT_CHECK(got.hasErr(), cErr);
             CT_CHECK(got.err() == core::ParseError::OutputBufferTooSmall);

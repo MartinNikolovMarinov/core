@@ -11,6 +11,7 @@
 #include "core_compiler.h"
 #include "core_config.h"
 #include "core_cstr_conv.h"
+#include "core_cstr_format.h"
 #include "core_cstr.h"
 #include "core_exec_ctx.h"
 #include "core_expected.h"

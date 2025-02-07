@@ -302,7 +302,7 @@ constexpr inline u32 decimalLength17(u64 v) {
     return 1;
 }
 
-constexpr inline core::expected<u32, ParseError> copySpecialStr(bool sign, bool exponent, bool mantissa, char* out, [[maybe_unused]] u32 olen) {
+constexpr inline core::expected<u32, ParseError> copySpecialStr(bool sign, bool exponent, bool mantissa, char* out, u32 olen) {
     if (olen <= u32(sign) + 3) {
         return core::unexpected(ParseError::OutputBufferTooSmall);
     }
@@ -5944,7 +5944,7 @@ struct OutputBuffer {
     }
 };
 
-constexpr inline core::expected<u32, ParseError> toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* out, [[maybe_unused]] u32 olen) {
+constexpr inline core::expected<u32, ParseError> toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* out, u32 olen) {
     // Step 5: Print the decimal representation.
     OutputBuffer obuf(out, olen);
     if (sign) {
@@ -6038,7 +6038,7 @@ constexpr inline core::expected<u32, ParseError> toChars(FloatTraits<f32>::Float
     return u32(obuf.widx);
 }
 
-constexpr inline core::expected<u32, ParseError> toChars(FloatTraits<f64>::FloatDecimal v, bool sign, char* out, [[maybe_unused]] u32 olen) {
+constexpr inline core::expected<u32, ParseError> toChars(FloatTraits<f64>::FloatDecimal v, bool sign, char* out, u32 olen) {
     // Step 5: Print the decimal representation.
     OutputBuffer obuf(out, olen);
     if (sign) {

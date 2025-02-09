@@ -160,6 +160,15 @@ constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen) {
 
         TInt next = TInt(res * 10) + core::toDigit<TInt>(curr);
         if (next < res) {
+            if constexpr (core::is_signed_v<TInt>) {
+                if (next == core::limitMin<TInt>()) [[unlikely]] {
+                    // min value is allowed, but only if there are no more symbols to parse.
+                    if (i + 1 == slen) {
+                        return core::limitMin<TInt>();
+                    }
+                }
+            }
+
             return core::unexpected(ParseError::InputNumberTooLarge);
         }
         res = next;

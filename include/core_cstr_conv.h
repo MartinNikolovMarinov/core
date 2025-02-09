@@ -100,21 +100,21 @@ constexpr core::expected<u32, ParseError> intToCstr(TInt n, char* out, addr_size
         if (isSmallestInteger) [[unlikely]] {
             if constexpr (std::is_same_v<TInt, i8>) {
                 Assert(dc == core::cstrLen("128"), "Sanity check failed");
-                core::memcopy(out + idx, "128", dc);
+                core::memcopy(out + idx, "128", addr_size(dc));
             }
             else if constexpr (std::is_same_v<TInt, i16>) {
                 Assert(dc == core::cstrLen("32768"), "Sanity check failed");
-                core::memcopy(out + idx, "32768", dc);
+                core::memcopy(out + idx, "32768", addr_size(dc));
             }
             else if constexpr (std::is_same_v<TInt, i32>) {
                 Assert(dc == core::cstrLen("2147483648"), "Sanity check failed");
-                core::memcopy(out + idx, "2147483648", dc);
+                core::memcopy(out + idx, "2147483648", addr_size(dc));
             }
             else if constexpr (std::is_same_v<TInt, i64>) {
                 Assert(dc == core::cstrLen("9223372036854775808"), "Sanity check failed");
-                core::memcopy(out + idx, "9223372036854775808", dc);
+                core::memcopy(out + idx, "9223372036854775808", addr_size(dc));
             }
-            return idx + dc;
+            return idx + u32(dc);
         }
     }
 

@@ -77,12 +77,12 @@ constexpr core::expected<u32, ParseError> intToCstr(TInt n, char* out, addr_size
             if (addr_size(idx) < olen) out[idx++] = '-';
             else return core::unexpected(ParseError::OutputBufferTooSmall);
 
-            if (n == core::limitMin<TInt>()) {
+            if (n == core::limitMin<TInt>()) [[unlikely]] {
                 // When n is the minimum for a specified integer type, then n = -n does not work, and this needs to be
                 // handled specially.
                 isSmallestInteger = true;
             }
-            else {
+            else [[likely]] {
                 n = -n;
             }
         }
@@ -95,8 +95,8 @@ constexpr core::expected<u32, ParseError> intToCstr(TInt n, char* out, addr_size
 
     // Special min value case:
     if constexpr (core::is_signed_v<TInt>) {
-        // Branch prediction should determine this to be very unlikely and hopefully this will have minimal
-        // performance hit for the general case.
+        // Branch prediction should determine this to be very unlikely and it should have minimal performance hit for
+        // the general case.
         if (isSmallestInteger) [[unlikely]] {
             if constexpr (std::is_same_v<TInt, i8>) {
                 Assert(dc == core::cstrLen("128"), "Sanity check failed");

@@ -72,79 +72,79 @@ i32 basicFormatTest() {
         return 0;
     };
 
-    // {
-    //     CommonTestCase<i8> testCases[] = {
-    //         { i8(8), bufferMem, "i8 = {}", "i8 = 8"_sv },
-    //         { i8(core::limitMin<i8>()), bufferMem, "i8 = {}", "i8 = -128"_sv },
-    //         { i8(core::limitMax<i8>()), bufferMem, "i8 = {}", "i8 = 127"_sv },
-    //     };
-    //     CT_CHECK(verifyAllTestCases(testCases) == 0);
-    // }
-    // {
-    //     CommonTestCase<i16> testCases[] = {
-    //         { i16(16), bufferMem, "i16 = {}", "i16 = 16"_sv },
-    //         { i16(core::limitMin<i16>()), bufferMem, "i16 = {}", "i16 = -32768"_sv },
-    //         { i16(core::limitMax<i16>()), bufferMem, "i16 = {}", "i16 = 32767"_sv },
-    //     };
-    //     CT_CHECK(verifyAllTestCases(testCases) == 0);
-    // }
-    // {
-    //     CommonTestCase<i32> testCases[] = {
-    //         { i32(32), bufferMem, "i32 = {}", "i32 = 32"_sv },
-    //         { i32(core::limitMin<i32>()), bufferMem, "i32 = {}", "i32 = -2147483648"_sv },
-    //         { i32(core::limitMax<i32>()), bufferMem, "i32 = {}", "i32 = 2147483647"_sv },
-    //     };
-    //     CT_CHECK(verifyAllTestCases(testCases) == 0);
-    // }
-    // {
-    //     CommonTestCase<i64> testCases[] = {
-    //         { i64(64), bufferMem, "i64 = {}", "i64 = 64"_sv },
-    //         { i64(core::limitMin<i64>()), bufferMem, "i64 = {}", "i64 = -9223372036854775808"_sv },
-    //         { i64(core::limitMax<i64>()), bufferMem, "i64 = {}", "i64 = 9223372036854775807"_sv },
-    //     };
-    //     CT_CHECK(verifyAllTestCases(testCases) == 0);
-    // }
+    {
+        CommonTestCase<i8> testCases[] = {
+            { i8(8), bufferMem, "i8 = {}", "i8 = 8"_sv },
+            { i8(core::limitMin<i8>()), bufferMem, "i8 = {}", "i8 = -128"_sv },
+            { i8(core::limitMax<i8>()), bufferMem, "i8 = {}", "i8 = 127"_sv },
+        };
+        CT_CHECK(verifyAllTestCases(testCases) == 0);
+    }
+    {
+        CommonTestCase<i16> testCases[] = {
+            { i16(16), bufferMem, "i16 = {}", "i16 = 16"_sv },
+            { i16(core::limitMin<i16>()), bufferMem, "i16 = {}", "i16 = -32768"_sv },
+            { i16(core::limitMax<i16>()), bufferMem, "i16 = {}", "i16 = 32767"_sv },
+        };
+        CT_CHECK(verifyAllTestCases(testCases) == 0);
+    }
+    {
+        CommonTestCase<i32> testCases[] = {
+            { i32(32), bufferMem, "i32 = {}", "i32 = 32"_sv },
+            { i32(core::limitMin<i32>()), bufferMem, "i32 = {}", "i32 = -2147483648"_sv },
+            { i32(core::limitMax<i32>()), bufferMem, "i32 = {}", "i32 = 2147483647"_sv },
+        };
+        CT_CHECK(verifyAllTestCases(testCases) == 0);
+    }
+    {
+        CommonTestCase<i64> testCases[] = {
+            { i64(64), bufferMem, "i64 = {}", "i64 = 64"_sv },
+            { i64(core::limitMin<i64>()), bufferMem, "i64 = {}", "i64 = -9223372036854775808"_sv },
+            { i64(core::limitMax<i64>()), bufferMem, "i64 = {}", "i64 = 9223372036854775807"_sv },
+        };
+        CT_CHECK(verifyAllTestCases(testCases) == 0);
+    }
 
-    // {
-    //     CommonTestCase<u8> testCases[] = {
-    //         { u8(8), bufferMem, "u8 = {}", "u8 = 8"_sv },
-    //         { u8(core::limitMin<u8>()), bufferMem, "u8 = {}", "u8 = 0"_sv },
-    //         { u8(core::limitMax<u8>()), bufferMem, "u8 = {}", "u8 = 255"_sv },
-    //     };
-    //     for (auto& tc : testCases) {
-    //         CT_CHECK(checkCommonTestCase(tc) == 0);
-    //     }
-    // }
-    // {
-    //     CommonTestCase<u16> testCases[] = {
-    //         { u16(16), bufferMem, "u16 = {}", "u16 = 16"_sv },
-    //         { u16(core::limitMin<u16>()), bufferMem, "u16 = {}", "u16 = 0"_sv },
-    //         { u16(core::limitMax<u16>()), bufferMem, "u16 = {}", "u16 = 65535"_sv },
-    //     };
-    //     for (auto& tc : testCases) {
-    //         CT_CHECK(checkCommonTestCase(tc) == 0);
-    //     }
-    // }
-    // {
-    //     CommonTestCase<u32> testCases[] = {
-    //         { u32(32), bufferMem, "u32 = {}", "u32 = 32"_sv },
-    //         { u32(core::limitMin<u32>()), bufferMem, "u32 = {}", "u32 = 0"_sv },
-    //         { u32(core::limitMax<u32>()), bufferMem, "u32 = {}", "u32 = 4294967295"_sv },
-    //     };
-    //     for (auto& tc : testCases) {
-    //         CT_CHECK(checkCommonTestCase(tc) == 0);
-    //     }
-    // }
-    // {
-    //     CommonTestCase<u64> testCases[] = {
-    //         { u64(64), bufferMem, "u64 = {}", "u64 = 64"_sv },
-    //         { u64(core::limitMin<u64>()), bufferMem, "u64 = {}", "u64 = 0"_sv },
-    //         { u64(core::limitMax<u64>()), bufferMem, "u64 = {}", "u64 = 18446744073709551615"_sv },
-    //     };
-    //     for (auto& tc : testCases) {
-    //         CT_CHECK(checkCommonTestCase(tc) == 0);
-    //     }
-    // }
+    {
+        CommonTestCase<u8> testCases[] = {
+            { u8(8), bufferMem, "u8 = {}", "u8 = 8"_sv },
+            { u8(core::limitMin<u8>()), bufferMem, "u8 = {}", "u8 = 0"_sv },
+            { u8(core::limitMax<u8>()), bufferMem, "u8 = {}", "u8 = 255"_sv },
+        };
+        for (auto& tc : testCases) {
+            CT_CHECK(checkCommonTestCase(tc) == 0);
+        }
+    }
+    {
+        CommonTestCase<u16> testCases[] = {
+            { u16(16), bufferMem, "u16 = {}", "u16 = 16"_sv },
+            { u16(core::limitMin<u16>()), bufferMem, "u16 = {}", "u16 = 0"_sv },
+            { u16(core::limitMax<u16>()), bufferMem, "u16 = {}", "u16 = 65535"_sv },
+        };
+        for (auto& tc : testCases) {
+            CT_CHECK(checkCommonTestCase(tc) == 0);
+        }
+    }
+    {
+        CommonTestCase<u32> testCases[] = {
+            { u32(32), bufferMem, "u32 = {}", "u32 = 32"_sv },
+            { u32(core::limitMin<u32>()), bufferMem, "u32 = {}", "u32 = 0"_sv },
+            { u32(core::limitMax<u32>()), bufferMem, "u32 = {}", "u32 = 4294967295"_sv },
+        };
+        for (auto& tc : testCases) {
+            CT_CHECK(checkCommonTestCase(tc) == 0);
+        }
+    }
+    {
+        CommonTestCase<u64> testCases[] = {
+            { u64(64), bufferMem, "u64 = {}", "u64 = 64"_sv },
+            { u64(core::limitMin<u64>()), bufferMem, "u64 = {}", "u64 = 0"_sv },
+            { u64(core::limitMax<u64>()), bufferMem, "u64 = {}", "u64 = 18446744073709551615"_sv },
+        };
+        for (auto& tc : testCases) {
+            CT_CHECK(checkCommonTestCase(tc) == 0);
+        }
+    }
 
     return 0;
 }

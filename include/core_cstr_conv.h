@@ -70,23 +70,59 @@ constexpr core::expected<u32, ParseError> intToCstr(TInt n, char* out, addr_size
     Assert(out);
 
     u32 idx = 0;
+    bool isSmallestInteger = false;
 
     if constexpr (core::is_signed_v<TInt>) {
         if (n < 0) {
             if (addr_size(idx) < olen) out[idx++] = '-';
             else return core::unexpected(ParseError::OutputBufferTooSmall);
-            n = -n;
+
+            if (n == core::limitMin<TInt>()) {
+                // When n is the minimum for a specified integer type, then n = -n does not work, and this needs to be
+                // handled specially.
+                isSmallestInteger = true;
+            }
+            else {
+                n = -n;
+            }
         }
     }
 
     i32 dc = (digits == 0) ? i32(digitCount(n)) : i32(digits);
+    if (addr_size(idx + u32(dc)) >= olen) {
+        return core::unexpected(ParseError::OutputBufferTooSmall);
+    }
+
+    // Special min value case:
+    if constexpr (core::is_signed_v<TInt>) {
+        // Branch prediction should determine this to be very unlikely and hopefully this will have minimal
+        // performance hit for the general case.
+        if (isSmallestInteger) [[unlikely]] {
+            if constexpr (std::is_same_v<TInt, i8>) {
+                Assert(dc == core::cstrLen("128"), "Sanity check failed");
+                core::memcopy(out + idx, "128", dc);
+            }
+            else if constexpr (std::is_same_v<TInt, i16>) {
+                Assert(dc == core::cstrLen("32768"), "Sanity check failed");
+                core::memcopy(out + idx, "32768", dc);
+            }
+            else if constexpr (std::is_same_v<TInt, i32>) {
+                Assert(dc == core::cstrLen("2147483648"), "Sanity check failed");
+                core::memcopy(out + idx, "2147483648", dc);
+            }
+            else if constexpr (std::is_same_v<TInt, i64>) {
+                Assert(dc == core::cstrLen("9223372036854775808"), "Sanity check failed");
+                core::memcopy(out + idx, "9223372036854775808", dc);
+            }
+            return idx + dc;
+        }
+    }
+
     for (i32 i = dc - 1; i >= 0; i--) {
-        // There is a lot of believe in all this static casting, but it 'should not' be dangerous.
-        TInt curr = TInt(n / TInt(pow10(u32(i)))) % 10;
-        char c = digitToChar(curr);
-        if (addr_size(idx) < olen) out[idx++] = c;
-        else return core::unexpected(ParseError::OutputBufferTooSmall);
-        dc--;
+        // Fast convert the digit and write it.
+        TInt digit = TInt(n / TInt(pow10(u32(i)))) % 10;
+        char c = digitToChar(digit);
+        out[idx++] = c;
     }
 
     return idx;

@@ -1,5 +1,7 @@
 #include "t-index.h"
 
+// FIXME: Use maximums, what the fuck is this slob I am writing ... shameful dispaly !
+
 constexpr i32 cstrToIntTest() {
     {
         struct TestCase {

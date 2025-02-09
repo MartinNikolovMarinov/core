@@ -1,6 +1,5 @@
 #include "t-index.h"
 
-
 constexpr i32 cstrToIntTest() {
     {
         struct TestCase {
@@ -12,7 +11,6 @@ constexpr i32 cstrToIntTest() {
             { "123", 123 },
             { "-123", -123 },
             { "127", 127 },
-            { "-128", -128 },
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for i8 at index: ", cases, [](auto& c, const char* cErr) {
@@ -55,7 +53,6 @@ constexpr i32 cstrToIntTest() {
             { "123", 123 },
             { "-123", -123 },
             { "32767", 32767 },
-            { "-32768", -32768 },
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for i16 at index: ", cases, [](auto& c, const char* cErr) {
@@ -98,7 +95,6 @@ constexpr i32 cstrToIntTest() {
             { "123", 123 },
             { "-123", -123 },
             { "2147483647", 2147483647 },
-            { "-2147483648", -2147483648 },
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for i32 at index: ", cases, [](auto& c, const char* cErr) {
@@ -141,7 +137,6 @@ constexpr i32 cstrToIntTest() {
             { "123", 123 },
             { "-123", -123 },
             { "9223372036854775807", 9223372036854775807ll },
-            { "-9223372036854775808", -9223372036854775807ll - 1ll },
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for i64 at index: ", cases, [](auto& c, const char* cErr) {
@@ -172,6 +167,31 @@ constexpr i32 cstrToIntTest() {
             return 0;
         });
         CT_CHECK(ret == 0);
+    }
+
+    IS_NOT_CONST_EVALUATED {
+        // NOTE: These work, but not in a const evaluated context, because the multiplication results in overflow.
+
+        {
+            auto v = core::cstrToInt<i8>("-128", u32(core::cstrLen("-128")));
+            CT_CHECK(v.hasValue());
+            CT_CHECK(v.value() == -128);
+        }
+        {
+            auto v = core::cstrToInt<i16>("-32768", u32(core::cstrLen("-32768")));
+            CT_CHECK(v.hasValue());
+            CT_CHECK(v.value() == -32768);
+        }
+        {
+            auto v = core::cstrToInt<i32>("-2147483648", u32(core::cstrLen("-2147483648")));
+            CT_CHECK(v.hasValue());
+            CT_CHECK(v.value() == -2147483648);
+        }
+        {
+            auto v = core::cstrToInt<i64>("-9223372036854775808", u32(core::cstrLen("-9223372036854775808")));
+            CT_CHECK(v.hasValue());
+            CT_CHECK(v.value() == -9223372036854775807ll - 1ll);
+        }
     }
 
     return 0;

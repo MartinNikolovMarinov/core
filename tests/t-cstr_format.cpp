@@ -2,8 +2,7 @@
 
 // FIXME:
 // 1. Test Errors
-// 2. Test edge cases for all basic types.
-// 3. Test long formats.
+// 2. Test very long input.
 
 namespace {
 

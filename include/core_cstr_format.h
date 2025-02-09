@@ -10,7 +10,8 @@
 //   1. Integer number prefix with 0
 //   2. Integer number round to n digits
 //   3. Float number prefix with 0
-//   4. Float number round to n digits after the dot.
+//   4. Float number round to n digits after the dot
+//   5. Replace all places where std::snprintf is used.
 
 namespace core {
 

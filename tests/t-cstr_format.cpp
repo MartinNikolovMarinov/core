@@ -38,7 +38,7 @@ i32 basicFormatTest() {
     char buffer[BUFFER_SIZE];
     auto bufferMem = core::Memory<char> { buffer, BUFFER_SIZE };
 
-    core::memset(buffer, 77, BUFFER_SIZE);
+    core::memset(buffer, char(77), BUFFER_SIZE);
     {
         auto res = core::format(buffer, BUFFER_SIZE, "No arguments test");
         CT_CHECK(res.hasValue());
@@ -47,7 +47,7 @@ i32 basicFormatTest() {
                               "No arguments test", core::cstrLen("No arguments test")));
     }
 
-    core::memset(buffer, 77, BUFFER_SIZE);
+    core::memset(buffer, char(77), BUFFER_SIZE);
     {
         f32 a = 78.456113f;
         i8 b = -41;
@@ -64,7 +64,7 @@ i32 basicFormatTest() {
     }
 
     auto verifyAllTestCases = [&](auto& testCases) {
-        core::memset(buffer, 77, BUFFER_SIZE);
+        core::memset(buffer, char(77), BUFFER_SIZE);
         for (auto& tc : testCases) {
             CT_CHECK(checkCommonTestCase(tc) == 0);
         }

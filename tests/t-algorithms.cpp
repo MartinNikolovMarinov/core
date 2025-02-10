@@ -13,6 +13,7 @@ i32 findAlgorithmTest() {
         found = core::find(arr, BUFF_LEN, [] (i32 elem, addr_size) -> bool { return elem == 6; });
         CT_CHECK(found == -1);
     }
+
     {
         struct TestStruct {
             i32 a;
@@ -27,6 +28,82 @@ i32 findAlgorithmTest() {
         CT_CHECK(found == 1);
         found = core::find(arr, [] (const TestStruct& elem, addr_size) -> bool { return elem.a == 6; });
         CT_CHECK(found == -1);
+    }
+
+    {
+        struct TestCase {
+            const i32* src;
+            addr_size srcLen;
+            i32 val;
+            addr_off idx;
+        };
+
+        const i32 a1[] = {1};
+        constexpr addr_size a1Len = CORE_C_ARRLEN(a1);
+        const i32 a2[] = {core::limitMin<i32>(), 0, core::limitMax<i32>()};
+        constexpr addr_size a2Len = CORE_C_ARRLEN(a2);
+        const i32 a3[] = {core::limitMin<i32>(), 0, core::limitMax<i32>(), core::limitMax<i32>() / 2};
+        constexpr addr_size a3Len = CORE_C_ARRLEN(a3);
+
+        TestCase cases[] = {
+            { {}, 0, 0, -1 },
+            { nullptr, 0, 0, -1 },
+
+            { a1, a1Len, 2, -1 },
+            { a1, a1Len, core::limitMax<i32>(), -1 },
+            { a1, a1Len, 1, 0 },
+
+            { a2, a2Len, core::limitMin<i32>() + 1, -1 },
+            { a2, a2Len, core::limitMin<i32>(), 0 },
+            { a2, a2Len, 0, 1 },
+            { a2, a2Len, core::limitMax<i32>(), 2 },
+            { a2, a2Len, core::limitMax<i32>() - 1, -1 },
+
+            { a3, a3Len, core::limitMin<i32>() + 1, -1 },
+            { a3, a3Len, core::limitMin<i32>(), 0 },
+            { a3, a3Len, 0, 1 },
+            { a3, a3Len, core::limitMax<i32>(), 2 },
+            { a3, a3Len, core::limitMax<i32>() / 2, 3 },
+            { a3, a3Len, core::limitMax<i32>() / 2 + 1, -1 },
+        };
+
+        i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+            addr_off idx = core::find(c.src, c.srcLen, [&](i32 a, addr_size) -> bool { return a == c.val; });
+            CT_CHECK(idx == c.idx, cErr);
+            return 0;
+        });
+
+        CT_CHECK(ret == 0);
+    }
+
+    {
+        struct TestCase {
+            const char* src;
+            char val;
+            addr_off idx;
+        };
+
+        TestCase cases[] = {
+            { "1234567890", '1', 0 },
+            { "1234567890", '2', 1 },
+            { "1234567890", '3', 2 },
+            { "1234567890", '4', 3 },
+            { "1234567890", '5', 4 },
+            { "1234567890", '6', 5 },
+            { "1234567890", '7', 6 },
+            { "1234567890", '8', 7 },
+            { "1234567890", '9', 8 },
+            { "1234567890", '0', 9 },
+            { "1234567890", 'z', -1 },
+        };
+
+        i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+            addr_off idx = core::find(c.src, core::cstrLen(c.src), [&](char a, addr_size) -> bool { return a == c.val; });
+            CT_CHECK(idx == c.idx, cErr);
+            return 0;
+        });
+
+        return ret;
     }
 
     return 0;

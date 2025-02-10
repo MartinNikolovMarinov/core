@@ -16,7 +16,7 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten, i32 nStackFr
             return false;
         }
         bufWritten += slen;
-        buf = core::memcopy(buf, s, slen);
+        buf += core::memcopy(buf, s, slen);
         return true;
     };
 

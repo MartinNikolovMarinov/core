@@ -146,7 +146,7 @@ constexpr i32 memcopyTest() {
 
         char first[] = "Hello,";
         const addr_size firstLen = core::cstrLen(first);
-        ptr = core::memcopy(buffer, first, firstLen);
+        ptr += core::memcopy(buffer, first, firstLen);
 
         for (addr_size i = 0; i < firstLen; i++) {
             CT_CHECK(buffer[i] == first[i]);
@@ -154,7 +154,7 @@ constexpr i32 memcopyTest() {
 
         constexpr const char* second = " World!";
         constexpr addr_size secondLen = core::cstrLen(second);
-        ptr = core::memcopy(ptr, second, secondLen);
+        ptr += core::memcopy(ptr, second, secondLen);
 
         for (addr_size i = 0; i < firstLen; i++) {
             CT_CHECK(buffer[i] == first[i]);
@@ -216,8 +216,8 @@ constexpr i32 memsetTest() {
         char buf[N] = {};
         char* ptr = buf;
 
-        ptr = core::memset(buf, 'a', N / 2);
-        ptr = core::memset(ptr, 'b', N / 2);
+        ptr += core::memset(buf, 'a', N / 2);
+        ptr += core::memset(ptr, 'b', N / 2);
 
         for (addr_size i = 0; i < N / 2; i++) {
             CT_CHECK(buf[i] == 'a');
@@ -295,18 +295,20 @@ constexpr i32 memcmpWithCStrs() {
     return 0;
 }
 
-i32 memcmpTest() {
+constexpr i32 memcmpTest() {
     i32 a[] = { 1, 2, 3, 4, 5 };
     i32 b[] = { 1, 2, 3, 4 };
     i32 c[] = { 9, 9, 9, 9 };
 
-    CT_CHECK(core::memcmp(a, 4, b, 4) == 0);
-    CT_CHECK(core::memcmp(a, b, 4) == 0);
-    CT_CHECK(core::memcmp(a, 4, b, 5) < 0);
-    CT_CHECK(core::memcmp(b, 5, a, 4) > 0);
+    constexpr auto cmpFn = [](i32 x, i32 y) -> i32 { return x - y; };
 
-    CT_CHECK(core::memcmp(a, c, 4) < 0);
-    CT_CHECK(core::memcmp(c, a, 4) > 0);
+    CT_CHECK(core::memcmp(a, 4, b, 4, cmpFn) == 0);
+    CT_CHECK(core::memcmp(a, b, 4, cmpFn) == 0);
+    CT_CHECK(core::memcmp(a, 4, b, 5, cmpFn) < 0);
+    CT_CHECK(core::memcmp(b, 5, a, 4, cmpFn) > 0);
+
+    CT_CHECK(core::memcmp(a, c, 4, cmpFn) < 0);
+    CT_CHECK(core::memcmp(c, a, 4, cmpFn) > 0);
 
     return 0;
 }
@@ -323,117 +325,6 @@ constexpr i32 appendTest() {
     }
 
     return 0;
-}
-
-i32 memidxofTest() {
-    struct TestCase {
-        const i32* src;
-        addr_size srcLen;
-        i32 val;
-        addr_off idx;
-    };
-
-    const i32 a1[] = {1};
-    constexpr addr_size a1Len = CORE_C_ARRLEN(a1);
-    const i32 a2[] = {core::limitMin<i32>(), 0, core::limitMax<i32>()};
-    constexpr addr_size a2Len = CORE_C_ARRLEN(a2);
-    const i32 a3[] = {core::limitMin<i32>(), 0, core::limitMax<i32>(), core::limitMax<i32>() / 2};
-    constexpr addr_size a3Len = CORE_C_ARRLEN(a3);
-
-    TestCase cases[] = {
-        { {}, 0, 0, -1 },
-        { nullptr, 0, 0, -1 },
-
-        { a1, a1Len, 2, -1 },
-        { a1, a1Len, core::limitMax<i32>(), -1 },
-        { a1, a1Len, 1, 0 },
-
-        { a2, a2Len, core::limitMin<i32>() + 1, -1 },
-        { a2, a2Len, core::limitMin<i32>(), 0 },
-        { a2, a2Len, 0, 1 },
-        { a2, a2Len, core::limitMax<i32>(), 2 },
-        { a2, a2Len, core::limitMax<i32>() - 1, -1 },
-
-        { a3, a3Len, core::limitMin<i32>() + 1, -1 },
-        { a3, a3Len, core::limitMin<i32>(), 0 },
-        { a3, a3Len, 0, 1 },
-        { a3, a3Len, core::limitMax<i32>(), 2 },
-        { a3, a3Len, core::limitMax<i32>() / 2, 3 },
-        { a3, a3Len, core::limitMax<i32>() / 2 + 1, -1 },
-    };
-
-    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        addr_off idx = core::memidxof(c.src, c.srcLen, c.val);
-        CT_CHECK(idx == c.idx, cErr);
-        return 0;
-    });
-
-    return ret;
-}
-
-constexpr i32 memidxofTestWithCstr() {
-    struct TestCase {
-        const char* src;
-        const char* val;
-        addr_off idx;
-    };
-
-    TestCase cases[] = {
-        { "", "", 0 },
-        { nullptr, "1", -1 },
-        { nullptr, nullptr, -1 },
-        { "1", nullptr, -1 },
-        { "1234", "1", 0 },
-        { "1234", "12", 0 },
-        { "1234", "123", 0 },
-        { "1234", "1234", 0 },
-        { "1234", "234", 1 },
-        { "1234", "34", 2 },
-        { "1234", "4", 3 },
-        { "1234", "5", -1 },
-        { "1234", "45", -1 },
-        { "1234", "345", -1 },
-        { "1234", "2345", -1 },
-        { "1234", "12345", -1 },
-    };
-
-    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        addr_off idx = core::memidxof(c.src, core::cstrLen(c.src), c.val, core::cstrLen(c.val));
-        CT_CHECK(idx == c.idx, cErr);
-        return 0;
-    });
-
-    return ret;
-}
-
-constexpr i32 memidxofTestWithChar() {
-    struct TestCase {
-        const char* src;
-        char val;
-        addr_off idx;
-    };
-
-    TestCase cases[] = {
-        { "1234567890", '1', 0 },
-        { "1234567890", '2', 1 },
-        { "1234567890", '3', 2 },
-        { "1234567890", '4', 3 },
-        { "1234567890", '5', 4 },
-        { "1234567890", '6', 5 },
-        { "1234567890", '7', 6 },
-        { "1234567890", '8', 7 },
-        { "1234567890", '9', 8 },
-        { "1234567890", '0', 9 },
-        { "1234567890", 'z', -1 },
-    };
-
-    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        addr_off idx = core::memidxof(c.src, core::cstrLen(c.src), c.val);
-        CT_CHECK(idx == c.idx, cErr);
-        return 0;
-    });
-
-    return ret;
 }
 
 i32 ptrDiffTest() {
@@ -555,12 +446,6 @@ i32 runMemTestsSuite() {
     if (runTest(tInfo, memcmpTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(appendTest);
     if (runTest(tInfo, appendTest) != 0) { ret = -1; }
-    tInfo.name = FN_NAME_TO_CPTR(memidxofTest);
-    if (runTest(tInfo, memidxofTest) != 0) { ret = -1; }
-    tInfo.name = FN_NAME_TO_CPTR(memidxofTestWithCstr);
-    if (runTest(tInfo, memidxofTestWithCstr) != 0) { ret = -1; }
-    tInfo.name = FN_NAME_TO_CPTR(memidxofTestWithChar);
-    if (runTest(tInfo, memidxofTestWithChar) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(ptrDiffTest);
     if (runTest(tInfo, ptrDiffTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(ptrAdvanceTest);
@@ -577,9 +462,8 @@ constexpr i32 runCompiletimeMemTestsSuite() {
     RunTestCompileTime(memcopyTest);
     RunTestCompileTime(memsetTest);
     RunTestCompileTime(memcmpWithCStrs);
+    RunTestCompileTime(memcmpTest);
     RunTestCompileTime(appendTest);
-    RunTestCompileTime(memidxofTestWithCstr);
-    RunTestCompileTime(memidxofTestWithChar);
 
     return 0;
 }

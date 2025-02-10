@@ -31,6 +31,9 @@ using addr_size = u64;
 using addr_off  = i64;
 using rune      = u32; // Runes represent a single UTF-32 encoded character.
 
+template <typename T>
+struct rawbytes { u8 bytes[sizeof(T)]; };
+
 static constexpr i32 BYTE_SIZE = 8;
 
 // Storage Sizes

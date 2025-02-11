@@ -8,6 +8,8 @@
 #include <core_traits.h>
 #include <core_types.h>
 
+#include <iostream> // FIXME: remove this
+
 #include <math/core_math.h>
 
 // FIXME: Add acknowledgement for the author of the ryu algorithm and the c++ reference library!
@@ -158,10 +160,18 @@ constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen) {
             return core::unexpected(ParseError::InputHasInvalidSymbol);
         }
 
-        TInt next = TInt(res * 10) + core::toDigit<TInt>(curr);
+        TInt r = TInt(res * 10);
+        TInt d = core::toDigit<TInt>(curr);
+        TInt next = r + d;
         if (next < res) {
             if constexpr (core::is_signed_v<TInt>) {
-                if (next == core::limitMin<TInt>()) [[unlikely]] {
+                // NOTE:
+                //  Directly checking if `next == core::limitMin<TInt>()` can cause undefined behavior due to integer
+                //  overflow. This leads to a bug in GCC release builds. A safer approach is to check if `next - 1`
+                //  equals the maximum value, which reliably indicates that `next` is at the minimum value after
+                //  overflow.
+                bool isMinValue = (r + (d - 1) == core::limitMax<TInt>());
+                if (isMinValue) [[unlikely]] {
                     // min value is allowed, but only if there are no more symbols to parse.
                     if (i + 1 == slen) {
                         return core::limitMin<TInt>();
@@ -171,6 +181,7 @@ constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen) {
 
             return core::unexpected(ParseError::InputNumberTooLarge);
         }
+
         res = next;
         i++;
     }

@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# TODO: Write a batch script to run all tests on all presets for Windows.
-
 clean_build_dir() {
     mkdir -p build
     rm -rf build/*

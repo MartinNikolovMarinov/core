@@ -118,15 +118,16 @@ template <typename T> inline addr_size imemcopy(T* dest, const T* src, addr_size
         std::memcpy(dest, src, len);
         return len;
     }
+    else {
+        // Byte-wise copy:
+        char* pdest = reinterpret_cast<char*>(dest);
+        const char* psrc = reinterpret_cast<const char*>(src);
+        for (addr_size i = 0; i < len * sizeof(T); i++) {
+            pdest[i] = psrc[i];
+        }
 
-    // Byte-wise copy:
-    char* pdest = reinterpret_cast<char*>(dest);
-    const char* psrc = reinterpret_cast<const char*>(src);
-    for (addr_size i = 0; i < len * sizeof(T); i++) {
-        pdest[i] = psrc[i];
+        return len;
     }
-
-    return len;
 }
 
 template <typename T> constexpr addr_size cmemcopy(T* dest, const T* src, addr_size len) {

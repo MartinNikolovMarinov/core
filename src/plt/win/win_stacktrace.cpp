@@ -28,7 +28,7 @@ bool stacktrace(char* buf, addr_size bufMax, addr_size& bufWritten,
             return false;
         }
         bufWritten += slen;
-        buf = core::memcopy(buf, s, slen);
+        buf += core::memcopy(buf, s, slen);
         return true;
     };
     auto writeIntToBuf = [&](auto n) -> bool {

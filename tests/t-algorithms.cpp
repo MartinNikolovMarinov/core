@@ -103,7 +103,7 @@ i32 findAlgorithmTest() {
             return 0;
         });
 
-        return ret;
+        CT_CHECK(ret == 0);
     }
 
     return 0;

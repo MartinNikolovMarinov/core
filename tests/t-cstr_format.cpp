@@ -1,9 +1,5 @@
 #include "t-index.h"
 
-// FIXME:
-// 1. Test Errors
-// 2. Test very long input.
-
 namespace {
 
 template <typename T>
@@ -148,6 +144,333 @@ constexpr i32 basicFormatTest() {
     return 0;
 }
 
+constexpr i32 edgeCasesTest() {
+    {
+        auto res = core::format(nullptr, 15, "");
+        CT_CHECK(res.hasErr());
+        CT_CHECK(res.err() == core::FormatError::INVALID_ARGUMENTS);
+    }
+    {
+        auto res = core::format({ nullptr, 15 }, "");
+        CT_CHECK(res.hasErr());
+        CT_CHECK(res.err() == core::FormatError::INVALID_ARGUMENTS);
+    }
+    {
+        auto res = core::format( nullptr, 15, "", 1, 2);
+        CT_CHECK(res.hasErr());
+        CT_CHECK(res.err() == core::FormatError::INVALID_ARGUMENTS);
+    }
+    {
+        auto res = core::format({ nullptr, 15 }, "", 1, 2);
+        CT_CHECK(res.hasErr());
+        CT_CHECK(res.err() == core::FormatError::INVALID_ARGUMENTS);
+    }
+    {
+        char buff[4];
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), nullptr);
+        CT_CHECK(res.hasErr());
+        CT_CHECK(res.err() == core::FormatError::INVALID_ARGUMENTS);
+    }
+    {
+        char buff[4];
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), nullptr, 1, 2);
+        CT_CHECK(res.hasErr());
+        CT_CHECK(res.err() == core::FormatError::INVALID_ARGUMENTS);
+    }
+    {
+        char buff[4];
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), "123456", 1, 2);
+        CT_CHECK(res.hasErr());
+        CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+    }
+
+    {
+        char buff[4] = {};
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), "");
+        CT_CHECK(res.hasValue());
+        CT_CHECK(res.value() == 0);
+        CT_CHECK(buff[0] == '\0');
+    }
+    {
+        char buff[4];
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), "{}", "");
+        CT_CHECK(res.hasValue());
+        CT_CHECK(res.value() == 0);
+        CT_CHECK(buff[0] == '\0');
+    }
+
+    {
+        char buff[8];
+        constexpr addr_size buffSize = CORE_C_ARRLEN(buff);
+
+        {
+            auto res = core::format(buff, buffSize, "12345678");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+
+        {
+            auto res = core::format(buff, buffSize, "abc={}", i8(-123));
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "abcd={}", u8(123));
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "ab={}", i16(-1234));
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "abc={}", u16(1234));
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "ab={}", i32(-1234));
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "abc={}", u32(1234));
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "ab={}", i64(-1234));
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "abc={}", u64(1234));
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+
+        {
+            auto res = core::format(buff, buffSize, "abc={}", true);
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "ab={}", false);
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+
+        {
+            auto res = core::format(buff, buffSize, "{}", "12345678");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "1{}", "2345678");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "12{}", "345678");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "123{}", "45678");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "1234{}", "5678");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "12345{}", "678");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "123456{}", "78");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "1234567{}", "8");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "12345678{}", "");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "{}", "12345678");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "{}1", "2345678");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "{}12", "345678");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "{}123", "45678");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "{}1234", "5678");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "{}12345", "678");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "{}123456", "78");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "{}1234567", "8");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "{}12345678", "");
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+
+        {
+            auto res = core::format(buff, buffSize, "ab={}", f32(6.8750f));
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+        {
+            auto res = core::format(buff, buffSize, "ab={}", f64(3.1250));
+            CT_CHECK(res.hasErr());
+            CT_CHECK(res.err() == core::FormatError::OUT_BUFFER_OVERFLOW);
+        }
+    }
+
+    {
+        char buff[4];
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), "{} {}", 12);
+        CT_CHECK(res.hasErr());
+        CT_CHECK(res.err() == core::FormatError::TOO_FEW_ARGUMENTS);
+    }
+    {
+        char buff[10];
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), "{} {} {}", 12, 123);
+        CT_CHECK(res.hasErr());
+        CT_CHECK(res.err() == core::FormatError::TOO_FEW_ARGUMENTS);
+    }
+    {
+        // This should technically say that there are too few arguments provided, but I'll live with the existing
+        // implementation. It's fine to work basically as a memcopy with length checks.
+        char buff[3] = {};
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), "{}");
+        CT_CHECK(res.hasValue());
+        CT_CHECK(core::memcmp(buff, core::cstrLen(buff), "{}", core::cstrLen("{}")) == 0);
+    }
+
+    {
+        char buff[4];
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), "", 12);
+        CT_CHECK(res.hasErr());
+        CT_CHECK(res.err() == core::FormatError::TOO_MANY_ARGUMENTS);
+    }
+    {
+        char buff[4];
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), "{}", 12, 123);
+        CT_CHECK(res.hasErr());
+        CT_CHECK(res.err() == core::FormatError::TOO_MANY_ARGUMENTS);
+    }
+    {
+        char buff[8];
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), "{}{}", 12, 123, 56);
+        CT_CHECK(res.hasErr());
+        CT_CHECK(res.err() == core::FormatError::TOO_MANY_ARGUMENTS);
+    }
+
+    return 0;
+}
+
+constexpr i32 escapedBracketTest() {
+    {
+        char buff[2] = {};
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), "{");
+        CT_CHECK(res.hasValue());
+        CT_CHECK(res.value() == 1);
+        CT_CHECK("{"_sv.eq(buff));
+    }
+    {
+        char buff[2] = {};
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), "}");
+        CT_CHECK(res.hasValue());
+        CT_CHECK(res.value() == 1);
+        CT_CHECK("}"_sv.eq(buff));
+    }
+
+    {
+        char buff[core::cstrLen("{ 1") + 1] = {};
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), "{ {}", 1);
+        CT_CHECK(res.hasValue());
+        CT_CHECK(res.value() == core::cstrLen("{ 1"));
+        CT_CHECK("{ 1"_sv.eq(buff));
+    }
+    {
+        char buff[core::cstrLen("} 2") + 1] = {};
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), "} {}", 2);
+        CT_CHECK(res.hasValue());
+        CT_CHECK(res.value() == core::cstrLen("} 2"));
+        CT_CHECK("} 2"_sv.eq(buff));
+    }
+    {
+        char buff[core::cstrLen("3 {") + 1] = {};
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), "{} {", 3);
+        CT_CHECK(res.hasValue());
+        CT_CHECK(res.value() == core::cstrLen("3 {"));
+        CT_CHECK("3 {"_sv.eq(buff));
+    }
+    {
+        char buff[core::cstrLen("4 }") + 1] = {};
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), "{} }", 4);
+        CT_CHECK(res.hasValue());
+        CT_CHECK(res.value() == core::cstrLen("4 }"));
+        CT_CHECK("4 }"_sv.eq(buff));
+    }
+
+    {
+        char buff[core::cstrLen("{}1") + 1] = {};
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), "{{}}{}", 1);
+        CT_CHECK(res.hasValue());
+        CT_CHECK(res.value() == core::cstrLen("{}1"));
+        CT_CHECK("{}1"_sv.eq(buff));
+    }
+
+    {
+        char buff[core::cstrLen("1{}") + 1] = {};
+        auto res = core::format(buff, CORE_C_ARRLEN(buff), "{}{{}}", 1);
+        CT_CHECK(res.hasValue());
+        CT_CHECK(res.value() == core::cstrLen("1{}"));
+        CT_CHECK("1{}"_sv.eq(buff));
+    }
+
+    return 0;
+}
+
 } // namespace
 
 i32 runFormatTestsSuite() {
@@ -157,12 +480,18 @@ i32 runFormatTestsSuite() {
 
     tInfo.name = FN_NAME_TO_CPTR(basicFormatTest);
     if (runTest(tInfo, basicFormatTest) != 0) return -1;
+    tInfo.name = FN_NAME_TO_CPTR(edgeCasesTest);
+    if (runTest(tInfo, edgeCasesTest) != 0) return -1;
+    tInfo.name = FN_NAME_TO_CPTR(escapedBracketTest);
+    if (runTest(tInfo, escapedBracketTest) != 0) return -1;
 
     return 0;
 }
 
 constexpr i32 runCompiletimeFormatTestSuite() {
     RunTestCompileTime(basicFormatTest);
+    RunTestCompileTime(edgeCasesTest);
+    RunTestCompileTime(escapedBracketTest);
 
     return 0;
 }

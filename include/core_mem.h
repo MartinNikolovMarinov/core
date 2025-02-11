@@ -3,6 +3,7 @@
 #include <core_API.h>
 #include <core_assert.h>
 #include <core_bits.h>
+#include <core_cstr.h>
 #include <core_traits.h>
 #include <core_types.h>
 
@@ -80,9 +81,21 @@ struct Memory {
         bool areEqual = other.length == length && this->cmp(other) == 0;
         return areEqual;
     }
+    constexpr bool eq(const char* other, addr_size olen) const {
+        bool areEqual = olen == length && this->cmp(other, olen) == 0;
+        return areEqual;
+    }
+    constexpr bool eq(const char* other) const {
+        addr_size olen = core::cstrLen(other);
+        bool areEqual = olen == length && this->cmp(other, olen) == 0;
+        return areEqual;
+    }
 
     constexpr i32 cmp(const Memory& other) const {
         return core::memcmp<T>(ptr, length, other.ptr, other.length);
+    }
+    constexpr i32 cmp(const char* other, addr_size olen) const {
+        return core::memcmp<T>(ptr, length, other, olen);
     }
 
     constexpr bool contains(const T& v) const {

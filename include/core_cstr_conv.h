@@ -5,6 +5,7 @@
 #include <core_cstr.h>
 #include <core_expected.h>
 #include <core_ints.h>
+#include <core_mem.h>
 #include <core_traits.h>
 #include <core_types.h>
 

@@ -11,17 +11,18 @@
 //   2. Integer number round to n digits
 //   3. Float number prefix with 0
 //   4. Float number round to n digits after the dot
-//   5. Replace all places where std::snprintf is used.
+//   5. Print nullptrs and try to print addresses of unknown types.
+//   6. Replace all places where std::snprintf is used.
 
 namespace core {
 
 using namespace coretypes;
 
 enum struct FormatError : u8 {
+    INVALID_ARGUMENTS,
     TOO_FEW_ARGUMENTS,
     TOO_MANY_ARGUMENTS,
     OUT_BUFFER_OVERFLOW,
-    FAILED_TO_CONVERT,
     SENTINEL
 };
 
@@ -33,6 +34,8 @@ constexpr core::expected<u32, FormatError> formatImpl(char*& out, u32 remaining,
 } // namespace detail
 
 constexpr core::expected<u32, FormatError> format(char* out, u32 outLen, const char* fmt) {
+    if (out == nullptr) return core::unexpected(FormatError::INVALID_ARGUMENTS);
+    if (fmt == nullptr) return core::unexpected(FormatError::INVALID_ARGUMENTS);
     u32 fmtLen = u32(core::cstrLen(fmt));
     if (outLen <= fmtLen) {
         return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
@@ -63,18 +66,18 @@ template <typename T>
 constexpr core::expected<u32, FormatError> convertToCStr(char*, u32, T) {
     // FIXME: I should write the address instead of asserting.
     static_assert(core::always_false<T>, "No conversion function for T available");
-    return core::unexpected(FormatError::FAILED_TO_CONVERT);
+    return core::unexpected(FormatError::SENTINEL);
 }
 
 template <typename T>
 constexpr core::expected<u32, FormatError> convertInts(char* out, u32 outLen, T value) {
     auto res = core::intToCstr(value, out, outLen);
     if (res.hasErr()) {
-        return core::unexpected(FormatError::FAILED_TO_CONVERT);
+        return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
     }
 
     auto written = res.value();
-    if (written >= outLen) {
+    if (written >= outLen) [[unlikely]] {
         return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
     }
 
@@ -85,11 +88,11 @@ template <typename T>
 constexpr core::expected<u32, FormatError> convertFloats(char* out, u32 outLen, T value) {
     auto res = core::floatToCstr(value, out, outLen);
     if (res.hasErr()) {
-        return core::unexpected(FormatError::FAILED_TO_CONVERT);
+        return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
     }
 
     auto written = res.value();
-    if (written >= outLen) {
+    if (written >= outLen) [[unlikely]] {
         return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
     }
 
@@ -145,6 +148,23 @@ constexpr core::expected<u32, FormatError> appendArg(char*& out, u32& remaining,
 constexpr core::expected<u32, FormatError> formatImpl(char*& out, u32& remaining, const char* fmt) {
     u32 count = 0;
     while (*fmt) {
+        if (fmt[0] == '{' && fmt[1] == '{') {
+            // escape bracket
+            *out++ = *fmt; // write only one bracket.
+            fmt += 2;
+            count += 2;
+            remaining--;
+            continue;
+        }
+        else if (fmt[0] == '}' && fmt[1] == '}') {
+            // escape bracket
+            *out++ = *fmt; // write only one bracket.
+            fmt += 2;
+            count += 2;
+            remaining--;
+            continue;
+        }
+
         if (fmt[0] == '{' && fmt[1] == '}') {
             return core::unexpected(FormatError::TOO_FEW_ARGUMENTS);
         }
@@ -154,12 +174,8 @@ constexpr core::expected<u32, FormatError> formatImpl(char*& out, u32& remaining
         }
 
         *out++ = *fmt++;
-        --remaining;
-        ++count;
-    }
-
-    if (remaining == 0) {
-        return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+        remaining--;
+        count++;
     }
 
     *out = '\0';
@@ -168,8 +184,28 @@ constexpr core::expected<u32, FormatError> formatImpl(char*& out, u32& remaining
 
 template<typename T, typename... Args>
 constexpr core::expected<u32, FormatError> formatImpl(char*& out, u32 remaining, const char* fmt, T value, Args... args) {
+    if (out == nullptr) return core::unexpected(FormatError::INVALID_ARGUMENTS);
+    if (fmt == nullptr) return core::unexpected(FormatError::INVALID_ARGUMENTS);
+
     u32 count = 0;
     while (*fmt) {
+        if (fmt[0] == '{' && fmt[1] == '{') {
+            // escape bracket
+            *out++ = *fmt; // write only one bracket.
+            fmt += 2;
+            count += 2;
+            remaining--;
+            continue;
+        }
+        else if (fmt[0] == '}' && fmt[1] == '}') {
+            // escape bracket
+            *out++ = *fmt; // write only one bracket.
+            fmt += 2;
+            count += 2;
+            remaining--;
+            continue;
+        }
+
         if (fmt[0] == '{' && fmt[1] == '}') {
             fmt += 2; // Skip the "{}"
 

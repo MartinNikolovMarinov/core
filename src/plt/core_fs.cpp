@@ -172,7 +172,8 @@ expected<bool, PltErrCode> dirIsEmpty(const char* path) {
         return core::unexpected(res.err());
     }
 
-    return std::move(c.isEmpty);
+    bool ret = c.isEmpty;
+    return ret;
 }
 
 } // namespace core

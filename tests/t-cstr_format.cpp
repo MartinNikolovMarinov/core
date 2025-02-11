@@ -18,7 +18,7 @@ struct CommonTestCase {
 };
 
 template <typename T>
-i32 checkCommonTestCase(CommonTestCase<T>& c) {
+constexpr i32 checkCommonTestCase(CommonTestCase<T>& c) {
     auto res = core::format(c.out.data(), u32(c.out.len()), c.fmt, c.input);
     CT_CHECK(res.hasErr() == c.expectErr);
 
@@ -32,8 +32,7 @@ i32 checkCommonTestCase(CommonTestCase<T>& c) {
     return 0;
 }
 
-
-i32 basicFormatTest() {
+constexpr i32 basicFormatTest() {
     constexpr addr_size BUFFER_SIZE = 1024;
     char buffer[BUFFER_SIZE];
     auto bufferMem = core::Memory<char> { buffer, BUFFER_SIZE };
@@ -43,8 +42,9 @@ i32 basicFormatTest() {
         auto res = core::format(buffer, BUFFER_SIZE, "No arguments test");
         CT_CHECK(res.hasValue());
         CT_CHECK(res.value() == core::cstrLen("No arguments test"));
+        buffer[res.value()] = '\0';
         CT_CHECK(core::memcmp(buffer, core::cstrLen(buffer),
-                              "No arguments test", core::cstrLen("No arguments test")));
+                              "No arguments test", core::cstrLen("No arguments test")) == 0);
     }
 
     core::memset(buffer, char(77), BUFFER_SIZE);
@@ -157,6 +157,12 @@ i32 runFormatTestsSuite() {
 
     tInfo.name = FN_NAME_TO_CPTR(basicFormatTest);
     if (runTest(tInfo, basicFormatTest) != 0) return -1;
+
+    return 0;
+}
+
+constexpr i32 runCompiletimeFormatTestSuite() {
+    RunTestCompileTime(basicFormatTest);
 
     return 0;
 }

@@ -7,12 +7,14 @@
 
 // FIXME:
 // Write special formats for:
-//   1. Integer number prefix with 0
-//   2. Integer number round to n digits
-//   3. Float number prefix with 0
-//   4. Float number round to n digits after the dot
+//   1. Integer number prefix with 0                    {000:}
+//   2. Integer number round to n digits                {:d5}
+//   3. Float number prefix with 0                      {000:}
+//   4. Float number round to n digits after the dot    {0000:f4.3}
 //   5. Print nullptrs and try to print addresses of unknown types.
-//   6. Replace all places where std::snprintf is used.
+//   6. Print things as hexadecimal representation.     {000:h}, {000:H}
+//   7. Print things as binary representation.          {000:b}, {000:B}
+//   8. Replace all places where std::snprintf is used.
 
 namespace core {
 
@@ -23,6 +25,7 @@ enum struct FormatError : u8 {
     TOO_FEW_ARGUMENTS,
     TOO_MANY_ARGUMENTS,
     OUT_BUFFER_OVERFLOW,
+    INVALID_PLACEHOLDER,
     SENTINEL
 };
 
@@ -46,6 +49,8 @@ constexpr core::expected<u32, FormatError> format(char* out, u32 outLen, const c
 
 template<typename... Args>
 constexpr core::expected<u32, FormatError> format(char* out, u32 outLen, const char* fmt, Args... args) {
+    if (out == nullptr) return core::unexpected(FormatError::INVALID_ARGUMENTS);
+    if (fmt == nullptr) return core::unexpected(FormatError::INVALID_ARGUMENTS);
     char* ptr = out;
     char* orig = out;
     auto res = detail::formatImpl(ptr, outLen, fmt, args...);
@@ -144,28 +149,32 @@ constexpr core::expected<u32, FormatError> appendArg(char*& out, u32& remaining,
     return ret;
 }
 
+constexpr inline bool escapeBrackets(char*& out, u32& remaining, const char*& fmt, u32& count) {
+    if (
+        (fmt[0] == '{' && fmt[1] == '{') ||
+        (fmt[0] == '}' && fmt[1] == '}')
+    ) {
+        *out++ = *fmt; // write only one bracket.
+        remaining--;
+        fmt += 2;
+        count += 2;
+        return true;
+    }
+
+    return false;
+}
+
 // Base case: no more arguments. Simply copy the rest of the format string.
-constexpr core::expected<u32, FormatError> formatImpl(char*& out, u32& remaining, const char* fmt) {
+constexpr core::expected<u32, FormatError> formatImpl(char*& out, u32& remaining, const char* fmt, bool inPlaceHolder) {
     u32 count = 0;
     while (*fmt) {
-        if (fmt[0] == '{' && fmt[1] == '{') {
-            // escape bracket
-            *out++ = *fmt; // write only one bracket.
-            fmt += 2;
-            count += 2;
-            remaining--;
-            continue;
-        }
-        else if (fmt[0] == '}' && fmt[1] == '}') {
-            // escape bracket
-            *out++ = *fmt; // write only one bracket.
-            fmt += 2;
-            count += 2;
-            remaining--;
+        if (escapeBrackets(out, remaining, fmt, count)) {
             continue;
         }
 
-        if (fmt[0] == '{' && fmt[1] == '}') {
+        if (fmt[0] == '{' || fmt[0] == '}') {
+            // Unescaped brackets are considered placeholders, so if there are any placeholders in the base case that
+            // means the provided arguments where too few.
             return core::unexpected(FormatError::TOO_FEW_ARGUMENTS);
         }
 
@@ -182,39 +191,81 @@ constexpr core::expected<u32, FormatError> formatImpl(char*& out, u32& remaining
     return count;
 }
 
+struct PlaceHolderOptions {
+    enum struct Type {
+        Invalid,
+        Empty,
+        Hex,
+        Binary,
+        RoundedInteger,
+        FixedFloat
+    };
+
+    Type type;
+    union {
+        struct { bool uppderCase; } hex;
+        struct { bool uppderCase; } bin;
+        struct { u32 rounding; } roundedInt;
+        struct { u32 rounding; u32 fixed; } fixedFloat;
+    };
+
+    static constexpr core::expected<PlaceHolderOptions, FormatError> parse(u32& remaining, const char*& fmt) {
+        PlaceHolderOptions options;
+        options.type = Type::Invalid;
+
+        // TODO: find the closing '}' and parse placeholder options.
+
+        return options;
+    }
+};
+
 template<typename T, typename... Args>
 constexpr core::expected<u32, FormatError> formatImpl(char*& out, u32 remaining, const char* fmt, T value, Args... args) {
-    if (out == nullptr) return core::unexpected(FormatError::INVALID_ARGUMENTS);
-    if (fmt == nullptr) return core::unexpected(FormatError::INVALID_ARGUMENTS);
+    using PlaceHolderOptions::Type;
 
     u32 count = 0;
     while (*fmt) {
-        if (fmt[0] == '{' && fmt[1] == '{') {
-            // escape bracket
-            *out++ = *fmt; // write only one bracket.
-            fmt += 2;
-            count += 2;
-            remaining--;
-            continue;
-        }
-        else if (fmt[0] == '}' && fmt[1] == '}') {
-            // escape bracket
-            *out++ = *fmt; // write only one bracket.
-            fmt += 2;
-            count += 2;
-            remaining--;
+        if (escapeBrackets(out, remaining, fmt, count)) {
             continue;
         }
 
-        if (fmt[0] == '{' && fmt[1] == '}') {
-            fmt += 2; // Skip the "{}"
+        if (fmt[0] == '{') {
+            fmt += 1; // Skip the bracket
 
-            auto argRes = appendArg(out, remaining, value);
-            if (argRes.hasErr()) return core::unexpected(argRes.err());
-            count += argRes.value();
+            auto parseRes = PlaceHolderOptions::parse(remaining, fmt);
+            if (parseRes.hasErr()) return core::unexpected(parseRes.err());
+            PlaceHolderOptions options = std::move(parseRes.value());
+
+            switch (options.type) {
+                case Type::Empty: {
+                    auto argRes = appendArg(out, remaining, value);
+                    if (argRes.hasErr()) return argRes;
+                    count += argRes.value();
+                    break;
+                }
+
+                case Type::Hex:
+                    Panic(false, "TODO: implement");
+                    break;
+
+                case Type::Binary:
+                    Panic(false, "TODO: implement");
+                    break;
+
+                case Type::RoundedInteger:
+                    Panic(false, "TODO: implement");
+                    break;
+
+                case Type::FixedFloat:
+                    Panic(false, "TODO: implement");
+                    break;
+
+                case Type::Invalid:
+                    return core::unexpected(FormatError::INVALID_PLACEHOLDER);
+            }
 
             auto restRes = detail::formatImpl(out, remaining, fmt, args...);
-            if (restRes.hasErr()) return core::unexpected(restRes.err());
+            if (restRes.hasErr()) return restRes;
             count += restRes.value();
 
             return count;
@@ -225,8 +276,8 @@ constexpr core::expected<u32, FormatError> formatImpl(char*& out, u32 remaining,
         }
 
         *out++ = *fmt++;
-        --remaining;
-        ++count;
+        remaining--;
+        count++;
     }
 
     return core::unexpected(FormatError::TOO_MANY_ARGUMENTS);

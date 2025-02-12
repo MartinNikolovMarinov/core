@@ -39,7 +39,6 @@ inline constexpr addr_off find(const T* arr, addr_size len, TPredicate pred) {
     return -1;
 }
 // Find element in ArrList.
-
 template <typename T, AllocatorId AllocId, typename TPredicate>
 inline addr_off find(const ArrList<T, AllocId>& arr, TPredicate pred) {
     return find(arr.data(), arr.len(), pred);
@@ -149,7 +148,6 @@ inline bool forAll(const core::ArrStatic<T, N>& arr, TPredicate pred) {
     return forAll(arr.data(), arr.len(), pred);
 }
 // Call predicate for each element in HashMap.
-
 template <typename TKey, typename TVal, AllocatorId AllocId, typename TPredicate>
 inline bool forAll(const core::HashMap<TKey, TVal, AllocId>& a,
                    const core::HashMap<TKey, TVal, AllocId>& b,

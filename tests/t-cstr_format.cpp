@@ -15,7 +15,7 @@ struct CommonTestCase {
 
 template <typename T>
 constexpr i32 checkCommonTestCase(CommonTestCase<T>& c) {
-    auto res = core::format(c.out.data(), u32(c.out.len()), c.fmt, c.input);
+    auto res = core::format(c.out.data(), i32(c.out.len()), c.fmt, c.input);
     CT_CHECK(res.hasErr() == c.expectErr);
 
     if (c.expectErr) {

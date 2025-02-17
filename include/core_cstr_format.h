@@ -5,16 +5,10 @@
 #include <core_str_view.h>
 #include <core_types.h>
 
-// FIXME:
-// Write special formats for:
-//   1. Integer number prefix with 0                    {03:}
-//   2. Integer number round to n digits                {:d5}
-//   3. Float number prefix with 0                      {03:}
-//   4. Float number round to n digits after the dot    {04:f4.3}
-//   5. Print nullptrs and try to print addresses of unknown types.
-//   6. Print things as hexadecimal representation.     {03:h}, {03:H}
-//   7. Print things as binary representation.          {03:b}, {03:B}
-//   8. Replace all places where std::snprintf is used.
+// TODO:
+// Things to finish:
+//   1. Float number round to n digits after the dot    {04:f4.3}
+//   2. Replace all places where std::snprintf is used.
 
 namespace core {
 
@@ -213,9 +207,36 @@ struct PlaceHolderOptions {
 
 // Default template resolution should fail:
 template <typename T>
-constexpr core::expected<i32, FormatError> convertToCStr(char*, i32, T, PlaceHolderOptions&) {
-    static_assert(core::always_false<T>, "T is not a basic type that supports formatting");
-    return core::unexpected(FormatError::SENTINEL);
+constexpr core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, T ptr, PlaceHolderOptions& options) {
+    if (options.type != PlaceHolderOptions::Type::Empty) {
+        return core::unexpected(FormatError::INVALID_PLACEHOLDER);
+    }
+
+    // Ensure we are handling a pointer
+    if constexpr (std::is_pointer_v<T> || std::is_same_v<T, std::nullptr_t>) {
+        // TODO: I could technically format the address in binary, hex or decimal based on the value in the placeholder.
+
+        if (ptr == nullptr) {
+            constexpr i32 NULL_STR_LEN = 4;
+            constexpr const char nullStr[NULL_STR_LEN] = { 'n', 'u', 'l', 'l' };
+            if (outLen < NULL_STR_LEN) {
+                return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+            }
+            addr_size written = core::memcopy(out, nullStr, addr_size(NULL_STR_LEN));
+            return i32(written);
+        }
+
+        constexpr i32 requiredLen = 17;  // 16 hex digits + null terminator
+        if (outLen < requiredLen) {
+            return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+        }
+
+        u32 written = core::Unpack(core::intToHex(core::bitCast<i64, T>(ptr), out, addr_size(outLen), true, requiredLen));
+        return i32(written);
+    }
+    else {
+        return core::unexpected(FormatError::INVALID_ARGUMENTS);
+    }
 }
 
 template <typename T>
@@ -251,11 +272,43 @@ constexpr core::expected<i32, FormatError> convertInts(char* out, i32 outLen, T 
         }
 
         case PlaceHolderOptions::Type::Hex: {
-            Panic(false, "TODO:");
+            i32 spaceForOneHexElement = i32(sizeof(T) << 1);
+            i32 computedLen = core::core_max(i32(options.padding), spaceForOneHexElement);
+            if (outLen <= computedLen) {
+                return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+            }
+
+            i32 repeatCount = options.padding - spaceForOneHexElement;
+            if (repeatCount > 0) {
+                out += core::memset(out, options.paddingSymbol, addr_size(repeatCount));
+            }
+
+            auto res = core::intToHex(value, out, addr_size(spaceForOneHexElement + 1), options.hex.upperCase);
+            if (res.hasErr()) {
+                return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+            }
+
+            return computedLen;
         }
 
         case PlaceHolderOptions::Type::Binary: {
-            Panic(false, "TODO:");
+            i32 spaceForOneBinaryElement = core::BYTE_SIZE;
+            if (outLen <= spaceForOneBinaryElement) {
+                return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+            }
+
+            i32 repeatCount = options.padding - spaceForOneBinaryElement;
+            if (repeatCount > 0) {
+                out += core::memset(out, options.paddingSymbol, addr_size(repeatCount));
+            }
+
+            auto res = core::intToBinary(value, out, addr_size(spaceForOneBinaryElement + 1), options.hex.upperCase);
+            if (res.hasErr()) {
+                return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+            }
+
+            i32 written = repeatCount + i32(res.value());
+            return written;
         }
 
         case PlaceHolderOptions::Type::Invalid:     [[fallthrough]];
@@ -283,11 +336,27 @@ constexpr core::expected<i32, FormatError> convertFloats(char* out, i32 outLen, 
         }
 
         case PlaceHolderOptions::Type::PaddingOnly: {
-            Panic(false, "TODO:");
+            constexpr i32 BUFF_LEN = sizeof(T) * core::BYTE_SIZE;
+            char buff[BUFF_LEN];
+            u32 written = core::Unpack(core::floatToCstr(value, buff, BUFF_LEN));
+            buff[written] = '\0';
+
+            i32 computedLen = core::core_max(i32(written), i32(options.padding));
+            if (computedLen + 1 >= outLen) {
+                return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+            }
+
+            i32 repeatCount = options.padding - computedLen;
+            if (repeatCount > 0) {
+                out += core::memset(out, options.paddingSymbol, addr_size(repeatCount));
+            }
+
+            core::memcopy(out, buff, written);
+            return computedLen;
         }
 
         case PlaceHolderOptions::Type::FixedFloat: {
-            Panic(false, "TODO:");
+            Panic(false, "TODO: write when floatToFixedCstr is implemented.");
         }
 
         case PlaceHolderOptions::Type::Hex:     [[fallthrough]];

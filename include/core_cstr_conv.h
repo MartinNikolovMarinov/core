@@ -163,6 +163,10 @@ constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen) {
     if constexpr (core::is_signed_v<TInt>) {
         neg = s[i] == '-';
         if (neg) i++;
+        else if (s[i] == '+') i++;
+    }
+    else {
+        if (s[i] == '+') i++;
     }
 
     TInt res = 0;
@@ -182,8 +186,8 @@ constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen) {
                 //  overflow. This leads to a bug in GCC release builds. A safer approach is to check if `next - 1`
                 //  equals the maximum value, which reliably indicates that `next` is at the minimum value after
                 //  overflow.
-                bool isMinValue = (r + (d - 1) == core::limitMax<TInt>());
-                if (isMinValue) [[unlikely]] {
+                bool isMinNegValue = neg && (r + (d - 1) == core::limitMax<TInt>());
+                if (isMinNegValue) [[unlikely]] {
                     // min value is allowed, but only if there are no more symbols to parse.
                     if (i + 1 == slen) {
                         return core::limitMin<TInt>();

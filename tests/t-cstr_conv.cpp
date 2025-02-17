@@ -8,7 +8,7 @@ constexpr i32 cstrToIntTest() {
         };
 
         constexpr TestCase cases[] = {
-            { "123", 123 },
+            { "+123", 123 },
             { "-123", -123 },
             { "127", 127 },
         };
@@ -30,7 +30,7 @@ constexpr i32 cstrToIntTest() {
 
         constexpr TestCase cases[] = {
             { "123", 123 },
-            { "254", 254 },
+            { "+254", 254 },
             { "255", 255 },
         };
 
@@ -50,7 +50,7 @@ constexpr i32 cstrToIntTest() {
         };
 
         constexpr TestCase cases[] = {
-            { "123", 123 },
+            { "+123", 123 },
             { "-123", -123 },
             { "32767", 32767 },
         };
@@ -73,7 +73,7 @@ constexpr i32 cstrToIntTest() {
         constexpr TestCase cases[] = {
             { "123", 123 },
             { "65534", 65534 },
-            { "65535", 65535 },
+            { "+65535", 65535 },
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for u16 at index: ", cases, [](auto& c, const char* cErr) {
@@ -94,7 +94,7 @@ constexpr i32 cstrToIntTest() {
         constexpr TestCase cases[] = {
             { "123", 123 },
             { "-123", -123 },
-            { "2147483647", 2147483647 },
+            { "+2147483647", 2147483647 },
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for i32 at index: ", cases, [](auto& c, const char* cErr) {
@@ -114,7 +114,7 @@ constexpr i32 cstrToIntTest() {
 
         constexpr TestCase cases[] = {
             { "123", 123 },
-            { "4294967294", 4294967294 },
+            { "+4294967294", 4294967294 },
             { "4294967295", 4294967295 },
         };
 
@@ -136,7 +136,7 @@ constexpr i32 cstrToIntTest() {
         constexpr TestCase cases[] = {
             { "123", 123 },
             { "-123", -123 },
-            { "9223372036854775807", 9223372036854775807ll },
+            { "+9223372036854775807", 9223372036854775807ll },
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for i64 at index: ", cases, [](auto& c, const char* cErr) {
@@ -156,7 +156,7 @@ constexpr i32 cstrToIntTest() {
 
         constexpr TestCase cases[] = {
             { "123", 123 },
-            { "18446744073709551614", 18446744073709551614ull },
+            { "+18446744073709551614", 18446744073709551614ull },
             { "18446744073709551615", 18446744073709551615ull },
         };
 
@@ -192,6 +192,66 @@ constexpr i32 cstrToIntTest() {
             CT_CHECK(v.hasValue());
             CT_CHECK(v.value() == -9223372036854775807ll - 1ll);
         }
+    }
+
+    return 0;
+}
+
+constexpr i32 cstrToIntErrorsTest() {
+    using ParseError = core::ParseError;
+
+    {
+        auto res = core::cstrToInt<u64>(nullptr, 100);
+        CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ParseError::InputEmpty);
+    }
+    {
+        auto res = core::cstrToInt<u64>("1234", 0);
+        CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ParseError::InputEmpty);
+    }
+    {
+        auto res = core::cstrToInt<u64>("1%23", 5);
+        CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ParseError::InputHasInvalidSymbol);
+    }
+    {
+        auto res = core::cstrToInt<u64>("123j", core::cstrLen("123j"));
+        CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ParseError::InputHasInvalidSymbol);
+    }
+    {
+        auto res = core::cstrToInt<u64>("++123", core::cstrLen("++123"));
+        CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ParseError::InputHasInvalidSymbol);
+    }
+
+    {
+        auto res = core::cstrToInt<i8>("128", core::cstrLen("128"));
+        CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ParseError::InputNumberTooLarge);
+    }
+    {
+        auto res = core::cstrToInt<u8>("256", core::cstrLen("256"));
+        CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ParseError::InputNumberTooLarge);
+    }
+    {
+        auto res = core::cstrToInt<i16>("32768", core::cstrLen("32768"));
+        CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ParseError::InputNumberTooLarge);
+    }
+    {
+        auto res = core::cstrToInt<u16>("65536", core::cstrLen("65536"));
+        CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ParseError::InputNumberTooLarge);
+    }
+    {
+        auto res = core::cstrToInt<i32>("2147483648", core::cstrLen("2147483648"));
+        CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ParseError::InputNumberTooLarge);
+    }
+    {
+        auto res = core::cstrToInt<u32>("4294967297", core::cstrLen("4294967297"));
+        CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ParseError::InputNumberTooLarge);
+    }
+    {
+        auto res = core::cstrToInt<i32>("9223372036854775808", core::cstrLen("9223372036854775808"));
+        CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ParseError::InputNumberTooLarge);
+    }
+    {
+        auto res = core::cstrToInt<i32>("18446744073709551616", core::cstrLen("18446744073709551616"));
+        CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ParseError::InputNumberTooLarge);
     }
 
     return 0;
@@ -537,6 +597,8 @@ i32 runCstrConvTestsSuite() {
 
     tInfo.name = FN_NAME_TO_CPTR(cstrToIntTest);
     if (runTest(tInfo, cstrToIntTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cstrToIntErrorsTest);
+    if (runTest(tInfo, cstrToIntErrorsTest)) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(digitToCharTest);
     if (runTest(tInfo, digitToCharTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(intToCstrTest);

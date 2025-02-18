@@ -126,7 +126,7 @@ constexpr core::expected<u32, ConversionError> intToBinary(i64 v, char* out, add
 template <typename TFloat> constexpr core::expected<TFloat, ConversionError> cstrToFloat(const char* s, u32 slen);
                            constexpr core::expected<u32, ConversionError>    floatToCstr(f32 n, char* out, u32 olen);
                            constexpr core::expected<u32, ConversionError>    floatToCstr(f64 n, char* out, u32 olen);
-                        //    constexpr u32 floatToFixedCstr(f64 n, u32 precision, char* out, u32 olen); // TODO: finish this
+                           constexpr u32                                     floatToFixedCstr(f64 n, u32 precision, char* out, u32 olen);
 
 namespace detail {
 
@@ -6645,11 +6645,9 @@ constexpr core::expected<u32, ConversionError> floatToCstr(f32 n, char* out, u32
 constexpr core::expected<u32, ConversionError> floatToCstr(f64 n, char* out, u32 olen) {
     return detail::float64ToCstr(n, out, olen);
 }
-
-// TODO: This implementation is not tested at all.
-// constexpr u32 floatToFixedCstr(f64 n, u32 precision, char* out, u32 olen) {
-//     return detail::float64ToFixedCstr(n, precision, out, olen);
-// }
+constexpr u32 floatToFixedCstr(f64 n, u32 precision, char* out, u32 olen) {
+    return detail::float64ToFixedCstr(n, precision, out, olen);
+}
 
 #pragma endregion
 

@@ -83,14 +83,14 @@ i32 runAllTests() {
     // if (runTestSuite(sInfo, runBitsTestsSuite) != 0) { ret = -1; }
     // sInfo.name = FN_NAME_TO_CPTR(runCmdParserTestsSuite);
     // if (runTestSuite(sInfo, runCmdParserTestsSuite) != 0) { ret = -1; }
-    // sInfo.name = FN_NAME_TO_CPTR(runCstrConvTestsSuite);
-    // if (runTestSuite(sInfo, runCstrConvTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runCstrConvTestsSuite);
+    if (runTestSuite(sInfo, runCstrConvTestsSuite) != 0) { ret = -1; }
     // sInfo.name = FN_NAME_TO_CPTR(runCstrConv_CstrToFloat_TestsSuite);
     // if (runTestSuite(sInfo, runCstrConv_CstrToFloat_TestsSuite) != 0) { ret = -1; }
     // sInfo.name = FN_NAME_TO_CPTR(runCstrConv_FloatToCstr_TestsSuite);
     // if (runTestSuite(sInfo, runCstrConv_FloatToCstr_TestsSuite) != 0) { ret = -1; }
-    sInfo.name = FN_NAME_TO_CPTR(runCstrTestsSuite);
-    if (runTestSuite(sInfo, runCstrTestsSuite) != 0) { ret = -1; }
+    // sInfo.name = FN_NAME_TO_CPTR(runCstrTestsSuite);
+    // if (runTestSuite(sInfo, runCstrTestsSuite) != 0) { ret = -1; }
     // sInfo.name = FN_NAME_TO_CPTR(runDeferTestsSuite);
     // if (runTestSuite(sInfo, runDeferTestsSuite) != 0) { ret = -1; }
     // sInfo.name = FN_NAME_TO_CPTR(runExpectedTestsSuite);

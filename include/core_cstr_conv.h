@@ -39,7 +39,7 @@ namespace core {
 
 using namespace coretypes;
 
-enum struct ParseError : u8 {
+enum struct ConversionError : u8 {
     None,
     InputEmpty,
     InputHasMultipleDots,
@@ -48,66 +48,100 @@ enum struct ParseError : u8 {
     OutputBufferTooSmall, // will overflow provided buffer
 };
 
-constexpr const char* parseErrorToCstr(ParseError err) {
+constexpr const char* parseErrorToCstr(ConversionError err) {
     switch (err) {
-        case ParseError::InputEmpty:             return "Input is empty";
-        case ParseError::InputHasMultipleDots:   return "Input has more than one dot";
-        case ParseError::InputHasInvalidSymbol:  return "Input contains an invalid symbol";
-        case ParseError::InputNumberTooLarge:    return "Input number is too large to fit in return type";
-        case ParseError::OutputBufferTooSmall:   return "Output buffer is too small to fit the parsed number";
-        case ParseError::None: break;
+        case ConversionError::InputEmpty:             return "Input is empty";
+        case ConversionError::InputHasMultipleDots:   return "Input has more than one dot";
+        case ConversionError::InputHasInvalidSymbol:  return "Input contains an invalid symbol";
+        case ConversionError::InputNumberTooLarge:    return "Input number is too large to fit in return type";
+        case ConversionError::OutputBufferTooSmall:   return "Output buffer is too small to fit the parsed number";
+        case ConversionError::None: break;
     }
     return "Unknown";
 }
 
-template <typename TInt> constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen);
+template <typename TInt> constexpr core::expected<TInt, ConversionError> cstrToInt(const char* s, u32 slen);
 
-constexpr core::expected<u32, ParseError> intToCstr(u32 n, char* out, addr_size olen, u32 digits = 0);
-constexpr core::expected<u32, ParseError> intToCstr(u64 n, char* out, addr_size olen, u32 digits = 0);
-constexpr core::expected<u32, ParseError> intToCstr(i32 n, char* out, addr_size olen, u32 digits = 0);
-constexpr core::expected<u32, ParseError> intToCstr(i64 n, char* out, addr_size olen, u32 digits = 0);
+/**
+ * @brief Converts an integer to a C string. Checks for overflows and empty input.
+ *
+ * @param n - The integer to convert.
+ * @param out - The output c string buffer.
+ * @param olen - Length of the output buffer.
+ * @param digit - The exact number of digits in the input integer n.
+ *                This is the "I know what I am doing" parameter.
+ *
+ * @return the written bytes or a parse error.
+*/
+constexpr core::expected<u32, ConversionError> intToCstr(u8 n, char* out, addr_size olen, u32 digits = 0);
+constexpr core::expected<u32, ConversionError> intToCstr(u16 n, char* out, addr_size olen, u32 digits = 0);
+constexpr core::expected<u32, ConversionError> intToCstr(u32 n, char* out, addr_size olen, u32 digits = 0);
+constexpr core::expected<u32, ConversionError> intToCstr(u64 n, char* out, addr_size olen, u32 digits = 0);
+constexpr core::expected<u32, ConversionError> intToCstr(i8 n, char* out, addr_size olen, u32 digits = 0);
+constexpr core::expected<u32, ConversionError> intToCstr(i16 n, char* out, addr_size olen, u32 digits = 0);
+constexpr core::expected<u32, ConversionError> intToCstr(i32 n, char* out, addr_size olen, u32 digits = 0);
+constexpr core::expected<u32, ConversionError> intToCstr(i64 n, char* out, addr_size olen, u32 digits = 0);
 
-// FIXME: this set of functions also need more testing.
-constexpr core::expected<u32, ParseError> intToHex(char v, char* out, addr_size olen, bool upperCase = true, u32 hexLen = (sizeof(char) << 1));
-constexpr core::expected<u32, ParseError> intToHex(u8 v, char* out, addr_size olen, bool upperCase = true, u32 hexLen = (sizeof(u8) << 1));
-constexpr core::expected<u32, ParseError> intToHex(u16 v, char* out, addr_size olen, bool upperCase = true, u32 hexLen = (sizeof(u16) << 1));
-constexpr core::expected<u32, ParseError> intToHex(u32 v, char* out, addr_size olen, bool upperCase = true, u32 hexLen = (sizeof(u32) << 1));
-constexpr core::expected<u32, ParseError> intToHex(u64 v, char* out, addr_size olen, bool upperCase = true, u32 hexLen = (sizeof(u64) << 1));
-constexpr core::expected<u32, ParseError> intToHex(i8 v, char* out, addr_size olen, bool upperCase = true, u32 hexLen = (sizeof(i8) << 1));
-constexpr core::expected<u32, ParseError> intToHex(i16 v, char* out, addr_size olen, bool upperCase = true, u32 hexLen = (sizeof(i16) << 1));
-constexpr core::expected<u32, ParseError> intToHex(i32 v, char* out, addr_size olen, bool upperCase = true, u32 hexLen = (sizeof(i32) << 1));
-constexpr core::expected<u32, ParseError> intToHex(i64 v, char* out, addr_size olen, bool upperCase = true, u32 hexLen = (sizeof(i64) << 1));
+/**
+ * @brief Converts an integer to its hex representation in a C string. Checks for overflows and empty input.
+ *
+ * @param n - The integer to convert.
+ * @param out - The output c string buffer.
+ * @param olen - Length of the output buffer.
+ * @param upperCase - Use upper or lower case.
+ * @param hexLen - This length of the hex string.
+ *                 If this is larger than the (sizeof(T) << 1) the result is undefined.
+ *
+ * @return the written bytes or a parse error.
+*/
+constexpr core::expected<u32, ConversionError> intToHex(u8 v, char* out, addr_size olen, bool upperCase = true, u32 hexLen = (sizeof(u8) << 1));
+constexpr core::expected<u32, ConversionError> intToHex(u16 v, char* out, addr_size olen, bool upperCase = true, u32 hexLen = (sizeof(u16) << 1));
+constexpr core::expected<u32, ConversionError> intToHex(u32 v, char* out, addr_size olen, bool upperCase = true, u32 hexLen = (sizeof(u32) << 1));
+constexpr core::expected<u32, ConversionError> intToHex(u64 v, char* out, addr_size olen, bool upperCase = true, u32 hexLen = (sizeof(u64) << 1));
+constexpr core::expected<u32, ConversionError> intToHex(i8 v, char* out, addr_size olen, bool upperCase = true, u32 hexLen = (sizeof(i8) << 1));
+constexpr core::expected<u32, ConversionError> intToHex(i16 v, char* out, addr_size olen, bool upperCase = true, u32 hexLen = (sizeof(i16) << 1));
+constexpr core::expected<u32, ConversionError> intToHex(i32 v, char* out, addr_size olen, bool upperCase = true, u32 hexLen = (sizeof(i32) << 1));
+constexpr core::expected<u32, ConversionError> intToHex(i64 v, char* out, addr_size olen, bool upperCase = true, u32 hexLen = (sizeof(i64) << 1));
 
-// FIXME: int to binary needs to be tested!
-constexpr core::expected<u32, ParseError> intToBinary(char v, char* out, addr_size olen, u32 binLen = core::BYTE_SIZE * 1);
-constexpr core::expected<u32, ParseError> intToBinary(u8 v, char* out, addr_size olen, u32 binLen = core::BYTE_SIZE * 1);
-constexpr core::expected<u32, ParseError> intToBinary(u16 v, char* out, addr_size olen, u32 binLen = core::BYTE_SIZE * 2);
-constexpr core::expected<u32, ParseError> intToBinary(u32 v, char* out, addr_size olen, u32 binLen = core::BYTE_SIZE * 4);
-constexpr core::expected<u32, ParseError> intToBinary(u64 v, char* out, addr_size olen, u32 binLen = core::BYTE_SIZE * 8);
-constexpr core::expected<u32, ParseError> intToBinary(i8 v, char* out, addr_size olen, u32 binLen = core::BYTE_SIZE * 1);
-constexpr core::expected<u32, ParseError> intToBinary(i16 v, char* out, addr_size olen, u32 binLen = core::BYTE_SIZE * 2);
-constexpr core::expected<u32, ParseError> intToBinary(i32 v, char* out, addr_size olen, u32 binLen = core::BYTE_SIZE * 4);
-constexpr core::expected<u32, ParseError> intToBinary(i64 v, char* out, addr_size olen, u32 binLen = core::BYTE_SIZE * 8);
+/**
+ * @brief Converts an integer to its binary representation in a C string. Checks for overflows and empty input.
+ *
+ * @param n - The integer to convert.
+ * @param out - The output c string buffer.
+ * @param olen - Length of the output buffer.
+ * @param binLen - This length of the binary string.
+ *                 If this is larger than the bite size of the number the result is undefined.
+ *
+ * @return the written bytes or a parse error.
+*/
+constexpr core::expected<u32, ConversionError> intToBinary(u8 v, char* out, addr_size olen, u32 binLen = core::BYTE_SIZE * 1);
+constexpr core::expected<u32, ConversionError> intToBinary(u16 v, char* out, addr_size olen, u32 binLen = core::BYTE_SIZE * 2);
+constexpr core::expected<u32, ConversionError> intToBinary(u32 v, char* out, addr_size olen, u32 binLen = core::BYTE_SIZE * 4);
+constexpr core::expected<u32, ConversionError> intToBinary(u64 v, char* out, addr_size olen, u32 binLen = core::BYTE_SIZE * 8);
+constexpr core::expected<u32, ConversionError> intToBinary(i8 v, char* out, addr_size olen, u32 binLen = core::BYTE_SIZE * 1);
+constexpr core::expected<u32, ConversionError> intToBinary(i16 v, char* out, addr_size olen, u32 binLen = core::BYTE_SIZE * 2);
+constexpr core::expected<u32, ConversionError> intToBinary(i32 v, char* out, addr_size olen, u32 binLen = core::BYTE_SIZE * 4);
+constexpr core::expected<u32, ConversionError> intToBinary(i64 v, char* out, addr_size olen, u32 binLen = core::BYTE_SIZE * 8);
 
-template <typename TFloat> constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen);
-                           constexpr core::expected<u32, ParseError>    floatToCstr(f32 n, char* out, u32 olen);
-                           constexpr core::expected<u32, ParseError>    floatToCstr(f64 n, char* out, u32 olen);
+template <typename TFloat> constexpr core::expected<TFloat, ConversionError> cstrToFloat(const char* s, u32 slen);
+                           constexpr core::expected<u32, ConversionError>    floatToCstr(f32 n, char* out, u32 olen);
+                           constexpr core::expected<u32, ConversionError>    floatToCstr(f64 n, char* out, u32 olen);
                         //    constexpr u32 floatToFixedCstr(f64 n, u32 precision, char* out, u32 olen); // TODO: finish this
 
 namespace detail {
 
 template<typename TInt>
-constexpr core::expected<u32, ParseError> intToCstr(TInt n, char* out, addr_size olen, u32 digits) {
-    static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
-    Assert(out);
+constexpr core::expected<u32, ConversionError> intToCstr(TInt n, char* out, addr_size olen, u32 digits) {
+    if (out == nullptr || olen == 0) {
+        return core::unexpected(ConversionError::InputEmpty);
+    }
 
     u32 idx = 0;
     bool isSmallestInteger = false;
 
     if constexpr (core::is_signed_v<TInt>) {
         if (n < 0) {
-            if (addr_size(idx) < olen) out[idx++] = '-';
-            else return core::unexpected(ParseError::OutputBufferTooSmall);
+            out[idx++] = '-'; // overflow here is not possbile, since olen is larger than 0.
 
             if (n == core::limitMin<TInt>()) [[unlikely]] {
                 // When n is the minimum for a specified integer type, then n = -n does not work, and this needs to be
@@ -122,7 +156,7 @@ constexpr core::expected<u32, ParseError> intToCstr(TInt n, char* out, addr_size
 
     i32 dc = (digits == 0) ? i32(digitCount(n)) : i32(digits);
     if (addr_size(idx + u32(dc)) >= olen) {
-        return core::unexpected(ParseError::OutputBufferTooSmall);
+        return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
 
     // Special min value case:
@@ -162,18 +196,22 @@ constexpr core::expected<u32, ParseError> intToCstr(TInt n, char* out, addr_size
 
 } // detail namespace
 
-constexpr core::expected<u32, ParseError> intToCstr(u32 n, char* out, addr_size olen, u32 digits) { return detail::intToCstr(n, out, olen, digits); }
-constexpr core::expected<u32, ParseError> intToCstr(u64 n, char* out, addr_size olen, u32 digits) { return detail::intToCstr(n, out, olen, digits); }
-constexpr core::expected<u32, ParseError> intToCstr(i32 n, char* out, addr_size olen, u32 digits) { return detail::intToCstr(n, out, olen, digits); }
-constexpr core::expected<u32, ParseError> intToCstr(i64 n, char* out, addr_size olen, u32 digits) { return detail::intToCstr(n, out, olen, digits); }
+constexpr core::expected<u32, ConversionError> intToCstr(u8 n, char* out, addr_size olen, u32 digits)   { return detail::intToCstr(n, out, olen, digits); }
+constexpr core::expected<u32, ConversionError> intToCstr(u16 n, char* out, addr_size olen, u32 digits)  { return detail::intToCstr(n, out, olen, digits); }
+constexpr core::expected<u32, ConversionError> intToCstr(u32 n, char* out, addr_size olen, u32 digits)  { return detail::intToCstr(n, out, olen, digits); }
+constexpr core::expected<u32, ConversionError> intToCstr(u64 n, char* out, addr_size olen, u32 digits)  { return detail::intToCstr(n, out, olen, digits); }
+constexpr core::expected<u32, ConversionError> intToCstr(i8 n, char* out, addr_size olen, u32 digits)   { return detail::intToCstr(n, out, olen, digits); }
+constexpr core::expected<u32, ConversionError> intToCstr(i16 n, char* out, addr_size olen, u32 digits)  { return detail::intToCstr(n, out, olen, digits); }
+constexpr core::expected<u32, ConversionError> intToCstr(i32 n, char* out, addr_size olen, u32 digits)  { return detail::intToCstr(n, out, olen, digits); }
+constexpr core::expected<u32, ConversionError> intToCstr(i64 n, char* out, addr_size olen, u32 digits)  { return detail::intToCstr(n, out, olen, digits); }
 
 // This function does not handle TInt overflows!
 template <typename TInt>
-constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen) {
+constexpr core::expected<TInt, ConversionError> cstrToInt(const char* s, u32 slen) {
     static_assert(core::is_integral_v<TInt>, "TInt must be an integral type.");
 
     if (s == nullptr || slen == 0) {
-        return core::unexpected(ParseError::InputEmpty);
+        return core::unexpected(ConversionError::InputEmpty);
     }
 
     u32 i = 0;
@@ -191,7 +229,7 @@ constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen) {
     while (i < slen) {
         char curr = s[i];
         if (!isDigit(curr)) {
-            return core::unexpected(ParseError::InputHasInvalidSymbol);
+            return core::unexpected(ConversionError::InputHasInvalidSymbol);
         }
 
         TInt r = TInt(res * 10);
@@ -213,7 +251,7 @@ constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen) {
                 }
             }
 
-            return core::unexpected(ParseError::InputNumberTooLarge);
+            return core::unexpected(ConversionError::InputNumberTooLarge);
         }
 
         res = next;
@@ -234,9 +272,12 @@ static constexpr const char* hexDigitsLower = "0123456789abcdef";
 
 // The out argument must have enough space to hold the result!
 template <typename TInt>
-constexpr core::expected<u32, ParseError> intToHex(TInt v, char* out, addr_size olen, bool upperCase, u32 hexLen) {
+constexpr core::expected<u32, ConversionError> intToHex(TInt v, char* out, addr_size olen, bool upperCase, u32 hexLen) {
+    if (out == nullptr || olen == 0) {
+        return core::unexpected(ConversionError::InputEmpty);
+    }
     if (olen <= hexLen) {
-        return core::unexpected(ParseError::InputHasInvalidSymbol);
+        return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
 
     const char* digits = upperCase ? hexDigits : hexDigitsLower;
@@ -249,22 +290,24 @@ constexpr core::expected<u32, ParseError> intToHex(TInt v, char* out, addr_size 
 
 } // namespace detail
 
-constexpr core::expected<u32, ParseError> intToHex(char v, char* out, addr_size olen, bool upperCase, u32 hexLen) { return detail::intToHex(v, out, olen, upperCase, hexLen); }
-constexpr core::expected<u32, ParseError> intToHex(u8 v, char* out, addr_size olen, bool upperCase, u32 hexLen)   { return detail::intToHex(v, out, olen, upperCase, hexLen); }
-constexpr core::expected<u32, ParseError> intToHex(u16 v, char* out, addr_size olen, bool upperCase, u32 hexLen)  { return detail::intToHex(v, out, olen, upperCase, hexLen); }
-constexpr core::expected<u32, ParseError> intToHex(u32 v, char* out, addr_size olen, bool upperCase, u32 hexLen)  { return detail::intToHex(v, out, olen, upperCase, hexLen); }
-constexpr core::expected<u32, ParseError> intToHex(u64 v, char* out, addr_size olen, bool upperCase, u32 hexLen)  { return detail::intToHex(v, out, olen, upperCase, hexLen); }
-constexpr core::expected<u32, ParseError> intToHex(i8 v, char* out, addr_size olen, bool upperCase, u32 hexLen)   { return detail::intToHex(v, out, olen, upperCase, hexLen); }
-constexpr core::expected<u32, ParseError> intToHex(i16 v, char* out, addr_size olen, bool upperCase, u32 hexLen)  { return detail::intToHex(v, out, olen, upperCase, hexLen); }
-constexpr core::expected<u32, ParseError> intToHex(i32 v, char* out, addr_size olen, bool upperCase, u32 hexLen)  { return detail::intToHex(v, out, olen, upperCase, hexLen); }
-constexpr core::expected<u32, ParseError> intToHex(i64 v, char* out, addr_size olen, bool upperCase, u32 hexLen)  { return detail::intToHex(v, out, olen, upperCase, hexLen); }
+constexpr core::expected<u32, ConversionError> intToHex(u8 v, char* out, addr_size olen, bool upperCase, u32 hexLen)   { return detail::intToHex(v, out, olen, upperCase, hexLen); }
+constexpr core::expected<u32, ConversionError> intToHex(u16 v, char* out, addr_size olen, bool upperCase, u32 hexLen)  { return detail::intToHex(v, out, olen, upperCase, hexLen); }
+constexpr core::expected<u32, ConversionError> intToHex(u32 v, char* out, addr_size olen, bool upperCase, u32 hexLen)  { return detail::intToHex(v, out, olen, upperCase, hexLen); }
+constexpr core::expected<u32, ConversionError> intToHex(u64 v, char* out, addr_size olen, bool upperCase, u32 hexLen)  { return detail::intToHex(v, out, olen, upperCase, hexLen); }
+constexpr core::expected<u32, ConversionError> intToHex(i8 v, char* out, addr_size olen, bool upperCase, u32 hexLen)   { return detail::intToHex(v, out, olen, upperCase, hexLen); }
+constexpr core::expected<u32, ConversionError> intToHex(i16 v, char* out, addr_size olen, bool upperCase, u32 hexLen)  { return detail::intToHex(v, out, olen, upperCase, hexLen); }
+constexpr core::expected<u32, ConversionError> intToHex(i32 v, char* out, addr_size olen, bool upperCase, u32 hexLen)  { return detail::intToHex(v, out, olen, upperCase, hexLen); }
+constexpr core::expected<u32, ConversionError> intToHex(i64 v, char* out, addr_size olen, bool upperCase, u32 hexLen)  { return detail::intToHex(v, out, olen, upperCase, hexLen); }
 
 namespace detail {
 
 template <typename TInt>
-constexpr core::expected<u32, ParseError> intToBinary(TInt v, char* out, addr_size olen, u32 binLen) {
+constexpr core::expected<u32, ConversionError> intToBinary(TInt v, char* out, addr_size olen, u32 binLen) {
+    if (out == nullptr || olen == 0) {
+        return core::unexpected(ConversionError::InputEmpty);
+    }
     if (olen <= binLen) {
-        return core::unexpected(ParseError::InputHasInvalidSymbol);
+        return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
 
     for (addr_size i = 0, j = binLen - 1; i < binLen; i++, j--) {
@@ -276,15 +319,14 @@ constexpr core::expected<u32, ParseError> intToBinary(TInt v, char* out, addr_si
 
 } // namespace detail
 
-constexpr core::expected<u32, ParseError> intToBinary(char v, char* out, addr_size olen, u32 binLen) { return detail::intToBinary(v, out, olen, binLen); }
-constexpr core::expected<u32, ParseError> intToBinary(u8 v, char* out, addr_size olen, u32 binLen)   { return detail::intToBinary(v, out, olen, binLen); }
-constexpr core::expected<u32, ParseError> intToBinary(u16 v, char* out, addr_size olen, u32 binLen)  { return detail::intToBinary(v, out, olen, binLen); }
-constexpr core::expected<u32, ParseError> intToBinary(u32 v, char* out, addr_size olen, u32 binLen)  { return detail::intToBinary(v, out, olen, binLen); }
-constexpr core::expected<u32, ParseError> intToBinary(u64 v, char* out, addr_size olen, u32 binLen)  { return detail::intToBinary(v, out, olen, binLen); }
-constexpr core::expected<u32, ParseError> intToBinary(i8 v, char* out, addr_size olen, u32 binLen)   { return detail::intToBinary(v, out, olen, binLen); }
-constexpr core::expected<u32, ParseError> intToBinary(i16 v, char* out, addr_size olen, u32 binLen)  { return detail::intToBinary(v, out, olen, binLen); }
-constexpr core::expected<u32, ParseError> intToBinary(i32 v, char* out, addr_size olen, u32 binLen)  { return detail::intToBinary(v, out, olen, binLen); }
-constexpr core::expected<u32, ParseError> intToBinary(i64 v, char* out, addr_size olen, u32 binLen)  { return detail::intToBinary(v, out, olen, binLen); }
+constexpr core::expected<u32, ConversionError> intToBinary(u8 v, char* out, addr_size olen, u32 binLen)   { return detail::intToBinary(v, out, olen, binLen); }
+constexpr core::expected<u32, ConversionError> intToBinary(u16 v, char* out, addr_size olen, u32 binLen)  { return detail::intToBinary(v, out, olen, binLen); }
+constexpr core::expected<u32, ConversionError> intToBinary(u32 v, char* out, addr_size olen, u32 binLen)  { return detail::intToBinary(v, out, olen, binLen); }
+constexpr core::expected<u32, ConversionError> intToBinary(u64 v, char* out, addr_size olen, u32 binLen)  { return detail::intToBinary(v, out, olen, binLen); }
+constexpr core::expected<u32, ConversionError> intToBinary(i8 v, char* out, addr_size olen, u32 binLen)   { return detail::intToBinary(v, out, olen, binLen); }
+constexpr core::expected<u32, ConversionError> intToBinary(i16 v, char* out, addr_size olen, u32 binLen)  { return detail::intToBinary(v, out, olen, binLen); }
+constexpr core::expected<u32, ConversionError> intToBinary(i32 v, char* out, addr_size olen, u32 binLen)  { return detail::intToBinary(v, out, olen, binLen); }
+constexpr core::expected<u32, ConversionError> intToBinary(i64 v, char* out, addr_size olen, u32 binLen)  { return detail::intToBinary(v, out, olen, binLen); }
 
 #pragma region Cptr to float
 
@@ -422,9 +464,9 @@ constexpr inline u32 decimalLength17(u64 v) {
     return 1;
 }
 
-constexpr inline core::expected<u32, ParseError> copySpecialStr(bool sign, bool exponent, bool mantissa, char* out, u32 olen) {
+constexpr inline core::expected<u32, ConversionError> copySpecialStr(bool sign, bool exponent, bool mantissa, char* out, u32 olen) {
     if (olen <= u32(sign) + 3) {
-        return core::unexpected(ParseError::OutputBufferTooSmall);
+        return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
 
     if (mantissa) {
@@ -5547,9 +5589,9 @@ struct FloatTraits<f64> {
 };
 
 template<typename TFloat>
-constexpr core::expected<TFloat, ParseError> cstrToFloatImpl(const char* s, u32 slen) {
+constexpr core::expected<TFloat, ConversionError> cstrToFloatImpl(const char* s, u32 slen) {
     if (s == nullptr || slen == 0) {
-        return core::unexpected(ParseError::InputEmpty);
+        return core::unexpected(ConversionError::InputEmpty);
     }
 
     using Traits = FloatTraits<TFloat>;
@@ -5603,13 +5645,13 @@ constexpr core::expected<TFloat, ParseError> cstrToFloatImpl(const char* s, u32 
         char c = s[i];
         if (c == '.') {
             if (dotIndex != slen) {
-                return core::unexpected(ParseError::InputHasMultipleDots);
+                return core::unexpected(ConversionError::InputHasMultipleDots);
             }
             dotIndex = i;
         }
         else {
             if (!core::isDigit(c)) break;
-            if (u32(mantissaDigits) >= MAX_MANTISSA_DIGITS) return core::unexpected(ParseError::InputNumberTooLarge);
+            if (u32(mantissaDigits) >= MAX_MANTISSA_DIGITS) return core::unexpected(ConversionError::InputNumberTooLarge);
             mantissa = 10 * mantissa + core::charToDigit<UInt>(c);
             if (mantissa != 0) mantissaDigits++;
         }
@@ -5627,8 +5669,8 @@ constexpr core::expected<TFloat, ParseError> cstrToFloatImpl(const char* s, u32 
 
         for (; i < slen; i++) {
             char c = s[i];
-            if (!core::isDigit(c)) return core::unexpected(ParseError::InputHasInvalidSymbol);
-            if (exponentDigits > 3) return core::unexpected(ParseError::InputNumberTooLarge);
+            if (!core::isDigit(c)) return core::unexpected(ConversionError::InputHasInvalidSymbol);
+            if (exponentDigits > 3) return core::unexpected(ConversionError::InputNumberTooLarge);
             exponent = 10 * exponent + core::charToDigit<i32>(c);
             if (exponent != 0) {
                 exponentDigits++;
@@ -5638,7 +5680,7 @@ constexpr core::expected<TFloat, ParseError> cstrToFloatImpl(const char* s, u32 
 
     if (i < slen) {
         // NOTE: This includes white space after the number!
-        return core::unexpected(ParseError::InputHasInvalidSymbol);
+        return core::unexpected(ConversionError::InputHasInvalidSymbol);
     }
 
     if (mantissa == 0) {
@@ -6064,12 +6106,12 @@ struct OutputBuffer {
     }
 };
 
-constexpr inline core::expected<u32, ParseError> toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* out, u32 olen) {
+constexpr inline core::expected<u32, ConversionError> toChars(FloatTraits<f32>::FloatDecimal v, bool sign, char* out, u32 olen) {
     // Step 5: Print the decimal representation.
     OutputBuffer obuf(out, olen);
     if (sign) {
         if (!obuf.writeChar('-')) {
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
         }
     }
 
@@ -6091,9 +6133,9 @@ constexpr inline core::expected<u32, ParseError> toChars(FloatTraits<f32>::Float
         u32 c1 = (c / 100) << 1;
 
         if (!obuf.writeAt(DIGIT_TABLE + c0, 2, obuf.widx + mantissaLen - i - 1))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
         if (!obuf.writeAt(DIGIT_TABLE + c1, 2, obuf.widx + mantissaLen - i - 3))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
 
         i += 4;
     }
@@ -6102,33 +6144,33 @@ constexpr inline core::expected<u32, ParseError> toChars(FloatTraits<f32>::Float
         u32 c = (mantissa % 100) << 1;
         mantissa /= 100;
         if (!obuf.writeAt(DIGIT_TABLE + c, 2, obuf.widx + mantissaLen - i - 1))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
         i += 2;
     }
     if (mantissa >= 10) {
         u32 c = mantissa << 1;
         // We can't use memcpy here: the decimal dot goes between these two digits.
         if (!obuf.writeCharAt(DIGIT_TABLE[c + 1], obuf.widx + mantissaLen - i))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
         if (!obuf.writeCharAt(DIGIT_TABLE[c], obuf.widx))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
     else {
         char digit = core::digitToChar(mantissa);
         if (!obuf.writeCharAt(digit, obuf.widx))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
 
     // Print decimal point if needed.
     if (mantissaLen > 1) {
         if (!obuf.writeCharAt('.', obuf.widx + 1))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
         if (!obuf.advance(mantissaLen + 1))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
     else {
         if (!obuf.advance(1))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
 
     i32 exp = v.exponent + i32(mantissaLen) - 1;
@@ -6137,33 +6179,33 @@ constexpr inline core::expected<u32, ParseError> toChars(FloatTraits<f32>::Float
 
     // Print the exponent.
     if (!obuf.writeChar('E'))
-        return core::unexpected(ParseError::OutputBufferTooSmall);
+        return core::unexpected(ConversionError::OutputBufferTooSmall);
     if (exp < 0) {
         if (!obuf.writeChar('-'))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
         exp = -exp;
     }
 
     if (exp >= 10) {
         if (!obuf.write(DIGIT_TABLE + 2 * exp, 2))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
     else {
         char digit = core::digitToChar(exp);
         if (!obuf.writeChar(digit))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
 
 
     return u32(obuf.widx);
 }
 
-constexpr inline core::expected<u32, ParseError> toChars(FloatTraits<f64>::FloatDecimal v, bool sign, char* out, u32 olen) {
+constexpr inline core::expected<u32, ConversionError> toChars(FloatTraits<f64>::FloatDecimal v, bool sign, char* out, u32 olen) {
     // Step 5: Print the decimal representation.
     OutputBuffer obuf(out, olen);
     if (sign) {
         if (!obuf.writeChar('-'))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
 
     u64 mantissa = v.mantissa;
@@ -6189,13 +6231,13 @@ constexpr inline core::expected<u32, ParseError> toChars(FloatTraits<f64>::Float
         u32 d1 = (d / 100) << 1;
 
         if (!obuf.writeAt(DIGIT_TABLE + c0, 2, obuf.widx + mantissaLen - 1))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
         if (!obuf.writeAt(DIGIT_TABLE + c1, 2, obuf.widx + mantissaLen - 3))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
         if (!obuf.writeAt(DIGIT_TABLE + d0, 2, obuf.widx + mantissaLen - 5))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
         if (!obuf.writeAt(DIGIT_TABLE + d1, 2, obuf.widx + mantissaLen - 7))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
 
         i += 8;
     }
@@ -6208,9 +6250,9 @@ constexpr inline core::expected<u32, ParseError> toChars(FloatTraits<f64>::Float
         u32 c1 = (c / 100) << 1;
 
         if (!obuf.writeAt(DIGIT_TABLE + c0, 2, obuf.widx + mantissaLen - i - 1))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
         if (!obuf.writeAt(DIGIT_TABLE + c1, 2, obuf.widx + mantissaLen - i - 3))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
 
         i += 4;
     }
@@ -6219,33 +6261,33 @@ constexpr inline core::expected<u32, ParseError> toChars(FloatTraits<f64>::Float
         u32 c = (mantissa2 % 100) << 1;
         mantissa2 /= 100;
         if (!obuf.writeAt(DIGIT_TABLE + c, 2, obuf.widx + mantissaLen - i - 1))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
         i += 2;
     }
     if (mantissa2 >= 10) {
         u32 c = mantissa2 << 1;
         // We can't use memcpy here: the decimal dot goes between these two digits.
         if (!obuf.writeCharAt(DIGIT_TABLE[c + 1], obuf.widx + mantissaLen - i))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
         if (!obuf.writeCharAt(DIGIT_TABLE[c], obuf.widx))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
     else {
         char digit = core::digitToChar(mantissa2);
         if (!obuf.writeCharAt(digit, obuf.widx))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
 
     // Print decimal point if needed.
     if (mantissaLen > 1) {
         if (!obuf.writeCharAt('.', obuf.widx + 1))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
         if (!obuf.advance(mantissaLen + 1))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
     else {
         if (!obuf.advance(1))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
 
     i32 exp = v.exponent + i32(mantissaLen) - 1;
@@ -6254,34 +6296,34 @@ constexpr inline core::expected<u32, ParseError> toChars(FloatTraits<f64>::Float
 
     // Print the exponent.
     if (!obuf.writeChar('E'))
-        return core::unexpected(ParseError::OutputBufferTooSmall);
+        return core::unexpected(ConversionError::OutputBufferTooSmall);
     if (exp < 0) {
         if (!obuf.writeChar('-'))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
         exp = -exp;
     }
 
     if (exp >= 100) {
         if (!obuf.write(DIGIT_TABLE + 2 * (exp / 10), 2))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
         char digit = core::digitToChar(exp);
         if (!obuf.writeChar(digit))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
     else if (exp >= 10) {
         if (!obuf.write(DIGIT_TABLE + 2 * exp, 2))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
     else {
         char digit = core::digitToChar(exp);
         if (!obuf.writeChar(digit))
-            return core::unexpected(ParseError::OutputBufferTooSmall);
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
 
     return u32(obuf.widx);
 }
 
-constexpr core::expected<u32, ParseError> float32ToCstr(f32 n, char* out, u32 olen) {
+constexpr core::expected<u32, ConversionError> float32ToCstr(f32 n, char* out, u32 olen) {
     using Traits = FloatTraits<f32>;
     using FloatDecimal = Traits::FloatDecimal;
 
@@ -6299,7 +6341,7 @@ constexpr core::expected<u32, ParseError> float32ToCstr(f32 n, char* out, u32 ol
     return toChars(v, ieeeSign, out, olen);
 }
 
-constexpr core::expected<u32, ParseError> float64ToCstr(f64 n, char* out, u32 olen) {
+constexpr core::expected<u32, ConversionError> float64ToCstr(f64 n, char* out, u32 olen) {
     using Traits = FloatTraits<f64>;
     using FloatDecimal = Traits::FloatDecimal;
 
@@ -6593,14 +6635,14 @@ constexpr u32 float64ToFixedCstr(f64 n, u32 precision, char* out, u32 olen) {
 } // namespace detail
 
 template<typename TFloat>
-constexpr core::expected<TFloat, ParseError> cstrToFloat(const char* s, u32 slen) {
+constexpr core::expected<TFloat, ConversionError> cstrToFloat(const char* s, u32 slen) {
     return detail::cstrToFloatImpl<TFloat>(s, slen);
 }
 
-constexpr core::expected<u32, ParseError> floatToCstr(f32 n, char* out, u32 olen) {
+constexpr core::expected<u32, ConversionError> floatToCstr(f32 n, char* out, u32 olen) {
     return detail::float32ToCstr(n, out, olen);
 }
-constexpr core::expected<u32, ParseError> floatToCstr(f64 n, char* out, u32 olen) {
+constexpr core::expected<u32, ConversionError> floatToCstr(f64 n, char* out, u32 olen) {
     return detail::float64ToCstr(n, out, olen);
 }
 

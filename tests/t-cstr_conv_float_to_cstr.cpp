@@ -389,7 +389,7 @@ constexpr i32 toSpecialValuesTest() {
 }
 
 constexpr i32 shortBufferWritesTest() {
-    using core::ParseError;
+    using core::ConversionError;
 
     {
         struct TestCase {
@@ -447,7 +447,7 @@ constexpr i32 shortBufferWritesTest() {
             char buff[64];
             auto got = core::floatToCstr(c.input, buff, c.bufferSize);
             CT_CHECK(got.hasErr(), cErr);
-            CT_CHECK(got.err() == core::ParseError::OutputBufferTooSmall, cErr);
+            CT_CHECK(got.err() == core::ConversionError::OutputBufferTooSmall, cErr);
             return 0;
         });
         CT_CHECK(ret == 0);
@@ -572,7 +572,7 @@ constexpr i32 shortBufferWritesTest() {
             char buff[64];
             auto got = core::floatToCstr(c.input, buff, c.bufferSize);
             CT_CHECK(got.hasErr(), cErr);
-            CT_CHECK(got.err() == core::ParseError::OutputBufferTooSmall);
+            CT_CHECK(got.err() == core::ConversionError::OutputBufferTooSmall);
             return 0;
         });
         CT_CHECK(ret == 0);

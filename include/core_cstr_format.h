@@ -108,7 +108,7 @@ struct PlaceHolderOptions {
          *   5 - found closing bracket
         */
         u8 state = 0;
-        constexpr u32 BUFF_SIZE = 5;
+        constexpr u8 BUFF_SIZE = 5;
         char buff[BUFF_SIZE + 1] = {};
         u8 buffWriteIdx = 0;
         Type deducedType = Type::Invalid;

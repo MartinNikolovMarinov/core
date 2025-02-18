@@ -1,3 +1,22 @@
+/*
+ * LICENSE: MIT
+ * Copyright (c) 2025-present Martin Marinov
+ *
+ * DESCRIPTION:
+ *   This file contains implementations of common string conversion utility functions.
+ *
+ * ADDITIONAL NOTES:
+ *   The implementation of floating-point number conversions is based on the Ryu algorithm by Ulf Adams. The Ryu
+ *   algorithm provides an optimized method for converting floating-point numbers to and from decimal strings with both
+ *   speed and correctness.
+ *
+ *   The original implementation and details are available at: https://github.com/ulfjack/ryu
+ *   The original code is also used to verify this implementation.
+ *
+ * CREDIT:
+ *   Ulf Adams and contributors.
+ */
+
 #pragma once
 
 #include <core_bits.h>
@@ -11,7 +30,6 @@
 
 #include <math/core_math.h>
 
-// FIXME: Add acknowledgement for the author of the ryu algorithm and the c++ reference library!
 // TODO2: [PERFORMACE] Everything in this file can be much faster.
 
 PRAGMA_WARNING_PUSH

@@ -48,7 +48,7 @@ enum struct ConversionError : u8 {
     OutputBufferTooSmall, // will overflow provided buffer
 };
 
-constexpr const char* parseErrorToCstr(ConversionError err) {
+constexpr const char* conversionErrorToCstr(ConversionError err) {
     switch (err) {
         case ConversionError::InputEmpty:             return "Input is empty";
         case ConversionError::InputHasMultipleDots:   return "Input has more than one dot";

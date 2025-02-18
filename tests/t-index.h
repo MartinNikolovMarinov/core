@@ -128,7 +128,6 @@ i32 runArenaAllocatorTestsSuite();
 i32 runPltErrorTestsSuite();
 i32 runPltFileSystemTestsSuite();
 i32 runPltPagesTestsSuite();
-i32 runPltPathTestsSuite();
 i32 runPltStacktraceTestsSuite();
 i32 runPltThreadingTestsSuite();
 i32 runPltTimeTestsSuite();

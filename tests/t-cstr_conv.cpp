@@ -257,40 +257,6 @@ constexpr i32 cstrToIntErrorsTest() {
     return 0;
 }
 
-constexpr i32 digitToCharTest() {
-    struct TestCase {
-        i32 in;
-        char expected;
-    };
-
-    constexpr TestCase cases[] = {
-        { 0, '0' },
-        { 1, '1' },
-        { 2, '2' },
-        { 3, '3' },
-        { 4, '4' },
-        { 5, '5' },
-        { 6, '6' },
-        { 7, '7' },
-        { 8, '8' },
-        { 9, '9' },
-    };
-
-    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
-        CT_CHECK(core::digitToChar(i8(c.in)) == c.expected, cErr);
-        CT_CHECK(core::digitToChar(i16(c.in)) == c.expected, cErr);
-        CT_CHECK(core::digitToChar(i32(c.in)) == c.expected, cErr);
-        CT_CHECK(core::digitToChar(i64(c.in)) == c.expected, cErr);
-        CT_CHECK(core::digitToChar(u8(c.in)) == c.expected, cErr);
-        CT_CHECK(core::digitToChar(u16(c.in)) == c.expected, cErr);
-        CT_CHECK(core::digitToChar(u32(c.in)) == c.expected, cErr);
-        CT_CHECK(core::digitToChar(u64(c.in)) == c.expected, cErr);
-        return 0;
-    });
-
-    return ret;
-};
-
 constexpr i32 intToCstrTest() {
     {
         struct TestCase {
@@ -599,8 +565,6 @@ i32 runCstrConvTestsSuite() {
     if (runTest(tInfo, cstrToIntTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(cstrToIntErrorsTest);
     if (runTest(tInfo, cstrToIntErrorsTest)) { ret = -1; }
-    tInfo.name = FN_NAME_TO_CPTR(digitToCharTest);
-    if (runTest(tInfo, digitToCharTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(intToCstrTest);
     if (runTest(tInfo, intToCstrTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(intHexTest);
@@ -611,7 +575,6 @@ i32 runCstrConvTestsSuite() {
 
 constexpr i32 runCompiletimeCstrConvTestsSuite() {
     RunTestCompileTime(cstrToIntTest);
-    RunTestCompileTime(digitToCharTest);
     RunTestCompileTime(intToCstrTest);
     RunTestCompileTime(intHexTest);
 

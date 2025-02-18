@@ -3,8 +3,6 @@
 #include <core_traits.h>
 #include <core_types.h>
 
-// TODO2: [PERFORMANCE] Everything in this file can be much faster.
-
 namespace core {
 
 using namespace coretypes;
@@ -13,13 +11,13 @@ using namespace coretypes;
                         constexpr inline bool isHexDigit(char c);
                         constexpr inline bool isWhiteSpace(char c);
 
-template <typename T>   constexpr inline T    toDigit(char s);
+template <typename T>   constexpr inline T    charToDigit(char s);
 template<typename TInt> constexpr inline char digitToChar(TInt digit);
 
-                        constexpr inline char toLowerCaseANSI(char c);
-                        constexpr inline char toUpperCaseANSI(char c);
-                        constexpr inline bool isLowerCaseANSI(char c);
-                        constexpr inline bool isUpperCaseANSI(char c);
+                        constexpr inline char toLowerCaseASCII(char c);
+                        constexpr inline char toUpperCaseASCII(char c);
+                        constexpr inline bool isLowerCaseASCII(char c);
+                        constexpr inline bool isUpperCaseASCII(char c);
 
                         constexpr inline addr_size cstrLen(const char* p);
                         constexpr inline addr_size cstrLen(const uchar* p);
@@ -32,7 +30,7 @@ constexpr inline bool isHexDigit(char c) { return ('0' <= c && c <= '9') || ('a'
 constexpr inline bool isWhiteSpace(char c) { return c == ' ' || c == '\t' || c == '\n' || c == '\r'; }
 
 template <typename T>
-constexpr inline T toDigit(char s) {
+constexpr inline T charToDigit(char s) {
     static_assert(std::is_arithmetic_v<T>, "T must be an arithmetic type.");
     return T(s - '0');
 }
@@ -42,13 +40,13 @@ constexpr inline char digitToChar(T digit) {
     return char(digit % 10) + '0';
 }
 
-constexpr inline char toLowerCaseANSI(char c) { return (c | 0x20); }
-constexpr inline char toUpperCaseANSI(char c) { return (c & ~0x20); }
+constexpr inline char toLowerCaseASCII(char c) { return (c | 0x20); }
+constexpr inline char toUpperCaseASCII(char c) { return (c & ~0x20); }
 
-constexpr inline bool isLowerCaseANSI(char c) { return c == toLowerCaseANSI(c); }
-constexpr inline bool isUpperCaseANSI(char c) { return c == toUpperCaseANSI(c); }
+constexpr inline bool isLowerCaseASCII(char c) { return c == toLowerCaseASCII(c); }
+constexpr inline bool isUpperCaseASCII(char c) { return c == toUpperCaseASCII(c); }
 
-constexpr inline i32 cmpIgnoreCaseANSI(char a, char b) { return i32(toLowerCaseANSI(a) - toLowerCaseANSI(b)); }
+constexpr inline i32 cmpIgnoreCaseANSI(char a, char b) { return i32(toLowerCaseASCII(a) - toLowerCaseASCII(b)); }
 
 namespace detail {
 

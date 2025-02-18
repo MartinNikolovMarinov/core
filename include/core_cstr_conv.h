@@ -195,7 +195,7 @@ constexpr core::expected<TInt, ParseError> cstrToInt(const char* s, u32 slen) {
         }
 
         TInt r = TInt(res * 10);
-        TInt d = core::toDigit<TInt>(curr);
+        TInt d = core::charToDigit<TInt>(curr);
         TInt next = r + d;
         if (next < res) {
             if constexpr (core::is_signed_v<TInt>) {
@@ -5610,7 +5610,7 @@ constexpr core::expected<TFloat, ParseError> cstrToFloatImpl(const char* s, u32 
         else {
             if (!core::isDigit(c)) break;
             if (u32(mantissaDigits) >= MAX_MANTISSA_DIGITS) return core::unexpected(ParseError::InputNumberTooLarge);
-            mantissa = 10 * mantissa + core::toDigit<UInt>(c);
+            mantissa = 10 * mantissa + core::charToDigit<UInt>(c);
             if (mantissa != 0) mantissaDigits++;
         }
     }
@@ -5629,7 +5629,7 @@ constexpr core::expected<TFloat, ParseError> cstrToFloatImpl(const char* s, u32 
             char c = s[i];
             if (!core::isDigit(c)) return core::unexpected(ParseError::InputHasInvalidSymbol);
             if (exponentDigits > 3) return core::unexpected(ParseError::InputNumberTooLarge);
-            exponent = 10 * exponent + core::toDigit<i32>(c);
+            exponent = 10 * exponent + core::charToDigit<i32>(c);
             if (exponent != 0) {
                 exponentDigits++;
             }

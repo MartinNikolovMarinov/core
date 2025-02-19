@@ -406,6 +406,6 @@ HashMap<TKey, TValue, TAllocId> createHashMap() {
 }
 
 // TODO: Implement Hash Set.
-// TODO: Implement a static sized hash set for the cases where a exactly sized map is needed.
+// TODO: Implement a constexpr static perfect HashMap (a good approach to this is PMH in Frozen - https://github.com/serge-sans-paille/frozen/blob/master/include/frozen/bits/pmh.h)
 
 } // namespace core

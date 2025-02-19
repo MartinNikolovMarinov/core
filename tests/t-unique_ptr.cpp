@@ -97,7 +97,8 @@ i32 initializeUniquePtrTest() {
 
         CT::resetAll();
         {
-            CT* ct = core::getAllocator(core::DEFAULT_ALLOCATOR_ID).construct<CT>();
+            auto& actx = core::getAllocator(core::DEFAULT_ALLOCATOR_ID);
+            CT* ct = actx.construct<CT>();
             CT_CHECK(CT::totalCtorsCalled() == 1);
             CT_CHECK(CT::assignmentsTotalCalled() == 0);
             CT_CHECK(CT::dtorsCalled() == 0);

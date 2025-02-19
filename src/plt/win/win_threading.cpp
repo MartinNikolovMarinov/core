@@ -198,12 +198,14 @@ expected<PltErrCode> threadStart(Thread& out, void* arg, ThreadRoutine routine) 
         return core::unexpected(ERR_THREADING_STARTING_AN_ALREADY_RUNNING_THREAD);
     }
 
-    ThreadInfo* tinfo = reinterpret_cast<ThreadInfo*>(core::getAllocator(core::DEFAULT_ALLOCATOR_ID).alloc(1, sizeof(ThreadInfo)));
+    auto& actx = core::getAllocator(core::DEFAULT_ALLOCATOR_ID);
+    ThreadInfo* tinfo = reinterpret_cast<ThreadInfo*>(actx.alloc(1, sizeof(ThreadInfo)));
     tinfo->routine = routine;
     tinfo->arg = arg;
     tinfo->destroy = [] (void* ptr) {
+        auto& aactx = core::getAllocator(core::DEFAULT_ALLOCATOR_ID);
         ThreadInfo* info = reinterpret_cast<ThreadInfo*>(ptr);
-        core::getAllocator(core::DEFAULT_ALLOCATOR_ID).free(info, 1, sizeof(ThreadInfo));
+        aactx.free(info, 1, sizeof(ThreadInfo));
     };
     if (tinfo == nullptr) {
         return core::unexpected(ERR_ALLOCATOR_DEFAULT_NO_MEMORY);
@@ -217,7 +219,7 @@ expected<PltErrCode> threadStart(Thread& out, void* arg, ThreadRoutine routine) 
     if (out.handle == nullptr) { // CreateThread returns nullptr on error.
         out.handle = INVALID_HANDLE_VALUE;
         out.isRunning = false;
-        core::getAllocator(core::DEFAULT_ALLOCATOR_ID).free(tinfo, 1, sizeof(ThreadInfo));
+        actx.free(tinfo, 1, sizeof(ThreadInfo));
         return core::unexpected(PltErrCode(GetLastError()));
     }
 

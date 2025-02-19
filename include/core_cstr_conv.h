@@ -110,7 +110,7 @@ constexpr core::expected<u32, ConversionError> intToHex(i64 v, char* out, addr_s
  * @param out - The output c string buffer.
  * @param olen - Length of the output buffer.
  * @param binLen - This length of the binary string.
- *                 If this is larger than the bite size of the number the result is undefined.
+ *                 If this is larger than the byte size of the number the result is undefined.
  *
  * @return the written bytes or a parse error.
 */
@@ -126,7 +126,7 @@ constexpr core::expected<u32, ConversionError> intToBinary(i64 v, char* out, add
 template <typename TFloat> constexpr core::expected<TFloat, ConversionError> cstrToFloat(const char* s, u32 slen);
                            constexpr core::expected<u32, ConversionError>    floatToCstr(f32 n, char* out, u32 olen);
                            constexpr core::expected<u32, ConversionError>    floatToCstr(f64 n, char* out, u32 olen);
-                           constexpr u32                                     floatToFixedCstr(f64 n, u32 precision, char* out, u32 olen);
+                           constexpr core::expected<u32, ConversionError>    floatToFixedCstr(f64 n, u32 precision, char* out, u32 olen);
 
 namespace detail {
 
@@ -6407,7 +6407,7 @@ constexpr core::expected<u32, ConversionError> float64ToCstr(f64 n, char* out, u
     return toChars(res, ieeeSign, out, olen);
 }
 
-constexpr u32 float64ToFixedCstr(f64 n, u32 precision, char* out, u32 olen) {
+constexpr core::expected<u32, ConversionError> float64ToFixedCstr(f64 n, u32 precision, char* out, u32 olen) {
     using Traits = FloatTraits<f64>;
 
     constexpr u32 MANTISSA_BITS = Traits::MANTISSA_BITS;
@@ -6645,7 +6645,7 @@ constexpr core::expected<u32, ConversionError> floatToCstr(f32 n, char* out, u32
 constexpr core::expected<u32, ConversionError> floatToCstr(f64 n, char* out, u32 olen) {
     return detail::float64ToCstr(n, out, olen);
 }
-constexpr u32 floatToFixedCstr(f64 n, u32 precision, char* out, u32 olen) {
+constexpr core::expected<u32, ConversionError> floatToFixedCstr(f64 n, u32 precision, char* out, u32 olen) { // TODO: Needs a lot of testing
     return detail::float64ToFixedCstr(n, precision, out, olen);
 }
 

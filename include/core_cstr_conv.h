@@ -6087,6 +6087,13 @@ struct OutputBuffer {
         return true;
     }
 
+    [[nodiscard]] constexpr inline bool writeCharRepeat(char a, u32 repeat) {
+        if (widx + repeat >= omax) return false;
+        core::memset(out + widx, a, repeat);
+        widx += repeat;
+        return true;
+    }
+
     [[nodiscard]] constexpr inline bool writeAt(const char* in, u32 inLen, u32 offset) {
         if (offset + inLen >= omax) return false;
         core::memcopy(out + offset, in, inLen);
@@ -6430,7 +6437,7 @@ constexpr core::expected<u32, ConversionError> float64ToFixedCstr(f64 n, u32 pre
     // The caller has to guarantee that:
     //   10^(olength-1) <= digits < 10^olength
     // e.g., by passing `olength` as `decimalLength9(digits)`.
-    auto appendNDigits = [](u32 olength, u32 digits, char* oout) {
+    auto appendNDigits = [](char* oout, u32 olength, u32 digits) {
         u32 i = 0;
         while (digits >= 10000) {
             u32 c = digits % 10000;
@@ -6464,21 +6471,27 @@ constexpr core::expected<u32, ConversionError> float64ToFixedCstr(f64 n, u32 pre
 
     // Case distinction; exit early for the easy cases.
     if (ieeeExponent == ((1u << EXPONENT_BITS) - 1u)) {
-        return core::Unpack(copySpecialStr(ieeeSign, ieeeMantissa, ieeeExponent, out, olen));
+        return copySpecialStr(ieeeSign, ieeeExponent, ieeeMantissa, out, olen);
     }
 
+    OutputBuffer obuf(out, olen);
+
     if (ieeeExponent == 0 && ieeeMantissa == 0) {
-        i32 index = 0;
         if (ieeeSign) {
-            out[index++] = '-';
+            if (!obuf.writeChar('-'))
+                return core::unexpected(ConversionError::OutputBufferTooSmall);
         }
-        out[index++] = '0';
+
+        if (!obuf.writeChar('0'))
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
+
         if (precision > 0) {
-            out[index++] = '.';
-            core::memset(out + index, '0', precision);
-            index += precision;
+            if (!obuf.writeChar('.'))
+                return core::unexpected(ConversionError::OutputBufferTooSmall);
+            if (!obuf.writeCharRepeat('0', precision))
+                return core::unexpected(ConversionError::OutputBufferTooSmall);
         }
-        return u32(index);
+        return u32(obuf.widx);
     }
 
     i32 e2;
@@ -6492,10 +6505,10 @@ constexpr core::expected<u32, ConversionError> float64ToFixedCstr(f64 n, u32 pre
         m2 = u64(1ull << MANTISSA_BITS) | ieeeMantissa;
     }
 
-    i32 index = 0;
     bool nonzero = false;
     if (ieeeSign) {
-        out[index++] = '-';
+        if (!obuf.writeChar('-'))
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
 
     if (e2 >= -52) {
@@ -6506,51 +6519,54 @@ constexpr core::expected<u32, ConversionError> float64ToFixedCstr(f64 n, u32 pre
             u32 j = u32(i32(p10bits) - e2);
             u32 digits = Traits::mulShiftMod1e9(m2 << 8, Traits::POW10_SPLIT[Traits::POW10_OFFSET[idx] + i], i32(j + 8));
             if (nonzero) {
-                appendNineDigits(digits, out + index);
-                index += 9;
+                if (!obuf.advance(9))
+                    return core::unexpected(ConversionError::OutputBufferTooSmall);
+                appendNineDigits(digits, obuf.out + obuf.widx - 9);
             }
             else if (digits != 0) {
                 u32 olength = decimalLength9(digits);
-                appendNDigits(olength, digits, out + index);
-                index += olength;
+                if (!obuf.advance(olength))
+                    return core::unexpected(ConversionError::OutputBufferTooSmall);
+                appendNDigits(obuf.out + obuf.widx - olength, olength, digits);
                 nonzero = true;
             }
         }
     }
 
     if (!nonzero) {
-        out[index++] = '0';
+        if (!obuf.writeChar('0'))
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
     if (precision > 0) {
-        out[index++] = '.';
+        if (!obuf.writeChar('.'))
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
 
     if (e2 < 0) {
         i32 idx = -e2 / 16;
         u32 blocks = precision / 9 + 1;
         // 0 = don't round up; 1 = round up unconditionally; 2 = round up if odd.
-        int roundUp = 0;
+        i32 roundUp = 0;
         u32 i = 0;
         if (blocks <= Traits::MIN_BLOCK_2[idx]) {
             i = blocks;
-            core::memset(out + index, '0', precision);
-            index += precision;
+            if (!obuf.writeCharRepeat('0', precision))
+                return core::unexpected(ConversionError::OutputBufferTooSmall);
         }
         else if (i < Traits::MIN_BLOCK_2[idx]) {
             i = Traits::MIN_BLOCK_2[idx];
-            core::memset(out + index, '0', 9 * i);
-            index += 9 * i;
+            if (!obuf.writeCharRepeat('0', 9 * i))
+                return core::unexpected(ConversionError::OutputBufferTooSmall);
         }
 
         for (; i < blocks; ++i) {
             i32 j = i32(Traits::ADDITIONAL_BITS_2) + (-e2 - 16 * idx);
             u32 p = Traits::POW10_OFFSET_2[idx] + i - Traits::MIN_BLOCK_2[idx];
             if (p >= Traits::POW10_OFFSET_2[idx + 1]) {
-                // If the remaining digits are all 0, then we might as well use memset.
-                // No rounding required in this case.
                 u32 fill = precision - 9 * i;
-                core::memset(out + index, '0', fill);
-                index += fill;
+                if (!obuf.writeCharRepeat('0', fill))
+                    return core::unexpected(ConversionError::OutputBufferTooSmall);
+
                 break;
             }
 
@@ -6558,8 +6574,9 @@ constexpr core::expected<u32, ConversionError> float64ToFixedCstr(f64 n, u32 pre
             // a slightly faster code path in mulShift_mod1e9. Instead, we can just increase the multipliers.
             u32 digits = Traits::mulShiftMod1e9(m2 << 8, Traits::POW10_SPLIT_2[p], j + 8);
             if (i < blocks - 1) {
-                appendNineDigits(digits, out + index);
-                index += 9;
+                if (!obuf.advance(9))
+                    return core::unexpected(ConversionError::OutputBufferTooSmall);
+                appendNineDigits(digits, obuf.out + obuf.widx - 9);
             }
             else {
                 u32 maximum = precision - 9 * i;
@@ -6581,8 +6598,9 @@ constexpr core::expected<u32, ConversionError> float64ToFixedCstr(f64 n, u32 pre
                 }
 
                 if (maximum > 0) {
-                    appendDigitsCutExcess(maximum, digits, out + index);
-                    index += maximum;
+                    if (!obuf.advance(maximum))
+                        return core::unexpected(ConversionError::OutputBufferTooSmall);
+                    appendDigitsCutExcess(maximum, digits, obuf.out + obuf.widx - maximum);
                 }
 
                 break;
@@ -6590,18 +6608,27 @@ constexpr core::expected<u32, ConversionError> float64ToFixedCstr(f64 n, u32 pre
         }
 
         if (roundUp != 0) {
-            int roundIndex = index;
-            int dotIndex = 0; // '.' can't be located at index 0
+            i32 roundIndex = i32(obuf.widx);
+            i32 dotIndex = 0; // '.' can't be located at index 0
             while (true) {
-                --roundIndex;
                 char c;
-                if (roundIndex == -1 || (c = out[roundIndex], c == '-')) {
-                    out[roundIndex + 1] = '1';
+
+                --roundIndex;
+
+                if (roundIndex == -1 || (c = obuf.out[roundIndex], c == '-')) {
+                    if (!obuf.writeCharAt('1', u32(roundIndex) + 1))
+                        return core::unexpected(ConversionError::OutputBufferTooSmall);
+
                     if (dotIndex > 0) {
-                        out[dotIndex] = '0';
-                        out[dotIndex + 1] = '.';
+                        if (!obuf.writeCharAt('0', u32(dotIndex)))
+                            return core::unexpected(ConversionError::OutputBufferTooSmall);
+                        if (!obuf.writeCharAt('.', u32(dotIndex) + 1))
+                            return core::unexpected(ConversionError::OutputBufferTooSmall);
                     }
-                    out[index++] = '0';
+
+                    if (!obuf.writeChar('0'))
+                        return core::unexpected(ConversionError::OutputBufferTooSmall);
+
                     break;
                 }
 
@@ -6610,7 +6637,8 @@ constexpr core::expected<u32, ConversionError> float64ToFixedCstr(f64 n, u32 pre
                     continue;
                 }
                 else if (c == '9') {
-                    out[roundIndex] = '0';
+                    if (!obuf.writeCharAt('0', u32(roundIndex)))
+                        return core::unexpected(ConversionError::OutputBufferTooSmall);
                     roundUp = 1;
                     continue;
                 }
@@ -6618,18 +6646,21 @@ constexpr core::expected<u32, ConversionError> float64ToFixedCstr(f64 n, u32 pre
                     if (roundUp == 2 && c % 2 == 0) {
                         break;
                     }
-                    out[roundIndex] = c + 1;
+
+                    if (!obuf.writeCharAt(c + 1, u32(roundIndex)))
+                        return core::unexpected(ConversionError::OutputBufferTooSmall);
+
                     break;
                 }
             }
         }
     }
     else {
-        core::memset(out + index, '0', precision);
-        index += precision;
+        if (!obuf.writeCharRepeat('0', precision))
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
 
-    return u32(index);
+    return u32(obuf.widx);
 }
 
 } // namespace detail
@@ -6645,7 +6676,7 @@ constexpr core::expected<u32, ConversionError> floatToCstr(f32 n, char* out, u32
 constexpr core::expected<u32, ConversionError> floatToCstr(f64 n, char* out, u32 olen) {
     return detail::float64ToCstr(n, out, olen);
 }
-constexpr core::expected<u32, ConversionError> floatToFixedCstr(f64 n, u32 precision, char* out, u32 olen) { // TODO: Needs a lot of testing
+constexpr core::expected<u32, ConversionError> floatToFixedCstr(f64 n, u32 precision, char* out, u32 olen) {
     return detail::float64ToFixedCstr(n, precision, out, olen);
 }
 

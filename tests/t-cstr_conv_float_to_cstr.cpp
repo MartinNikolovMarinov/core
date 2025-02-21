@@ -2,6 +2,7 @@
 
 #include "common/ryu_reference_impl/ryu.h"
 #include "common/ryu_reference_impl/ryu_parse.h"
+#include "common/ryu_reference_impl/test_tables.h"
 
 constexpr i32 checkWithOriginalNormal(auto in, const char* got, u32 gotN, const char* cErr) {
     IS_NOT_CONST_EVALUATED {
@@ -36,6 +37,39 @@ constexpr i32 checkWithOriginalNormal(auto in, const char* got, u32 gotN, const 
                 CT_CHECK(core::memcmp(buf, n, "-Infinity", core::cstrLen("-Infinity")) == 0, cErr);
                 CT_CHECK(core::memcmp(got, gotN, "-inf", core::cstrLen("-inf")) == 0, cErr);
             }
+        }
+    }
+
+    return 0;
+}
+
+constexpr i32 checkWithOriginalPrecision(f64 in, u32 precission, const char* got, u32 gotN, const char* cErr) {
+    IS_NOT_CONST_EVALUATED {
+        constexpr u32 BUFF_LEN = core::CORE_KILOBYTE * 2;
+        char buf[BUFF_LEN];
+        u32 n = u32(ryu::d2fixed_buffered_n(in, precission, buf));
+
+        if (core::isinf(in)) {
+            if (in > 0) {
+                CT_CHECK(core::memcmp(buf, n, "Infinity", core::cstrLen("Infinity")) == 0, cErr);
+                CT_CHECK(core::memcmp(got, gotN, "inf", core::cstrLen("inf")) == 0, cErr);
+            }
+            else {
+                CT_CHECK(core::memcmp(buf, n, "-Infinity", core::cstrLen("-Infinity")) == 0, cErr);
+                CT_CHECK(core::memcmp(got, gotN, "-inf", core::cstrLen("-inf")) == 0, cErr);
+            }
+        }
+        else if (core::isnan(in)) {
+            // This is a very strange inconsistency in the implementation, to return nan or even nan(snan) here and NaN
+            // in the f2s and d2s variants. I keep it consistant NaN.
+            CT_CHECK(buf[0] == 'n');
+            CT_CHECK(buf[1] == 'a');
+            CT_CHECK(buf[2] == 'n');
+            CT_CHECK(core::memcmp(got, gotN, "NaN", core::cstrLen("NaN")) == 0, cErr);
+        }
+        else {
+            i32 cmpResult = core::memcmp(buf, n, got, gotN);
+            CT_CHECK(cmpResult == 0, cErr);
         }
     }
 
@@ -290,6 +324,281 @@ constexpr i32 toExponentNotationTest() {
     return 0;
 }
 
+constexpr i32 toFixedNotationTest() {
+    struct TestCase {
+        f64 input;
+        u32 precision;
+        const char* expected;
+    };
+
+    TestCase cases[] = {
+        // Basic
+        { 0.0, 0, "0" },
+        { 0.0, 1, "0.0" },
+        { 0.0, 2, "0.00" },
+        { 0.0, 3, "0.000" },
+        { -0.0, 0, "-0" },
+        { -0.0, 1, "-0.0" },
+        { -0.0, 2, "-0.00" },
+        { -0.0, 3, "-0.000" },
+        { 1.0, 0, "1" },
+        { 1.0, 1, "1.0" },
+        { 1.0, 2, "1.00" },
+        { 1.0, 3, "1.000" },
+        { -1.0, 0, "-1" },
+        { -1.0, 1, "-1.0" },
+        { -1.0, 2, "-1.00" },
+        { -1.0, 3, "-1.000" },
+        { 0.0, 50, "0.00000000000000000000000000000000000000000000000000" },
+        { -12.0, 50, "-12.00000000000000000000000000000000000000000000000000" },
+        { 1.2345678901234567890, 1, "1.2" },
+        { 1.2345678901234567890, 2, "1.23" },
+        { 1.2345678901234567890, 3, "1.235" },
+        { 1.2345678901234567890, 4, "1.2346" },
+        { 1.2345678901234567890, 5, "1.23457" },
+        { 1.2345678901234567890, 6, "1.234568" },
+        { 1.2345678901234567890, 7, "1.2345679" },
+        { 1.2345678901234567890, 8, "1.23456789" },
+        { 1.2345678901234567890, 9, "1.234567890" },
+        { 1.2345678901234567890, 10, "1.2345678901" },
+        { 1.2345678901234567890, 11, "1.23456789012" },
+        { 1.2345678901234567890, 12, "1.234567890123" },
+        { 1.2345678901234567890, 13, "1.2345678901235" },
+        { 1.2345678901234567890, 14, "1.23456789012346" },
+        { 1.2345678901234567890, 15, "1.234567890123457" },
+        { 1.2345678901234567890, 16, "1.2345678901234567" },
+        { 1.2345678901234567890, 17, "1.23456789012345669" }, // cutoff point.
+
+        // Large number with 0 precision after the dot
+        { 3.2910091147154864e+63, 0, "3291009114715486435425664845573426149758869524108446525879746560" },
+
+        // Rounding edge cases
+        { 0.0009, 5, "0.00090" },
+        { 0.0009, 4, "0.0009" },
+        { 0.0009, 3, "0.001" },
+        { 0.0099, 3, "0.010" },
+        { 0.00999, 4, "0.0100" },
+        { 7.018232e-82, 6, "0.000000" },
+
+        // Min/Max
+        {
+            core::bitCast<f64>(core::createFloat64(1, 0, false)), 1074,
+            "0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+            "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+            "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+            "000000000000000000000000000000000000000000000000000000049406564584124654417656879286822137"
+            "236505980261432476442558568250067550727020875186529983636163599237979656469544571773092665"
+            "671035593979639877479601078187812630071319031140452784581716784898210368871863605699873072"
+            "305000638740915356498438731247339727316961514003171538539807412623856559117102665855668676"
+            "818703956031062493194527159149245532930545654440112748012970999954193198940908041656332452"
+            "475714786901472678015935523861155013480352649347201937902681071074917033322268447533357208"
+            "324319360923828934583680601060115061698097530783422773183292479049825247307763759272478746"
+            "560847782037344696995336470179726777175851256605511991315048911014510378627381672509558373"
+            "89733598993664809941164205702637090279242767544565229087538682506419718265533447265625"
+        },
+        {
+            core::bitCast<f64>(core::createFloat64(0xFFFFFFFFFFFFFu, 2046, false)), 0,
+            "179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558"
+            "632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245"
+            "490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168"
+            "738177180919299881250404026184124858368"
+        },
+
+        // Round to even
+        { 0.125, 3, "0.125" },
+        { 0.125, 2, "0.12"  },
+        { 0.375, 3, "0.375" },
+        { 0.375, 2, "0.38"  },
+
+        // Round to even integer
+        { 2.5, 1, "2.5" },
+        { 2.5, 0, "2"   },
+        { 3.5, 1, "3.5" },
+        { 3.5, 0, "4"   },
+
+        // Non round to even
+        { 0.748046875, 3, "0.748"  },
+        { 0.748046875, 2, "0.75"   },
+        { 0.748046875, 1, "0.7"    }, // 0.75 would round to "0.8", but this is smaller
+        { 0.2509765625, 3, "0.251" },
+        { 0.2509765625, 2, "0.25"  },
+        { 0.2509765625, 1, "0.3"   }, // 0.25 would round to "0.2", but this is larger
+        { core::bitCast<f64>(core::createFloat64(1, 1021, false)), 54, "0.250000000000000055511151231257827021181583404541015625" },
+        { core::bitCast<f64>(core::createFloat64(1, 1021, false)),  3, "0.250" },
+        { core::bitCast<f64>(core::createFloat64(1, 1021, false)),  2, "0.25"  },
+        { core::bitCast<f64>(core::createFloat64(1, 1021, false)),  1, "0.3"   }, // 0.25 would round to "0.2", but this is larger (again)
+
+        // Exhaustive precision testing
+        { 1729.142857142857, 47, "1729.14285714285711037518922239542007446289062500000" },
+        { 1729.142857142857, 46, "1729.1428571428571103751892223954200744628906250000" },
+        { 1729.142857142857, 45, "1729.142857142857110375189222395420074462890625000" },
+        { 1729.142857142857, 44, "1729.14285714285711037518922239542007446289062500" },
+        { 1729.142857142857, 43, "1729.1428571428571103751892223954200744628906250" },
+        { 1729.142857142857, 42, "1729.142857142857110375189222395420074462890625" },
+        { 1729.142857142857, 41, "1729.14285714285711037518922239542007446289062" },
+        { 1729.142857142857, 40, "1729.1428571428571103751892223954200744628906" },
+        { 1729.142857142857, 39, "1729.142857142857110375189222395420074462891" },
+        { 1729.142857142857, 38, "1729.14285714285711037518922239542007446289" },
+        { 1729.142857142857, 37, "1729.1428571428571103751892223954200744629" },
+        { 1729.142857142857, 36, "1729.142857142857110375189222395420074463" },
+        { 1729.142857142857, 35, "1729.14285714285711037518922239542007446" },
+        { 1729.142857142857, 34, "1729.1428571428571103751892223954200745" },
+        { 1729.142857142857, 33, "1729.142857142857110375189222395420074" },
+        { 1729.142857142857, 32, "1729.14285714285711037518922239542007" },
+        { 1729.142857142857, 31, "1729.1428571428571103751892223954201" },
+        { 1729.142857142857, 30, "1729.142857142857110375189222395420" },
+        { 1729.142857142857, 29, "1729.14285714285711037518922239542" },
+        { 1729.142857142857, 28, "1729.1428571428571103751892223954" },
+        { 1729.142857142857, 27, "1729.142857142857110375189222395" },
+        { 1729.142857142857, 26, "1729.14285714285711037518922240" },
+        { 1729.142857142857, 25, "1729.1428571428571103751892224" },
+        { 1729.142857142857, 24, "1729.142857142857110375189222" },
+        { 1729.142857142857, 23, "1729.14285714285711037518922" },
+        { 1729.142857142857, 22, "1729.1428571428571103751892" },
+        { 1729.142857142857, 21, "1729.142857142857110375189" },
+        { 1729.142857142857, 20, "1729.14285714285711037519" },
+        { 1729.142857142857, 19, "1729.1428571428571103752" },
+        { 1729.142857142857, 18, "1729.142857142857110375" },
+        { 1729.142857142857, 17, "1729.14285714285711038" },
+        { 1729.142857142857, 16, "1729.1428571428571104" },
+        { 1729.142857142857, 15, "1729.142857142857110" },
+        { 1729.142857142857, 14, "1729.14285714285711" },
+        { 1729.142857142857, 13, "1729.1428571428571" },
+        { 1729.142857142857, 12, "1729.142857142857" },
+        { 1729.142857142857, 11, "1729.14285714286" },
+        { 1729.142857142857, 10, "1729.1428571429" },
+        { 1729.142857142857,  9, "1729.142857143" },
+        { 1729.142857142857,  8, "1729.14285714" },
+        { 1729.142857142857,  7, "1729.1428571" },
+        { 1729.142857142857,  6, "1729.142857" },
+        { 1729.142857142857,  5, "1729.14286" },
+        { 1729.142857142857,  4, "1729.1429" },
+        { 1729.142857142857,  3, "1729.143" },
+        { 1729.142857142857,  2, "1729.14" },
+        { 1729.142857142857,  1, "1729.1" },
+        { 1729.142857142857,  0, "1729" },
+
+        // Carrying
+        {   0.0009, 4,   "0.0009" },
+        {   0.0009, 3,   "0.001"  },
+        {   0.0029, 4,   "0.0029" },
+        {   0.0029, 3,   "0.003"  },
+        {   0.0099, 4,   "0.0099" },
+        {   0.0099, 3,   "0.010"  },
+        {   0.0299, 4,   "0.0299" },
+        {   0.0299, 3,   "0.030"  },
+        {   0.0999, 4,   "0.0999" },
+        {   0.0999, 3,   "0.100"  },
+        {   0.2999, 4,   "0.2999" },
+        {   0.2999, 3,   "0.300"  },
+        {   0.9999, 4,   "0.9999" },
+        {   0.9999, 3,   "1.000"  },
+        {   2.9999, 4,   "2.9999" },
+        {   2.9999, 3,   "3.000"  },
+        {   9.9999, 4,   "9.9999" },
+        {   9.9999, 3,  "10.000"  },
+        {  29.9999, 4,  "29.9999" },
+        {  29.9999, 3,  "30.000"  },
+        {  99.9999, 4,  "99.9999" },
+        {  99.9999, 3, "100.000"  },
+        { 299.9999, 4, "299.9999" },
+        { 299.9999, 3, "300.000"  },
+
+        {   0.09, 2,   "0.09" },
+        {   0.09, 1,   "0.1"  },
+        {   0.29, 2,   "0.29" },
+        {   0.29, 1,   "0.3"  },
+        {   0.99, 2,   "0.99" },
+        {   0.99, 1,   "1.0"  },
+        {   2.99, 2,   "2.99" },
+        {   2.99, 1,   "3.0"  },
+        {   9.99, 2,   "9.99" },
+        {   9.99, 1,  "10.0"  },
+        {  29.99, 2,  "29.99" },
+        {  29.99, 1,  "30.0"  },
+        {  99.99, 2,  "99.99" },
+        {  99.99, 1, "100.0"  },
+        { 299.99, 2, "299.99" },
+        { 299.99, 1, "300.0"  },
+
+        {   0.9, 1,   "0.9" },
+        {   0.9, 0,   "1"   },
+        {   2.9, 1,   "2.9" },
+        {   2.9, 0,   "3"   },
+        {   9.9, 1,   "9.9" },
+        {   9.9, 0,  "10"   },
+        {  29.9, 1,  "29.9" },
+        {  29.9, 0,  "30"   },
+        {  99.9, 1,  "99.9" },
+        {  99.9, 0, "100"   },
+        { 299.9, 1, "299.9" },
+        { 299.9, 0, "300"   },
+
+        // Rounding result to zero
+        { 0.004, 3, "0.004" },
+        { 0.004, 2, "0.00"  },
+        { 0.4, 1, "0.4"     },
+        { 0.4, 0, "0"       },
+        { 0.5, 1, "0.5"     },
+        { 0.5, 0, "0"       },
+    };
+
+    constexpr u32 BUFF_LEN = core::CORE_KILOBYTE * 2;
+    char gotBuf[BUFF_LEN];
+
+    i32 ret = core::testing::executeTestTable("test case failed for f64 at index: ", cases, [&](auto& c, const char* cErr) {
+        core::memset(gotBuf, char(9), BUFF_LEN);
+
+        u32 gotN = core::Unpack(core::floatToFixedCstr(c.input, c.precision, gotBuf, BUFF_LEN));
+        gotBuf[gotN] = '\0';
+
+        i32 cmpResult = core::memcmp(gotBuf, gotN, c.expected, core::cstrLen(c.expected));
+        CT_CHECK(cmpResult == 0, cErr);
+
+        CT_CHECK(checkWithOriginalPrecision(c.input, c.precision, gotBuf, gotN, cErr) == 0);
+
+        return 0;
+    });
+
+    return ret;
+}
+
+i32 toFixedNotationAllPowersOf10Test() {
+    // This can totally be a constexpr, but I have to address this limitation, which I don't want to do.
+    //  error: ‘constexpr’ evaluation operation count exceeds limit of 33554432 (use ‘-fconstexpr-ops-limit=’ to increase the limit)
+
+    constexpr u32 BUFF_LEN = core::CORE_KILOBYTE * 3;
+    char gotBuf[BUFF_LEN];
+
+    for (auto tc : g_allPowersOf10) {
+        core::memset(gotBuf, char(9), BUFF_LEN);
+        u32 gotN = core::Unpack(core::floatToFixedCstr(tc.value, tc.precision, gotBuf, BUFF_LEN));
+        gotBuf[gotN] = '\0';
+        i32 cmpResult = core::memcmp(gotBuf, gotN, tc.expectedStr, core::cstrLen(tc.expectedStr));
+        CT_CHECK(cmpResult == 0);
+    }
+
+    return 0;
+}
+
+i32 toFixedNotationAllBinaryExponentsTest() {
+    // This can totally be a constexpr, but I have to address this limitation, which I don't want to do.
+    //  error: ‘constexpr’ evaluation operation count exceeds limit of 33554432 (use ‘-fconstexpr-ops-limit=’ to increase the limit)
+
+    constexpr u32 BUFF_LEN = core::CORE_KILOBYTE * 3;
+    char gotBuf[BUFF_LEN];
+
+    for (auto tc : g_allBinaryExponents) {
+        core::memset(gotBuf, char(9), BUFF_LEN);
+        u32 gotN = core::Unpack(core::floatToFixedCstr(tc.value, tc.precision, gotBuf, BUFF_LEN));
+        gotBuf[gotN] = '\0';
+        i32 cmpResult = core::memcmp(gotBuf, gotN, tc.expectedStr, core::cstrLen(tc.expectedStr));
+        CT_CHECK(cmpResult == 0);
+    }
+
+    return 0;
+}
+
 constexpr i32 toSpecialValuesTest() {
     {
         struct TestCase {
@@ -379,6 +688,75 @@ constexpr i32 toSpecialValuesTest() {
             CT_CHECK(cmpResult == 0, cErr);
 
             CT_CHECK(checkWithOriginalNormal(c.input, gotBuf, gotN, cErr) == 0);
+
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
+    {
+        struct TestCase {
+            f64 input;
+            u32 precision;
+            const char* expected;
+        };
+
+        constexpr TestCase cases[] = {
+            { core::infinity<f64>(), 0, "inf" },
+            { core::infinity<f64>(), 1, "inf" },
+            { core::infinity<f64>(), 2, "inf" },
+            { core::infinity<f64>(), 3, "inf" },
+            { core::infinity<f64>(), 4, "inf" },
+            { core::infinity<f64>(), 5, "inf" },
+            { core::infinity<f64>(), 6, "inf" },
+            { core::infinity<f64>(), 7, "inf" },
+            { core::infinity<f64>(), 8, "inf" },
+            { core::infinity<f64>(), 9, "inf" },
+
+            { -core::infinity<f64>(), 0, "-inf" },
+            { -core::infinity<f64>(), 1, "-inf" },
+            { -core::infinity<f64>(), 2, "-inf" },
+            { -core::infinity<f64>(), 3, "-inf" },
+            { -core::infinity<f64>(), 4, "-inf" },
+            { -core::infinity<f64>(), 5, "-inf" },
+            { -core::infinity<f64>(), 6, "-inf" },
+            { -core::infinity<f64>(), 7, "-inf" },
+            { -core::infinity<f64>(), 8, "-inf" },
+            { -core::infinity<f64>(), 9, "-inf" },
+
+            { core::quietNaNF64(), 0, "NaN" },
+            { core::quietNaNF64(), 1, "NaN" },
+            { core::quietNaNF64(), 2, "NaN" },
+            { core::quietNaNF64(), 3, "NaN" },
+            { core::quietNaNF64(), 4, "NaN" },
+            { core::quietNaNF64(), 5, "NaN" },
+            { core::quietNaNF64(), 6, "NaN" },
+            { core::quietNaNF64(), 7, "NaN" },
+            { core::quietNaNF64(), 8, "NaN" },
+            { core::quietNaNF64(), 9, "NaN" },
+
+            { core::signalingNaNF64(), 0, "NaN" },
+            { core::signalingNaNF64(), 1, "NaN" },
+            { core::signalingNaNF64(), 2, "NaN" },
+            { core::signalingNaNF64(), 3, "NaN" },
+            { core::signalingNaNF64(), 4, "NaN" },
+            { core::signalingNaNF64(), 5, "NaN" },
+            { core::signalingNaNF64(), 6, "NaN" },
+            { core::signalingNaNF64(), 7, "NaN" },
+            { core::signalingNaNF64(), 8, "NaN" },
+            { core::signalingNaNF64(), 9, "NaN" },
+        };
+
+        i32 ret = core::testing::executeTestTable("test case failed for fixed f64 at index: ", cases, [](auto& c, const char* cErr) {
+            constexpr u32 BUFF_LEN = 64;
+            char gotBuf[BUFF_LEN];
+            u32 gotN = core::Unpack(core::floatToFixedCstr(c.input, c.precision, gotBuf, BUFF_LEN));
+            gotBuf[gotN] = '\0';
+
+            i32 cmpResult = core::memcmp(gotBuf, gotN, c.expected, core::cstrLen(c.expected));
+            CT_CHECK(cmpResult == 0, cErr);
+
+            CT_CHECK(checkWithOriginalPrecision(c.input, c.precision, gotBuf, gotN, cErr) == 0);
 
             return 0;
         });
@@ -578,29 +956,85 @@ constexpr i32 shortBufferWritesTest() {
         CT_CHECK(ret == 0);
     }
 
+    {
+        struct TestCase {
+            f64 input;
+            u32 precision;
+            u32 bufferSize;
+        };
+
+        TestCase cases[] = {
+            { -0.0, 0, 0 },
+            { -0.0, 0, 1 },
+            { -1.0, 0, 0 },
+            { 0.5, 0, 0 },
+            { 2.0, 1, 1 },
+
+            { core::infinity<double>(), 5, 0 }, // no space to write anything
+            { core::infinity<double>(), 5, 2 }, // enough for 'i' but not 'inf'
+            { core::quietNaNF64(), 0, 0 },
+            { core::quietNaNF64(), 3, 2 }, // enough for 'N' but not the full "NaN"
+
+            { core::signalingNaNF64(), 0, 0 },
+
+            { 1.23456, 3, 3 },
+            { 1e-300, 50, 10 },
+            { 1e200, 20, 15 },
+            { 1e-200, 9, 4 },
+            { 1e-200, 9, 5 },
+            { 1e-200, 40, 5 },
+            { 1e-200, 20, 5 },
+            { 4.94e-324, 10, 5 },
+            { 0.0, 5, 2 },
+            { -0.0, 3, 2 },
+            { 2.5, 0, 1 },
+            { 2.345, 2, 3 },
+            { 0.9999, 3, 3 },
+            { -9.9, 0, 2 },
+            { 9.999999, 6, 7 },
+            { 2.49, 1, 3 },
+            { 9.0, 1, 2 },
+        };
+
+        i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+            char buff[64];
+            auto got = core::floatToFixedCstr(c.input, c.precision, buff, c.bufferSize);
+            CT_CHECK(got.hasErr(), cErr);
+            CT_CHECK(got.err() == core::ConversionError::OutputBufferTooSmall);
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
     return 0;
 }
 
 i32 runCstrConv_FloatToCstr_TestsSuite() {
     using namespace core::testing;
 
-    i32 ret = 0;
     TestInfo tInfo = createTestInfo();
 
     tInfo.name = FN_NAME_TO_CPTR(toExponentNotationTest);
-    if (runTest(tInfo, toExponentNotationTest) != 0) { ret = -1; }
+    if (runTest(tInfo, toExponentNotationTest) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(toFixedNotationTest);
+    if (runTest(tInfo, toFixedNotationTest) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(toFixedNotationAllPowersOf10Test);
+    if (runTest(tInfo, toFixedNotationAllPowersOf10Test) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(toFixedNotationAllBinaryExponentsTest);
+    if (runTest(tInfo, toFixedNotationAllBinaryExponentsTest) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(toSpecialValuesTest);
-    if (runTest(tInfo, toSpecialValuesTest) != 0) { ret = -1; }
+    if (runTest(tInfo, toSpecialValuesTest) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(shortBufferWritesTest);
-    if (runTest(tInfo, shortBufferWritesTest) != 0) { ret = -1; }
+    if (runTest(tInfo, shortBufferWritesTest) != 0) { return -1; }
 
-    return ret;
+    return 0;
 }
 
 constexpr i32 runCompiletimeCstrConv_FloatToCstr_TestsSuite() {
     RunTestCompileTime(toExponentNotationTest);
+    RunTestCompileTime(toFixedNotationTest);
     RunTestCompileTime(toSpecialValuesTest);
-    RunTestCompileTime(shortBufferWritesTest);
+    // RunTestCompileTime(shortBufferWritesTest);
 
     return 0;
 }

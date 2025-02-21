@@ -81,7 +81,7 @@ struct PlaceHolderOptions {
         FixedFloat fixedFloat;
     };
 
-    static constexpr PlaceHolderOptions parse(i32& remaining, const char*& fmt) {
+    static constexpr PlaceHolderOptions parse(const char*& fmt) {
         PlaceHolderOptions options;
         options.type = Type::Invalid;
         options.padding = 0;
@@ -89,8 +89,6 @@ struct PlaceHolderOptions {
 
         if (*fmt == '}') [[likely]] {
             // This will be the most likely path for most placeholders.
-            if (remaining <= 1) return options;
-            remaining--;
             fmt++;
             options.type = Type::Empty;
             return options;
@@ -117,10 +115,6 @@ struct PlaceHolderOptions {
         // {}, {03:}, {03:h}, {03:H}, {03:b}, {03:B}, {04:f.3}
 
         for (; *fmt; fmt++) {
-            // Before doing anything update the remaining bytes in the output buffer.
-            if (remaining <= 1) break;
-            remaining--;
-
             if (*fmt == ':') {
                 if (buffWriteIdx > 0) {
                     // The first character is the padding symbol
@@ -240,7 +234,7 @@ constexpr core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, 
 }
 
 template <typename T>
-constexpr core::expected<i32, FormatError> convertInts(char* out, i32 outLen, T value, [[maybe_unused]] PlaceHolderOptions& options) {
+constexpr core::expected<i32, FormatError> convertInts(char* out, i32 outLen, T value, PlaceHolderOptions& options) {
     switch (options.type) {
         case PlaceHolderOptions::Type::Empty: {
             auto res = core::intToCstr(value, out, u32(outLen));
@@ -253,6 +247,8 @@ constexpr core::expected<i32, FormatError> convertInts(char* out, i32 outLen, T 
                 // This probably means that intToCstr has a bug.
                 return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
             }
+
+            return written;
         }
 
         case PlaceHolderOptions::Type::PaddingOnly: {
@@ -320,7 +316,7 @@ constexpr core::expected<i32, FormatError> convertInts(char* out, i32 outLen, T 
 }
 
 template <typename T>
-constexpr core::expected<i32, FormatError> convertFloats(char* out, i32 outLen, T value, [[maybe_unused]] PlaceHolderOptions& options) {
+constexpr core::expected<i32, FormatError> convertFloats(char* out, i32 outLen, T value, PlaceHolderOptions& options) {
     switch (options.type) {
         case PlaceHolderOptions::Type::Empty: {
             auto res = core::floatToCstr(value, out, u32(outLen));
@@ -333,6 +329,8 @@ constexpr core::expected<i32, FormatError> convertFloats(char* out, i32 outLen, 
                 // This probably means that floatToCstr has a bug.
                 return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
             }
+
+            return written;
         }
 
         case PlaceHolderOptions::Type::PaddingOnly: {
@@ -356,7 +354,17 @@ constexpr core::expected<i32, FormatError> convertFloats(char* out, i32 outLen, 
         }
 
         case PlaceHolderOptions::Type::FixedFloat: {
-            Panic(false, "TODO: write when floatToFixedCstr is implemented.");
+            if (options.padding > 0) {
+                // Padding is not allowed with fixed precision because the the output string could be fairly large and
+                // there is no easy way to
+                return core::unexpected(FormatError::INVALID_PLACEHOLDER);
+            }
+
+            u32 precision = options.fixedFloat.fixed;
+            auto res = core::floatToFixedCstr(f64(value), precision, out, u32(outLen));
+            if (res.hasErr()) return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+            u32 written = res.value();
+            return i32(written);
         }
 
         case PlaceHolderOptions::Type::Hex:     [[fallthrough]];
@@ -506,10 +514,26 @@ constexpr core::expected<i32, FormatError> formatImpl(char*& out, i32& remaining
             continue;
         }
 
-        if (fmt[0] == '{' || fmt[0] == '}') {
-            // Unescaped brackets are considered placeholders, so if there are any placeholders in the base case that
-            // means the provided arguments where too few.
-            return core::unexpected(FormatError::TOO_FEW_ARGUMENTS);
+        if (*fmt == '{') {
+            // NOTE:
+            // An opening bracket here means that there is not corresponding argument. This is definitely an error, but
+            // what kind of an error needs to be determined.
+            // This is slow, but it is executed only once on the slow path.
+
+            bool foundAClosingBracket = false;
+            while (*fmt) {
+                if (*fmt == '}') foundAClosingBracket = true;
+                fmt++;
+            }
+
+            if (foundAClosingBracket)
+                return core::unexpected(FormatError::TOO_FEW_ARGUMENTS);
+            else
+                return core::unexpected(FormatError::INVALID_PLACEHOLDER);
+        }
+        if (*fmt == '}') {
+            // This indicates a floating closing bracket without an opening bracket.
+            return core::unexpected(FormatError::INVALID_PLACEHOLDER);
         }
 
         if (remaining <= 1) {
@@ -538,17 +562,19 @@ constexpr core::expected<i32, FormatError> formatImpl(char*& out, i32 remaining,
         if (fmt[0] == '{') {
             fmt += 1; // Skip the bracket
 
-            PlaceHolderOptions options = PlaceHolderOptions::parse(remaining, fmt);
+            if (remaining <= 1) return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+
+            PlaceHolderOptions options = PlaceHolderOptions::parse(fmt);
             if (options.type == Type::Invalid) {
                 return core::unexpected(FormatError::INVALID_PLACEHOLDER);
             }
 
             auto argRes = appendArg(out, remaining, value, options);
-            if (argRes.hasErr()) return argRes;
+            if (argRes.hasErr()) return core::unexpected(argRes.err());
             count += argRes.value();
 
             auto restRes = detail::formatImpl(out, remaining, fmt, args...);
-            if (restRes.hasErr()) return restRes;
+            if (restRes.hasErr()) return core::unexpected(restRes.err());
             count += restRes.value();
 
             return count;

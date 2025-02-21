@@ -1034,7 +1034,7 @@ constexpr i32 runCompiletimeCstrConv_FloatToCstr_TestsSuite() {
     RunTestCompileTime(toExponentNotationTest);
     RunTestCompileTime(toFixedNotationTest);
     RunTestCompileTime(toSpecialValuesTest);
-    // RunTestCompileTime(shortBufferWritesTest);
+    RunTestCompileTime(shortBufferWritesTest);
 
     return 0;
 }

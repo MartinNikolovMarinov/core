@@ -746,25 +746,24 @@ constexpr i32 inputCloseToLimitTest() {
 i32 runCstrConv_CstrToFloat_TestsSuite() {
     using namespace core::testing;
 
-    i32 ret = 0;
     TestInfo tInfo = createTestInfo();
 
     tInfo.name = FN_NAME_TO_CPTR(exponentNotationTest);
-    if (runTest(tInfo, exponentNotationTest) != 0) { ret = -1; }
+    if (runTest(tInfo, exponentNotationTest) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(normalNotationTest);
-    if (runTest(tInfo, normalNotationTest) != 0) { ret = -1; }
+    if (runTest(tInfo, normalNotationTest) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(specialValuesTest);
-    if (runTest(tInfo, specialValuesTest) != 0) { ret = -1; }
+    if (runTest(tInfo, specialValuesTest) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(nanAndInfTest);
-    if (runTest(tInfo, nanAndInfTest) != 0) { ret = -1; }
+    if (runTest(tInfo, nanAndInfTest) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(whitespaceTest);
-    if (runTest(tInfo, whitespaceTest) != 0) { ret = -1; }
+    if (runTest(tInfo, whitespaceTest) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(invalidInputTest);
-    if (runTest(tInfo, invalidInputTest) != 0) { ret = -1; }
+    if (runTest(tInfo, invalidInputTest) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(inputCloseToLimitTest);
-    if (runTest(tInfo, inputCloseToLimitTest) != 0) { ret = -1; }
+    if (runTest(tInfo, inputCloseToLimitTest) != 0) { return -1; }
 
-    return ret;
+    return 0;
 }
 
 constexpr i32 runCompiletimeCstrConv_CstrToFloat_TestsSuite() {

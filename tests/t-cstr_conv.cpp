@@ -213,44 +213,44 @@ constexpr i32 cstrToIntErrorsTest() {
         CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ConversionError::InputHasInvalidSymbol);
     }
     {
-        auto res = core::cstrToInt<u64>("123j", core::cstrLen("123j"));
+        auto res = core::cstrToInt<u64>("123j", u32(core::cstrLen("123j")));
         CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ConversionError::InputHasInvalidSymbol);
     }
     {
-        auto res = core::cstrToInt<u64>("++123", core::cstrLen("++123"));
+        auto res = core::cstrToInt<u64>("++123", u32(core::cstrLen("++123")));
         CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ConversionError::InputHasInvalidSymbol);
     }
 
     {
-        auto res = core::cstrToInt<i8>("128", core::cstrLen("128"));
+        auto res = core::cstrToInt<i8>("128", u32(core::cstrLen("128")));
         CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ConversionError::InputNumberTooLarge);
     }
     {
-        auto res = core::cstrToInt<u8>("256", core::cstrLen("256"));
+        auto res = core::cstrToInt<u8>("256", u32(core::cstrLen("256")));
         CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ConversionError::InputNumberTooLarge);
     }
     {
-        auto res = core::cstrToInt<i16>("32768", core::cstrLen("32768"));
+        auto res = core::cstrToInt<i16>("32768", u32(core::cstrLen("32768")));
         CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ConversionError::InputNumberTooLarge);
     }
     {
-        auto res = core::cstrToInt<u16>("65536", core::cstrLen("65536"));
+        auto res = core::cstrToInt<u16>("65536", u32(core::cstrLen("65536")));
         CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ConversionError::InputNumberTooLarge);
     }
     {
-        auto res = core::cstrToInt<i32>("2147483648", core::cstrLen("2147483648"));
+        auto res = core::cstrToInt<i32>("2147483648", u32(core::cstrLen("2147483648")));
         CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ConversionError::InputNumberTooLarge);
     }
     {
-        auto res = core::cstrToInt<u32>("4294967297", core::cstrLen("4294967297"));
+        auto res = core::cstrToInt<u32>("4294967297", u32(core::cstrLen("4294967297")));
         CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ConversionError::InputNumberTooLarge);
     }
     {
-        auto res = core::cstrToInt<i32>("9223372036854775808", core::cstrLen("9223372036854775808"));
+        auto res = core::cstrToInt<i32>("9223372036854775808", u32(core::cstrLen("9223372036854775808")));
         CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ConversionError::InputNumberTooLarge);
     }
     {
-        auto res = core::cstrToInt<i32>("18446744073709551616", core::cstrLen("18446744073709551616"));
+        auto res = core::cstrToInt<i32>("18446744073709551616", u32(core::cstrLen("18446744073709551616")));
         CT_CHECK(res.hasErr()); CT_CHECK(res.err() == ConversionError::InputNumberTooLarge);
     }
 

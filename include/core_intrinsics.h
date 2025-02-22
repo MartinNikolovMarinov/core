@@ -57,20 +57,28 @@ constexpr u32 leadingZeroCountCompiletimeImpl(TInt n) {
 
 template<typename TInt>
 constexpr u32 intrin_countLeadingZeros(TInt n) {
-    if (n == 0) return 0; // The gnu gcc __builtin_clz and __builtin_clzll documentation states that n = 0 is undefined behavior!
+    if (n == 0) return sizeof(n) * core::BYTE_SIZE; // __builtin_clz(0) is undefined!
 
     IS_CONST_EVALUATED { return leadingZeroCountCompiletimeImpl(n); }
 
 #if COMPILER_CLANG == 1 || COMPILER_GCC == 1
-    if constexpr (sizeof(TInt) == 4) {
+    if constexpr (sizeof(TInt) < 4) {
+        // Cast to u32 and then subtract the extra zeros (32 - (sizeof(TInt)*8))
+        return u32(__builtin_clz(u32(n))) - (32 - (sizeof(TInt) * 8));
+    }
+    else if constexpr (sizeof(TInt) == 4) {
         return u32(__builtin_clz(u32(n)));
     }
     else {
         return u32(__builtin_clzll(u64(n)));
     }
 #elif COMPILER_MSVC == 1
-    // TODO2: [PERFORMANCE] Does _BitScanReverse generate better machine code here?
-    if constexpr (sizeof(TInt) == 4) {
+    if constexpr (sizeof(TInt) < 4) {
+        // Cast to u32 and then subtract the extra zeros (32 - (sizeof(TInt)*8))
+        return u32(__lzcnt(u32(n))) - (32 - (sizeof(TInt) * 8));
+    }
+    else if constexpr (sizeof(TInt) == 4) {
+        // TODO2: [PERFORMANCE] Does _BitScanReverse generate better machine code here?
         return u32(__lzcnt(u32(n)));
     }
     else {
@@ -83,10 +91,14 @@ constexpr u32 intrin_countLeadingZeros(TInt n) {
 
 } // namespace detail
 
+constexpr u32 intrin_countLeadingZeros(i8 n) { return detail::intrin_countLeadingZeros(u8(n)); }
+constexpr u32 intrin_countLeadingZeros(i16 n) { return detail::intrin_countLeadingZeros(u16(n)); }
+constexpr u32 intrin_countLeadingZeros(i32 n) { return detail::intrin_countLeadingZeros(u32(n)); }
+constexpr u32 intrin_countLeadingZeros(i64 n) { return detail::intrin_countLeadingZeros(u64(n)); }
+constexpr u32 intrin_countLeadingZeros(u8 n) { return detail::intrin_countLeadingZeros(n); }
+constexpr u32 intrin_countLeadingZeros(u16 n) { return detail::intrin_countLeadingZeros(n); }
 constexpr u32 intrin_countLeadingZeros(u32 n) { return detail::intrin_countLeadingZeros(n); }
 constexpr u32 intrin_countLeadingZeros(u64 n) { return detail::intrin_countLeadingZeros(n); }
-constexpr u32 intrin_countLeadingZeros(i32 n) { return detail::intrin_countLeadingZeros(n); }
-constexpr u32 intrin_countLeadingZeros(i64 n) { return detail::intrin_countLeadingZeros(n); }
 
 constexpr f32 intrin_hugeValf()  { return __builtin_huge_valf(); }
 constexpr f32 intrin_nanf()      { return __builtin_nanf(""); }

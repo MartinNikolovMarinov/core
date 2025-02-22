@@ -3,12 +3,110 @@
 constexpr i32 leadingZeroCountTest() {
     {
         struct TestCase {
+            u8 in;
+            u32 expected;
+        };
+
+        TestCase cases[] = {
+            { 0b0, 8 },
+            { 0b1, 7 },
+            { 0b10, 6 },
+            { 0b100, 5 },
+            { 0b1000, 4 },
+            { 0b10000, 3 },
+            { 0b100000, 2 },
+            { 0b1000000, 1 },
+            { 0b10000000, 0 },
+        };
+
+        i32 ret = core::testing::executeTestTable("leading zero count failed for u8: ", cases, [](auto& c, const char* cErr) {
+            CT_CHECK(core::intrin_countLeadingZeros(c.in) == c.expected, cErr);
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
+    {
+        struct TestCase {
+            i8 in;
+            u32 expected;
+        };
+
+        TestCase cases[] = {
+            { 0b0, 8 },
+            { 0b1, 7 },
+            { 0b10, 6 },
+            { 0b100, 5 },
+            { 0b1000, 4 },
+            { 0b10000, 3 },
+            { 0b100000, 2 },
+            { 0b1000000, 1 },
+            { i8(0b10000000), 0 },
+            { -1, 0 },
+        };
+
+        i32 ret = core::testing::executeTestTable("leading zero count failed for i8: ", cases, [](auto& c, const char* cErr) {
+            CT_CHECK(core::intrin_countLeadingZeros(c.in) == c.expected, cErr);
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
+    {
+        struct TestCase {
+            u16 in;
+            u32 expected;
+        };
+
+        TestCase cases[] = {
+            { 0b0, 16 },
+            { 0b1, 15 },
+            { 0b10, 14 },
+            { 0b10000000, 8 },
+            { 0x00FF, 8 },
+            { 0x0FFF, 4 },
+            { 0x7FFF, 1 },
+            { 0x8000, 0 },
+            { 0xFFFF, 0 },
+        };
+
+        i32 ret = core::testing::executeTestTable("leading zero count failed for u16: ", cases, [](auto& c, const char* cErr) {
+            CT_CHECK(core::intrin_countLeadingZeros(c.in) == c.expected, cErr);
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
+    {
+        struct TestCase {
+            i16 in;
+            u32 expected;
+        };
+
+        constexpr TestCase cases[] = {
+            { 0, 16 },
+            { 1, 15 },
+            { 2, 14 },
+            { i16(0x7FFF), 1 },
+            { i16(0x8000), 0 },
+            { -1, 0 },
+        };
+
+        i32 ret = core::testing::executeTestTable("leading zero count failed for i16: ", cases, [](auto& c, const char* cErr) {
+            CT_CHECK(core::intrin_countLeadingZeros(c.in) == c.expected, cErr);
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
+    {
+        struct TestCase {
             u32 in;
             u32 expected;
         };
 
         TestCase cases[] = {
-            { 0b0, 0 },
+            { 0b0, 32 },
             { 0b1, 31 },
             { 0b10, 30 },
             { 0b100, 29 },
@@ -57,7 +155,7 @@ constexpr i32 leadingZeroCountTest() {
         };
 
         TestCase cases[] = {
-            { 0b0, 0 },
+            { 0b0, 32 },
             { 0b1, 31 },
             { 0b10, 30 },
             { 0b100, 29 },
@@ -106,7 +204,7 @@ constexpr i32 leadingZeroCountTest() {
         };
 
         TestCase cases[] = {
-            { 0b0, 0 },
+            { 0b0, 64 },
             { 0b1, 63 },
             { 0b10, 62 },
             { 0b100, 61 },
@@ -187,7 +285,7 @@ constexpr i32 leadingZeroCountTest() {
         };
 
         TestCase cases[] = {
-            { 0b0, 0 },
+            { 0b0, 64 },
             { 0b1, 63 },
             { 0b10, 62 },
             { 0b100, 61 },

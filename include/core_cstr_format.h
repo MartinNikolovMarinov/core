@@ -7,8 +7,8 @@
 
 // TODO:
 // Things to finish:
-//   1. Float number round to n digits after the dot    {04:f4.3}
-//   2. Replace all places where std::snprintf is used.
+//   0. print for char types!
+//   1. Replace all places where std::snprintf is used. Where it makes sense only.
 
 namespace core {
 
@@ -141,6 +141,13 @@ struct PlaceHolderOptions {
             }
 
             if (*fmt == '}') {
+                if (deducedType == Type::FixedFloat) {
+                    auto res = core::cstrToInt<u16>(buff, u32(core::cstrLen(buff)));
+                    Assert(res.hasValue(), "This problem should have been caught earlier.");
+                    if (res.hasErr()) break;
+                    options.fixedFloat.fixed = res.value();
+                }
+
                 // Successfully reached a closing bracket.
                 options.type = deducedType;
                 state = 5;
@@ -199,38 +206,14 @@ struct PlaceHolderOptions {
     }
 };
 
-// Default template resolution should fail:
-template <typename T>
-constexpr core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, T ptr, PlaceHolderOptions& options) {
-    if (options.type != PlaceHolderOptions::Type::Empty) {
-        return core::unexpected(FormatError::INVALID_PLACEHOLDER);
+constexpr core::expected<i32, FormatError> prependPadding(char*& out, i32 outLen, i32 padding, char paddingSymbol, i32 writeTarget) {
+    i32 repeatCount = padding - writeTarget;
+    if (repeatCount > 0) {
+        if (outLen <= repeatCount) return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+        out += core::memset(out, paddingSymbol, addr_size(repeatCount));
+        return repeatCount;
     }
-
-    // Ensure we are handling a pointer
-    if constexpr (std::is_pointer_v<T> || std::is_same_v<T, std::nullptr_t>) {
-        // TODO: I could technically format the address in binary, hex or decimal based on the value in the placeholder.
-
-        if (ptr == nullptr) {
-            constexpr i32 NULL_STR_LEN = 4;
-            constexpr const char nullStr[NULL_STR_LEN] = { 'n', 'u', 'l', 'l' };
-            if (outLen < NULL_STR_LEN) {
-                return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
-            }
-            addr_size written = core::memcopy(out, nullStr, addr_size(NULL_STR_LEN));
-            return i32(written);
-        }
-
-        constexpr i32 requiredLen = 17;  // 16 hex digits + null terminator
-        if (outLen < requiredLen) {
-            return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
-        }
-
-        u32 written = core::Unpack(core::intToHex(core::bitCast<i64, T>(ptr), out, addr_size(outLen), true, requiredLen));
-        return i32(written);
-    }
-    else {
-        return core::unexpected(FormatError::INVALID_ARGUMENTS);
-    }
+    return 0;
 }
 
 template <typename T>
@@ -252,58 +235,64 @@ constexpr core::expected<i32, FormatError> convertInts(char* out, i32 outLen, T 
         }
 
         case PlaceHolderOptions::Type::PaddingOnly: {
-            i32 dc = i32(core::digitCount(value));
-            i32 computedLen = core::core_max(i32(options.padding), dc);
-            if (outLen <= computedLen) {
+            i32 writeTarget = i32(core::digitCount(value));
+
+            auto prependRes = prependPadding(out, outLen, options.padding, options.paddingSymbol, writeTarget);
+            if (prependRes.hasErr()) return core::unexpected(prependRes.err());
+            i32 prependedLen = prependRes.value();
+            if (outLen <= prependedLen + writeTarget) return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+
+            auto intToCstrRes = core::intToCstr(value, out, u32(outLen), u32(writeTarget));
+            if (intToCstrRes.hasErr()) {
                 return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
             }
+            Assert(intToCstrRes.value() == u32(writeTarget), "Sanity check failed");
 
-            i32 repeatCount = options.padding - dc;
-            if (repeatCount > 0) {
-                out += core::memset(out, options.paddingSymbol, addr_size(repeatCount));
-            }
-
-            core::Unpack(core::intToCstr(value, out, u32(outLen), u32(dc)));
-            return computedLen;
+            i32 written = prependedLen + writeTarget;
+            return written;
         }
 
         case PlaceHolderOptions::Type::Hex: {
-            i32 spaceForOneHexElement = i32(sizeof(T) << 1);
-            i32 computedLen = core::core_max(i32(options.padding), spaceForOneHexElement);
-            if (outLen <= computedLen) {
+            constexpr i32 fullHexLen = i32(sizeof(T) << 1); // space for one hex element
+            i32 lz = i32(core::intrin_countLeadingZeros(value));
+            i32 leadingHexZeros = lz / 4;
+            i32 writeTarget = core::core_max(fullHexLen - leadingHexZeros, 1);
+
+            auto prependRes = prependPadding(out, outLen, options.padding, options.paddingSymbol, writeTarget);
+            if (prependRes.hasErr()) return core::unexpected(prependRes.err());
+            i32 prependedLen = prependRes.value();
+            if (outLen <= prependedLen + writeTarget) return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+
+            u32 hexLen = u32(writeTarget);
+            auto intToHexRes = core::intToHex(value, out, addr_size(writeTarget + 1), options.hex.upperCase, hexLen);
+            if (intToHexRes.hasErr()) {
                 return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
             }
+            Assert(intToHexRes.value() == u32(writeTarget), "Sanity check failed");
 
-            i32 repeatCount = options.padding - spaceForOneHexElement;
-            if (repeatCount > 0) {
-                out += core::memset(out, options.paddingSymbol, addr_size(repeatCount));
-            }
-
-            auto res = core::intToHex(value, out, addr_size(spaceForOneHexElement + 1), options.hex.upperCase);
-            if (res.hasErr()) {
-                return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
-            }
-
-            return computedLen;
+            i32 written = prependedLen + writeTarget;
+            return written;
         }
 
         case PlaceHolderOptions::Type::Binary: {
-            i32 spaceForOneBinaryElement = core::BYTE_SIZE;
-            if (outLen <= spaceForOneBinaryElement) {
+            // space for the binary element without leading zeroes.
+            constexpr i32 bytes = sizeof(T) * core::BYTE_SIZE;
+            i32 lz = i32(core::intrin_countLeadingZeros(value));
+            i32 writeTarget = core::core_max(bytes - lz, 1);
+
+            auto prependRes = prependPadding(out, outLen, options.padding, options.paddingSymbol, writeTarget);
+            if (prependRes.hasErr()) return core::unexpected(prependRes.err());
+            i32 prependedLen = prependRes.value();
+            if (outLen <= prependedLen + writeTarget) return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+
+            u32 binaryLength = u32(writeTarget);
+            auto intToBinaryRes = core::intToBinary(value, out, addr_size(writeTarget + 1), binaryLength);
+            if (intToBinaryRes.hasErr()) {
                 return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
             }
+            Assert(intToBinaryRes.value() == u32(writeTarget), "Sanity check failed");
 
-            i32 repeatCount = options.padding - spaceForOneBinaryElement;
-            if (repeatCount > 0) {
-                out += core::memset(out, options.paddingSymbol, addr_size(repeatCount));
-            }
-
-            auto res = core::intToBinary(value, out, addr_size(spaceForOneBinaryElement + 1), options.hex.upperCase);
-            if (res.hasErr()) {
-                return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
-            }
-
-            i32 written = repeatCount + i32(res.value());
+            i32 written = prependedLen + writeTarget;
             return written;
         }
 
@@ -325,35 +314,20 @@ constexpr core::expected<i32, FormatError> convertFloats(char* out, i32 outLen, 
             }
 
             auto written = i32(res.value());
-            if (written >= outLen) [[unlikely]] {
-                // This probably means that floatToCstr has a bug.
+            if (written >= outLen) {
                 return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
             }
 
             return written;
         }
 
-        case PlaceHolderOptions::Type::PaddingOnly: {
-            constexpr i32 BUFF_LEN = sizeof(T) * core::BYTE_SIZE;
-            char buff[BUFF_LEN];
-            u32 written = core::Unpack(core::floatToCstr(value, buff, BUFF_LEN));
-            buff[written] = '\0';
-
-            i32 computedLen = core::core_max(i32(written), i32(options.padding));
-            if (computedLen + 1 >= outLen) {
-                return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
-            }
-
-            i32 repeatCount = options.padding - computedLen;
-            if (repeatCount > 0) {
-                out += core::memset(out, options.paddingSymbol, addr_size(repeatCount));
-            }
-
-            core::memcopy(out, buff, written);
-            return computedLen;
-        }
-
         case PlaceHolderOptions::Type::FixedFloat: {
+            if constexpr (sizeof(T) < 8) {
+                // Fixed floating point printing is supported only for f64
+                // I can't seem to make static assertion work here. Oh well.
+                return core::unexpected(FormatError::INVALID_PLACEHOLDER);
+            }
+
             if (options.padding > 0) {
                 // Padding is not allowed with fixed precision because the the output string could be fairly large and
                 // there is no easy way to
@@ -363,78 +337,125 @@ constexpr core::expected<i32, FormatError> convertFloats(char* out, i32 outLen, 
             u32 precision = options.fixedFloat.fixed;
             auto res = core::floatToFixedCstr(f64(value), precision, out, u32(outLen));
             if (res.hasErr()) return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
-            u32 written = res.value();
-            return i32(written);
+
+            i32 written = i32(res.value());
+            if (written >= outLen) {
+                // TODO2: [BUG]
+                // In few cases float to fixed writes to the last byte which should be reserved for the null terminator.
+                // Technically that is a bug, but it's hard to find and I have not seen it read pass the end of the buffer.
+                // Valgrind check confirms that. If there is uninitialised memory access I should dig deeper.
+                return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+            }
+
+            return written;
         }
 
-        case PlaceHolderOptions::Type::Hex:     [[fallthrough]];
-        case PlaceHolderOptions::Type::Binary:  [[fallthrough]];
-        case PlaceHolderOptions::Type::Invalid: [[fallthrough]];
-        default:                                break;
+        case PlaceHolderOptions::Type::PaddingOnly: [[fallthrough]];
+        case PlaceHolderOptions::Type::Hex:         [[fallthrough]];
+        case PlaceHolderOptions::Type::Binary:      [[fallthrough]];
+        case PlaceHolderOptions::Type::Invalid:     [[fallthrough]];
+        default:                                    break;
     }
 
     return core::unexpected(FormatError::INVALID_PLACEHOLDER);
 }
 
 constexpr core::expected<i32, FormatError> convertStrs(char* out, i32 outLen, const char* value, i32 vlen, PlaceHolderOptions& options) {
-    if (vlen <= 0) return 0;
-
     switch (options.type) {
         case PlaceHolderOptions::Type::Empty: {
+            if (vlen <= 0) return 0;
+
             if (outLen <= vlen) {
                 return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
             }
-
             core::memcopy(out, value, addr_size(vlen));
             return vlen;
         }
 
         case PlaceHolderOptions::Type::PaddingOnly: {
-            i32 computedLen = core::core_max(i32(options.padding), vlen);
-            if (outLen <= computedLen) {
-                return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
-            }
+            if (vlen <= 0) return 0;
 
-            i32 repeatCount = options.padding - vlen;
-            if (repeatCount > 0) {
-                out += core::memset(out, options.paddingSymbol, addr_size(repeatCount));
-            }
+            i32 writeTarget = vlen;
 
-            core::memcopy(out, value, addr_size(vlen));
-            return computedLen;
+            auto prependRes = prependPadding(out, outLen, options.padding, options.paddingSymbol, writeTarget);
+            if (prependRes.hasErr()) return core::unexpected(prependRes.err());
+            i32 prependedLen = prependRes.value();
+            if (outLen <= prependedLen + writeTarget) return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+
+            core::memcopy(out, value, addr_size(writeTarget));
+            i32 written = prependedLen + writeTarget;
+            return written;
         }
 
         case PlaceHolderOptions::Type::Hex: {
+            if (vlen <= 0) return 0;
+            if (options.padding > 0) {
+                // Padding is not allowed
+                return core::unexpected(FormatError::INVALID_PLACEHOLDER);
+            }
+
             i32 spacesBetweenElements = vlen * i32(sizeof(' ')) - 1; // -1 because the last element does not put a space.
             i32 spaceForOneHexElement = i32(sizeof(u8) << 1);
             i32 totalSize = spaceForOneHexElement * vlen + spacesBetweenElements;
+            [[maybe_unused]] i32 sanityCheckSize = 0;
 
-            if (options.padding > 0) break; // Padding is not allowed in char array to hex.
-            if (outLen <= totalSize) break; // Overflow
-
-            for (i32 i = 0; i < vlen; i++) {
-                char curr = value[i];
-                out += core::Unpack(core::intToHex(curr, out, addr_size(spaceForOneHexElement + 1), options.hex.upperCase));
-                if (i != vlen - 1) *out++ = ' ';
+            if (outLen <= totalSize) {
+                return core::unexpected(core::FormatError::OUT_BUFFER_OVERFLOW);
             }
 
+            for (i32 i = 0; i < vlen; i++) {
+                u8 curr = u8(value[i]);
+                auto toHexRes = core::intToHex(curr, out, addr_size(spaceForOneHexElement + 1), options.hex.upperCase);
+                if (toHexRes.hasErr()) [[unlikely]] {
+                    // This should have been detected before the loop starts!
+                    return core::unexpected(core::FormatError::OUT_BUFFER_OVERFLOW);
+                }
+                out += toHexRes.value();
+                if (i != vlen - 1) *out++ = ' ';
+
+                #if defined(CORE_ASSERT_ENABLED) && CORE_ASSERT_ENABLED == 1
+                    sanityCheckSize += toHexRes.value();
+                    if (i != vlen - 1) sanityCheckSize++;
+                #endif
+            }
+
+            Assert(sanityCheckSize == totalSize);
             return totalSize;
         }
 
         case PlaceHolderOptions::Type::Binary: {
+            if (vlen <= 0) return 0;
+            if (options.padding > 0) {
+                // Padding is not allowed
+                return core::unexpected(FormatError::INVALID_PLACEHOLDER);
+            }
+
             i32 spacesBetweenElements = vlen * i32(sizeof(' ')) - 1; // -1 because the last element does not put a space.
             i32 spaceForOneBinaryElement = core::BYTE_SIZE;
             i32 totalSize = spaceForOneBinaryElement * vlen + spacesBetweenElements;
+            [[maybe_unused]] i32 sanityCheckSize = 0;
 
-            if (options.padding > 0) break; // Padding is not allowed in char array to binary.
-            if (outLen <= totalSize) break; // Overflow
-
-            for (i32 i = 0; i < vlen; i++) {
-                char curr = value[i];
-                out += core::Unpack(core::intToBinary(curr, out, addr_size(spaceForOneBinaryElement + 1)));
-                if (i != vlen - 1) *out++ = ' ';
+            if (outLen <= totalSize) {
+                return core::unexpected(core::FormatError::OUT_BUFFER_OVERFLOW);
             }
 
+            for (i32 i = 0; i < vlen; i++) {
+                u8 curr = u8(value[i]);
+                auto toBinRes = core::intToBinary(curr, out, addr_size(spaceForOneBinaryElement + 1));
+                if (toBinRes.hasErr()) [[unlikely]] {
+                    // This should have been detected before the loop starts!
+                    return core::unexpected(core::FormatError::OUT_BUFFER_OVERFLOW);
+                }
+                out += toBinRes.value();
+                if (i != vlen - 1) *out++ = ' ';
+
+                #if defined(CORE_ASSERT_ENABLED) && CORE_ASSERT_ENABLED == 1
+                    sanityCheckSize += toBinRes.value();
+                    if (i != vlen - 1) sanityCheckSize++;
+                #endif
+            }
+
+            Assert(sanityCheckSize == totalSize);
             return totalSize;
         }
 
@@ -459,27 +480,95 @@ constexpr core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, 
 constexpr core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, core::StrView value, PlaceHolderOptions& options) { return convertStrs(out, outLen, value.data(), i32(value.len()), options); }
 
 constexpr core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, bool value, PlaceHolderOptions& options) {
-    if (options.padding > 0) {
-        // boolean type does not support padding
-        return core::unexpected(FormatError::INVALID_ARGUMENTS);
-    }
-    if (options.type != PlaceHolderOptions::Type::Empty) {
-        // boolean type supports only empty placeholders
-        return core::unexpected(FormatError::INVALID_ARGUMENTS);
+    if (outLen <= 1) return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+
+    switch (options.type) {
+        case PlaceHolderOptions::Type::PaddingOnly: [[fallthrough]];
+        case PlaceHolderOptions::Type::Empty: {
+            return (value) ? convertStrs(out, outLen, "true", core::cstrLen("true"), options)
+                           : convertStrs(out, outLen, "false", core::cstrLen("false"), options);
+        }
+
+        case PlaceHolderOptions::Type::Binary: [[fallthrough]];
+        case PlaceHolderOptions::Type::Hex: {
+            constexpr i32 writeTarget = 1; // 1 for 0 or 1
+
+            auto prependRes = prependPadding(out, outLen, options.padding, options.paddingSymbol, writeTarget);
+            if (prependRes.hasErr()) return core::unexpected(prependRes.err());
+            i32 prependedLen = prependRes.value();
+            if (outLen <= prependedLen + writeTarget) return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+
+            *out = value ? '1' : '0';
+            i32 written = prependedLen + writeTarget;
+            return written;
+        }
+
+        case PlaceHolderOptions::Type::FixedFloat: [[fallthrough]];
+        case PlaceHolderOptions::Type::Invalid:    [[fallthrough]];
+        default: break;
     }
 
-    constexpr addr_size trueStrLen = core::cstrLen("true");
-    constexpr addr_size falseStrLen = core::cstrLen("false");
+    return core::unexpected(FormatError::INVALID_PLACEHOLDER);
+}
 
-    if (value) {
-        return convertStrs(out, outLen, "true", trueStrLen, options);
+constexpr core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, char value, PlaceHolderOptions& options) {
+    switch (options.type) {
+        case PlaceHolderOptions::Type::Empty: {
+            constexpr i32 writeTarget = 1;
+
+            auto prependRes = prependPadding(out, outLen, options.padding, options.paddingSymbol, writeTarget);
+            if (prependRes.hasErr()) return core::unexpected(prependRes.err());
+            i32 prependedLen = prependRes.value();
+            if (outLen <= prependedLen + writeTarget) return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+
+            *out = value;
+            i32 written = prependedLen + writeTarget;
+            return written;
+        }
+
+        case PlaceHolderOptions::Type::Binary: [[fallthrough]];
+        case PlaceHolderOptions::Type::Hex:
+            return convertInts(out, outLen, u8(value), options);
+
+        case PlaceHolderOptions::Type::PaddingOnly: [[fallthrough]];
+        case PlaceHolderOptions::Type::FixedFloat:  [[fallthrough]];
+        case PlaceHolderOptions::Type::Invalid:     [[fallthrough]];
+        default: break;
     }
 
-    return convertStrs(out, outLen, "false", falseStrLen, options);
+    return core::unexpected(FormatError::INVALID_PLACEHOLDER);
 }
 
 constexpr core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, f32 value, PlaceHolderOptions& options) { return convertFloats(out, outLen, value, options); }
 constexpr core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, f64 value, PlaceHolderOptions& options) { return convertFloats(out, outLen, value, options); }
+
+template <typename T>
+core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, T ptr, PlaceHolderOptions& options) {
+    // ------------------------------------- DEFAULT CONVERSION FUNCTION -----------------------------------------------
+
+    if constexpr (std::is_pointer_v<T> || std::is_same_v<T, std::nullptr_t>) {
+        // Only for pointers or nullptr literals.
+
+        if (ptr == nullptr) {
+            return convertToCStr(out, outLen, "null", options);
+        }
+
+        switch (options.type) {
+            case PlaceHolderOptions::Type::Empty:  [[fallthrough]];
+            case PlaceHolderOptions::Type::Hex:    [[fallthrough]];
+            case PlaceHolderOptions::Type::Binary:
+                // How unfortunate that pointers can't be bitcasted to integers. Oh well, reinterpret_cast it is.
+                return convertInts(out, outLen, reinterpret_cast<addr_size>(ptr), options);
+
+            case PlaceHolderOptions::Type::PaddingOnly: [[fallthrough]];
+            case PlaceHolderOptions::Type::Invalid:     [[fallthrough]];
+            case PlaceHolderOptions::Type::FixedFloat:  [[fallthrough]];
+            default:                                    return core::unexpected(FormatError::INVALID_PLACEHOLDER);
+        }
+    }
+
+    return core::unexpected(FormatError::INVALID_ARGUMENTS);
+}
 
 template<typename T>
 constexpr core::expected<i32, FormatError> appendArg(char*& out, i32& remaining, T value, PlaceHolderOptions& options) {

@@ -23,6 +23,27 @@ enum struct FormatError : u8 {
     SENTINEL
 };
 
+constexpr const char* formatErrorToCStr(FormatError err) {
+    switch(err) {
+        case FormatError::INVALID_ARGUMENTS:   return "Invalid arguments";
+        case FormatError::TOO_FEW_ARGUMENTS:   return "Too few arguments";
+        case FormatError::TOO_MANY_ARGUMENTS:  return "Too many arguments";
+        case FormatError::OUT_BUFFER_OVERFLOW: return "Out buffer overflow";
+        case FormatError::INVALID_PLACEHOLDER: return "Invalid placeholder";
+
+        case FormatError::SENTINEL: [[fallthrough]];
+        default: break;
+    }
+
+    return "unknown";
+}
+
+constexpr core::expected<i32, FormatError> format(char* out, i32 outLen, const char* fmt);
+template<typename... Args>
+constexpr core::expected<i32, FormatError> format(char* out, i32 outLen, const char* fmt, Args... args);
+template<typename... Args>
+constexpr core::expected<i32, FormatError> format(core::Memory<char> out, const char* fmt, Args... args);
+
 namespace detail {
 
 template<typename T, typename... Args>

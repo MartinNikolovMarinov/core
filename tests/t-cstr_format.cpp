@@ -233,8 +233,8 @@ constexpr i32 strFormattingTest() {
         { "{}", "A"_sv, 0, "A", core::FormatError::OUT_BUFFER_OVERFLOW },
         { "{}", "A"_sv, 1, "A", core::FormatError::OUT_BUFFER_OVERFLOW },
         { "{}", "A"_sv, 2, "A"},
-        { "{}", "abcdef"_sv, core::cstrLen("abcdef"), "abcdef", core::FormatError::OUT_BUFFER_OVERFLOW },
-        { "{}", "abcdef"_sv, core::cstrLen("abcdef") + 1, "abcdef" },
+        { "{}", "abcdef"_sv, i32(core::cstrLen("abcdef")), "abcdef", core::FormatError::OUT_BUFFER_OVERFLOW },
+        { "{}", "abcdef"_sv, i32(core::cstrLen("abcdef")) + 1, "abcdef" },
 
         { "{:H}", core::sv("\0", 1), 2, "00", core::FormatError::OUT_BUFFER_OVERFLOW},
         { "{:H}", core::sv("\0", 1), 3, "00"},
@@ -244,12 +244,12 @@ constexpr i32 strFormattingTest() {
         { "{t3:h}", "z"_sv, 100, "", core::FormatError::INVALID_PLACEHOLDER }, // padding is not allowed
         { "{y2:H}", "z"_sv, 100, "", core::FormatError::INVALID_PLACEHOLDER }, // padding is not allowed
 
-        { "{:H}", "Dui"_sv, core::cstrLen("44 75 69"), "44 75 69", core::FormatError::OUT_BUFFER_OVERFLOW },
-        { "{:H}", "Dui"_sv, core::cstrLen("44 75 69") + 1, "44 75 69" },
-        { "{:H}", "GzkM"_sv, core::cstrLen("47 7A 6B 4D"), "47 7A 6B 4D", core::FormatError::OUT_BUFFER_OVERFLOW },
-        { "{:H}", "GzkM"_sv, core::cstrLen("47 7A 6B 4D") + 1, "47 7A 6B 4D"},
-        { "{:h}", "GzkM"_sv, core::cstrLen("47 7a 6b 4d"), "47 7a 6b 4d", core::FormatError::OUT_BUFFER_OVERFLOW },
-        { "{:h}", "GzkM"_sv, core::cstrLen("47 7a 6b 4d") + 1, "47 7a 6b 4d"},
+        { "{:H}", "Dui"_sv, i32(core::cstrLen("44 75 69")), "44 75 69", core::FormatError::OUT_BUFFER_OVERFLOW },
+        { "{:H}", "Dui"_sv, i32(core::cstrLen("44 75 69")) + 1, "44 75 69" },
+        { "{:H}", "GzkM"_sv, i32(core::cstrLen("47 7A 6B 4D")), "47 7A 6B 4D", core::FormatError::OUT_BUFFER_OVERFLOW },
+        { "{:H}", "GzkM"_sv, i32(core::cstrLen("47 7A 6B 4D")) + 1, "47 7A 6B 4D"},
+        { "{:h}", "GzkM"_sv, i32(core::cstrLen("47 7a 6b 4d")), "47 7a 6b 4d", core::FormatError::OUT_BUFFER_OVERFLOW },
+        { "{:h}", "GzkM"_sv, i32(core::cstrLen("47 7a 6b 4d")) + 1, "47 7a 6b 4d"},
 
         { "{:b}", core::sv("\0", 1), 8, "00000000", core::FormatError::OUT_BUFFER_OVERFLOW},
         { "{:b}", core::sv("\0", 1), 9, "00000000"},
@@ -271,11 +271,11 @@ constexpr i32 strFormattingTest() {
         { "{b:}", ""_sv, 4, "", core::FormatError::INVALID_PLACEHOLDER },
     };
 
-    constexpr i32 BUFF_LEN = core::CORE_KILOBYTE * 2;
-    char buff[BUFF_LEN];
+    constexpr i32 BUFFER_LEN = core::CORE_KILOBYTE * 2;
+    char buff[BUFFER_LEN];
 
-    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [&](auto& c, const char* cErr) {
-        core::memset(buff, char(9), BUFF_LEN);
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [&buff, BUFFER_LEN](auto& c, const char* cErr) {
+        core::memset(buff, char(9), BUFFER_LEN);
         auto fmtRes = core::format(buff, c.bufferSize, c.fmt, c.arg1);
 
         if (c.err == core::FormatError::SENTINEL) {
@@ -395,12 +395,12 @@ constexpr i32 intFormattingTest() {
         core::FormatError err = core::FormatError::SENTINEL;
     };
 
-    constexpr i32 BUFF_LEN = core::CORE_KILOBYTE * 2;
-    char buff[BUFF_LEN];
+    // constexpr i32 BUFF_LEN = core::CORE_KILOBYTE * 2;
+    char buff[core::CORE_KILOBYTE * 2];
 
     auto runTestCases = [&](auto& cases) -> i32 {
         i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [&](auto& c, const char* cErr) {
-            core::memset(buff, char(9), BUFF_LEN);
+            core::memset(buff, char(9), core::CORE_KILOBYTE * 2);
 
             auto fmtRes = core::format(buff, c.bufferSize, c.fmt,
                                     c.args.arg1, c.args.arg2, c.args.arg3, c.args.arg4,
@@ -429,53 +429,53 @@ constexpr i32 intFormattingTest() {
             {
                 "{} {} {} {} {} {} {} {}",
                 { i8(0), i16(0), i32(0), i64(0), u8(0), u16(0), u32(0), u64(0) },
-                core::cstrLen("0 0 0 0 0 0 0 0"),
+                i32(core::cstrLen("0 0 0 0 0 0 0 0")),
                 "0 0 0 0 0 0 0 0",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{} {} {} {} {} {} {} {}",
                 { i8(0), i16(0), i32(0), i64(0), u8(0), u16(0), u32(0), u64(0) },
-                core::cstrLen("0 0 0 0 0 0 0 0") + 1,
+                i32(core::cstrLen("0 0 0 0 0 0 0 0") + 1),
                 "0 0 0 0 0 0 0 0"
             },
             {
                 "{} {} {} {} {} {} {} {}",
                 { i8(-5), i16(-213), i32(-51235), i64(-1266123), u8(5), u16(213), u32(51235), u64(1266123) },
-                core::cstrLen("-5 -213 -51235 -1266123 5 213 51235 1266123"),
+                i32(core::cstrLen("-5 -213 -51235 -1266123 5 213 51235 1266123")),
                 "-5 -213 -51235 -1266123 5 213 51235 1266123",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{} {} {} {} {} {} {} {}",
                 { i8(-5), i16(-213), i32(-51235), i64(-1266123), u8(5), u16(213), u32(51235), u64(1266123) },
-                core::cstrLen("-5 -213 -51235 -1266123 5 213 51235 1266123") + 1,
+                i32(core::cstrLen("-5 -213 -51235 -1266123 5 213 51235 1266123") + 1),
                 "-5 -213 -51235 -1266123 5 213 51235 1266123"
             },
             {
                 "{} {} {} {} {} {} {} {}",
                 { core::limitMax<i8>(), core::limitMax<i16>(), core::limitMax<i32>(), core::limitMax<i64>(), core::limitMax<u8>(), core::limitMax<u16>(), core::limitMax<u32>(), core::limitMax<u64>() },
-                core::cstrLen("127 32767 2147483647 9223372036854775807 255 65535 4294967295 18446744073709551615"),
+                i32(core::cstrLen("127 32767 2147483647 9223372036854775807 255 65535 4294967295 18446744073709551615")),
                 "127 32767 2147483647 9223372036854775807 255 65535 4294967295 18446744073709551615",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{} {} {} {} {} {} {} {}",
                 { core::limitMax<i8>(), core::limitMax<i16>(), core::limitMax<i32>(), core::limitMax<i64>(), core::limitMax<u8>(), core::limitMax<u16>(), core::limitMax<u32>(), core::limitMax<u64>() },
-                core::cstrLen("127 32767 2147483647 9223372036854775807 255 65535 4294967295 18446744073709551615") + 1,
+                i32(core::cstrLen("127 32767 2147483647 9223372036854775807 255 65535 4294967295 18446744073709551615") + 1),
                 "127 32767 2147483647 9223372036854775807 255 65535 4294967295 18446744073709551615"
             },
             {
                 "{} {} {} {} {} {} {} {}",
                 { core::limitMin<i8>(), core::limitMin<i16>(), core::limitMin<i32>(), core::limitMin<i64>(), core::limitMin<u8>(), core::limitMin<u16>(), core::limitMin<u32>(), core::limitMin<u64>() },
-                core::cstrLen("-128 -32768 -2147483648 -9223372036854775808 0 0 0 0"),
+                i32(core::cstrLen("-128 -32768 -2147483648 -9223372036854775808 0 0 0 0")),
                 "-128 -32768 -2147483648 -9223372036854775808 0 0 0 0",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{} {} {} {} {} {} {} {}",
                 { core::limitMin<i8>(), core::limitMin<i16>(), core::limitMin<i32>(), core::limitMin<i64>(), core::limitMin<u8>(), core::limitMin<u16>(), core::limitMin<u32>(), core::limitMin<u64>() },
-                core::cstrLen("-128 -32768 -2147483648 -9223372036854775808 0 0 0 0") + 1,
+                i32(core::cstrLen("-128 -32768 -2147483648 -9223372036854775808 0 0 0 0") + 1),
                 "-128 -32768 -2147483648 -9223372036854775808 0 0 0 0"
             },
         };
@@ -489,40 +489,40 @@ constexpr i32 intFormattingTest() {
             {
                 "{00:} {t0:} {c0:} {v0:} {s0:} {a0:} {10:} {90:}",
                 { i8(0), i16(0), i32(0), i64(0), u8(0), u16(0), u32(0), u64(0) },
-                core::cstrLen("0 0 0 0 0 0 0 0"),
+                i32(core::cstrLen("0 0 0 0 0 0 0 0")),
                 "0 0 0 0 0 0 0 0",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{00:} {t0:} {c0:} {v0:} {s0:} {a0:} {10:} {90:}",
                 { i8(0), i16(0), i32(0), i64(0), u8(0), u16(0), u32(0), u64(0) },
-                core::cstrLen("0 0 0 0 0 0 0 0") + 1,
+                i32(core::cstrLen("0 0 0 0 0 0 0 0") + 1),
                 "0 0 0 0 0 0 0 0"
             },
             {
                 "{t4:} {t4:} {t4:} {t4:} {t4:} {t4:} {t4:} {t4:}",
                 { i8(0), i16(0), i32(0), i64(0), u8(0), u16(0), u32(0), u64(0) },
-                core::cstrLen("ttt0 ttt0 ttt0 ttt0 ttt0 ttt0 ttt0 ttt0"),
+                i32(core::cstrLen("ttt0 ttt0 ttt0 ttt0 ttt0 ttt0 ttt0 ttt0")),
                 "ttt0 ttt0 ttt0 ttt0 ttt0 ttt0 ttt0 ttt0",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{t4:} {t4:} {t4:} {t4:} {t4:} {t4:} {t4:} {t4:}",
                 { i8(0), i16(0), i32(0), i64(0), u8(0), u16(0), u32(0), u64(0) },
-                core::cstrLen("ttt0 ttt0 ttt0 ttt0 ttt0 ttt0 ttt0 ttt0") + 1,
+                i32(core::cstrLen("ttt0 ttt0 ttt0 ttt0 ttt0 ttt0 ttt0 ttt0") + 1),
                 "ttt0 ttt0 ttt0 ttt0 ttt0 ttt0 ttt0 ttt0"
             },
             {
                 "{j4:} {j6:} {j11:} {j20:} {j4:} {j6:} {j11:} {j21:}",
                 { core::limitMax<i8>(), core::limitMax<i16>(), core::limitMax<i32>(), core::limitMax<i64>(), core::limitMax<u8>(), core::limitMax<u16>(), core::limitMax<u32>(), core::limitMax<u64>() },
-                core::cstrLen("j127 j32767 j2147483647 j9223372036854775807 j255 j65535 j4294967295 j18446744073709551615"),
+                i32(core::cstrLen("j127 j32767 j2147483647 j9223372036854775807 j255 j65535 j4294967295 j18446744073709551615")),
                 "j127 j32767 j2147483647 j9223372036854775807 j255 j65535 j4294967295 j18446744073709551615",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{j4:} {j6:} {j11:} {j20:} {j4:} {j6:} {j11:} {j21:}",
                 { core::limitMax<i8>(), core::limitMax<i16>(), core::limitMax<i32>(), core::limitMax<i64>(), core::limitMax<u8>(), core::limitMax<u16>(), core::limitMax<u32>(), core::limitMax<u64>() },
-                core::cstrLen("j127 j32767 j2147483647 j9223372036854775807 j255 j65535 j4294967295 j18446744073709551615") + 1,
+                i32(core::cstrLen("j127 j32767 j2147483647 j9223372036854775807 j255 j65535 j4294967295 j18446744073709551615") + 1),
                 "j127 j32767 j2147483647 j9223372036854775807 j255 j65535 j4294967295 j18446744073709551615",
             },
         };
@@ -536,79 +536,79 @@ constexpr i32 intFormattingTest() {
             {
                 "{:h} {:h} {:h} {:h} {:h} {:h} {:h} {:h}",
                 { i8(0), i16(0), i32(0), i64(0), u8(0), u16(0), u32(0), u64(0) },
-                core::cstrLen("0 0 0 0 0 0 0 0"),
+                i32(core::cstrLen("0 0 0 0 0 0 0 0")),
                 "0 0 0 0 0 0 0 0",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{:h} {:h} {:h} {:h} {:h} {:h} {:h} {:h}",
                 { i8(0), i16(0), i32(0), i64(0), u8(0), u16(0), u32(0), u64(0) },
-                core::cstrLen("0 0 0 0 0 0 0 0") + 1,
+                i32(core::cstrLen("0 0 0 0 0 0 0 0") + 1),
                 "0 0 0 0 0 0 0 0"
             },
             {
                 "{:h} {:h} {:h} {:h} {:h} {:h} {:h} {:h}",
                 { i8(0x5E), i16(0x1FE), i32(0xFA41FE), i64(0xF324BFA), u8(0x5E), u16(0x1FE), u32(0xFA41FE), u64(0xF324BFA) },
-                core::cstrLen("5e 1fe fa41fe f324bfa 5e 1fe fa41fe f324bfa"),
+                i32(core::cstrLen("5e 1fe fa41fe f324bfa 5e 1fe fa41fe f324bfa")),
                 "5e 1fe fa41fe f324bfa 5e 1fe fa41fe f324bfa",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{:h} {:h} {:h} {:h} {:h} {:h} {:h} {:h}",
                 { i8(0x5E), i16(0x1FE), i32(0xFA41FE), i64(0xF324BFA), u8(0x5E), u16(0x1FE), u32(0xFA41FE), u64(0xF324BFA) },
-                core::cstrLen("5e 1fe fa41fe f324bfa 5e 1fe fa41fe f324bfa") + 1,
+                i32(core::cstrLen("5e 1fe fa41fe f324bfa 5e 1fe fa41fe f324bfa") + 1),
                 "5e 1fe fa41fe f324bfa 5e 1fe fa41fe f324bfa"
             },
             {
                 "{:H} {:H} {:H} {:H} {:H} {:H} {:H} {:H}",
                 { i8(0x5E), i16(0x1FE), i32(0xFA41FE), i64(0xF324BFA), u8(0x5E), u16(0x1FE), u32(0xFA41FE), u64(0xF324BFA) },
-                core::cstrLen("5E 1FE FA41FE F324BFA 5E 1FE FA41FE F324BFA"),
+                i32(core::cstrLen("5E 1FE FA41FE F324BFA 5E 1FE FA41FE F324BFA")),
                 "5E 1FE FA41FE F324BFA 5E 1FE FA41FE F324BFA",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{:H} {:H} {:H} {:H} {:H} {:H} {:H} {:H}",
                 { i8(0x5E), i16(0x1FE), i32(0xFA41FE), i64(0xF324BFA), u8(0x5E), u16(0x1FE), u32(0xFA41FE), u64(0xF324BFA) },
-                core::cstrLen("5E 1FE FA41FE F324BFA 5E 1FE FA41FE F324BFA") + 1,
+                i32(core::cstrLen("5E 1FE FA41FE F324BFA 5E 1FE FA41FE F324BFA") + 1),
                 "5E 1FE FA41FE F324BFA 5E 1FE FA41FE F324BFA"
             },
             {
                 "{:h} {:h} {:h} {:h} {:h} {:h} {:h} {:h}",
                 { core::limitMax<i8>(), core::limitMax<i16>(), core::limitMax<i32>(), core::limitMax<i64>(), core::limitMax<u8>(), core::limitMax<u16>(), core::limitMax<u32>(), core::limitMax<u64>() },
-                core::cstrLen("7f 7fff 7fffffff 7fffffffffffffff ff ffff ffffffff ffffffffffffffff"),
+                i32(core::cstrLen("7f 7fff 7fffffff 7fffffffffffffff ff ffff ffffffff ffffffffffffffff")),
                 "7f 7fff 7fffffff 7fffffffffffffff ff ffff ffffffff ffffffffffffffff",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{:h} {:h} {:h} {:h} {:h} {:h} {:h} {:h}",
                 { core::limitMax<i8>(), core::limitMax<i16>(), core::limitMax<i32>(), core::limitMax<i64>(), core::limitMax<u8>(), core::limitMax<u16>(), core::limitMax<u32>(), core::limitMax<u64>() },
-                core::cstrLen("7f 7fff 7fffffff 7fffffffffffffff ff ffff ffffffff ffffffffffffffff") + 1,
+                i32(core::cstrLen("7f 7fff 7fffffff 7fffffffffffffff ff ffff ffffffff ffffffffffffffff") + 1),
                 "7f 7fff 7fffffff 7fffffffffffffff ff ffff ffffffff ffffffffffffffff"
             },
             {
                 "{:H} {:H} {:H} {:H} {:H} {:H} {:H} {:H}",
                 { core::limitMax<i8>(), core::limitMax<i16>(), core::limitMax<i32>(), core::limitMax<i64>(), core::limitMax<u8>(), core::limitMax<u16>(), core::limitMax<u32>(), core::limitMax<u64>() },
-                core::cstrLen("7F 7FFF 7FFFFFFF 7FFFFFFFFFFFFFFF FF FFFF FFFFFFFF FFFFFFFFFFFFFFFF"),
+                i32(core::cstrLen("7F 7FFF 7FFFFFFF 7FFFFFFFFFFFFFFF FF FFFF FFFFFFFF FFFFFFFFFFFFFFFF")),
                 "7F 7FFF 7FFFFFFF 7FFFFFFFFFFFFFFF FF FFFF FFFFFFFF FFFFFFFFFFFFFFFF",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{:H} {:H} {:H} {:H} {:H} {:H} {:H} {:H}",
                 { core::limitMax<i8>(), core::limitMax<i16>(), core::limitMax<i32>(), core::limitMax<i64>(), core::limitMax<u8>(), core::limitMax<u16>(), core::limitMax<u32>(), core::limitMax<u64>() },
-                core::cstrLen("7F 7FFF 7FFFFFFF 7FFFFFFFFFFFFFFF FF FFFF FFFFFFFF FFFFFFFFFFFFFFFF") + 1,
+                i32(core::cstrLen("7F 7FFF 7FFFFFFF 7FFFFFFFFFFFFFFF FF FFFF FFFFFFFF FFFFFFFFFFFFFFFF") + 1),
                 "7F 7FFF 7FFFFFFF 7FFFFFFFFFFFFFFF FF FFFF FFFFFFFF FFFFFFFFFFFFFFFF"
             },
             {
                 "{:H} {:H} {:H} {:H} {:H} {:H} {:H} {:H}",
                 { core::limitMin<i8>(), core::limitMin<i16>(), core::limitMin<i32>(), core::limitMin<i64>(), core::limitMin<u8>(), core::limitMin<u16>(), core::limitMin<u32>(), core::limitMin<u64>() },
-                core::cstrLen("80 8000 80000000 8000000000000000 0 0 0 0"),
+                i32(core::cstrLen("80 8000 80000000 8000000000000000 0 0 0 0")),
                 "80 8000 80000000 8000000000000000 0 0 0 0",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{:H} {:H} {:H} {:H} {:H} {:H} {:H} {:H}",
                 { core::limitMin<i8>(), core::limitMin<i16>(), core::limitMin<i32>(), core::limitMin<i64>(), core::limitMin<u8>(), core::limitMin<u16>(), core::limitMin<u32>(), core::limitMin<u64>() },
-                core::cstrLen("80 8000 80000000 8000000000000000 0 0 0 0") + 1,
+                i32(core::cstrLen("80 8000 80000000 8000000000000000 0 0 0 0") + 1),
                 "80 8000 80000000 8000000000000000 0 0 0 0"
             },
         };
@@ -622,79 +622,79 @@ constexpr i32 intFormattingTest() {
             {
                 "{:b} {:b} {:b} {:b} {:b} {:b} {:b} {:b}",
                 { i8(0), i16(0), i32(0), i64(0), u8(0), u16(0), u32(0), u64(0) },
-                core::cstrLen("0 0 0 0 0 0 0 0"),
+                i32(core::cstrLen("0 0 0 0 0 0 0 0")),
                 "0 0 0 0 0 0 0 0",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{:b} {:b} {:b} {:b} {:b} {:b} {:b} {:b}",
                 { i8(0), i16(0), i32(0), i64(0), u8(0), u16(0), u32(0), u64(0) },
-                core::cstrLen("0 0 0 0 0 0 0 0") + 1,
+                i32(core::cstrLen("0 0 0 0 0 0 0 0") + 1),
                 "0 0 0 0 0 0 0 0"
             },
             {
                 "{:b} {:b} {:b} {:b} {:b} {:b} {:b} {:b}",
                 { i8(0b101), i16(0b10101), i32(0b1010101010), i64(0b10101010101010101010), u8(0b101), u16(0b10101), u32(0b1010101010), u64(0b10101010101010101010) },
-                core::cstrLen("101 10101 1010101010 10101010101010101010 101 10101 1010101010 10101010101010101010"),
+                i32(core::cstrLen("101 10101 1010101010 10101010101010101010 101 10101 1010101010 10101010101010101010")),
                 "101 10101 1010101010 10101010101010101010 101 10101 1010101010 10101010101010101010",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{:b} {:b} {:b} {:b} {:b} {:b} {:b} {:b}",
                 { i8(0b101), i16(0b10101), i32(0b1010101010), i64(0b10101010101010101010), u8(0b101), u16(0b10101), u32(0b1010101010), u64(0b10101010101010101010) },
-                core::cstrLen("101 10101 1010101010 10101010101010101010 101 10101 1010101010 10101010101010101010") + 1,
+                i32(core::cstrLen("101 10101 1010101010 10101010101010101010 101 10101 1010101010 10101010101010101010") + 1),
                 "101 10101 1010101010 10101010101010101010 101 10101 1010101010 10101010101010101010"
             },
             {
                 "{:b} {:b} {:b} {:b} {:b} {:b} {:b} {:b}",
                 { core::limitMax<i8>(), core::limitMax<i16>(), core::limitMax<i32>(), core::limitMax<i64>(), core::limitMax<u8>(), core::limitMax<u16>(), core::limitMax<u32>(), core::limitMax<u64>() },
-                core::cstrLen("1111111 111111111111111 1111111111111111111111111111111 111111111111111111111111111111111111111111111111111111111111111 11111111 1111111111111111 11111111111111111111111111111111 1111111111111111111111111111111111111111111111111111111111111111"),
+                i32(core::cstrLen("1111111 111111111111111 1111111111111111111111111111111 111111111111111111111111111111111111111111111111111111111111111 11111111 1111111111111111 11111111111111111111111111111111 1111111111111111111111111111111111111111111111111111111111111111")),
                 "1111111 111111111111111 1111111111111111111111111111111 111111111111111111111111111111111111111111111111111111111111111 11111111 1111111111111111 11111111111111111111111111111111 1111111111111111111111111111111111111111111111111111111111111111",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{:b} {:b} {:b} {:b} {:b} {:b} {:b} {:b}",
                 { core::limitMax<i8>(), core::limitMax<i16>(), core::limitMax<i32>(), core::limitMax<i64>(), core::limitMax<u8>(), core::limitMax<u16>(), core::limitMax<u32>(), core::limitMax<u64>() },
-                core::cstrLen("1111111 111111111111111 1111111111111111111111111111111 111111111111111111111111111111111111111111111111111111111111111 11111111 1111111111111111 11111111111111111111111111111111 1111111111111111111111111111111111111111111111111111111111111111") + 1,
+                i32(core::cstrLen("1111111 111111111111111 1111111111111111111111111111111 111111111111111111111111111111111111111111111111111111111111111 11111111 1111111111111111 11111111111111111111111111111111 1111111111111111111111111111111111111111111111111111111111111111") + 1),
                 "1111111 111111111111111 1111111111111111111111111111111 111111111111111111111111111111111111111111111111111111111111111 11111111 1111111111111111 11111111111111111111111111111111 1111111111111111111111111111111111111111111111111111111111111111"
             },
             {
                 "{:b} {:b} {:b} {:b} {:b} {:b} {:b} {:b}",
                 { core::limitMin<i8>(), core::limitMin<i16>(), core::limitMin<i32>(), core::limitMin<i64>(), core::limitMin<u8>(), core::limitMin<u16>(), core::limitMin<u32>(), core::limitMin<u64>() },
-                core::cstrLen("10000000 1000000000000000 10000000000000000000000000000000 1000000000000000000000000000000000000000000000000000000000000000 0 0 0 0"),
+                i32(core::cstrLen("10000000 1000000000000000 10000000000000000000000000000000 1000000000000000000000000000000000000000000000000000000000000000 0 0 0 0")),
                 "10000000 1000000000000000 10000000000000000000000000000000 1000000000000000000000000000000000000000000000000000000000000000 0 0 0 0",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{:b} {:b} {:b} {:b} {:b} {:b} {:b} {:b}",
                 { core::limitMin<i8>(), core::limitMin<i16>(), core::limitMin<i32>(), core::limitMin<i64>(), core::limitMin<u8>(), core::limitMin<u16>(), core::limitMin<u32>(), core::limitMin<u64>() },
-                core::cstrLen("10000000 1000000000000000 10000000000000000000000000000000 1000000000000000000000000000000000000000000000000000000000000000 0 0 0 0") + 1,
+                i32(core::cstrLen("10000000 1000000000000000 10000000000000000000000000000000 1000000000000000000000000000000000000000000000000000000000000000 0 0 0 0") + 1),
                 "10000000 1000000000000000 10000000000000000000000000000000 1000000000000000000000000000000000000000000000000000000000000000 0 0 0 0"
             },
             {
                 "{t1:b} {t2:b} {t3:b} {t4:b} {t5:b} {t4:b} {t3:b} {t2:b}",
                 { i8(0b1), i16(0b1), i32(0b1), i64(0b1), u8(0b1), u16(0b1), u32(0b11), u64(0b11) },
-                core::cstrLen("1 t1 tt1 ttt1 tttt1 tt11 tt1 11"),
+                i32(core::cstrLen("1 t1 tt1 ttt1 tttt1 tt11 tt1 11")),
                 "1 t1 tt1 ttt1 tttt1 tt11 tt1 11",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{t1:b} {t2:b} {t3:b} {t4:b} {t5:b} {t4:b} {t3:b} {t2:b}",
                 { i8(0b1), i16(0b1), i32(0b1), i64(0b1), u8(0b1), u16(0b11), u32(0b1), u64(0b11) },
-                core::cstrLen("1 t1 tt1 ttt1 tttt1 tt11 tt1 11") + 1,
+                i32(core::cstrLen("1 t1 tt1 ttt1 tttt1 tt11 tt1 11") + 1),
                 "1 t1 tt1 ttt1 tttt1 tt11 tt1 11"
             },
             {
                 "{08:b} {08:b} {08:b} {08:b} {08:b} {08:b} {08:b} {08:b}",
                 { i8(0b00000000), i16(0b00000001), i32(0b00000011), i64(0b00001111), u8(0b00011111), u16(0b00111111), u32(0b01111111), u64(0b11111111) },
-                core::cstrLen("00000000 00000001 00000011 00001111 00011111 00111111 01111111 11111111") ,
+                i32(core::cstrLen("00000000 00000001 00000011 00001111 00011111 00111111 01111111 11111111") ),
                 "00000000 00000001 00000011 00001111 00011111 00111111 01111111 11111111",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{08:b} {08:b} {08:b} {08:b} {08:b} {08:b} {08:b} {08:b}",
                 { i8(0b00000000), i16(0b00000001), i32(0b00000011), i64(0b00001111), u8(0b00011111), u16(0b00111111), u32(0b01111111), u64(0b11111111) },
-                core::cstrLen("00000000 00000001 00000011 00001111 00011111 00111111 01111111 11111111") + 1,
+                i32(core::cstrLen("00000000 00000001 00000011 00001111 00011111 00111111 01111111 11111111") + 1),
                 "00000000 00000001 00000011 00001111 00011111 00111111 01111111 11111111"
             },
         };
@@ -708,28 +708,28 @@ constexpr i32 intFormattingTest() {
             {
                 "{} {} {} {} {} {} {} {:f.2}",
                 { i8(0), i16(0), i32(0), i64(0), u8(0), u16(0), u32(0), u64(0) },
-                core::cstrLen("0 0 0 0 0 0 0 0") + 1,
+                i32(core::cstrLen("0 0 0 0 0 0 0 0") + 1),
                 "0 0 0 0 0 0 0 0",
                 core::FormatError::INVALID_PLACEHOLDER
             },
             {
                 "{} {} {} {} {} {h:} {} {}",
                 { i8(0), i16(0), i32(0), i64(0), u8(0), u16(0), u32(0), u64(0) },
-                core::cstrLen("0 0 0 0 0 0 0 0") + 1,
+                i32(core::cstrLen("0 0 0 0 0 0 0 0") + 1),
                 "0 0 0 0 0 0 0 0",
                 core::FormatError::INVALID_PLACEHOLDER
             },
             {
                 "{} {} {} {} {} {} {H:} {}",
                 { i8(0), i16(0), i32(0), i64(0), u8(0), u16(0), u32(0), u64(0) },
-                core::cstrLen("0 0 0 0 0 0 0 0") + 1,
+                i32(core::cstrLen("0 0 0 0 0 0 0 0") + 1),
                 "0 0 0 0 0 0 0 0",
                 core::FormatError::INVALID_PLACEHOLDER
             },
             {
                 "{} {} {} {asd123} {} {} {} {}",
                 { i8(0), i16(0), i32(0), i64(0), u8(0), u16(0), u32(0), u64(0) },
-                core::cstrLen("0 0 0 0 0 0 0 0") + 1,
+                i32(core::cstrLen("0 0 0 0 0 0 0 0") + 1),
                 "0 0 0 0 0 0 0 0",
                 core::FormatError::INVALID_PLACEHOLDER
             },
@@ -741,12 +741,12 @@ constexpr i32 intFormattingTest() {
 }
 
 constexpr i32 floatFormattingTest() {
-    constexpr i32 BUFF_LEN = core::CORE_KILOBYTE * 2;
-    char buff[BUFF_LEN];
+    constexpr i32 BUFFER_LEN = core::CORE_KILOBYTE * 2;
+    char buff[BUFFER_LEN];
 
-    auto runTestCases = [&](auto& cases) -> i32 {
-        i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [&](auto& c, const char* cErr) {
-            core::memset(buff, char(9), BUFF_LEN);
+    auto runTestCases = [&buff, BUFFER_LEN](auto& cases) -> i32 {
+        i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [&buff, BUFFER_LEN](auto& c, const char* cErr) {
+            core::memset(buff, char(9), BUFFER_LEN);
 
             auto fmtRes = core::format(buff, c.bufferSize, c.fmt, c.args.arg1, c.args.arg2);
 
@@ -784,27 +784,27 @@ constexpr i32 floatFormattingTest() {
             {
                 "{} {}",
                 { 1.0e+8f, 1.234567 },
-                core::cstrLen("1E8 1.234567"),
+                i32(core::cstrLen("1E8 1.234567")),
                 "1E8 1.234567",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{} {}",
                 { 1.0e+8f, 1.234567 },
-                core::cstrLen("1E8 1.234567") + 1,
+                i32(core::cstrLen("1E8 1.234567") + 1),
                 "1E8 1.234567",
             },
             {
                 "{} {}",
                 { -2.47E-43f, 1.0e+15 + 1.0e+10 },
-                core::cstrLen("-2.47E-43 1.00001E15"),
+                i32(core::cstrLen("-2.47E-43 1.00001E15")),
                 "-2.47E-43 1.00001E15",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{} {}",
                 { -2.47E-43f, 1.0e+15 + 1.0e+10 },
-                core::cstrLen("-2.47E-43 1.00001E15") + 1,
+                i32(core::cstrLen("-2.47E-43 1.00001E15") + 1),
                 "-2.47E-43 1.00001E15"
             },
         };
@@ -814,69 +814,69 @@ constexpr i32 floatFormattingTest() {
     // Fixed
     {
         TestCase cases[] = {
-            // {
-            //     "{} {:f.4}",
-            //     { 0.f, 1.234567 },
-            //     core::cstrLen("0 1.2346"),
-            //     "0 1.2346",
-            //     core::FormatError::OUT_BUFFER_OVERFLOW
-            // },
-            // {
-            //     "{} {:f.4}",
-            //     { 0.f, 1.234567 },
-            //     core::cstrLen("0 1.2346") + 1,
-            //     "0 1.2346"
-            // },
-            // {
-            //     "{} {:f.2}",
-            //     { 0.f, 2.5555 },
-            //     core::cstrLen("0 2.56"),
-            //     "0 2.56",
-            //     core::FormatError::OUT_BUFFER_OVERFLOW
-            // },
-            // {
-            //     "{} {:f.2}",
-            //     { 0.f, 2.5555 },
-            //     core::cstrLen("0 2.56") + 1,
-            //     "0 2.56"
-            // },
+            {
+                "{} {:f.4}",
+                { 0.f, 1.234567 },
+                i32(core::cstrLen("0 1.2346")),
+                "0 1.2346",
+                core::FormatError::OUT_BUFFER_OVERFLOW
+            },
+            {
+                "{} {:f.4}",
+                { 0.f, 1.234567 },
+                i32(core::cstrLen("0 1.2346") + 1),
+                "0 1.2346"
+            },
+            {
+                "{} {:f.2}",
+                { 0.f, 2.5555 },
+                i32(core::cstrLen("0 2.56")),
+                "0 2.56",
+                core::FormatError::OUT_BUFFER_OVERFLOW
+            },
+            {
+                "{} {:f.2}",
+                { 0.f, 2.5555 },
+                i32(core::cstrLen("0 2.56") + 1),
+                "0 2.56"
+            },
             {
                 "{} {:f.4}",
                 { 0.f, 99999.9999999 },
-                core::cstrLen("0 100000.0000"),
+                i32(core::cstrLen("0 100000.0000")),
                 "0 100000.0000",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{} {:f.4}",
                 { 0.f, 99999.9999999 },
-                core::cstrLen("0 100000.0000") + 1,
+                i32(core::cstrLen("0 100000.0000") + 1),
                 "0 100000.0000"
             },
             {
                 "{} {:f.8}",
                 { 0.f, -0.000000201 },
-                core::cstrLen("0 -0.00000020"),
+                i32(core::cstrLen("0 -0.00000020")),
                 "0 -0.00000020",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{} {:f.8}",
                 { 0.f, -0.000000201 },
-                core::cstrLen("0 -0.00000020") + 1,
+                i32(core::cstrLen("0 -0.00000020") + 1),
                 "0 -0.00000020"
             },
             {
                 "{} {:f.2}",
                 { 0.f, -1.0E-8 },
-                core::cstrLen("0 -0.00"),
+                i32(core::cstrLen("0 -0.00")),
                 "0 -0.00",
                 core::FormatError::OUT_BUFFER_OVERFLOW
             },
             {
                 "{} {:f.2}",
                 { 0.f, -1.0E-8 },
-                core::cstrLen("0 -0.00") + 1,
+                i32(core::cstrLen("0 -0.00") + 1),
                 "0 -0.00"
             },
         };
@@ -1268,7 +1268,7 @@ i32 runFormatTestsSuite() {
     return 0;
 }
 
-constexpr i32 runCompiletimeFormatTestSuite() {
+constexpr i32 runCompiletimeFormatTestSuite1() {
     RunTestCompileTime(basicFormatTest);
     RunTestCompileTime(booleanFormattingTest);
     RunTestCompileTime(intFormattingTest);

@@ -41,7 +41,7 @@ constexpr i32 leadingZeroCountTest() {
             { 0b10000, 3 },
             { 0b100000, 2 },
             { 0b1000000, 1 },
-            { i8(0b10000000), 0 },
+            { static_cast<i8>(0b10000000), 0 },
             { -1, 0 },
         };
 
@@ -87,8 +87,8 @@ constexpr i32 leadingZeroCountTest() {
             { 0, 16 },
             { 1, 15 },
             { 2, 14 },
-            { i16(0x7FFF), 1 },
-            { i16(0x8000), 0 },
+            { static_cast<i16>(0x7FFF), 1 },
+            { static_cast<i16>(0x8000), 0 },
             { -1, 0 },
         };
 

@@ -327,27 +327,28 @@ constexpr core::expected<i32, FormatError> convertFloats(char* out, i32 outLen, 
                 // I can't seem to make static assertion work here. Oh well.
                 return core::unexpected(FormatError::INVALID_PLACEHOLDER);
             }
+            else {
+                if (options.padding > 0) {
+                    // Padding is not allowed with fixed precision because the the output string could be fairly large and
+                    // there is no easy way to
+                    return core::unexpected(FormatError::INVALID_PLACEHOLDER);
+                }
 
-            if (options.padding > 0) {
-                // Padding is not allowed with fixed precision because the the output string could be fairly large and
-                // there is no easy way to
-                return core::unexpected(FormatError::INVALID_PLACEHOLDER);
+                u32 precision = options.fixedFloat.fixed;
+                auto res = core::floatToFixedCstr(f64(value), precision, out, u32(outLen));
+                if (res.hasErr()) return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+
+                i32 written = i32(res.value());
+                if (written >= outLen) {
+                    // TODO2: [BUG]
+                    // In few cases float to fixed writes to the last byte which should be reserved for the null terminator.
+                    // Technically that is a bug, but it's hard to find and I have not seen it read pass the end of the buffer.
+                    // Valgrind check confirms that. If there is uninitialised memory access I should dig deeper.
+                    return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+                }
+
+                return written;
             }
-
-            u32 precision = options.fixedFloat.fixed;
-            auto res = core::floatToFixedCstr(f64(value), precision, out, u32(outLen));
-            if (res.hasErr()) return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
-
-            i32 written = i32(res.value());
-            if (written >= outLen) {
-                // TODO2: [BUG]
-                // In few cases float to fixed writes to the last byte which should be reserved for the null terminator.
-                // Technically that is a bug, but it's hard to find and I have not seen it read pass the end of the buffer.
-                // Valgrind check confirms that. If there is uninitialised memory access I should dig deeper.
-                return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
-            }
-
-            return written;
         }
 
         case PlaceHolderOptions::Type::PaddingOnly: [[fallthrough]];
@@ -485,8 +486,26 @@ constexpr core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, 
     switch (options.type) {
         case PlaceHolderOptions::Type::PaddingOnly: [[fallthrough]];
         case PlaceHolderOptions::Type::Empty: {
-            return (value) ? convertStrs(out, outLen, "true", core::cstrLen("true"), options)
-                           : convertStrs(out, outLen, "false", core::cstrLen("false"), options);
+            if (value) {
+                return convertToCStr(out, outLen, "true"_sv, options);
+            }
+            return convertToCStr(out, outLen, "false"_sv, options);
+
+            // NOTE: Using ternary operators in consteval context with MSVC is crazy.
+            //
+            // The following is not valid compile-time constant expression according to MSVC 19.29.30136.0
+            // return value ? convertToCStr(out, outLen, "true"_sv, options)
+            //              : convertToCStr(out, outLen, "false"_sv, options);
+            //
+            // Error Message:
+            //    error C2975: 'V': invalid template argument for 'core::force_consteval', expected compile-time constant expression
+            //
+            // But it is the exact same code! WTF...
+            //
+            // Possible reason:
+            // The ternary operator requires both its true and false expressions to be valid compile-time constants when
+            // used in a consteval context. So that creates a problem somehow, EVEN THOUGH both branches are valid,
+            // and are both tested.
         }
 
         case PlaceHolderOptions::Type::Binary: [[fallthrough]];
@@ -566,8 +585,9 @@ core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, T ptr, Pla
             default:                                    return core::unexpected(FormatError::INVALID_PLACEHOLDER);
         }
     }
-
-    return core::unexpected(FormatError::INVALID_ARGUMENTS);
+    else {
+        return core::unexpected(FormatError::INVALID_ARGUMENTS);
+    }
 }
 
 template<typename T>

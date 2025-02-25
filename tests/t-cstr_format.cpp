@@ -274,7 +274,7 @@ constexpr i32 strFormattingTest() {
     constexpr i32 BUFFER_LEN = core::CORE_KILOBYTE * 2;
     char buff[BUFFER_LEN];
 
-    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [&buff, BUFFER_LEN](auto& c, const char* cErr) {
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [&buff](auto& c, const char* cErr) {
         core::memset(buff, char(9), BUFFER_LEN);
         auto fmtRes = core::format(buff, c.bufferSize, c.fmt, c.arg1);
 
@@ -744,8 +744,8 @@ constexpr i32 floatFormattingTest() {
     constexpr i32 BUFFER_LEN = core::CORE_KILOBYTE * 2;
     char buff[BUFFER_LEN];
 
-    auto runTestCases = [&buff, BUFFER_LEN](auto& cases) -> i32 {
-        i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [&buff, BUFFER_LEN](auto& c, const char* cErr) {
+    auto runTestCases = [&buff](auto& cases) -> i32 {
+        i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [&buff](auto& c, const char* cErr) {
             core::memset(buff, char(9), BUFFER_LEN);
 
             auto fmtRes = core::format(buff, c.bufferSize, c.fmt, c.args.arg1, c.args.arg2);

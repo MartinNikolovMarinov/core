@@ -82,13 +82,18 @@ addr_size AllocatorContext::inUseMemory() {
     return inUseMemoryFn(allocatorData);
 }
 
-void initProgramCtx(GlobalAssertHandlerFn assertHandler) {
+void initProgramCtx(GlobalAssertHandlerFn assertHandler,
+                    LoggerCreateInfo* loggerCreateInfo) {
     core::setGlobalAssertHandler(assertHandler);
     g_defaultAllocatorContext = createAllocatorCtx(&g_defaultStdAllocator);
+    if (loggerCreateInfo == nullptr) core::initLogger();
+    else                             core::initLogger(*loggerCreateInfo);
 }
 
-void initProgramCtx(GlobalAssertHandlerFn assertHandler, AllocatorContext&& actx) {
-    core::setGlobalAssertHandler(assertHandler);
+void initProgramCtx(GlobalAssertHandlerFn assertHandler,
+                    LoggerCreateInfo* loggerCreateInfo,
+                    AllocatorContext&& actx) {
+    initProgramCtx(assertHandler, loggerCreateInfo);
     g_defaultAllocatorContext = std::move(actx);
 }
 

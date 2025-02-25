@@ -300,7 +300,7 @@ struct HashMap {
 
     void __debug_log() {
         for (size_type i = 0; i < m_cap; i++) {
-            core::logDirectStd("\t(%llu)", i);
+            core::logDirectStd("\t({})", i);
             core::logDirectStd(" -> ");
             if (m_bucketState[i] == BucketState::Deleted) {
                 core::logDirectStd("deleted");
@@ -309,7 +309,7 @@ struct HashMap {
                 core::logDirectStd("free");
             }
             else if (m_bucketState[i] == BucketState::Occupied) {
-                core::logDirectStd("[ ");
+                core::logDirectStd("[");
                 __debug_logBytes(reinterpret_cast<void*>(m_keys + i), sizeof(TKey));
                 core::logDirectStd("] -> ");
                 __debug_logBytes(reinterpret_cast<void*>(m_values + i), sizeof(TValue));

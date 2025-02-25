@@ -40,7 +40,7 @@ constexpr addr_size THREAD_LOCAL_ARENA_ALLOCATOR_REGION_SIZE = core::CORE_MEGABY
 static auto g_threadLocalArenaAllocator = core::ThreadLocalStdArenaAllocator::create(THREAD_LOCAL_ARENA_ALLOCATOR_REGION_SIZE);
 
 void coreInit() {
-    core::initProgramCtx(assertHandler);
+    core::initProgramCtx(assertHandler, nullptr);
 
     core::registerAllocator(core::createAllocatorCtx(&g_stdStatsAllocator), RA_STD_STATS_ALLOCATOR_ID);
     core::registerAllocator(core::createAllocatorCtx(&g_bumpAllocator), RA_BUMP_ALLOCATOR_ID);

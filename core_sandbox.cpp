@@ -29,19 +29,9 @@ void assertHandler(const char* failedExpr, const char* file, i32 line, const cha
 };
 
 i32 main() {
-    core::initProgramCtx(assertHandler);
+    core::initProgramCtx(assertHandler, nullptr);
 
-    // core::LoggerCreateInfo createInfo{};
-    // core::initLogger(createInfo);
-
-    // core::logDirectStd("{} {} {}", 1, 3.24123, false);
-
-    mmcounter++;
-
-    // char buff[255] = {};
-    // i32 v = 4;
-    // i32 written = core::Unpack(core::format(buff, CORE_C_ARRLEN(buff), "0x{}", &v));
-    // logInfo("'%s'[%d]", buff, written);
+    logInfo("Batko {} {}", 1, 3.312);
 
     return 0;
 }

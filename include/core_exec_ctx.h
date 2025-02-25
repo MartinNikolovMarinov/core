@@ -3,6 +3,7 @@
 #include <core_alloc.h>
 #include <core_API.h>
 #include <core_assert.h>
+#include <core_logger.h>
 #include <core_types.h>
 
 #include <new>
@@ -87,8 +88,11 @@ AllocatorContext createAllocatorCtx(TAllocator* allocator) {
     return ctx;
 }
 
-CORE_API_EXPORT void initProgramCtx(GlobalAssertHandlerFn assertHandler);
-CORE_API_EXPORT void initProgramCtx(GlobalAssertHandlerFn assertHandler, AllocatorContext&& actx);
+CORE_API_EXPORT void initProgramCtx(GlobalAssertHandlerFn assertHandler,
+                                    LoggerCreateInfo* loggerCreateInfo);
+CORE_API_EXPORT void initProgramCtx(GlobalAssertHandlerFn assertHandler,
+                                    LoggerCreateInfo* loggerCreateInfo,
+                                    AllocatorContext&& actx);
 
 CORE_API_EXPORT void destroyProgramCtx();
 

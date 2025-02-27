@@ -1,7 +1,9 @@
 #pragma once
 
 #include <core_API.h>
+#include <core_ansi_escape_codes.h>
 #include <core_cstr_format.h>
+#include <core_exec_ctx.h>
 #include <core_mem.h>
 #include <core_str_view.h>
 #include <core_types.h>
@@ -29,13 +31,14 @@ enum struct LogSpecialMode : u8 {
     SENTINEL
 };
 
-using PrintFunction = void(*)(const char* message, i32 messageLen);
+using PrintFunction = void(*)(core::StrView message);
 
 struct LoggerCreateInfo {
     core::Memory<char> loggerMemory;
     core::Memory<i32> tagIndicesToIgnore;
-    PrintFunction print = nullptr;
-    bool useAnsi = true;
+    PrintFunction print;
+    bool useAnsi;
+    u32 fallbackMultiplier;
 
     CORE_API_EXPORT static LoggerCreateInfo createDefault();
 };
@@ -46,6 +49,8 @@ constexpr addr_size MAX_NUMBER_OF_TAGS = 20;
 constexpr addr_size MAX_TAG_LEN = 32;
 
 struct LoggerState {
+    inline static auto& allocator = core::getAllocator(core::DEFAULT_ALLOCATOR_ID);
+
     PrintFunction      printHandler;
     bool               useAnsi;
     LogLevel           minimumLogLevel;
@@ -54,6 +59,13 @@ struct LoggerState {
     core::Memory<char> loggerMemory;
     char               tagTranslationTable[MAX_NUMBER_OF_TAGS][MAX_TAG_LEN];
     i32                tagTranslationTableCount;
+    u32                fallbackMultiplier;
+
+    constexpr core::StrView getSectionSeparator() {
+        return useAnsi ?
+            sv(ANSI_BOLD(ANSI_BRIGHT_WHITE("---------------------------------------------------------------------"))) :
+            sv("---------------------------------------------------------------------");
+    }
 };
 
 CORE_API_EXPORT LoggerState& getLoggerState();
@@ -108,119 +120,137 @@ bool logDirectStd(const char* fmt, Args... args) {
     i32 written = fmtRes.value();
     memory[addr_size(written)] = '\0';
 
-    printHandler(memory.data(), i32(memory.len()));
+    printHandler(core::sv(memory.data(), memory.len()));
     return true;
 }
 
 template <typename ...Args>
-bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, const char* format, Args... args) {
+bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, const char* fmt, Args... args) {
     logdetails::LoggerState state = logdetails::getLoggerState();
     auto& muted = state.muted;
     auto& minimumLogLevel = state.minimumLogLevel;
     auto& tagTranslationTableCount = state.tagTranslationTableCount;
     auto& tagTranslationTable = state.tagTranslationTable;
+    auto& loggerMemory = state.loggerMemory;
+    auto& printHandler = state.printHandler;
+    auto& ignoredTagIndices = state.ignoredTagIndices;
+    auto& useAnsi = state.useAnsi;
+    auto& fallbackMultiplier = state.fallbackMultiplier;
 
     if (muted) return false;
     if (level < minimumLogLevel) return false;
     if (tagTranslationTableCount > 0) {
-        Panic(tag < MAX_NUMBER_OF_TAGS, "Provided Tag is out of range.");
+        Panic(tag < logdetails::MAX_NUMBER_OF_TAGS, "Provided Tag is out of range.");
         Panic(tagTranslationTable[tag][0] != '\0', "No Tag registered with that index.");
         if (ignoredTagIndices[tag]) return false;
     }
 
-    char* buffer = loggingBuffer;
-    addr_size bufferSize = BUFFER_SIZE;
+    char* buffer = loggerMemory.data();
+    addr_size bufferSize = loggerMemory.len();
 
     buffer[0] = '\0';
 
+    // Verify format was successful.
     i32 n;
     {
-        va_list args;
-        va_start(args, format);
-        n = vsnprintf(buffer, bufferSize, format, args);
-        va_end(args);
-    }
-
-    // Verify vsnprintf was successful.
-    {
-        if (n < 0) {
-            Panic(false, "Failed to format log message.");
-            return false;
+        auto fmtRes = core::format(buffer, i32(bufferSize), fmt, args...);
+        if (fmtRes.hasValue()) {
+            n = fmtRes.value();
         }
-        else if (addr_size(n) >= BUFFER_SIZE) {
-            // If the pre-allocated static buffer is not enough, allocate dynamic memory.
-            logWarn("Using dynamic memory for logging!");
+        else if (fmtRes.err() == FormatError::OUT_BUFFER_OVERFLOW) {
+            auto logWarnWasOk = logWarn("Logger is taking the SLOW path and uses dynamic memory! "
+                                      "Address this by increasing the logger buffer size. "
+                                      "Or by calling the log function multiple times.");
+            Panic(logWarnWasOk, "The logger is missconfigured.");
+            buffer[0] = '\0'; // NOTE: The logWarn call has indirect recursion, so I need to clear the buffer again.
 
-            bufferSize = addr_size(n);
-            buffer = reinterpret_cast<char*>(allocator.alloc(bufferSize, sizeof(char)));`
+            // TODO: The strategy for fallback dynamic memory allocation should be configurable.
+            buffer = reinterpret_cast<char*>(state.allocator.alloc(bufferSize * fallbackMultiplier, sizeof(char)));
 
-            va_list args;
-            va_start(args, format);
-            n = vsnprintf(buffer, bufferSize, format, args);
-            va_end(args);
+            auto fmtSecondTryRes = core::format(buffer, i32(bufferSize), fmt, args...);
+            if (fmtSecondTryRes.hasErr()) {
+                Panic(false, "Logging failed even after buffer resize");
+                return false;
+            }
 
-            Panic(addr_size(n) != bufferSize - 1, "Failed a sanity check.");
+            n = fmtSecondTryRes.value();
+        }
+        else {
+            Panic(false, formatErrorToCStr(fmtRes.err()));
+            return false;
         }
     }
 
     defer {
         // If dynamic memory was allocated, free it.
-        if (bufferSize != BUFFER_SIZE) {
-            allocator.free(buffer, bufferSize, sizeof(char));
+        if (bufferSize != loggerMemory.len()) {
+            state.allocator.free(buffer, bufferSize, sizeof(char));
         }
     };
+
+    if (mode == LogSpecialMode::SECTION_TITLE) {
+        printHandler(state.getSectionSeparator());
+        printHandler("\n"_sv);
+    }
 
     // Print Level
     switch (level) {
         case LogLevel::L_DEBUG:
-            if (useAnsi) printHandler(ANSI_BOLD("[DEBUG]"));
-            else         printHandler("[DEBUG]");
+            if (useAnsi) printHandler(core::sv(ANSI_BOLD("[DEBUG]")));
+            else         printHandler(core::sv("[DEBUG]"));
             break;
         case LogLevel::L_INFO:
-            if (useAnsi) printHandler(ANSI_BOLD(ANSI_BRIGHT_BLUE("[INFO]")));
-            else         printHandler("[INFO]");
+            if (useAnsi) printHandler(core::sv(ANSI_BOLD(ANSI_BRIGHT_BLUE("[INFO]"))));
+            else         printHandler(core::sv("[INFO]"));
             break;
         case LogLevel::L_WARNING:
-            if (useAnsi) printHandler(ANSI_BOLD(ANSI_BRIGHT_YELLOW("[WARNING]")));
-            else         printHandler("[WARNING]");
+            if (useAnsi) printHandler(core::sv(ANSI_BOLD(ANSI_BRIGHT_YELLOW("[WARNING]"))));
+            else         printHandler(core::sv("[WARNING]"));
             break;
         case LogLevel::L_ERROR:
-            if (useAnsi) printHandler(ANSI_BOLD(ANSI_RED("[ERROR]")));
-            else         printHandler("[ERROR]");
+            if (useAnsi) printHandler(core::sv(ANSI_BOLD(ANSI_RED("[ERROR]"))));
+            else         printHandler(core::sv("[ERROR]"));
             break;
         case LogLevel::L_FATAL:
-            if (useAnsi) printHandler(ANSI_BOLD(ANSI_BACKGROUND_RED(ANSI_BRIGHT_WHITE("[FATAL]"))));
-            else         printHandler("[FATAL]");
+            if (useAnsi) printHandler(core::sv(ANSI_BOLD(ANSI_BACKGROUND_RED(ANSI_BRIGHT_WHITE("[FATAL]")))));
+            else         printHandler(core::sv("[FATAL]"));
             break;
         case LogLevel::L_TRACE:
-            if (useAnsi) printHandler(ANSI_BOLD(ANSI_BRIGHT_GREEN("[TRACE]")));
-            else         printHandler("[TRACE]");
+            if (useAnsi) printHandler(core::sv(ANSI_BOLD(ANSI_BRIGHT_GREEN("[TRACE]"))));
+            else         printHandler(core::sv("[TRACE]"));
             break;
 
         case LogLevel::SENTINEL: [[fallthrough]];
         default:
-            printHandler("[UNKNOWN]");
+            printHandler(core::sv("[UNKNOWN]"));
             break;
     }
 
     // Print Tag
     if (tagTranslationTableCount > 0) {
-        if (useAnsi) printHandler("%s[%s]%s", ANSI_BOLD_START(), tagTranslationTable[tag], ANSI_RESET());
-        else         printHandler("[%s]", tagTranslationTable[tag]);
+        if (useAnsi) printHandler(core::sv(ANSI_BOLD_START()));
+        printHandler("["_sv);
+        printHandler(core::sv(tagTranslationTable[tag]));
+        printHandler("]"_sv);
+        if (useAnsi) printHandler(core::sv(ANSI_RESET()));
     }
 
     // Print Message
     if (mode == LogSpecialMode::SECTION_TITLE) {
-        const char* separator = useAnsi
-            ? ANSI_BOLD(ANSI_BRIGHT_WHITE("---------------------------------------------------------------------"))
-            : "---------------------------------------------------------------------";
-        printHandler(" _fn_(%s):\n", funcName);
-        printHandler("%s\n", separator);
-        printHandler("%s\n", buffer);
-        printHandler("%s\n", separator);
+        printHandler(" _fn_("_sv);
+        printHandler(core::sv(funcName));
+        printHandler("):\n"_sv);
+        printHandler(core::sv(buffer, addr_size(n)));
+        printHandler("\n"_sv);
+        printHandler(state.getSectionSeparator());
+        printHandler("\n"_sv);
     }
     else {
-        printHandler(" _fn_(%s): %s\n", funcName, buffer);
+        printHandler(" _fn_("_sv);
+        printHandler(core::sv(funcName));
+        printHandler("): "_sv);
+        printHandler(core::sv(buffer, addr_size(n)));
+        printHandler("\n"_sv);
     }
 
     return true;

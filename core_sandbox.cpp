@@ -31,7 +31,11 @@ void assertHandler(const char* failedExpr, const char* file, i32 line, const cha
 i32 main() {
     core::initProgramCtx(assertHandler, nullptr);
 
-    logInfo("Batko {} {}", 1, 3.312);
+    logSectionTitleErrTagged(0, "Batko {} {}", 1, 3.312);
+    logTrace("{}{}{}{}{}{}{}", "nema ", "ko", " d", 'A', ' ', "kaje", 6);
+    core::setLogLevel(core::LogLevel::L_TRACE);
+    logTrace("{}{}{}{}{}{}{}", "nema ", "ko", " d", 'A', ' ', "kaje", 6);
+    core::setLogLevel(core::LogLevel::L_INFO);
 
     return 0;
 }

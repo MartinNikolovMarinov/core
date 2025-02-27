@@ -64,7 +64,7 @@ constexpr u32 intrin_countLeadingZeros(TInt n) {
 #if COMPILER_CLANG == 1 || COMPILER_GCC == 1
     if constexpr (sizeof(TInt) < 4) {
         // Cast to u32 and then subtract the extra zeros (32 - (sizeof(TInt)*8))
-        return u32(__builtin_clz(u32(n))) - (32 - (sizeof(TInt) * 8));
+        return u32(__builtin_clz(u32(n))) - u32(32 - (sizeof(TInt) * 8));
     }
     else if constexpr (sizeof(TInt) == 4) {
         return u32(__builtin_clz(u32(n)));
@@ -75,7 +75,7 @@ constexpr u32 intrin_countLeadingZeros(TInt n) {
 #elif COMPILER_MSVC == 1
     if constexpr (sizeof(TInt) < 4) {
         // Cast to u32 and then subtract the extra zeros (32 - (sizeof(TInt)*8))
-        return u32(__lzcnt(u32(n))) - (32 - (sizeof(TInt) * 8));
+        return u32(__lzcnt(u32(n))) - u32(32 - (sizeof(TInt) * 8));
     }
     else if constexpr (sizeof(TInt) == 4) {
         // TODO2: [PERFORMANCE] Does _BitScanReverse generate better machine code here?

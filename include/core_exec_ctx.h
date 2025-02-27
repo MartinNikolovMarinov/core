@@ -3,7 +3,6 @@
 #include <core_alloc.h>
 #include <core_API.h>
 #include <core_assert.h>
-#include <core_logger.h>
 #include <core_types.h>
 
 #include <new>
@@ -13,6 +12,7 @@ namespace core {
 using namespace coretypes;
 
 struct CORE_API_EXPORT AllocatorContext;
+struct LoggerCreateInfo;
 
 using AllocatorId = u32;
 constexpr AllocatorId DEFAULT_ALLOCATOR_ID = 0;

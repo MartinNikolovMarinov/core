@@ -18,7 +18,8 @@ LoggerState g_state = {
     false,
     {},
     {},
-    0
+    0,
+    3
 };
 LoggerState& getLoggerState() { return g_state; }
 
@@ -35,6 +36,7 @@ LoggerCreateInfo LoggerCreateInfo::createDefault() {
     ret.tagIndicesToIgnore = {};
     ret.print = nullptr;
     ret.useAnsi = true;
+    ret.fallbackMultiplier = 3;
     return ret;
 }
 
@@ -52,8 +54,8 @@ bool initLogger(const LoggerCreateInfo& createInfo) {
     }
 
     if (createInfo.print == nullptr) {
-        state.printHandler = [](const char* message, i32 messageLen) {
-            [[maybe_unused]] i32 ret = printf("%.*s", messageLen, message);
+        state.printHandler = [](StrView message) {
+            [[maybe_unused]] i32 ret = printf("%.*s", i32(message.len()), message.data());
             Assert(ret >= 0, "printf failed"); // printf failed, that should never happen right?
         };
     }
@@ -62,6 +64,7 @@ bool initLogger(const LoggerCreateInfo& createInfo) {
     }
 
     state.useAnsi = createInfo.useAnsi;
+    state.fallbackMultiplier = createInfo.fallbackMultiplier;
 
     return true;
 }

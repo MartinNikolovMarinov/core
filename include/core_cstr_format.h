@@ -5,11 +5,6 @@
 #include <core_str_view.h>
 #include <core_types.h>
 
-// TODO:
-// Things to finish:
-//   0. print for char types!
-//   1. Replace all places where std::snprintf is used. Where it makes sense only.
-
 namespace core {
 
 using namespace coretypes;

@@ -601,6 +601,9 @@ core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, T ptr, Pla
             default:                                    return core::unexpected(FormatError::INVALID_PLACEHOLDER);
         }
     }
+    else if constexpr (std::convertible_to<T, u64>) {
+        return convertInts(out, outLen, T(ptr), options);
+    }
     else {
         return core::unexpected(FormatError::INVALID_ARGUMENTS);
     }

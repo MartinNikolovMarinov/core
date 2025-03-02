@@ -494,6 +494,7 @@ constexpr core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, 
 constexpr core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, u8 value, PlaceHolderOptions& options)  { return convertInts(out, outLen, value, options); }
 
 constexpr core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, const char* value, PlaceHolderOptions& options)   { return convertStrs(out, outLen, value, i32(core::cstrLen(value)), options); }
+constexpr core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, char* value, PlaceHolderOptions& options)         { return convertStrs(out, outLen, value, i32(core::cstrLen(value)), options); }
 constexpr core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, core::StrView value, PlaceHolderOptions& options) { return convertStrs(out, outLen, value.data(), i32(value.len()), options); }
 
 constexpr core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, bool value, PlaceHolderOptions& options) {
@@ -601,8 +602,10 @@ core::expected<i32, FormatError> convertToCStr(char* out, i32 outLen, T ptr, Pla
             default:                                    return core::unexpected(FormatError::INVALID_PLACEHOLDER);
         }
     }
-    else if constexpr (std::convertible_to<T, u64>) {
-        return convertInts(out, outLen, T(ptr), options);
+    else if constexpr (std::is_enum_v<T>) {
+        // If enum was passed, convert it to it's underlying integer type:
+        using UnderlyingInteger = std::underlying_type_t<T>;
+        return convertInts(out, outLen, UnderlyingInteger(ptr), options);
     }
     else {
         return core::unexpected(FormatError::INVALID_ARGUMENTS);

@@ -5,6 +5,7 @@
 #include "core_ansi_escape_codes.h"
 #include "core_API.h"
 #include "core_arr.h"
+#include "core_assert_fmt.h"
 #include "core_assert.h"
 #include "core_bits.h"
 #include "core_cmd_flag_parser.h"

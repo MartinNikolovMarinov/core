@@ -706,6 +706,10 @@ constexpr u64 pow2(u32 i) {
     return 1ULL << i;
 }
 
+constexpr bool ispow2(u32 x) {
+    return (x & (x - 1)) != 0;
+}
+
 #pragma endregion
 
 #pragma region align to power of 2 ------------------------------------------------------------------------------------

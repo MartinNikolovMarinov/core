@@ -7,6 +7,8 @@
 #include <core_traits.h>
 #include <core_types.h>
 
+#include <math/core_math.h>
+
 #include <cstring>
 
 // TODO2: [PERFORMANCE] most functions here could have better performance.
@@ -285,6 +287,12 @@ constexpr void memswap(T* a, T* b, addr_size len) {
 
 constexpr addr_size align(addr_size n) {
     return (n + sizeof(addr_size) - 1) & ~(sizeof(addr_size) - 1);
+}
+
+constexpr addr_size align(addr_size n, u32 alignment) {
+    Assert(alignment > 0, "Alignment must be non-zero");
+    Assert(core::ispow2(alignment), "Alignment must be a power of 2");
+    return (n + alignment - 1) & ~(alignment - 1);
 }
 
 template <typename T>

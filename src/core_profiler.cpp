@@ -55,8 +55,8 @@ inline void logElapsed(addr_size i, u64 totalElapsedTsc, u64 freq, const Profile
     auto& label = a.label;
     u64 hits = a.hitCount;
 
-    core::logDirectStd("%llu. %s\n", i, label);
-    core::logDirectStd("    - Hits       : %llu\n", hits);
+    core::logDirectStd("{}. {}\n", i, label);
+    core::logDirectStd("    - Hits       : {}\n", hits);
 
     // Print Exclusive
     {
@@ -64,7 +64,7 @@ inline void logElapsed(addr_size i, u64 totalElapsedTsc, u64 freq, const Profile
         u64 elapsedNS = u64(core::CORE_SECOND * (f64(tsc) / f64(freq)));
         core::testing::elapsedTimeToStr(buffer, elapsedNS);
         f64 percent = 100.0 * (f64(tsc) / f64(totalElapsedTsc));
-        core::logDirectStd("    - Self Time  : %s (%llu, %.2f%%)\n", buffer, tsc, percent);
+        core::logDirectStd("    - Self Time  : {} ({}, {:f.2})\n", buffer, tsc, percent);
     }
 
     // Print Inclusive
@@ -73,7 +73,7 @@ inline void logElapsed(addr_size i, u64 totalElapsedTsc, u64 freq, const Profile
         u64 elapsedNS = u64(core::CORE_SECOND * (f64(tsc) / f64(freq)));
         core::testing::elapsedTimeToStr(buffer, elapsedNS);
         f64 percent = 100.0 * (f64(tsc) / f64(totalElapsedTsc));
-        core::logDirectStd("    - Total Time : %s (%llu, %.2f%%)\n", buffer, tsc, percent);
+        core::logDirectStd("    - Total Time : {} ({}, {:f.2})\n", buffer, tsc, percent);
     }
 
     // Print Throughput
@@ -81,7 +81,7 @@ inline void logElapsed(addr_size i, u64 totalElapsedTsc, u64 freq, const Profile
         u64 tsc = a.elapsedExclusiveTsc;
         char memBuffer[core::testing::MEMORY_USED_TO_STR_BUFFER_SIZE];
         core::testing::memoryUsedToStr(memBuffer, u64(f64(a.processedBytes) / (f64(tsc) / f64(freq))));
-        core::logDirectStd("    - Throughput : %s/s \n", memBuffer);
+        core::logDirectStd("    - Throughput : {}/s \n", memBuffer);
     }
 };
 
@@ -100,8 +100,8 @@ void logProfileResult(const ProfileResult& result, core::LogLevel logLevel) {
     core::testing::elapsedTimeToStr(totalElapsedStr, totalElapsedNs);
 
     core::logDirectStd("--- CPU Profile Summary ---\n");
-    core::logDirectStd("CPU Frequency : %llu Hz (%.4f GHz)\n", freq, f64(freq) / 1000000000.0);
-    core::logDirectStd("Total         : %s, %llu\n", totalElapsedStr, totalElapsedTsc);
+    core::logDirectStd("CPU Frequency : {} Hz ({:f.4} GHz)\n", freq, f64(freq) / 1000000000.0);
+    core::logDirectStd("Total         : {}, {}\n", totalElapsedStr, totalElapsedTsc);
     core::logDirectStd("\n");
 
     for (addr_size i = 0; i < result.timepoints.len(); i++) {

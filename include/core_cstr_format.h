@@ -98,7 +98,7 @@ struct PlaceHolderOptions {
     };
 
     static constexpr PlaceHolderOptions parse(const char*& fmt) {
-        PlaceHolderOptions options;
+        PlaceHolderOptions options = {};
         options.type = Type::Invalid;
         options.padding = 0;
         options.paddingSymbol = '\0';

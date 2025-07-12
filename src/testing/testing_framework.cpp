@@ -1,7 +1,6 @@
 #include <core_mem.h>
+#include <core_cstr_format.h>
 #include <testing/testing_framework.h>
-
-#include <cstdio>
 
 namespace core::testing {
 
@@ -10,37 +9,42 @@ char* elapsedTimeToStr(char out[ELAPSED_TIME_TO_STR_BUFFER_SIZE], u64 deltaTimeN
 
     core::memset(&out[0], char(0), kBufferSize); // Clear the output buffer
 
-    // TODO2: [Implement a sane snprintf variant]
-    //
-    // Using "unsigned long long" instead of "u64", which is alias to uint64_t, because snprintf complains about the
-    // type. On differnet Operating Systems "uint64_t" might be "unsigned long long" or "unsigned long" and these are
-    // considered different by the static checker for snprintf and produce a false warning.
-
     if (deltaTimeNs >= core::CORE_HOUR) {
         u32 hours = static_cast<u32>(deltaTimeNs / core::CORE_HOUR);
         u32 minutes = static_cast<u32>((deltaTimeNs % core::CORE_HOUR) / core::CORE_MINUTE);
         u32 seconds = static_cast<u32>((deltaTimeNs % core::CORE_MINUTE) / core::CORE_SECOND);
         unsigned long long milliseconds = (deltaTimeNs % core::CORE_SECOND) / core::CORE_MILLISECOND;
-        std::snprintf(&out[0], kBufferSize, "%02uh %02um %02us %llums", hours, minutes, seconds, milliseconds);
+        core::Unpack(core::format(out, kBufferSize,
+                                  "{02:}h {02:}m {02:}s {}ms",
+                                  hours, minutes, seconds, milliseconds));
     }
     else if (deltaTimeNs >= core::CORE_MINUTE) {
         u32 minutes = static_cast<u32>(deltaTimeNs / core::CORE_MINUTE);
         u32 seconds = static_cast<u32>((deltaTimeNs % core::CORE_MINUTE) / core::CORE_SECOND);
         unsigned long long milliseconds = (deltaTimeNs % core::CORE_SECOND) / core::CORE_MILLISECOND;
-        std::snprintf(&out[0], kBufferSize, "%02um %02us %llums", minutes, seconds, milliseconds);
+        core::Unpack(core::format(out, kBufferSize,
+                                  "{02:}m {02:}s {}ms",
+                                  minutes, seconds, milliseconds));
     }
     else if (deltaTimeNs >= core::CORE_SECOND) {
         u32 seconds = static_cast<u32>(deltaTimeNs / core::CORE_SECOND);
         unsigned long long milliseconds = (deltaTimeNs % core::CORE_SECOND) / core::CORE_MILLISECOND;
-        std::snprintf(&out[0], kBufferSize, "%02us %llums", seconds, milliseconds);
+        core::Unpack(core::format(out, kBufferSize,
+                                  "{02:}s {}ms",
+                                  seconds, milliseconds));
     }
     else if (deltaTimeNs >= core::CORE_MILLISECOND) {
         unsigned long long milliseconds = deltaTimeNs / core::CORE_MILLISECOND;
-        std::snprintf(&out[0], kBufferSize, "%llums", milliseconds);
+        unsigned long long nanoseconds = deltaTimeNs % core::CORE_MILLISECOND;
+        core::Unpack(core::format(out, kBufferSize,
+                                  "{}ms {}ns",
+                                  milliseconds, nanoseconds));
     }
     else {
         unsigned long long nanoseconds = deltaTimeNs;
-        std::snprintf(&out[0], kBufferSize, "%lluns", nanoseconds);
+        core::Unpack(core::format(out, kBufferSize,
+                                  "{}ns",
+                                  nanoseconds));
     }
 
     return out;
@@ -53,18 +57,18 @@ char* memoryUsedToStr(char out[MEMORY_USED_TO_STR_BUFFER_SIZE], addr_size deltaM
 
     if (deltaMemory >= 1024 * 1024 * 1024) {
         f64 gb = f64(deltaMemory) / (1024.0 * 1024.0 * 1024.0);
-        snprintf(&out[0], kBufferSize, "%.2f GB", gb);
+        core::Unpack(core::format(out, kBufferSize, "{:f.2} GB", gb));
     }
     else if (deltaMemory >= 1024 * 1024) {
         f64 mb = f64(deltaMemory) / (1024.0 * 1024.0);
-        snprintf(&out[0], kBufferSize, "%.2f MB", mb);
+        core::Unpack(core::format(out, kBufferSize, "{:f.2} MB", mb));
     }
     else if (deltaMemory >= 1024) {
         f64 kb = f64(deltaMemory) / 1024.0;
-        snprintf(&out[0], kBufferSize, "%.2f KB", kb);
+        core::Unpack(core::format(out, kBufferSize, "{:f.2} KB", kb));
     }
     else {
-        snprintf(&out[0], kBufferSize, "%lld B", static_cast<long long int>(deltaMemory));
+        core::Unpack(core::format(out, kBufferSize, "{:f.2} B", deltaMemory));
     }
 
     return out;

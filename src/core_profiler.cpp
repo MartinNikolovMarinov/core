@@ -64,7 +64,7 @@ inline void logElapsed(addr_size i, u64 totalElapsedTsc, u64 freq, const Profile
         u64 elapsedNS = u64(core::CORE_SECOND * (f64(tsc) / f64(freq)));
         core::testing::elapsedTimeToStr(buffer, elapsedNS);
         f64 percent = 100.0 * (f64(tsc) / f64(totalElapsedTsc));
-        core::logDirectStd("    - Self Time  : {} ({}, {:f.2})\n", buffer, tsc, percent);
+        core::logDirectStd("    - Self Time  : {} ({}, {:f.2}%)\n", buffer, tsc, percent);
     }
 
     // Print Inclusive

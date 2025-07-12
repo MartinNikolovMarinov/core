@@ -41,8 +41,17 @@ u64 getPerfCounter() {
 }
 
 u64 getCPUFrequencyHz() {
-#if defined(CPU_ARCH_X86_64) && (CPU_ARCH_X86_64 == 1)
-    // Calibrate the TSC by measuring over a 100ms interval.
+    static u64 frequency = 0;
+    if (frequency > 0) return frequency;
+
+#if defined(CPU_ARCH_ARM64) && (CPU_ARCH_ARM64 == 1)
+    // Use sysctl to query the CPU frequency.
+    size_t size = sizeof(frequency);
+    i32 mib[2] = { CTL_HW, HW_CPU_FREQ };
+    if (sysctl(mib, 2, &frequency, &size, nullptr, 0) == 0)
+        frequency = 1000000000ULL; // Fallback: treat mach_absolute_time() as nanoseconds.
+#elif defined(CPU_ARCH_X86_64) && (CPU_ARCH_X86_64 == 1)
+    // On x86_64, we calibrate the TSC over a fixed sleep interval.
     u64 start = getMonotonicNowNs();
     u64 tscStart = getPerfCounter();
     timespec sleepTime = { 0, 100000000 }; // 100 ms
@@ -55,22 +64,12 @@ u64 getCPUFrequencyHz() {
     u64 tscDiff   = tscEnd - tscStart;
 
     if (elapsedNs == 0) return 0;
-    // Compute frequency in Hz: (tsc ticks * 1e9) / elapsed nanoseconds.
 
-    u64 frequency = (tscDiff * 1000000000ULL) / elapsedNs;
-    return frequency;
-#elif defined(CPU_ARCH_ARM64) && (CPU_ARCH_ARM64 == 1)
-    // Use sysctl to query the CPU frequency.
-    u64 freq = 0;
-    size_t size = sizeof(freq);
-    int mib[2] = { CTL_HW, HW_CPU_FREQ };
-    if (sysctl(mib, 2, &freq, &size, nullptr, 0) == 0)
-        return freq;
-    // Fallback: treat mach_absolute_time() as nanoseconds.
-    return 1000000000ULL;
-#else
-    return 0;
+    // Calculate frequency in Hz: (tscDiff ticks in elapsedNs nanoseconds).
+    frequency = (tscDiff * 1000000000ULL) / elapsedNs;
 #endif
+
+    return frequency;
 }
 
 } // namespace core

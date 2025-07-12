@@ -36,36 +36,32 @@ u64 getPerfCounter() {
 }
 
 u64 getCPUFrequencyHz() {
+    static u64 frequency = 0;
+    if (frequency > 0) return frequency;
+
 #if defined(CPU_ARCH_ARM64) && (CPU_ARCH_ARM64 == 1)
     // On ARM64, the frequency of the virtual counter is available in CNTFRQ_EL0.
-    uint64_t freq;
-    asm volatile("mrs %0, cntfrq_el0" : "=r" (freq));
-    return freq;
+    asm volatile("mrs %0, cntfrq_el0" : "=r" (frequency));
 #elif defined(CPU_ARCH_X86_64) && (CPU_ARCH_X86_64 == 1)
     // On x86_64, we calibrate the TSC over a fixed sleep interval.
-    timespec start, end;
-    if (clock_gettime(CLOCK_MONOTONIC, &start) != 0) {
-         return 0;
-    }
+    u64 start = getMonotonicNowNs();
     u64 tscStart = getPerfCounter();
     timespec sleepTime = { 0, 100000000 }; // 100 ms
+
     nanosleep(&sleepTime, nullptr);
-    if (clock_gettime(CLOCK_MONOTONIC, &end) != 0) {
-         return 0;
-    }
+
+    u64 end = getMonotonicNowNs();
     u64 tscEnd = getPerfCounter();
-    u64 elapsedNs = u64(end.tv_sec - start.tv_sec) * 1000000000ULL +
-                    u64(end.tv_nsec - start.tv_nsec);
+    u64 elapsedNs = end - start;
     u64 tscDiff   = tscEnd - tscStart;
-    if (elapsedNs == 0) {
-         return 0;
-    }
+
+    if (elapsedNs == 0) return 0;
+
     // Calculate frequency in Hz: (tscDiff ticks in elapsedNs nanoseconds).
-    u64 frequency = (tscDiff * 1000000000ULL) / elapsedNs;
-    return frequency;
-#else
-    return 0;
+    frequency = (tscDiff * 1000000000ULL) / elapsedNs;
 #endif
+
+    return frequency;
 }
 
 } // namespace core

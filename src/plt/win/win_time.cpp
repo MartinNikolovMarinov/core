@@ -51,6 +51,9 @@ u64 getPerfCounter() {
 // On x86_64 this function calibrates the TSC by measuring over a fixed 100ms Sleep interval.
 // On Windows ARM, we use QueryPerformanceFrequency as an approximation.
 u64 getCPUFrequencyHz() {
+    static u64 frequency = 0;
+    if (frequency > 0) return frequency;
+
 #if defined(CPU_ARCH_X86_64) && (CPU_ARCH_X86_64 == 1)
     LARGE_INTEGER start, end, perfFreq;
     QueryPerformanceCounter(&start);
@@ -69,16 +72,15 @@ u64 getCPUFrequencyHz() {
     if (elapsedNs == 0) return 0;
 
     // Compute frequency: (tsc ticks * 1e9) / elapsed time in ns.
-    u64 frequency = (tscDiff * 1000000000ULL) / elapsedNs;
-    return frequency;
+    frequency = (tscDiff * 1000000000ULL) / elapsedNs;
 #elif defined(CPU_ARCH_ARM64) && (CPU_ARCH_ARM64 == 1)
     // As a fallback on Windows ARM, use the performance counter frequency.
     LARGE_INTEGER perfFreq;
     QueryPerformanceFrequency(&perfFreq);
-    return u64(perfFreq.QuadPart);
-#else
-    return 0;
+    frequency = u64(perfFreq.QuadPart);
 #endif
+
+    return frequency;
 }
 
 

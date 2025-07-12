@@ -48,7 +48,7 @@ u64 getCPUFrequencyHz() {
     // Use sysctl to query the CPU frequency.
     size_t size = sizeof(frequency);
     i32 mib[2] = { CTL_HW, HW_CPU_FREQ };
-    if (sysctl(mib, 2, &frequency, &size, nullptr, 0) == 0)
+    if (sysctl(mib, 2, &frequency, &size, nullptr, 0) != 0)
         frequency = 1000000000ULL; // Fallback: treat mach_absolute_time() as nanoseconds.
 #elif defined(CPU_ARCH_X86_64) && (CPU_ARCH_X86_64 == 1)
     // On x86_64, we calibrate the TSC over a fixed sleep interval.

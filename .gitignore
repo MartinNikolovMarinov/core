@@ -1,4 +1,7 @@
 build/
+.cache/
+.clangd
+clangd.yaml
 
 .vscode/*
 !.vscode/launch.json

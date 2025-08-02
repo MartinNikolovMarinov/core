@@ -465,20 +465,28 @@ constexpr inline u32 decimalLength17(u64 v) {
 }
 
 constexpr inline core::expected<u32, ConversionError> copySpecialStr(bool sign, bool exponent, bool mantissa, char* out, u32 olen) {
-    if (olen <= u32(sign) + 3) {
-        return core::unexpected(ConversionError::OutputBufferTooSmall);
-    }
-
     if (mantissa) {
+        if (olen <= 3) { // 3 for the size of 'NaN'
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
+        }
         core::memcopy(out, "NaN", 3);
         return 3;
     }
+
     if (sign) {
         out[0] = '-';
     }
+
     if (exponent) {
+        if (olen <= u32(sign) + 3) { // 1 for the sign + 3 for the size of 'inf'
+            return core::unexpected(ConversionError::OutputBufferTooSmall);
+        }
         core::memcopy(out + sign, "inf", 3);
         return u32(sign) + 3;
+    }
+
+    if (olen <= u32(sign) + 1) { // 1 for the sign + 1 for the zero
+        return core::unexpected(ConversionError::OutputBufferTooSmall);
     }
 
     core::memcopy(out + sign, "0", 1);

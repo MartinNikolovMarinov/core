@@ -1,3 +1,5 @@
+#include "core_cstr.h"
+#include "core_cstr_format.h"
 #include "t-index.h"
 
 namespace {
@@ -841,6 +843,19 @@ constexpr i32 floatFormattingTest() {
                 "0 2.56"
             },
             {
+                "{:f.2} {}",
+                {15.123f, 0 },
+                i32(core::cstrLen("15.12 0")),
+                "15.12 0",
+                core::FormatError::OUT_BUFFER_OVERFLOW
+            },
+            {
+                "{:f.2} {}",
+                {15.123f, 0 },
+                i32(core::cstrLen("15.12 0") + 1),
+                "15.12 0"
+            },
+            {
                 "{} {:f.4}",
                 { 0.f, 99999.9999999 },
                 i32(core::cstrLen("0 100000.0000")),
@@ -878,7 +893,7 @@ constexpr i32 floatFormattingTest() {
                 { 0.f, -1.0E-8 },
                 i32(core::cstrLen("0 -0.00") + 1),
                 "0 -0.00"
-            },
+            }
         };
         CT_CHECK(runTestCases(cases) == 0);
     }
@@ -892,13 +907,64 @@ constexpr i32 floatFormattingTest() {
             { "{asd12} {}", { 1.0e+8f, 1.234567 }, 1000, "", core::FormatError::INVALID_PLACEHOLDER },
             { "{} {02:}", { 1.0e+8f, 1.234567 }, 1000, "", core::FormatError::INVALID_PLACEHOLDER },
             { "{} {02:f.2}", { 1.0e+8f, 1.234567 }, 1000, "", core::FormatError::INVALID_PLACEHOLDER },
-
             { "{:f.-2}", { 1.234567f, 1.234567 }, 1000, "", core::FormatError::INVALID_PLACEHOLDER },
             { "{:f.xyz}", { 1.234567f, 1.234567 }, 1000, "", core::FormatError::INVALID_PLACEHOLDER },
-            { "{:f.9999}", { 1.234567f, 1.234567 }, 1000, "", core::FormatError::INVALID_PLACEHOLDER },
+
+            // Placeholders should not allow numbers that are more than 5 digits. Probably..
+            { "{:f.10000}", { 1.234567f, 1.234567 }, 1000, "", core::FormatError::INVALID_PLACEHOLDER },
             { "{:f.99999999}", { 1.234567f, 1.234567 }, 1000, "", core::FormatError::INVALID_PLACEHOLDER },
         };
         CT_CHECK(runTestCases(cases) == 0);
+    }
+
+    // Regression 1 - allowing float parsing.
+    {
+        auto fmtRes = core::format(buff, BUFFER_LEN,  "{:f.2}", 1.234f);
+        const char* expected = "1.23";
+        CT_CHECK(fmtRes.hasValue());
+        CT_CHECK(addr_size(fmtRes.value()) == core::cstrLen(expected));
+        buff[fmtRes.value()] = '\0';
+        CT_CHECK(core::sv(expected).eq(buff));
+    }
+
+    // Regression 2 - 0 at the end of the buffer
+    {
+        {
+            auto fmtRes = core::format(buff, 4,  "21{}",  f64(0));
+            const char* expected = "210";
+            CT_CHECK(fmtRes.hasValue());
+            CT_CHECK(addr_size(fmtRes.value()) == core::cstrLen(expected));
+            buff[fmtRes.value()] = '\0';
+            CT_CHECK(core::sv(expected).eq(buff));
+        }
+        {
+            auto fmtRes = core::format(buff, 4,  "21{}",  f32(0));
+            const char* expected = "210";
+            CT_CHECK(fmtRes.hasValue());
+            CT_CHECK(addr_size(fmtRes.value()) == core::cstrLen(expected));
+            buff[fmtRes.value()] = '\0';
+            CT_CHECK(core::sv(expected).eq(buff));
+        }
+    }
+
+    // Regression 3 - edge case - largest possbile fixed point
+    {
+        char biggerBuff[20000] = {};
+
+        constexpr const char* fmt = "{:f.9999}";
+        constexpr addr_size expectedSize = core::cstrLen("0.") + 9999;
+
+        {
+            auto fmtRes = core::format(biggerBuff, expectedSize, fmt,  f32(0));
+            CT_CHECK(fmtRes.hasErr());
+            CT_CHECK(fmtRes.err() == core::FormatError::OUT_BUFFER_OVERFLOW, "Must leave space for the null terminator");
+        }
+        {
+            auto fmtRes = core::format(biggerBuff, expectedSize + 1, fmt,  f32(0));
+            CT_CHECK(fmtRes.hasValue());
+            biggerBuff[fmtRes.value()] = '\0';
+            CT_CHECK(core::cstrLen(biggerBuff) == expectedSize, "Must have written exactly as much");
+        }
     }
 
     return 0;

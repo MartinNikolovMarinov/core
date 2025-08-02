@@ -338,33 +338,28 @@ constexpr core::expected<i32, FormatError> convertFloats(char* out, i32 outLen, 
         }
 
         case PlaceHolderOptions::Type::FixedFloat: {
-            if constexpr (sizeof(T) < 8) {
-                // Fixed floating point printing is supported only for f64
-                // I can't seem to make static assertion work here. Oh well.
+            if (options.padding > 0) {
+                // Padding is not allowed with fixed precision because the output string could be fairly large and
+                // there is no easy way to
                 return core::unexpected(FormatError::INVALID_PLACEHOLDER);
             }
-            else {
-                if (options.padding > 0) {
-                    // Padding is not allowed with fixed precision because the the output string could be fairly large and
-                    // there is no easy way to
-                    return core::unexpected(FormatError::INVALID_PLACEHOLDER);
-                }
 
-                u32 precision = options.fixedFloat.fixed;
-                auto res = core::floatToFixedCstr(f64(value), precision, out, u32(outLen));
-                if (res.hasErr()) return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
+            // TODO2: [PERFORMANCE] Float32s get promoted to Float64s here. Which is not ideal for performance, but it's fine for now.
 
-                i32 written = i32(res.value());
-                if (written >= outLen) {
-                    // TODO2: [BUG]
-                    // In few cases float to fixed writes to the last byte which should be reserved for the null terminator.
-                    // Technically that is a bug, but it's hard to find and I have not seen it read pass the end of the buffer.
-                    // Valgrind check confirms that. If there is uninitialised memory access I should dig deeper.
-                    return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
-                }
+            u32 precision = options.fixedFloat.fixed;
+            auto res = core::floatToFixedCstr(f64(value), precision, out, u32(outLen));
+            if (res.hasErr()) return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
 
-                return written;
+            i32 written = i32(res.value());
+            if (written >= outLen) {
+                // TODO2: [BUG]
+                // In few cases float to fixed writes to the last byte which should be reserved for the null terminator.
+                // Technically that is a bug, but it's hard to find and I have not seen it read pass the end of the buffer.
+                // Valgrind check confirms that. If there is uninitialised memory access I should dig deeper.
+                return core::unexpected(FormatError::OUT_BUFFER_OVERFLOW);
             }
+
+            return written;
         }
 
         case PlaceHolderOptions::Type::PaddingOnly: [[fallthrough]];

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core_exec_ctx.h"
 #include <core_API.h>
 #include <core_assert.h>
 #include <core_bits.h>
@@ -125,6 +126,66 @@ struct Memory {
     T* ptr;
     size_type length;
 };
+
+/**
+ * \brief
+ * Frees the given memory block using the specified allocator.
+ *
+ * This function deallocates the memory pointed to by `mem.ptr`, using the allocator associated with `allocatorId`.
+ * It then nulls the pointer and resets the length to 0.
+ *
+ * \warning
+ * - The allocator must be the same one used to allocate the memory, or the behavior is VERY undefined.
+ */
+template <typename T>
+void memoryFree(core::Memory<T>&& mem, core::AllocatorId allocatorId) {
+    if (mem.ptr == nullptr || mem.length == 0) return;
+    auto actx = core::getAllocator(allocatorId);
+    actx.free(mem.data(), mem.len(), sizeof(T));
+    mem.ptr = nullptr;
+    mem.length = 0;
+}
+
+/**
+ * \brief
+ * Moves a memory block to a new buffer of size `count` using the given allocator.
+ *
+ * Allocates a new zero-initialized buffer of type `T[count]`, copies the contents from the original block,
+ * and frees the original memory using the same allocator. Leaves `mem` null and empty.
+ *
+ * \param mem         The source memory block (rvalue reference).
+ * \param count       The number of elements to allocate in the new block.
+ * \param allocatorId The allocator to use for the new allocation and for freeing the old one.
+ *
+ * \return A new Memory<T> object owning the newly allocated memory.
+ *
+ * \warning
+ * - `count` must be greater than or equal to `mem.len()`, otherwise this is a logic error.
+ * - The allocator must be the same one used to allocate the memory, or the behavior is VERY undefined.
+ * - Use only with types that are standard layout, trivially copyable, and trivially move assignable.
+ */
+template <typename T>
+[[nodiscard]] Memory<T> memoryMove(core::Memory<T>&& mem, addr_size count, core::AllocatorId allocatorId) {
+    static_assert(std::is_standard_layout_v<T>, "T should be standard layout");
+    static_assert(std::is_trivially_copy_assignable_v<T>, "T should be trivially copy assignable");
+    static_assert(std::is_trivially_move_assignable_v<T>, "T should be trivially move assignable");
+
+    Assert(count >= mem.len(), "Trying to shrink with memoryMove is not advisable!");
+
+    if (count == 0) return mem;
+
+    auto actx = core::getAllocator(allocatorId);
+
+    core::Memory<T> ret;
+    ret.ptr = reinterpret_cast<char*>(actx.zeroAlloc(count, sizeof(T)));
+    ret.length = count;
+
+    core::memcopy(ret.ptr, mem.data(),mem.len());
+
+    memoryFree(std::move(mem), allocatorId);
+
+    return ret;
+}
 
 #pragma region Mem Copy ------------------------------------------------------------------------------------------------
 

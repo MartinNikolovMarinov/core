@@ -1,3 +1,4 @@
+#include "core_logger.h"
 #include <core_profiler.h>
 
 #include <testing/testing_framework.h>
@@ -88,7 +89,7 @@ inline void logElapsed(addr_size i, u64 totalElapsedTsc, u64 freq, const Profile
 } // namespace
 
 void logProfileResult(const ProfileResult& result, core::LogLevel logLevel) {
-    if (logLevel < core::getLogLevel()) {
+    if (logLevel < core::loggerGetLevel()) {
         return;
     }
 

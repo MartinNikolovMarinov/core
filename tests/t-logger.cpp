@@ -1,9 +1,10 @@
+#include "core_logger.h"
 #include "t-index.h"
 
 void devNullLogHandler(core::StrView) {}
 
 i32 testLoggerLevelsTest() {
-    defer { core::setLogLevel(core::LogLevel::L_TRACE); };
+    defer { core::loggerSetLevel(core::LogLevel::L_TRACE); };
 
     struct TestCase {
         core::LogLevel level;
@@ -22,9 +23,9 @@ i32 testLoggerLevelsTest() {
         core::LogLevel level = c.level;
         core::LoggerCreateInfo createInfo = core::LoggerCreateInfo::createDefault();
         createInfo.print = devNullLogHandler;
-        core::setLogLevel(level);
+        core::loggerSetLevel(level);
 
-        CT_CHECK(core::initLogger(createInfo) == true, cErr);
+        CT_CHECK(core::loggerInit(createInfo) == true, cErr);
 
         {
             bool res = logTrace("test");
@@ -70,8 +71,8 @@ i32 testLoggerLevelsTest() {
 }
 
 i32 muteLoggerTest() {
-    core::setLogLevel(core::LogLevel::L_TRACE);
-    defer { core::setLogLevel(core::LogLevel::L_TRACE); };
+    core::loggerSetLevel(core::LogLevel::L_TRACE);
+    defer { core::loggerSetLevel(core::LogLevel::L_TRACE); };
 
     CT_CHECK(logTrace(""));
     CT_CHECK(logDebug(""));
@@ -80,8 +81,8 @@ i32 muteLoggerTest() {
     CT_CHECK(logErr(""));
     CT_CHECK(logFatal(""));
 
-    core::muteLogger(true);
-    defer { core::muteLogger(false); };
+    core::loggerMute(true);
+    defer { core::loggerMute(false); };
 
     CT_CHECK(!logTrace(""));
     CT_CHECK(!logDebug(""));

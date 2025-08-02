@@ -87,8 +87,8 @@ void initProgramCtx(GlobalAssertHandlerFn assertHandler,
                     LoggerCreateInfo* loggerCreateInfo) {
     core::setGlobalAssertHandler(assertHandler);
     g_defaultAllocatorContext = createAllocatorCtx(&g_defaultStdAllocator);
-    if (loggerCreateInfo == nullptr) core::initLogger();
-    else                             core::initLogger(*loggerCreateInfo);
+    if (loggerCreateInfo == nullptr) core::loggerInit();
+    else                             core::loggerInit(*loggerCreateInfo);
 }
 
 void initProgramCtx(GlobalAssertHandlerFn assertHandler,
@@ -103,7 +103,7 @@ void destroyProgramCtx() {
 }
 
 void registerAllocator(AllocatorContext&& ctx, AllocatorId id) {
-    Assert(id - 1 < MAX_REGISTERABLE_ALLOCATORS);
+    Panic(id - 1 < MAX_REGISTERABLE_ALLOCATORS);
     g_registeredAllocators[id - 1] = std::move(ctx);
 }
 
@@ -113,7 +113,7 @@ AllocatorContext& getAllocator(AllocatorId id) {
     // This function may be called at static initialization time, before any custom allocators have been registered,
     // which makes checking `id < g_registeredAllocatorsCount` impossible.
 
-    Assert(id <= MAX_REGISTERABLE_ALLOCATORS);
+    Panic(id <= MAX_REGISTERABLE_ALLOCATORS);
 
     if (id == 0) {
         return g_defaultAllocatorContext;

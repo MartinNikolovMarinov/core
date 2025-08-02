@@ -1,6 +1,9 @@
+#include "core_exec_ctx.h"
+#include "core_types.h"
 #include <core_logger.h>
 
 #include <core_ansi_escape_codes.h>
+#include <core_assert_fmt.h>
 #include <core_mem.h>
 
 #include <stdio.h>
@@ -9,49 +12,44 @@ namespace core {
 
 namespace logdetails {
 
+constexpr LoggerState getDefaultLoggerState() {
+    return {
+        nullptr,
+        true,
+        LogLevel::L_INFO,
+        {},
+        false,
+        {},
+        {},
+        0,
+        0
+    };
+}
+
 // Global State
-LoggerState g_state = {
-    nullptr,
-    true,
-    LogLevel::L_INFO,
-    {},
-    false,
-    {},
-    {},
-    0,
-    3
-};
+LoggerState g_state = getDefaultLoggerState();
 LoggerState& getLoggerState() { return g_state; }
 
 } // logdetails
 
+namespace {
+
+constexpr addr_size LOGGER_INITIAL_MEMORY_SIZE = core::CORE_KILOBYTE * 5;
+
+} // namespace
+
 using namespace logdetails;
 
 LoggerCreateInfo LoggerCreateInfo::createDefault() {
-    constexpr static addr_size BUFFER_SIZE = core::CORE_KILOBYTE * 32;
-    thread_local static char loggingBuffer[BUFFER_SIZE];
-
     LoggerCreateInfo ret;
-    ret.loggerMemory = { loggingBuffer, BUFFER_SIZE };
-    ret.tagIndicesToIgnore = {};
+    ret.allocatorId = 0;
     ret.print = nullptr;
     ret.useAnsi = true;
-    ret.fallbackMultiplier = 3;
     return ret;
 }
 
-bool initLogger(const LoggerCreateInfo& createInfo) {
-    Panic(createInfo.loggerMemory.data() && createInfo.loggerMemory.len() > 0,
-          "Log buffer must be provided to initialize the logging system.");
-
+bool loggerInit(const LoggerCreateInfo& createInfo) {
     auto& state = logdetails::g_state;
-    state.loggerMemory = createInfo.loggerMemory;
-    auto tagIndicesToIgnore = createInfo.tagIndicesToIgnore;
-
-    for (addr_size i = 0; i < tagIndicesToIgnore.len(); ++i) {
-        Panic(tagIndicesToIgnore[i] < i32(MAX_NUMBER_OF_TAGS), "Trying to ignore tag index that is out of range.");
-        state.ignoredTagIndices[addr_size(tagIndicesToIgnore[i])] = true;
-    }
 
     if (createInfo.print == nullptr) {
         state.printHandler = [](StrView message) {
@@ -64,12 +62,26 @@ bool initLogger(const LoggerCreateInfo& createInfo) {
     }
 
     state.useAnsi = createInfo.useAnsi;
-    state.fallbackMultiplier = createInfo.fallbackMultiplier;
+    state.allocatorId = createInfo.allocatorId;
+
+    auto& actx = core::getAllocator(createInfo.allocatorId);
+    void* initialBuffer = actx.alloc(LOGGER_INITIAL_MEMORY_SIZE, sizeof(char));
+    state.loggerMemory = { reinterpret_cast<char*>(initialBuffer), LOGGER_INITIAL_MEMORY_SIZE };
+
+    state.tagTranslationTable[0][0] = 'R'; // mark as reserved.
 
     return true;
 }
 
-bool setLoggerTag(i32 idx, core::StrView tag) {
+void loggerDestroy() {
+    auto& state = logdetails::g_state;
+    core::memoryFree(std::move(state.loggerMemory), state.allocatorId);
+
+    // reset the state:
+    state = getDefaultLoggerState();
+}
+
+bool loggerSetTag(i32 idx, core::StrView tag) {
     auto& state = logdetails::g_state;
 
     Panic(tag.len() < MAX_TAG_LEN, "Tag is too long.");
@@ -82,13 +94,22 @@ bool setLoggerTag(i32 idx, core::StrView tag) {
     return true;
 }
 
-void setLogLevel(LogLevel level) { logdetails::g_state.minimumLogLevel = level; }
+void loggerSetLevel(LogLevel level) { logdetails::g_state.minimumLogLevel = level; }
 
-LogLevel getLogLevel() { return logdetails::g_state.minimumLogLevel; }
+LogLevel loggerGetLevel() { return logdetails::g_state.minimumLogLevel; }
 
-void muteLogger(bool mute) { logdetails::g_state.muted = mute; }
+void loggerMute(bool mute) { logdetails::g_state.muted = mute; }
 
-void useLoggerANSI(bool use) { logdetails::g_state.useAnsi = use; }
+void loggerMuteTag(i32 idx, bool mute) {
+    auto& state = logdetails::g_state;
+
+    auto& tag = state.tagTranslationTable[idx];
+    AssertFmt(tag[0] != '\0', "Tag with idx={} is not set", idx);
+
+    state.ignoredTagIndices[idx] = mute;
+}
+
+void loggerUseANSI(bool use) { logdetails::g_state.useAnsi = use; }
 
 void __debug_logBytes(const void *ptr, addr_size size) {
     const u8* bytePtr = reinterpret_cast<const u8*>(ptr);

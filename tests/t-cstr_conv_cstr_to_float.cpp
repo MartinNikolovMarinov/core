@@ -24,7 +24,7 @@ constexpr bool eqFloats(auto a, auto b, bool eqPossible) {
 constexpr i32 verifyGenericTestCase(const auto& v, const auto& c, const char* cErr) {
     using core::ConversionError;
 
-    if (c.err == ConversionError::None) {
+    if (c.err == ConversionError::NONE) {
         CT_CHECK(v.hasValue(), cErr);
         CT_CHECK(v.value() == c.expected, cErr);
 
@@ -48,7 +48,7 @@ constexpr i32 checkWithOriginal(const auto& v, const auto& c, const char* cErr, 
         if constexpr (std::is_same_v<decltype(value), f32>) {
             f32 expected = 0;
             auto status = ryu::s2f_n(c.input, i32(core::cstrLen(c.input)), &expected);
-            if (c.err ==  ConversionError::None) {
+            if (c.err ==  ConversionError::NONE) {
                 CT_CHECK(status == ryu::Status::SUCCESS, cErr);
                 CT_CHECK(eqFloats(value, expected, eqPossible));
             }
@@ -60,7 +60,7 @@ constexpr i32 checkWithOriginal(const auto& v, const auto& c, const char* cErr, 
 
             f64 expected = 0;
             auto status = ryu::s2d_n(c.input, i32(core::cstrLen(c.input)), &expected);
-            if (c.err ==  ConversionError::None) {
+            if (c.err ==  ConversionError::NONE) {
                 CT_CHECK(status == ryu::Status::SUCCESS, cErr);
                 CT_CHECK(eqFloats(value, expected, eqPossible));
             }
@@ -100,39 +100,39 @@ constexpr i32 exponentNotationTest() {
 
         constexpr TestCase cases[] = {
             // Simple exponentials
-            { "1e1", 10.0f, ConversionError::None },
-            { "1e+1", 10.0f, ConversionError::None },
-            { "1E1", 10.0f, ConversionError::None },
-            { "1e10", 1e10f, ConversionError::None },
-            { "1e+10", 1e10f, ConversionError::None },
-            { "2.5e3", 2500.0f, ConversionError::None },
-            { "3.1415e2", 314.15f, ConversionError::None },
-            { "3.1415E2", 314.15f, ConversionError::None },
-            { "6.022e23", 6.022e23f, ConversionError::None }, // Avogadro's number (approximate)
-            { "123456e-3", 123.456f, ConversionError::None },
-            { "1234.56e-1", 123.456f, ConversionError::None },
+            { "1e1", 10.0f, ConversionError::NONE },
+            { "1e+1", 10.0f, ConversionError::NONE },
+            { "1E1", 10.0f, ConversionError::NONE },
+            { "1e10", 1e10f, ConversionError::NONE },
+            { "1e+10", 1e10f, ConversionError::NONE },
+            { "2.5e3", 2500.0f, ConversionError::NONE },
+            { "3.1415e2", 314.15f, ConversionError::NONE },
+            { "3.1415E2", 314.15f, ConversionError::NONE },
+            { "6.022e23", 6.022e23f, ConversionError::NONE }, // Avogadro's number (approximate)
+            { "123456e-3", 123.456f, ConversionError::NONE },
+            { "1234.56e-1", 123.456f, ConversionError::NONE },
 
             // Negative Exponents
-            { "1e-1", 0.1f, ConversionError::None },
-            { "1E-1", 0.1f, ConversionError::None },
-            { "5e-3", 0.005f, ConversionError::None },
-            { "2.71828e-5", 2.71828e-5f, ConversionError::None },
-            { "1.234e-10", 1.234e-10f, ConversionError::None },
+            { "1e-1", 0.1f, ConversionError::NONE },
+            { "1E-1", 0.1f, ConversionError::NONE },
+            { "5e-3", 0.005f, ConversionError::NONE },
+            { "2.71828e-5", 2.71828e-5f, ConversionError::NONE },
+            { "1.234e-10", 1.234e-10f, ConversionError::NONE },
 
             // Exponent zero
-            { "1e0", 1.0f, ConversionError::None },
-            { "0e0", 0.0f, ConversionError::None },
-            { "1e", 1.0f, ConversionError::None },
-            { "1e+", 1.0f, ConversionError::None },
-            { "1e-", 1.0f, ConversionError::None },
+            { "1e0", 1.0f, ConversionError::NONE },
+            { "0e0", 0.0f, ConversionError::NONE },
+            { "1e", 1.0f, ConversionError::NONE },
+            { "1e+", 1.0f, ConversionError::NONE },
+            { "1e-", 1.0f, ConversionError::NONE },
 
             // Only exponent
-            { ".e10", 0.0f, ConversionError::None },
-            { "e10", 0.0f, ConversionError::None },
+            { ".e10", 0.0f, ConversionError::NONE },
+            { "e10", 0.0f, ConversionError::NONE },
 
             // Exponent with leading zeros
-            { "1e001", 10.0f, ConversionError::None },
-            { "1e-001", 0.1f, ConversionError::None },
+            { "1e001", 10.0f, ConversionError::NONE },
+            { "1e-001", 0.1f, ConversionError::NONE },
 
             // Invalid exponent format
             { "1e1.0", 0.0f, ConversionError::InputHasInvalidSymbol }, // Exponent with decimal
@@ -162,51 +162,51 @@ constexpr i32 exponentNotationTest() {
 
         constexpr TestCase cases[] = {
             // Simple exponentials
-            { "1e1", 10.0, ConversionError::None },
-            { "1e+1", 10.0, ConversionError::None },
-            { "1E1", 10.0, ConversionError::None },
-            { "1e10", 1e10, ConversionError::None },
-            { "1e+10", 1e10, ConversionError::None },
-            { "2.5e3", 2500.0, ConversionError::None },
-            { "3.1415e2", 314.15, ConversionError::None },
-            { "3.1415E2", 314.15, ConversionError::None },
-            { "6.022e23", 6.022e23, ConversionError::None }, // Avogadro's number (approximate)
-            { "123456e-3", 123.456, ConversionError::None },
-            { "1234.56e-1", 123.456, ConversionError::None },
+            { "1e1", 10.0, ConversionError::NONE },
+            { "1e+1", 10.0, ConversionError::NONE },
+            { "1E1", 10.0, ConversionError::NONE },
+            { "1e10", 1e10, ConversionError::NONE },
+            { "1e+10", 1e10, ConversionError::NONE },
+            { "2.5e3", 2500.0, ConversionError::NONE },
+            { "3.1415e2", 314.15, ConversionError::NONE },
+            { "3.1415E2", 314.15, ConversionError::NONE },
+            { "6.022e23", 6.022e23, ConversionError::NONE }, // Avogadro's number (approximate)
+            { "123456e-3", 123.456, ConversionError::NONE },
+            { "1234.56e-1", 123.456, ConversionError::NONE },
 
             // Negative Exponents
-            { "1e-1", 0.1, ConversionError::None },
-            { "1E-1", 0.1, ConversionError::None },
-            { "5e-3", 0.005, ConversionError::None },
-            { "2.71828e-5", 2.71828e-5, ConversionError::None },
-            { "1.234e-10", 1.234e-10, ConversionError::None },
+            { "1e-1", 0.1, ConversionError::NONE },
+            { "1E-1", 0.1, ConversionError::NONE },
+            { "5e-3", 0.005, ConversionError::NONE },
+            { "2.71828e-5", 2.71828e-5, ConversionError::NONE },
+            { "1.234e-10", 1.234e-10, ConversionError::NONE },
 
             // Exponent zero
-            { "1e0", 1.0, ConversionError::None },
-            { "0e0", 0.0, ConversionError::None },
-            { "1e", 1.0, ConversionError::None },
-            { "1e+", 1.0, ConversionError::None },
-            { "1e-", 1.0, ConversionError::None },
+            { "1e0", 1.0, ConversionError::NONE },
+            { "0e0", 0.0, ConversionError::NONE },
+            { "1e", 1.0, ConversionError::NONE },
+            { "1e+", 1.0, ConversionError::NONE },
+            { "1e-", 1.0, ConversionError::NONE },
 
             // Only exponent
-            { "e10", 0.0, ConversionError::None },
-            { ".e10", 0.0, ConversionError::None },
+            { "e10", 0.0, ConversionError::NONE },
+            { ".e10", 0.0, ConversionError::NONE },
 
             // Exponent with leading zeros
-            { "1e001", 10.0, ConversionError::None },
-            { "1e-001", 0.1, ConversionError::None },
+            { "1e001", 10.0, ConversionError::NONE },
+            { "1e-001", 0.1, ConversionError::NONE },
 
             // Large exponents
-            { "1e38", 1e38, ConversionError::None }, // Near float max
-            { "1e-45", 1e-45, ConversionError::None }, // Near float min (denormal)
+            { "1e38", 1e38, ConversionError::NONE }, // Near float max
+            { "1e-45", 1e-45, ConversionError::NONE }, // Near float min (denormal)
 
             // Largest representable value
-            { "1.7976931348623157e308", core::limitMax<f64>(), ConversionError::None },
-            { "-1.7976931348623157e308", -core::limitMax<f64>(), ConversionError::None },
+            { "1.7976931348623157e308", core::limitMax<f64>(), ConversionError::NONE },
+            { "-1.7976931348623157e308", -core::limitMax<f64>(), ConversionError::NONE },
 
             // Smallest representable value
-            { "2.2250738585072014e-308", core::limitMin<f64>(), ConversionError::None },
-            { "-2.2250738585072014e-308", -core::limitMin<f64>(), ConversionError::None },
+            { "2.2250738585072014e-308", core::limitMin<f64>(), ConversionError::NONE },
+            { "-2.2250738585072014e-308", -core::limitMin<f64>(), ConversionError::NONE },
 
             // Invalid exponent format
             { "1e1.0", 0.0, ConversionError::InputHasInvalidSymbol }, // Exponent with decimal
@@ -218,10 +218,10 @@ constexpr i32 exponentNotationTest() {
             { "1e--1", 0.0, ConversionError::InputHasInvalidSymbol }, // Multiple '-' signs
 
             // Edge cases
-            { "1.2999999999999999E+154", 1.2999999999999999E+154, ConversionError::None },
-            { "2.2250738585072012e-308", 2.2250738585072012e-308, ConversionError::None }, // Denormal boundary
-            { "2.2250738585072013e-308", 2.2250738585072013e-308, ConversionError::None }, // Denormal boundary
-            { "2.2250738585072014e-308", 2.2250738585072014e-308, ConversionError::None }, // Denormal boundary
+            { "1.2999999999999999E+154", 1.2999999999999999E+154, ConversionError::NONE },
+            { "2.2250738585072012e-308", 2.2250738585072012e-308, ConversionError::NONE }, // Denormal boundary
+            { "2.2250738585072013e-308", 2.2250738585072013e-308, ConversionError::NONE }, // Denormal boundary
+            { "2.2250738585072014e-308", 2.2250738585072014e-308, ConversionError::NONE }, // Denormal boundary
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for f32 at index: ", cases, [](auto& c, const char* cErr) {
@@ -249,48 +249,48 @@ constexpr i32 normalNotationTest() {
 
         constexpr TestCase cases[] = {
             // Exact Values and Representations
-            { "1.5", 1.5f, ConversionError::None, false },
-            { "0.125", 0.125f, ConversionError::None, false }, // Exact binary fraction
-            { "0.25", 0.25f, ConversionError::None, false },
-            { "0.75", 0.75f, ConversionError::None, false },
+            { "1.5", 1.5f, ConversionError::NONE, false },
+            { "0.125", 0.125f, ConversionError::NONE, false }, // Exact binary fraction
+            { "0.25", 0.25f, ConversionError::NONE, false },
+            { "0.75", 0.75f, ConversionError::NONE, false },
 
             // Variations of zero
-            { "0", 0.0f, ConversionError::None, false },
-            { "0.0", 0.0f, ConversionError::None, false },
-            { "0.0000", 0.0f, ConversionError::None, false },
-            { "-0", -0.0f, ConversionError::None, false },
-            { "-0.0", -0.0f, ConversionError::None, false },
-            { "00000000000000000000000000000", 0.f, ConversionError::None, false },
-            { "0.000000000000000000000000000", 0.f, ConversionError::None, false },
+            { "0", 0.0f, ConversionError::NONE, false },
+            { "0.0", 0.0f, ConversionError::NONE, false },
+            { "0.0000", 0.0f, ConversionError::NONE, false },
+            { "-0", -0.0f, ConversionError::NONE, false },
+            { "-0.0", -0.0f, ConversionError::NONE, false },
+            { "00000000000000000000000000000", 0.f, ConversionError::NONE, false },
+            { "0.000000000000000000000000000", 0.f, ConversionError::NONE, false },
 
             // Arbitrary basic cases
-            { "1", 1.0f, ConversionError::None, false },
-            { "-1", -1.0f, ConversionError::None, false },
-            { "2.0", 2.0f, ConversionError::None, false },
-            { "4.0", 4.0f, ConversionError::None, false },
-            { ".123", 0.123f, ConversionError::None, false },
-            { "123", 123.f, ConversionError::None, false },
+            { "1", 1.0f, ConversionError::NONE, false },
+            { "-1", -1.0f, ConversionError::NONE, false },
+            { "2.0", 2.0f, ConversionError::NONE, false },
+            { "4.0", 4.0f, ConversionError::NONE, false },
+            { ".123", 0.123f, ConversionError::NONE, false },
+            { "123", 123.f, ConversionError::NONE, false },
 
             // Sign variations
-            { "+1.0", 1.0f, ConversionError::None, true },
-            { "+0.0", 0.0f, ConversionError::None, true },
-            { "-123.456", -123.456f, ConversionError::None, false },
+            { "+1.0", 1.0f, ConversionError::NONE, true },
+            { "+0.0", 0.0f, ConversionError::NONE, true },
+            { "-123.456", -123.456f, ConversionError::NONE, false },
 
             // Leading zeroes
-            { "000123.456", 123.456f, ConversionError::None, false },
-            { "0.00000123", 0.00000123f, ConversionError::None, false },
-            { "0000.0000", 0.0f, ConversionError::None, false },
+            { "000123.456", 123.456f, ConversionError::NONE, false },
+            { "0.00000123", 0.00000123f, ConversionError::NONE, false },
+            { "0000.0000", 0.0f, ConversionError::NONE, false },
 
             // Non-Representable Decimal Fractions
-            { "0.1", 0.100000001490116119384765625f, ConversionError::None, false },
-            { "0.2", 0.20000000298023223876953125f, ConversionError::None, false },
-            { "0.3", 0.300000011920928955078125f, ConversionError::None, false },
-            { "0.7", 0.699999988079071044921875f, ConversionError::None, false },
+            { "0.1", 0.100000001490116119384765625f, ConversionError::NONE, false },
+            { "0.2", 0.20000000298023223876953125f, ConversionError::NONE, false },
+            { "0.3", 0.300000011920928955078125f, ConversionError::NONE, false },
+            { "0.7", 0.699999988079071044921875f, ConversionError::NONE, false },
 
             // Trailing zeroes
-            { "26843549.5", 26843550.0f, ConversionError::None, false },
-            { "50000002.5", 50000004.0f, ConversionError::None, false },
-            { "99999989.5", 99999992.0f, ConversionError::None, false },
+            { "26843549.5", 26843550.0f, ConversionError::NONE, false },
+            { "50000002.5", 50000004.0f, ConversionError::NONE, false },
+            { "99999989.5", 99999992.0f, ConversionError::NONE, false },
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for f32 at index: ", cases, [](auto& c, const char* cErr) {
@@ -312,43 +312,43 @@ constexpr i32 normalNotationTest() {
 
         constexpr TestCase cases[] = {
             // Exact Values and Representations
-            { "1.5", 1.5, ConversionError::None, false },
-            { "0.125", 0.125, ConversionError::None, false }, // Exact binary fraction
-            { "0.25", 0.25, ConversionError::None, false },
-            { "0.75", 0.75, ConversionError::None, false },
+            { "1.5", 1.5, ConversionError::NONE, false },
+            { "0.125", 0.125, ConversionError::NONE, false }, // Exact binary fraction
+            { "0.25", 0.25, ConversionError::NONE, false },
+            { "0.75", 0.75, ConversionError::NONE, false },
 
             // Variations of zero
-            { "0", 0.0, ConversionError::None, false },
-            { "0.0", 0.0, ConversionError::None, false },
-            { "0.0000", 0.0, ConversionError::None, false },
-            { "-0", -0.0, ConversionError::None, false },
-            { "-0.0", -0.0, ConversionError::None, false },
-            { "00000000000000000000000000000", 0., ConversionError::None, false },
-            { "0.000000000000000000000000000", 0., ConversionError::None, false },
+            { "0", 0.0, ConversionError::NONE, false },
+            { "0.0", 0.0, ConversionError::NONE, false },
+            { "0.0000", 0.0, ConversionError::NONE, false },
+            { "-0", -0.0, ConversionError::NONE, false },
+            { "-0.0", -0.0, ConversionError::NONE, false },
+            { "00000000000000000000000000000", 0., ConversionError::NONE, false },
+            { "0.000000000000000000000000000", 0., ConversionError::NONE, false },
 
             // Arbitrary basic cases
-            { "1", 1.0, ConversionError::None, false },
-            { "-1", -1.0, ConversionError::None, false },
-            { "2.0", 2.0, ConversionError::None, false },
-            { "4.0", 4.0, ConversionError::None, false },
-            { ".123", 0.123, ConversionError::None, false },
-            { "123", 123., ConversionError::None, false },
+            { "1", 1.0, ConversionError::NONE, false },
+            { "-1", -1.0, ConversionError::NONE, false },
+            { "2.0", 2.0, ConversionError::NONE, false },
+            { "4.0", 4.0, ConversionError::NONE, false },
+            { ".123", 0.123, ConversionError::NONE, false },
+            { "123", 123., ConversionError::NONE, false },
 
             // Sign variations
-            { "+1.0", 1.0, ConversionError::None, true },
-            { "+0.0", 0.0, ConversionError::None, true },
-            { "-123.456", -123.456, ConversionError::None, false },
+            { "+1.0", 1.0, ConversionError::NONE, true },
+            { "+0.0", 0.0, ConversionError::NONE, true },
+            { "-123.456", -123.456, ConversionError::NONE, false },
 
             // Leading zeroes
-            { "000123.456", 123.456, ConversionError::None, false },
-            { "0.00000123", 0.00000123, ConversionError::None, false },
-            { "0000.0000", 0.0, ConversionError::None, false },
+            { "000123.456", 123.456, ConversionError::NONE, false },
+            { "0.00000123", 0.00000123, ConversionError::NONE, false },
+            { "0000.0000", 0.0, ConversionError::NONE, false },
 
             // Non-Representable Decimal Fractions
-            { "0.1", 0.10000000000000001, ConversionError::None, false },
-            { "0.2", 0.20000000000000001, ConversionError::None, false },
-            { "0.3", 0.29999999999999999, ConversionError::None, false },
-            { "0.7", 0.69999999999999996, ConversionError::None, false },
+            { "0.1", 0.10000000000000001, ConversionError::NONE, false },
+            { "0.2", 0.20000000000000001, ConversionError::NONE, false },
+            { "0.3", 0.29999999999999999, ConversionError::NONE, false },
+            { "0.7", 0.69999999999999996, ConversionError::NONE, false },
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for f64 at index: ", cases, [](auto& c, const char* cErr) {
@@ -376,32 +376,32 @@ constexpr i32 specialValuesTest() {
 
         constexpr TestCase cases[] = {
             // Subnormal/Denormalized Numbers
-            { "1e-45", 1.401298e-45f, true, ConversionError::None }, // Smallest positive subnormal float
-            { "-1e-45", -1.401298e-45f, true, ConversionError::None },
-            { "1.4e-45", 1.4e-45f, true, ConversionError::None },
+            { "1e-45", 1.401298e-45f, true, ConversionError::NONE }, // Smallest positive subnormal float
+            { "-1e-45", -1.401298e-45f, true, ConversionError::NONE },
+            { "1.4e-45", 1.4e-45f, true, ConversionError::NONE },
 
             // Largest representable value
-            { "3.4028235e38", core::limitMax<f32>(), true, ConversionError::None },
-            { "-3.4028235e38", -core::limitMax<f32>(), true, ConversionError::None },
+            { "3.4028235e38", core::limitMax<f32>(), true, ConversionError::NONE },
+            { "-3.4028235e38", -core::limitMax<f32>(), true, ConversionError::NONE },
 
             // Smallest representable value
-            { "1.17549435e-38", core::limitMin<f32>(), true, ConversionError::None },
-            { "-1.17549435e-38", -core::limitMin<f32>(), true, ConversionError::None },
+            { "1.17549435e-38", core::limitMin<f32>(), true, ConversionError::NONE },
+            { "-1.17549435e-38", -core::limitMin<f32>(), true, ConversionError::NONE },
 
             // Overflow cases
-            { "1e39", core::infinity<f32>(), false, ConversionError::None },
-            { "-1e39", -core::infinity<f32>(), false, ConversionError::None },
+            { "1e39", core::infinity<f32>(), false, ConversionError::NONE },
+            { "-1e39", -core::infinity<f32>(), false, ConversionError::NONE },
 
             // Underflow to zero
-            { "1e-50", 0.0f, true, ConversionError::None },
-            { "-1e-50", -0.0f, true, ConversionError::None },
+            { "1e-50", 0.0f, true, ConversionError::NONE },
+            { "-1e-50", -0.0f, true, ConversionError::NONE },
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for f32 at index: ", cases, [](auto& c, const char* cErr) {
             auto v = core::cstrToFloat<f32>(c.input, u32(core::cstrLen(c.input)));
             CT_CHECK(checkWithOriginal(v, c, cErr, c.eqPossible) == 0);
 
-            if (c.err == ConversionError::None) {
+            if (c.err == ConversionError::NONE) {
                 CT_CHECK(v.hasValue(), cErr);
                 CT_CHECK(eqFloats(v.value(), c.expected, c.eqPossible) , cErr);
             }
@@ -425,32 +425,32 @@ constexpr i32 specialValuesTest() {
 
         constexpr TestCase cases[] = {
             // Subnormal/Denormalized Numbers
-            { "5e-324", 5e-324, true, ConversionError::None }, // Smallest positive subnormal f64
-            { "-5e-324", -5e-324, true, ConversionError::None },
-            { "5.3e-324", 5.3e-324, true, ConversionError::None },
+            { "5e-324", 5e-324, true, ConversionError::NONE }, // Smallest positive subnormal f64
+            { "-5e-324", -5e-324, true, ConversionError::NONE },
+            { "5.3e-324", 5.3e-324, true, ConversionError::NONE },
 
             // Largest representable value
-            { "1.7976931348623157e308", core::limitMax<f64>(), true, ConversionError::None },
-            { "-1.7976931348623157e308", -core::limitMax<f64>(), true, ConversionError::None },
+            { "1.7976931348623157e308", core::limitMax<f64>(), true, ConversionError::NONE },
+            { "-1.7976931348623157e308", -core::limitMax<f64>(), true, ConversionError::NONE },
 
             // Smallest representable value
-            { "2.2250738585072014e-308", core::limitMin<f64>(), true, ConversionError::None },
-            { "-2.2250738585072014e-308", -core::limitMin<f64>(), true, ConversionError::None },
+            { "2.2250738585072014e-308", core::limitMin<f64>(), true, ConversionError::NONE },
+            { "-2.2250738585072014e-308", -core::limitMin<f64>(), true, ConversionError::NONE },
 
             // Overflow cases
-            { "1e309", core::infinity<f64>(), false, ConversionError::None },
-            { "-1e309", -core::infinity<f64>(), false, ConversionError::None },
+            { "1e309", core::infinity<f64>(), false, ConversionError::NONE },
+            { "-1e309", -core::infinity<f64>(), false, ConversionError::NONE },
 
             // Underflow to zero
-            { "1e-325", 0.0, true, ConversionError::None },
-            { "-1e-325", -0.0, true, ConversionError::None },
+            { "1e-325", 0.0, true, ConversionError::NONE },
+            { "-1e-325", -0.0, true, ConversionError::NONE },
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for f64 at index: ", cases, [](auto& c, const char* cErr) {
             auto v = core::cstrToFloat<f64>(c.input, u32(core::cstrLen(c.input)));
             CT_CHECK(checkWithOriginal(v, c, cErr, c.eqPossible) == 0);
 
-            if (c.err == ConversionError::None) {
+            if (c.err == ConversionError::NONE) {
                 CT_CHECK(v.hasValue(), cErr);
                 CT_CHECK(eqFloats(v.value(), c.expected, c.eqPossible) , cErr);
             }
@@ -479,20 +479,20 @@ constexpr i32 nanAndInfTest() {
 
         constexpr TestCase cases[] = {
             // Infinity cases:
-            { "inf", core::infinity<f32>(), ConversionError::None },
-            { "-inf", -core::infinity<f32>(), ConversionError::None },
-            { "INF", core::infinity<f32>(), ConversionError::None },
-            { "-INF", -core::infinity<f32>(), ConversionError::None },
+            { "inf", core::infinity<f32>(), ConversionError::NONE },
+            { "-inf", -core::infinity<f32>(), ConversionError::NONE },
+            { "INF", core::infinity<f32>(), ConversionError::NONE },
+            { "-INF", -core::infinity<f32>(), ConversionError::NONE },
 
             // None cases:
-            { "nan", core::signalingNaN<f32>(), ConversionError::None },
-            { "NaN", core::signalingNaN<f32>(), ConversionError::None },
-            { "NAN", core::signalingNaN<f32>(), ConversionError::None },
+            { "nan", core::signalingNaN<f32>(), ConversionError::NONE },
+            { "NaN", core::signalingNaN<f32>(), ConversionError::NONE },
+            { "NAN", core::signalingNaN<f32>(), ConversionError::NONE },
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for f32 at index: ", cases, [](auto& c, const char* cErr) {
             auto v = core::cstrToFloat<f32>(c.input, u32(core::cstrLen(c.input)));
-            if (c.err == ConversionError::None) CT_CHECK(v.hasValue(), cErr); // verify error is expected
+            if (c.err == ConversionError::NONE) CT_CHECK(v.hasValue(), cErr); // verify error is expected
             CT_CHECK(verifyNanAndInf(v, c, cErr) == 0);
             return 0;
         });
@@ -508,20 +508,20 @@ constexpr i32 nanAndInfTest() {
 
         constexpr TestCase cases[] = {
             // Infinity cases:
-            { "inf", core::infinity<f64>(), ConversionError::None },
-            { "-inf", -core::infinity<f64>(), ConversionError::None },
-            { "INF", core::infinity<f64>(), ConversionError::None },
-            { "-INF", -core::infinity<f64>(), ConversionError::None },
+            { "inf", core::infinity<f64>(), ConversionError::NONE },
+            { "-inf", -core::infinity<f64>(), ConversionError::NONE },
+            { "INF", core::infinity<f64>(), ConversionError::NONE },
+            { "-INF", -core::infinity<f64>(), ConversionError::NONE },
 
             // None cases:
-            { "nan", core::signalingNaN<f64>(), ConversionError::None },
-            { "NaN", core::signalingNaN<f64>(), ConversionError::None },
-            { "NAN", core::signalingNaN<f64>(), ConversionError::None },
+            { "nan", core::signalingNaN<f64>(), ConversionError::NONE },
+            { "NaN", core::signalingNaN<f64>(), ConversionError::NONE },
+            { "NAN", core::signalingNaN<f64>(), ConversionError::NONE },
         };
 
         i32 ret = core::testing::executeTestTable("test case failed for f64 at index: ", cases, [](auto& c, const char* cErr) {
             auto v = core::cstrToFloat<f64>(c.input, u32(core::cstrLen(c.input)));
-            if (c.err == ConversionError::None) CT_CHECK(v.hasValue(), cErr); // verify error is expected
+            if (c.err == ConversionError::NONE) CT_CHECK(v.hasValue(), cErr); // verify error is expected
             CT_CHECK(verifyNanAndInf(v, c, cErr) == 0);
             return 0;
         });
@@ -680,15 +680,15 @@ constexpr i32 inputCloseToLimitTest() {
             { "9999999999", 0.f, ConversionError::InputNumberTooLarge },
             { "-1234567890", 0.f, ConversionError::InputNumberTooLarge },
 
-            { "0123456789", 123456789.f, ConversionError::None },
-            { "-0123456789", -123456789.f, ConversionError::None },
+            { "0123456789", 123456789.f, ConversionError::NONE },
+            { "-0123456789", -123456789.f, ConversionError::NONE },
             { "1234567890", 0.f, ConversionError::InputNumberTooLarge },
             { "123456789.0", 0.f, ConversionError::InputNumberTooLarge },
             { "12345678.00", 0.f, ConversionError::InputNumberTooLarge },
             { "1234567.000", 0.f, ConversionError::InputNumberTooLarge },
 
             // Mantissa rounding overflow
-            { "0.999999999", 1.0f, ConversionError::None },
+            { "0.999999999", 1.0f, ConversionError::NONE },
 
             // Exponent too large
             { "1e12345", 0.0f, ConversionError::InputNumberTooLarge },
@@ -716,15 +716,15 @@ constexpr i32 inputCloseToLimitTest() {
             { "999999999999999999", 0.0, ConversionError::InputNumberTooLarge },
             { "-123456789012345678", 0.0, ConversionError::InputNumberTooLarge },
 
-            { "012345678912345678", 012345678912345678.0, ConversionError::None },
-            { "-012345678912345678", -012345678912345678.0, ConversionError::None },
+            { "012345678912345678", 012345678912345678.0, ConversionError::NONE },
+            { "-012345678912345678", -012345678912345678.0, ConversionError::NONE },
             { "123456789123456789", 0.0, ConversionError::InputNumberTooLarge },
             { "12345678912345678.0", 0.0, ConversionError::InputNumberTooLarge },
             { "1234567891234567.00", 0.0, ConversionError::InputNumberTooLarge },
             { "123456789123456.000", 0.0, ConversionError::InputNumberTooLarge },
 
             // Mantissa rounding overflow
-            { "0.99999999999999999", 1.0, ConversionError::None },
+            { "0.99999999999999999", 1.0, ConversionError::NONE },
 
             // Exponent too large
             { "1e12345", 0.0, ConversionError::InputNumberTooLarge },

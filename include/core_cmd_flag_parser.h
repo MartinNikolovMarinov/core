@@ -35,7 +35,7 @@ struct CORE_API_EXPORT CmdFlagParser {
     static constexpr u32 MAX_ARG_COUNT = 100;
 
     enum struct ParseError : u8 {
-        None,
+        NONE,
 
         NothingToParse,
         ArgumentListTooLong,
@@ -47,7 +47,7 @@ struct CORE_API_EXPORT CmdFlagParser {
     };
 
     enum struct MatchError : u8 {
-        None,
+        NONE,
 
         NoSymbolsToMatch,
         MissingRequiredFlag,
@@ -59,7 +59,7 @@ struct CORE_API_EXPORT CmdFlagParser {
     };
 
     enum struct ParsedSymbolType : u8 {
-        None,
+        NONE,
 
         ProgramName,
         Argument,
@@ -76,23 +76,23 @@ struct CORE_API_EXPORT CmdFlagParser {
     };
 
     enum struct FlagType {
-        None,
+        NONE,
 
-        Bool,
-        Int32,
-        Int64,
-        Uint32,
-        Uint64,
-        Float32,
-        Float64,
-        String,
+        FT_Bool,
+        FT_Int32,
+        FT_Int64,
+        FT_Uint32,
+        FT_Uint64,
+        FT_Float32,
+        FT_Float64,
+        FT_String,
 
         SENTINEL
     };
 
     struct FlagData {
         StrBuilder<> name;
-        FlagType type = FlagType::None;
+        FlagType type = FlagType::NONE;
         void* data = nullptr;
         bool isSet = false;
         bool isRequired = false;
@@ -271,7 +271,7 @@ struct CORE_API_EXPORT CmdFlagParser {
     core::expected<MatchError> matchFlags() {
         if (m_parsedSymbols.empty()) return core::unexpected(MatchError::NoSymbolsToMatch);
 
-        MatchError err = MatchError::None;
+        MatchError err = MatchError::NONE;
 
         // Reset the flag data:
 
@@ -285,7 +285,7 @@ struct CORE_API_EXPORT CmdFlagParser {
         flags([&, this](core::StrView flag, core::StrView value) -> bool {
             if (auto fd = m_flagData.get(flag); fd) {
                 switch (fd->type) {
-                    case FlagType::Bool:
+                    case FlagType::FT_Bool:
                     {
                         addr_size vLen = value.len();
                         bool v = false;
@@ -311,7 +311,7 @@ struct CORE_API_EXPORT CmdFlagParser {
                         fd->isSet = true;
                         break;
                     }
-                    case FlagType::Int32:
+                    case FlagType::FT_Int32:
                     {
                         auto v = core::cstrToInt<i32>(value.data(), u32(value.len()));
                         if (v.hasErr()) {
@@ -322,7 +322,7 @@ struct CORE_API_EXPORT CmdFlagParser {
                         fd->isSet = true;
                         break;
                     }
-                    case FlagType::Int64:
+                    case FlagType::FT_Int64:
                     {
                         auto v = core::cstrToInt<i64>(value.data(), u32(value.len()));
                         if (v.hasErr()) {
@@ -333,7 +333,7 @@ struct CORE_API_EXPORT CmdFlagParser {
                         fd->isSet = true;
                         break;
                     }
-                    case FlagType::Uint32:
+                    case FlagType::FT_Uint32:
                     {
                         auto v = core::cstrToInt<u32>(value.data(), u32(value.len()));
                         if (v.hasErr()) {
@@ -344,7 +344,7 @@ struct CORE_API_EXPORT CmdFlagParser {
                         fd->isSet = true;
                         break;
                     }
-                    case FlagType::Uint64:
+                    case FlagType::FT_Uint64:
                     {
                         auto v = core::cstrToInt<u64>(value.data(), u32(value.len()));
                         if (v.hasErr()) {
@@ -355,7 +355,7 @@ struct CORE_API_EXPORT CmdFlagParser {
                         fd->isSet = true;
                         break;
                     }
-                    case FlagType::Float32:
+                    case FlagType::FT_Float32:
                     {
                         auto v = core::cstrToFloat<f32>(value.data(), u32(value.len()));
                         if (v.hasErr()) {
@@ -366,7 +366,7 @@ struct CORE_API_EXPORT CmdFlagParser {
                         fd->isSet = true;
                         break;
                     }
-                    case FlagType::Float64:
+                    case FlagType::FT_Float64:
                     {
                         auto v = core::cstrToFloat<f64>(value.data(), u32(value.len()));
                         if (v.hasErr()) {
@@ -377,7 +377,7 @@ struct CORE_API_EXPORT CmdFlagParser {
                         fd->isSet = true;
                         break;
                     }
-                    case FlagType::String:
+                    case FlagType::FT_String:
                     {
                         auto v = reinterpret_cast<StrBuilder<>*>(fd->data);
                         v->clear();
@@ -386,7 +386,7 @@ struct CORE_API_EXPORT CmdFlagParser {
                         break;
                     }
 
-                    case FlagType::None:     [[fallthrough]];
+                    case FlagType::NONE:     [[fallthrough]];
                     case FlagType::SENTINEL: Panic(false, "Implementation bug: invalid flag type");
                 }
             }
@@ -400,7 +400,7 @@ struct CORE_API_EXPORT CmdFlagParser {
             return true;
         });
 
-        if (err != MatchError::None) {
+        if (err != MatchError::NONE) {
             return core::unexpected(err);
         }
 
@@ -421,7 +421,7 @@ struct CORE_API_EXPORT CmdFlagParser {
             return true;
         });
 
-        if (err != MatchError::None) {
+        if (err != MatchError::NONE) {
             return core::unexpected(err);
         }
 
@@ -429,35 +429,35 @@ struct CORE_API_EXPORT CmdFlagParser {
     }
 
     void setFlagString(StrBuilder<>* out, StrView flagName, bool required = false, FlagValidationFn validation = nullptr) {
-        _insertFlag(out, flagName, required, validation, FlagType::String);
+        _insertFlag(out, flagName, required, validation, FlagType::FT_String);
     }
 
     void setFlagBool(bool* out, StrView flagName, bool required = false, FlagValidationFn validation = nullptr) {
-        _insertFlag(out, flagName, required, validation, FlagType::Bool);
+        _insertFlag(out, flagName, required, validation, FlagType::FT_Bool);
     }
 
     void setFlagInt32(i32* out, StrView flagName, bool required = false, FlagValidationFn validation = nullptr) {
-        _insertFlag(out, flagName, required, validation, FlagType::Int32);
+        _insertFlag(out, flagName, required, validation, FlagType::FT_Int32);
     }
 
     void setFlagInt64(i64* out, StrView flagName, bool required = false, FlagValidationFn validation = nullptr) {
-        _insertFlag(out, flagName, required, validation, FlagType::Int64);
+        _insertFlag(out, flagName, required, validation, FlagType::FT_Int64);
     }
 
     void setFlagUint32(u32* out, StrView flagName, bool required = false, FlagValidationFn validation = nullptr) {
-        _insertFlag(out, flagName, required, validation, FlagType::Uint32);
+        _insertFlag(out, flagName, required, validation, FlagType::FT_Uint32);
     }
 
     void setFlagUint64(u64* out, StrView flagName, bool required = false, FlagValidationFn validation = nullptr) {
-        _insertFlag(out, flagName, required, validation, FlagType::Uint64);
+        _insertFlag(out, flagName, required, validation, FlagType::FT_Uint64);
     }
 
     void setFlagFloat32(f32* out, StrView flagName, bool required = false, FlagValidationFn validation = nullptr) {
-        _insertFlag(out, flagName, required, validation, FlagType::Float32);
+        _insertFlag(out, flagName, required, validation, FlagType::FT_Float32);
     }
 
     void setFlagFloat64(f64* out, StrView flagName, bool required = false, FlagValidationFn validation = nullptr) {
-        _insertFlag(out, flagName, required, validation, FlagType::Float64);
+        _insertFlag(out, flagName, required, validation, FlagType::FT_Float64);
     }
 
     void alias(StrView flagName, StrView aliasName) {

@@ -35,7 +35,7 @@ struct CORE_API_EXPORT FileDesc {
 };
 
 enum struct FileType : u8 {
-    None,
+    NONE,
 
     Regular,
     Directory,
@@ -47,7 +47,7 @@ enum struct FileType : u8 {
 
 constexpr const char* fileTypeToCstr(FileType type) {
     switch (type) {
-        case FileType::None:      return "None";
+        case FileType::NONE:      return "None";
         case FileType::Regular:   return "Regular";
         case FileType::Directory: return "Directory";
         case FileType::Symlink:   return "Symlink";

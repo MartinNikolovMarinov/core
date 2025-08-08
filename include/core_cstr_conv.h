@@ -40,7 +40,7 @@ namespace core {
 using namespace coretypes;
 
 enum struct ConversionError : u8 {
-    None,
+    NONE, // NOTE: X11 defined None
     InputEmpty,
     InputHasMultipleDots,
     InputHasInvalidSymbol,
@@ -55,7 +55,7 @@ constexpr const char* conversionErrorToCstr(ConversionError err) {
         case ConversionError::InputHasInvalidSymbol:  return "Input contains an invalid symbol";
         case ConversionError::InputNumberTooLarge:    return "Input number is too large to fit in return type";
         case ConversionError::OutputBufferTooSmall:   return "Output buffer is too small to fit the parsed number";
-        case ConversionError::None: break;
+        case ConversionError::NONE: break;
     }
     return "Unknown";
 }

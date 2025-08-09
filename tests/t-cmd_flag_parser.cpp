@@ -66,8 +66,9 @@ const char* __cmd_flag_test_input_3[] = {
 };
 constexpr addr_size __cmd_flag_test_input_3_len = CORE_C_ARRLEN(__cmd_flag_test_input_3);
 
+template <core::AllocatorId TAllocId>
 i32 cmdFlagParserSymbolParsingTest() {
-    using CmdFlagParser = core::CmdFlagParser;
+    using CmdFlagParser = core::CmdFlagParser<TAllocId>;
     using core::sv;
 
     CmdFlagParser parser;
@@ -195,8 +196,9 @@ i32 cmdFlagParserSymbolParsingTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 cmdFlagParserSymbolParsingLongerTest() {
-    using CmdFlagParser = core::CmdFlagParser;
+    using CmdFlagParser = core::CmdFlagParser<TAllocId>;
     using core::sv;
 
     CmdFlagParser parser;
@@ -316,8 +318,9 @@ i32 cmdFlagParserSymbolParsingLongerTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 cmdFlagParserBasicErrorsTest() {
-    using CmdFlagParser = core::CmdFlagParser;
+    using CmdFlagParser = core::CmdFlagParser<TAllocId>;
 
     CmdFlagParser parser;
 
@@ -395,8 +398,9 @@ i32 cmdFlagParserBasicErrorsTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 cmdFlagParserDoubleParsingTest() {
-    using CmdFlagParser = core::CmdFlagParser;
+    using CmdFlagParser = core::CmdFlagParser<TAllocId>;
 
     CmdFlagParser parser;
 
@@ -416,8 +420,9 @@ i32 cmdFlagParserDoubleParsingTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 cmdFlagParserFriendlyInputMatchingTest() {
-    using CmdFlagParser = core::CmdFlagParser;
+    using CmdFlagParser = core::CmdFlagParser<TAllocId>;
     using core::sv;
 
     CmdFlagParser parser;
@@ -432,7 +437,7 @@ i32 cmdFlagParserFriendlyInputMatchingTest() {
     parser.setFlagUint32(&c, sv("uint32"));
     parser.setFlagUint64(&d, sv("uint64"));
 
-    core::StrBuilder sbArg;
+    core::StrBuilder<TAllocId> sbArg;
     parser.setFlagString(&sbArg, sv("string"));
 
     bool bool_1 = false;
@@ -507,8 +512,9 @@ i32 cmdFlagParserFriendlyInputMatchingTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 cmdFlagParserMatchingEdgecasesTest() {
-    using CmdFlagParser = core::CmdFlagParser;
+    using CmdFlagParser = core::CmdFlagParser<TAllocId>;
     using core::sv;
 
     {
@@ -610,8 +616,9 @@ i32 cmdFlagParserMatchingEdgecasesTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 cmdParserValidationRulesTest() {
-    using CmdFlagParser = core::CmdFlagParser;
+    using CmdFlagParser = core::CmdFlagParser<TAllocId>;
     using core::sv;
 
     CmdFlagParser parser;
@@ -673,8 +680,9 @@ i32 cmdParserValidationRulesTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 cmdParserAliasTest() {
-    using CmdFlagParser = core::CmdFlagParser;
+    using CmdFlagParser = core::CmdFlagParser<TAllocId>;
     using core::sv;
 
     // Basic aliasing:
@@ -700,7 +708,7 @@ i32 cmdParserAliasTest() {
     // Multiple aliases to the same flag:
     {
         CmdFlagParser parser;
-        core::StrBuilder doubleAliased;
+        core::StrBuilder<TAllocId> doubleAliased;
 
         parser.setFlagString(&doubleAliased, core::sv("full_name"));
 
@@ -718,27 +726,47 @@ i32 cmdParserAliasTest() {
     return 0;
 }
 
+template <RegisteredAllocators TAllocId>
+i32 runTests() {
+    using namespace core::testing;
+
+    TestInfo tInfo = createTestInfoFor(TAllocId);
+
+    tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserSymbolParsingTest);
+    if (runTest(tInfo, cmdFlagParserSymbolParsingTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserSymbolParsingLongerTest);
+    if (runTest(tInfo, cmdFlagParserSymbolParsingLongerTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserBasicErrorsTest);
+    if (runTest(tInfo, cmdFlagParserBasicErrorsTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserDoubleParsingTest);
+    if (runTest(tInfo, cmdFlagParserDoubleParsingTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserFriendlyInputMatchingTest);
+    if (runTest(tInfo, cmdFlagParserFriendlyInputMatchingTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserMatchingEdgecasesTest);
+    if (runTest(tInfo, cmdFlagParserMatchingEdgecasesTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cmdParserValidationRulesTest);
+    if (runTest(tInfo, cmdParserValidationRulesTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cmdParserAliasTest);
+    if (runTest(tInfo, cmdParserAliasTest<TAllocId>) != 0) { return -1; }
+
+    return 0;
+}
+
 i32 runCmdParserTestsSuite() {
     using namespace core::testing;
 
-    TestInfo tInfo = createTestInfo();
+    if (runTests<RA_STD_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runTests<RA_STD_STATS_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runTests<RA_THREAD_LOCAL_BUMP_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runTests<RA_THREAD_LOCAL_ARENA_ALLOCATOR_ID>() != 0) { return -1; }
 
-    tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserSymbolParsingTest);
-    if (runTest(tInfo, cmdFlagParserSymbolParsingTest) != 0) { return -1; }
-    tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserSymbolParsingLongerTest);
-    if (runTest(tInfo, cmdFlagParserSymbolParsingLongerTest) != 0) { return -1; }
-    tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserBasicErrorsTest);
-    if (runTest(tInfo, cmdFlagParserBasicErrorsTest) != 0) { return -1; }
-    tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserDoubleParsingTest);
-    if (runTest(tInfo, cmdFlagParserDoubleParsingTest) != 0) { return -1; }
-    tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserFriendlyInputMatchingTest);
-    if (runTest(tInfo, cmdFlagParserFriendlyInputMatchingTest) != 0) { return -1; }
-    tInfo.name = FN_NAME_TO_CPTR(cmdFlagParserMatchingEdgecasesTest);
-    if (runTest(tInfo, cmdFlagParserMatchingEdgecasesTest) != 0) { return -1; }
-    tInfo.name = FN_NAME_TO_CPTR(cmdParserValidationRulesTest);
-    if (runTest(tInfo, cmdParserValidationRulesTest) != 0) { return -1; }
-    tInfo.name = FN_NAME_TO_CPTR(cmdParserAliasTest);
-    if (runTest(tInfo, cmdParserAliasTest) != 0) { return -1; }
+    constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE * 64;
+    char buf[BUFFER_SIZE];
+    setBufferForBumpAllocator(buf, BUFFER_SIZE);
+    if (runTests<RA_BUMP_ALLOCATOR_ID>() != 0) { return -1; }
+
+    setBlockSizeForArenaAllocator(core::CORE_KILOBYTE * 8);
+    if (runTests<RA_ARENA_ALLOCATOR_ID>() != 0) { return -1; }
 
     return 0;
 }

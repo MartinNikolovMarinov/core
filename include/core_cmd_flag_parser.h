@@ -13,23 +13,20 @@
 #include <core_str_view.h>
 #include <core_types.h>
 
-// TODO: The flag parser should probably work with variable allocator types.
-
 namespace core {
 
 using namespace coretypes;
 
-struct CORE_API_EXPORT CmdFlagParser;
-
 template<> addr_size hash<StrView>(const StrView&);
 template<> bool eq<StrView>(const StrView&, const StrView&);
 
+template <AllocatorId TAllocId = DEFAULT_ALLOCATOR_ID>
 struct CORE_API_EXPORT CmdFlagParser {
     struct ParsedSymbol;
     struct FlagData;
 
-    using ParsedSymbols = ArrList<ParsedSymbol>;
-    using FlagDataMap = HashMap<StrView, FlagData>;
+    using ParsedSymbols = ArrList<ParsedSymbol, TAllocId>;
+    using FlagDataMap = HashMap<StrView, FlagData, TAllocId>;
     using FlagValidationFn =  bool (*)(void* val);
 
     static constexpr u32 MAX_ARG_COUNT = 100;
@@ -72,7 +69,7 @@ struct CORE_API_EXPORT CmdFlagParser {
 
     struct ParsedSymbol {
         ParsedSymbolType type;
-        StrBuilder<> value;
+        StrBuilder<TAllocId> value;
     };
 
     enum struct FlagType {
@@ -91,7 +88,7 @@ struct CORE_API_EXPORT CmdFlagParser {
     };
 
     struct FlagData {
-        StrBuilder<> name;
+        StrBuilder<TAllocId> name;
         FlagType type = FlagType::NONE;
         void* data = nullptr;
         bool isSet = false;
@@ -149,7 +146,7 @@ struct CORE_API_EXPORT CmdFlagParser {
             switch (state) {
                 case 0: // in program name
                 {
-                    ParsedSymbol s = { ParsedSymbolType::ProgramName, StrBuilder(core::sv(chunk, trailingIdx)) };
+                    ParsedSymbol s = { ParsedSymbolType::ProgramName, StrBuilder<TAllocId>(core::sv(chunk, trailingIdx)) };
                     m_parsedSymbols.push(std::move(s));
                     state = 1;
                     break;
@@ -158,18 +155,18 @@ struct CORE_API_EXPORT CmdFlagParser {
                 case 1: // in argument list
                 {
                     if (!isFlag && !isOption) {
-                        ParsedSymbol s = { ParsedSymbolType::Argument, StrBuilder(core::sv(chunk, trailingIdx)) };
+                        ParsedSymbol s = { ParsedSymbolType::Argument, StrBuilder<TAllocId>(core::sv(chunk, trailingIdx)) };
                         m_parsedSymbols.push(std::move(s));
                         m_argumentCount++;
                     }
                     else if (isFlag) {
-                        ParsedSymbol s = { ParsedSymbolType::FlagName, StrBuilder(core::sv(chunk, trailingIdx)) };
+                        ParsedSymbol s = { ParsedSymbolType::FlagName, StrBuilder<TAllocId>(core::sv(chunk, trailingIdx)) };
                         m_parsedSymbols.push(std::move(s));
                         isValue = true; // next symbol is a value.
                         state = 2; // end of argument list, found first flag.
                     }
                     else {
-                        ParsedSymbol s = { ParsedSymbolType::OptionName, StrBuilder(core::sv(chunk, trailingIdx)) };
+                        ParsedSymbol s = { ParsedSymbolType::OptionName, StrBuilder<TAllocId>(core::sv(chunk, trailingIdx)) };
                         m_parsedSymbols.push(std::move(s));
                         state = 2; // end of argument list, found first option.
                     }
@@ -180,16 +177,16 @@ struct CORE_API_EXPORT CmdFlagParser {
                 case 2:
                 {
                     if (isFlag) {
-                        ParsedSymbol s = { ParsedSymbolType::FlagName, StrBuilder(core::sv(chunk, trailingIdx)) };
+                        ParsedSymbol s = { ParsedSymbolType::FlagName, StrBuilder<TAllocId>(core::sv(chunk, trailingIdx)) };
                         m_parsedSymbols.push(std::move(s));
                         isValue = true; // next symbol is a value.
                     }
                     else if (isOption && !isValue) {
-                        ParsedSymbol s = { ParsedSymbolType::OptionName, StrBuilder(core::sv(chunk, trailingIdx)) };
+                        ParsedSymbol s = { ParsedSymbolType::OptionName, StrBuilder<TAllocId>(core::sv(chunk, trailingIdx)) };
                         m_parsedSymbols.push(std::move(s));
                     }
                     else if (isValue) {
-                        ParsedSymbol s = { ParsedSymbolType::FlagValue, StrBuilder(core::sv(chunk, trailingIdx)) };
+                        ParsedSymbol s = { ParsedSymbolType::FlagValue, StrBuilder<TAllocId>(core::sv(chunk, trailingIdx)) };
                         m_parsedSymbols.push(std::move(s));
                         isValue = false;
                     }
@@ -379,7 +376,7 @@ struct CORE_API_EXPORT CmdFlagParser {
                     }
                     case FlagType::FT_String:
                     {
-                        auto v = reinterpret_cast<StrBuilder<>*>(fd->data);
+                        auto v = reinterpret_cast<StrBuilder<TAllocId>*>(fd->data);
                         v->clear();
                         v->append(core::sv(value.data()));
                         fd->isSet = true;
@@ -428,7 +425,7 @@ struct CORE_API_EXPORT CmdFlagParser {
         return {};
     }
 
-    void setFlagString(StrBuilder<>* out, StrView flagName, bool required = false, FlagValidationFn validation = nullptr) {
+    void setFlagString(StrBuilder<TAllocId>* out, StrView flagName, bool required = false, FlagValidationFn validation = nullptr) {
         _insertFlag(out, flagName, required, validation, FlagType::FT_String);
     }
 
@@ -464,7 +461,7 @@ struct CORE_API_EXPORT CmdFlagParser {
         FlagData* existing = m_flagData.get(flagName);
         if (existing) {
             FlagData fd;
-            fd.name = StrBuilder(aliasName);
+            fd.name = StrBuilder<TAllocId>(aliasName);
             fd.type = existing->type;
             fd.data = existing->data;
             fd.isSet = existing->isSet;
@@ -488,7 +485,7 @@ private:
         }
 
         FlagData fd;
-        fd.name = core::StrBuilder(flagName);
+        fd.name = core::StrBuilder<TAllocId>(flagName);
         fd.type = type;
         fd.data = out;
         fd.isSet = false;

@@ -39,7 +39,9 @@ CORE_API_EXPORT GlobalAssertHandlerFn getGlobalAssertHandler();
 
 #ifndef Panic
     #if defined(CORE_ASSERT_ENABLED) && CORE_ASSERT_ENABLED
-        #define Panic(...) Assert(__VA_ARGS__)
+        #define Panic(...) C_VFUNC(Panic, __VA_ARGS__)
+        #define Panic1(expr) Assert1(expr)
+        #define Panic2(expr, msg) Assert2(expr, msg)
     #else
         #define Panic(...) C_VFUNC(Panic, __VA_ARGS__)
         #define Panic1(expr) Panic2(expr, "")

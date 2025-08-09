@@ -1,4 +1,5 @@
 #include "t-index.h"
+#include "testing/testing_framework.h"
 
 PRAGMA_WARNING_PUSH
 
@@ -104,6 +105,29 @@ i32 findAlgorithmTest() {
         });
 
         CT_CHECK(ret == 0);
+    }
+
+    return 0;
+}
+
+i32 forAllAlgorithmTest() {
+    {
+        i32 arr[] = {1, 2, 3};
+        bool ok = core::forAll(arr, CORE_C_ARRLEN(arr), [](i32 v, addr_size) { return v > 0; });
+        CT_CHECK(ok);
+        ok = core::forAll(arr, CORE_C_ARRLEN(arr), [](i32 v, addr_size) { return v < 3; });
+        CT_CHECK(!ok);
+    }
+
+    {
+        core::ArrList<i32> arr;
+        arr.push(1);
+        arr.push(2);
+        arr.push(3);
+        bool ok = core::forAll(arr, [](i32 v, addr_size) { return v > 0; });
+        CT_CHECK(ok);
+        ok = core::forAll(arr, [](i32 v, addr_size) { return v > 2; });
+        CT_CHECK(!ok);
     }
 
     return 0;
@@ -229,6 +253,8 @@ i32 runAlgorithmsTestsSuite() {
 
     tInfo.name = FN_NAME_TO_CPTR(findAlgorithmTest);
     if (runTest(tInfo, findAlgorithmTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(forAllAlgorithmTest);
+    if (runTest(tInfo, forAllAlgorithmTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(basicpushUniqueTest);
     if (runTest(tInfo, basicpushUniqueTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(constFindAlgorithmTest);

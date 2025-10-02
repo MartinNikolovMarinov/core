@@ -35,5 +35,9 @@ macro(core_target_set_default_flags
         target_compile_options(${target} PRIVATE ${common_flags} ${release_flags})
     endif()
 
+    # NOTE: This could make the executable bigger, but it's necessary for stacktraces.
+    # Ask CMake to export symbols from the executable (it will add -Wl,--export-dynamic / -rdynamic as appropriate)
+    set_property(TARGET ${target} PROPERTY ENABLE_EXPORTS ON)
+
 endmacro()
 

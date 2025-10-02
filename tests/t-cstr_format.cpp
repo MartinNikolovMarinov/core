@@ -39,7 +39,7 @@ constexpr i32 basicFormatTest() {
     {
         auto res = core::format(buffer, BUFFER_SIZE, "No arguments test");
         CT_CHECK(res.hasValue());
-        CT_CHECK(res.value() == core::cstrLen("No arguments test"));
+        CT_CHECK(addr_size(res.value()) == core::cstrLen("No arguments test"));
         buffer[res.value()] = '\0';
         CT_CHECK(core::memcmp(buffer, core::cstrLen(buffer),
                               "No arguments test", core::cstrLen("No arguments test")) == 0);

@@ -103,7 +103,7 @@ void loggerMute(bool mute) { logdetails::g_state.muted = mute; }
 void loggerMuteTag(i32 idx, bool mute) {
     auto& state = logdetails::g_state;
 
-    auto& tag = state.tagTranslationTable[idx];
+    [[maybe_unused]] auto& tag = state.tagTranslationTable[idx];
     AssertFmt(tag[0] != '\0', "Tag with idx={} is not set", idx);
 
     state.ignoredTagIndices[idx] = mute;

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.5)
 project(core VERSION 0.5.1)
 
 set(target_core core)

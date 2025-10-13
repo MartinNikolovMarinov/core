@@ -12,6 +12,7 @@ using namespace coretypes;
 using GlobalAssertHandlerFn = void (*)(const char* failedExpr, const char* file, i32 line, const char* funcName, const char* errMsg);
 CORE_API_EXPORT void setGlobalAssertHandler(GlobalAssertHandlerFn handler);
 CORE_API_EXPORT GlobalAssertHandlerFn getGlobalAssertHandler();
+CORE_API_EXPORT void forceCrash();
 
 #if defined(CORE_ASSERT_ENABLED) && CORE_ASSERT_ENABLED
     #ifndef Assert
@@ -26,8 +27,7 @@ CORE_API_EXPORT GlobalAssertHandlerFn getGlobalAssertHandler();
                     core::getGlobalAssertHandler()(#expr, __FILE__, __LINE__, __func__, msg); \
                 }                                                                             \
                 else {                                                                        \
-                    volatile i32* __forceCrash = nullptr;                                     \
-                    [[maybe_unused]] i32 __ignored = *__forceCrash;                           \
+                    core::forceCrash();                                                       \
                 }                                                                             \
             }
     #endif
@@ -47,8 +47,7 @@ CORE_API_EXPORT GlobalAssertHandlerFn getGlobalAssertHandler();
         #define Panic1(expr) Panic2(expr, "")
         #define Panic2(expr, msg)                               \
             if (!(expr)) {                                      \
-                volatile i32* __forceCrash = nullptr;           \
-                [[maybe_unused]] i32 __ignored = *__forceCrash; \
+                core::forceCrash();                             \
             }
     #endif
 #endif

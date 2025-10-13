@@ -34,7 +34,8 @@
         _Pragma("GCC diagnostic ignored \"-Wformat=2\"")            \
         _Pragma("GCC diagnostic ignored \"-Wstrict-aliasing\"")     \
         _Pragma("GCC diagnostic ignored \"-Wold-style-cast\"")      \
-        _Pragma("GCC diagnostic ignored \"-Wundef\"")
+        _Pragma("GCC diagnostic ignored \"-Wundef\"")               \
+        _Pragma("GCC diagnostic ignored \"-Wnull-dereference\"")
 #endif
 
 #if defined(COMPILER_CLANG) && COMPILER_CLANG == 1

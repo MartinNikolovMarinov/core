@@ -1,3 +1,6 @@
+#include "core_logger.h"
+#include "core_profiler.h"
+#include "core_types.h"
 #include "tests/t-index.h"
 
 #include <iostream>
@@ -28,16 +31,57 @@ void assertHandler(const char* failedExpr, const char* file, i32 line, const cha
     throw std::runtime_error("Assertion failed!");
 };
 
+i32 exampleWorkload(i32 x) {
+    i32 a = x * 17 + 3;
+    i32 b = a ^ (a >> 2);
+    i32 c = (u32(b) * 2654435761u) & 0x7fffffff;
+    i32 d = (c >> 3) ^ (c << 5);
+    i32 e = (d + a - b) * (x | 1);
+
+    for (i32 i = 0; i < 16; ++i) {
+        e = (e ^ (e << 13)) + (i * 37);
+        e = (e ^ (e >> 7)) * 31;
+        e ^= (e << 11);
+    }
+
+    if (e & 1) {
+        e = (e * 3) ^ (e >> 1);
+    } else {
+        e = (e + 7) ^ (e << 2);
+    }
+
+    return e ^ (e >> 16);
+}
+
+core::Profiler profiler_1;
+
 i32 main() {
     core::initProgramCtx(assertHandler, nullptr);
 
-    logSectionTitleErrTagged(0, "Batko {} {}", 1, 3.312);
-    logTrace("{}{}{}{}{}{}{}", "nema ", "ko", " d", 'A', ' ', "kaje", 6);
-    core::setLogLevel(core::LogLevel::L_TRACE);
-    logTrace("{}{}{}{}{}{}{}", "nema ", "ko", " d", 'A', ' ', "kaje", 6);
-    core::setLogLevel(core::LogLevel::L_INFO);
+    i32 ret = 0;
+    constexpr addr_size N_REPEAT = 10000000;
 
-    return 0;
+    profiler_1.beginProfile();
+
+    {
+        TIME_BLOCK(profiler_1, "Example 1");
+        for (addr_size i = 0; i < N_REPEAT / 2; i++) {
+            ret += exampleWorkload(i32(i));
+        }
+
+        {
+            TIME_BLOCK(profiler_1, "Example 1.2");
+            for (addr_size i = N_REPEAT / 2 - 1; i < N_REPEAT; i++) {
+                ret += exampleWorkload(i32(i));
+            }
+        }
+    }
+
+    auto pRes = profiler_1.endProfile();
+    logInfo("Profiler 1");
+    pRes.logResult(core::LogLevel::L_INFO);
+
+    return ret;
 }
 
 

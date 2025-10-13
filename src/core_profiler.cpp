@@ -5,36 +5,16 @@
 
 namespace core {
 
-namespace {
-
-constexpr addr_size MAX_TIMEPOINTS_COUNT = 4096;
-
-struct Profiler {
-    core::ArrStatic<ProfileTimePoint, MAX_TIMEPOINTS_COUNT> timepoints;
-    u64 start;
-    u64 end;
-};
-
-Profiler g_profiler;
-u32 g_currTimepointIdx;
-
-} // namespace
-
-ProfileTimePoint& getProfileTimePoint(addr_size idx) {
-    Assert(idx <= MAX_TIMEPOINTS_COUNT, "idx out of range");
-    return g_profiler.timepoints[idx];
+void Profiler::beginProfile() {
+    start = core::getPerfCounter();
+    timepoints.replaceWith(ProfileTimePoint{}, MAX_TIMEPOINTS_COUNT); // Clear with zero out
+    currTimepointIdx = 0;
 }
 
-void beginProfile() {
-    g_profiler.start = core::getPerfCounter();
-    g_profiler.timepoints.replaceWith(ProfileTimePoint{}, MAX_TIMEPOINTS_COUNT);
-    g_currTimepointIdx = 0;
-}
+ProfileResult Profiler::endProfile() {
+    end = core::getPerfCounter();
 
-ProfileResult endProfile() {
-    g_profiler.end = core::getPerfCounter();
-
-    u64 totalElapsedTsc = g_profiler.end - g_profiler.start;
+    u64 totalElapsedTsc = end - start;
     u64 freq = core::getCPUFrequencyHz();
     Assert(freq != 0, "Estimated CPU frequency must not be 0");
 
@@ -42,11 +22,16 @@ ProfileResult endProfile() {
     result.cpuFrequencyHz = freq;
     result.totalElapsedTsc = totalElapsedTsc;
     result.totalElapsedNs = u64(core::CORE_SECOND * (f64(totalElapsedTsc) / f64(freq)));
-    result.timepoints = core::Memory<ProfileTimePoint> { g_profiler.timepoints.data(), g_profiler.timepoints.len() };
+    result.timepoints = core::Memory<ProfileTimePoint> { timepoints.data(), timepoints.len() };
 
-    g_currTimepointIdx = 0;
+    currTimepointIdx = 0;
 
     return result;
+}
+
+ProfileTimePoint& Profiler::getTimePoint(addr_size idx) {
+    Assert(idx <= MAX_TIMEPOINTS_COUNT, "idx out of range");
+    return timepoints[idx];
 }
 
 namespace {
@@ -88,37 +73,25 @@ inline void logElapsed(addr_size i, u64 totalElapsedTsc, u64 freq, const Profile
 
 } // namespace
 
-void logProfileResult(const ProfileResult& result, core::LogLevel logLevel) {
+void ProfileResult::logResult(core::LogLevel logLevel) {
     if (logLevel < core::loggerGetLevel()) {
         return;
     }
-
-    u64 freq = result.cpuFrequencyHz;
-    u64 totalElapsedNs = result.totalElapsedNs;
-    u64 totalElapsedTsc = result.totalElapsedTsc;
 
     char totalElapsedStr[core::testing::ELAPSED_TIME_TO_STR_BUFFER_SIZE];
     core::testing::elapsedTimeToStr(totalElapsedStr, totalElapsedNs);
 
     core::logDirectStd("--- CPU Profile Summary ---\n");
-    core::logDirectStd("CPU Frequency : {} Hz ({:f.4} GHz)\n", freq, f64(freq) / 1000000000.0);
+    core::logDirectStd("CPU Frequency : {} Hz ({:f.4} GHz)\n", cpuFrequencyHz, f64(cpuFrequencyHz) / 1000000000.0);
     core::logDirectStd("Total         : {}, {}\n", totalElapsedStr, totalElapsedTsc);
     core::logDirectStd("\n");
 
-    for (addr_size i = 0; i < result.timepoints.len(); i++) {
-        auto& a = result.timepoints[i];
+    for (addr_size i = 0; i < timepoints.len(); i++) {
+        auto& a = timepoints[i];
         if (a.isUsed()) {
-            logElapsed(i, totalElapsedTsc, freq, a);
+            logElapsed(i, totalElapsedTsc, cpuFrequencyHz, a);
         }
     }
-}
-
-void __setGlobalProfileBlock(u32 idx) {
-    g_currTimepointIdx = idx;
-}
-
-u32 __getGlobalProfileBlock() {
-    return g_currTimepointIdx;
 }
 
 } // namespace core

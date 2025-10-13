@@ -3,8 +3,8 @@ project(core VERSION 0.5.1)
 
 set(target_core core)
 set(target_core_upper CORE)
-set(target_test core_test)
-# set(target_test core_sandbox)
+# set(target_test core_test)
+set(target_test core_sandbox)
 
 # Standard Requirements:
 

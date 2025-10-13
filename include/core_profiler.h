@@ -12,7 +12,7 @@ namespace core {
 
 using namespace coretypes;
 
-struct ProfileTimePoint {
+struct CORE_API_EXPORT ProfileTimePoint {
     u64 elapsedExclusiveTsc;
     u64 elapsedInclusiveTsc;
     u64 hitCount;
@@ -21,7 +21,33 @@ struct ProfileTimePoint {
     constexpr bool isUsed() { return hitCount > 0; }
 };
 
-struct ProfileBlock {
+struct CORE_API_EXPORT ProfileResult {
+    core::Memory<ProfileTimePoint> timepoints;
+    u64 cpuFrequencyHz;
+    u64 totalElapsedTsc;
+    u64 totalElapsedNs;
+
+    void logResult(core::LogLevel logLevel);
+};
+
+// The profiler is not thread-safe. It's recomended to create a separate profiler instance for each thread.
+struct CORE_API_EXPORT Profiler {
+    static constexpr addr_size MAX_TIMEPOINTS_COUNT = 4096;
+
+    core::ArrStatic<ProfileTimePoint, MAX_TIMEPOINTS_COUNT> timepoints;
+    u64 start;
+    u64 end;
+    u32 currTimepointIdx;
+    u32 globalBlockIdx;
+
+    constexpr Profiler() : timepoints({}), start(0), end(0), currTimepointIdx(0), globalBlockIdx(0) {}
+
+    void beginProfile();
+    ProfileResult endProfile();
+    ProfileTimePoint& getTimePoint(addr_size idx);
+};
+
+struct CORE_API_EXPORT ProfileBlock {
     char const *label;
     u64 startTsc;
     u64 oldElapsedInclusiveTsc;
@@ -29,39 +55,24 @@ struct ProfileBlock {
     u32 parentBlockIdx;
 };
 
-struct ProfileResult {
-    core::Memory<ProfileTimePoint> timepoints;
-    u64 cpuFrequencyHz;
-    u64 totalElapsedTsc;
-    u64 totalElapsedNs;
-};
-
-ProfileTimePoint& getProfileTimePoint(addr_size idx);
-void beginProfile();
-ProfileResult endProfile();
-void logProfileResult(const ProfileResult& result, core::LogLevel logLevel);
-
-void __setGlobalProfileBlock(u32 idx);
-u32 __getGlobalProfileBlock();
-
-#define TIME_BLOCK2(name, idx, size)                                                                               \
+#define TIME_BLOCK2(name, profiler, idx, size)                                                                     \
     /* Create a unique block variable for this time block */                                                       \
     core::ProfileBlock CORE_NAME_CONCAT(block, __LINE__);                                                          \
     CORE_NAME_CONCAT(block, __LINE__).label = name;                                                                \
     CORE_NAME_CONCAT(block, __LINE__).timepointIdx = idx;                                                          \
     CORE_NAME_CONCAT(block, __LINE__).startTsc = core::getPerfCounter();                                           \
-    CORE_NAME_CONCAT(block, __LINE__).parentBlockIdx = core::__getGlobalProfileBlock();                            \
-    CORE_NAME_CONCAT(block, __LINE__).oldElapsedInclusiveTsc = core::getProfileTimePoint(idx).elapsedInclusiveTsc; \
+    CORE_NAME_CONCAT(block, __LINE__).parentBlockIdx = profiler.globalBlockIdx;                                    \
+    CORE_NAME_CONCAT(block, __LINE__).oldElapsedInclusiveTsc = profiler.getTimePoint(idx).elapsedInclusiveTsc;     \
                                                                                                                    \
     /* Set this block as the current global block */                                                               \
-    core::__setGlobalProfileBlock(idx);                                                                            \
+    profiler.globalBlockIdx = idx;                                                                                 \
                                                                                                                    \
     /* At scope exit, update timings for the current block and its parent */                                       \
     defer {                                                                                                        \
         u64 elapsedTsc = core::getPerfCounter() - CORE_NAME_CONCAT(block, __LINE__).startTsc;                      \
-        core::__setGlobalProfileBlock(CORE_NAME_CONCAT(block, __LINE__).parentBlockIdx);                           \
-        auto& parentBlock = core::getProfileTimePoint(CORE_NAME_CONCAT(block, __LINE__).parentBlockIdx);           \
-        auto& currentBlock = core::getProfileTimePoint(idx);                                                       \
+        profiler.globalBlockIdx = (CORE_NAME_CONCAT(block, __LINE__).parentBlockIdx);                              \
+        auto& parentBlock = profiler.getTimePoint(CORE_NAME_CONCAT(block, __LINE__).parentBlockIdx);               \
+        auto& currentBlock = profiler.getTimePoint(idx);                                                           \
         parentBlock.elapsedExclusiveTsc -= elapsedTsc;                                                             \
         currentBlock.elapsedExclusiveTsc += elapsedTsc;                                                            \
         currentBlock.elapsedInclusiveTsc = CORE_NAME_CONCAT(block, __LINE__).oldElapsedInclusiveTsc + elapsedTsc;  \
@@ -69,8 +80,9 @@ u32 __getGlobalProfileBlock();
         currentBlock.label = name;                                                                                 \
         currentBlock.processedBytes = size;                                                                        \
     }
-#define TIME_BLOCK(name) TIME_BLOCK2(name, __COUNTER__ + 1, 0)
-#define THROUGHPUT_BLOCK(name, size) TIME_BLOCK2(name, __COUNTER__ + 1, size)
-#define TIME_FUNCTION TIME_BLOCK(__func__)
+
+#define TIME_BLOCK(profiler, name) TIME_BLOCK2(name, profiler, __COUNTER__ + 1, 0)
+#define THROUGHPUT_BLOCK(profiler, name, size) TIME_BLOCK2(name, profiler, __COUNTER__ + 1, size)
+#define TIME_FUNCTION(profiler) TIME_BLOCK(profiler, __func__)
 
 } // namespace core

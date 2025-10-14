@@ -9,7 +9,7 @@ name: CMake Windows Build Matrix
 on: [ workflow_dispatch ] # Trigger manually only
 
 env:
-  CMAKE_VERSION: 3.22.1
+  CMAKE_VERSION: 4.1.2
 
 jobs:
   build:
@@ -67,13 +67,13 @@ jobs:
 
         message(STATUS "Using host CMake version: ${CMAKE_VERSION}")
 
-        if("${ { runner.os } }" STREQUAL "Windows")
+        if("${{ runner.os }}" STREQUAL "Windows")
           set(cmake_suffix "win64-x64.zip")
           set(cmake_dir "cmake-${cmake_version}-win64-x64/bin")
-        elseif("${ { runner.os } }" STREQUAL "Linux")
+        elseif("${{ runner.os }}" STREQUAL "Linux")
           set(cmake_suffix "Linux-x86_64.tar.gz")
           set(cmake_dir "cmake-${cmake_version}-Linux-x86_64/bin")
-        elseif("${ { runner.os } }" STREQUAL "macOS")
+        elseif("${{ runner.os }}" STREQUAL "macOS")
           set(cmake_suffix "Darwin-x86_64.tar.gz")
           set(cmake_dir "cmake-${cmake_version}-Darwin-x86_64/CMake.app/Contents/bin")
         endif()
@@ -87,7 +87,7 @@ jobs:
         # message("::set-output name=cmake_dir::${cmake_dir}")
         message("cmake_dir ${cmake_dir} >> $GITHUB_OUTPUT")
 
-        if(NOT "${ { runner.os } }" STREQUAL "Windows")
+        if(NOT "${{ runner.os }}" STREQUAL "Windows")
           execute_process(
             COMMAND chmod +x ${cmake_dir}/cmake
           )

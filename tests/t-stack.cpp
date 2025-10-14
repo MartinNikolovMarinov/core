@@ -65,7 +65,7 @@ i32 stackPushPopTest() {
         {
             auto popped = stack.pop();
             CT_CHECK(popped.a == CT::defaultValue);
-            CT_CHECK(CT::totalCtorsCalled() == 0);
+            CT_CHECK(CT::dtorsCalled() == 0);
         }
 
         CT_CHECK(stack.len() == 1);

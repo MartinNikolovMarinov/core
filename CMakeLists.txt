@@ -288,12 +288,18 @@ if(CORE_BUILD_TESTS)
     if(CORE_CODE_COVERAGE)
         if (CMAKE_COMPILER_IS_GNUCXX)
             include(CodeCoverage)
+
             append_coverage_compiler_flags_to_target(${target_test})
             append_coverage_compiler_flags_to_target(${target_core})
-            setup_target_for_coverage_lcov(
-                NAME ${target_test}_coverage # NOTE: make ${target_test}_coverage to run this
+
+            # Creates a custom command that can be used with the following sequence.
+            # TO RUN:
+            #   make -j ${target_test}
+            #   make -j ${target_test}_coverage
+            setup_target_for_coverage_gcovr_html(
+                NAME ${target_test}_coverage
                 EXECUTABLE ${target_test}
-                DEPENDENCIES ${target_core}
+                DEPENDENCIES ${target_core} ${target_test}
             )
         else()
             log_warning("Code coverage is not supported for ${CMAKE_CXX_COMPILER_ID} compiler.")

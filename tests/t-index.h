@@ -93,6 +93,7 @@ void setBlockSizeForArenaAllocator(addr_size size);
 
 i32 runAlgorithmsTestsSuite();
 i32 runArrTestsSuite();
+i32 runStackTestsSuite();
 i32 runBitsTestsSuite();
 i32 runCmdParserTestsSuite();
 i32 runCstrConvTestsSuite();

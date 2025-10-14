@@ -223,6 +223,7 @@ if(CORE_BUILD_TESTS)
 
         tests/t-algorithms.cpp
         tests/t-arr.cpp
+        tests/t-stack.cpp
         tests/t-bits.cpp
         tests/t-cmd_flag_parser.cpp
         tests/t-cstr_conv_cstr_to_float.cpp
@@ -292,7 +293,7 @@ if(CORE_BUILD_TESTS)
             setup_target_for_coverage_lcov(
                 NAME ${target_test}_coverage # NOTE: make ${target_test}_coverage to run this
                 EXECUTABLE ${target_test}
-                DEPENDENCIES ${target_test}
+                DEPENDENCIES ${target_core}
             )
         else()
             log_warning("Code coverage is not supported for ${CMAKE_CXX_COMPILER_ID} compiler.")

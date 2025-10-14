@@ -11,6 +11,8 @@
 
 #include <testing/testing_framework.h>
 
+// TODO: I probably need to test this file.
+
 namespace core {
 
 void Profiler::beginProfile() {
@@ -57,10 +59,10 @@ inline void logElapsed(addr_size i, u64 totalElapsedTsc, u64 freq, const Profile
         f64 percent = 100.0 * (f64(tsc) / f64(totalElapsedTsc));
 
         core::logDirectStd("{}{}. {} - {:f.2}%\n", nestPadding, i, label, percent);
-        core::logDirectStd("{}    - Id         : {}\n", nestPadding, a.id);
-        core::logDirectStd("{}    - Parent Id  : {}\n", nestPadding, a.parentId);
-        core::logDirectStd("{}    - Hits       : {}\n", nestPadding, hits);
-        core::logDirectStd("{}    - Self Time  : {} ({}, {:f.2}%)\n", nestPadding, buffer, tsc, percent);
+        core::logDirectStd("{}    - Id               : {}\n", nestPadding, a.id);
+        core::logDirectStd("{}    - Parent Id        : {}\n", nestPadding, a.parentId);
+        core::logDirectStd("{}    - Hits             : {}\n", nestPadding, hits);
+        core::logDirectStd("{}    - Self Time        : {} ({}, {:f.2}%)\n", nestPadding, buffer, tsc, percent);
     }
 
     // Print Inclusive
@@ -69,15 +71,23 @@ inline void logElapsed(addr_size i, u64 totalElapsedTsc, u64 freq, const Profile
         u64 elapsedNS = u64(core::CORE_SECOND * (f64(tsc) / f64(freq)));
         core::testing::elapsedTimeToStr(buffer, elapsedNS);
         f64 percent = 100.0 * (f64(tsc) / f64(totalElapsedTsc));
-        core::logDirectStd("{}    - Total Time : {} ({}, {:f.2}%)\n", nestPadding, buffer, tsc, percent);
+        core::logDirectStd("{}    - Total Time       : {} ({}, {:f.2}%)\n", nestPadding, buffer, tsc, percent);
     }
 
-    // Print Throughput
+    // Print Throughput Exclusive
     if (a.processedBytes > 0) {
         u64 tsc = a.elapsedExclusiveTsc;
         char memBuffer[core::testing::MEMORY_USED_TO_STR_BUFFER_SIZE];
         core::testing::memoryUsedToStr(memBuffer, u64(f64(a.processedBytes) / (f64(tsc) / f64(freq))));
-        core::logDirectStd("{}    - Throughput : {}/s \n", nestPadding, memBuffer);
+        core::logDirectStd("{}    - Self Throughput  : {}/s \n", nestPadding, memBuffer);
+    }
+
+    // Print Throughput Inclusive
+    if (a.processedBytes > 0 && a.elapsedExclusiveTsc != a.elapsedInclusiveTsc) {
+        u64 tsc = a.elapsedInclusiveTsc;
+        char memBuffer[core::testing::MEMORY_USED_TO_STR_BUFFER_SIZE];
+        core::testing::memoryUsedToStr(memBuffer, u64(f64(a.processedBytes) / (f64(tsc) / f64(freq))));
+        core::logDirectStd("{}    - Total Throughput  : {}/s \n", nestPadding, memBuffer);
     }
 };
 

@@ -7,8 +7,6 @@
 
 namespace core {
 
-// TODO: The stack ca utilize core::memset
-
 template <typename T, AllocatorId TAllocId = DEFAULT_ALLOCATOR_ID> struct Stack;
 template <typename T, addr_size N>                                 struct StackStatic;
 

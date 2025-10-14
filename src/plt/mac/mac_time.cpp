@@ -45,11 +45,9 @@ u64 getCPUFrequencyHz() {
     if (frequency > 0) return frequency;
 
 #if defined(CPU_ARCH_ARM64) && (CPU_ARCH_ARM64 == 1)
-    // Use sysctl to query the CPU frequency.
-    size_t size = sizeof(frequency);
-    i32 mib[2] = { CTL_HW, HW_CPU_FREQ };
-    if (sysctl(mib, 2, &frequency, &size, nullptr, 0) != 0)
-        frequency = 1000000000ULL; // Fallback: treat mach_absolute_time() as nanoseconds.
+    // NOTE: There is no way to actually do this on modern macOS. So just assume 1 Hz for compatibility. 
+    //       This will be handled by the getPerformanceCounter
+    return 1000000000ULL;
 #elif defined(CPU_ARCH_X86_64) && (CPU_ARCH_X86_64 == 1)
     // On x86_64, we calibrate the TSC over a fixed sleep interval.
     u64 start = getMonotonicNowNs();

@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.5)
 project(core VERSION 0.5.1)
 
+# TODO: [SANITIZERS] Add an address sanitizer build and a thread sanitizer build. These have found incredibly nasty bugs that I would not have noticed ever.
+
 set(target_core core)
 set(target_core_upper CORE)
-set(target_test core_test)
-# set(target_test core_sandbox)
+# set(target_test core_test)
+set(target_test core_sandbox)
 
 # Standard Requirements:
 

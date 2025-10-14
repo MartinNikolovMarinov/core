@@ -68,7 +68,7 @@ i32 main() {
     core::initProgramCtx(assertHandler, nullptr);
 
     i32 ret = 0;
-    constexpr addr_size N_REPEAT = 100000;
+    constexpr addr_size N_REPEAT = 10000000;
 
     profiler_1.beginProfile();
 

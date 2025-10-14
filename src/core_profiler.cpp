@@ -47,7 +47,7 @@ ProfileTimePoint& Profiler::getTimePoint(addr_size idx) {
 namespace {
 
 inline void logElapsed(addr_size i, u64 totalElapsedTsc, u64 freq, const ProfileTimePoint& a, const char* nestPadding) {
-    char buffer[255];
+    char buffer[256];
     auto& label = a.label;
 
     // Print Exclusive

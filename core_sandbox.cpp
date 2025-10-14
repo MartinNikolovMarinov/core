@@ -1,6 +1,3 @@
-#include "core_logger.h"
-#include "core_profiler.h"
-#include "core_types.h"
 #include "tests/t-index.h"
 
 #include <iostream>
@@ -55,26 +52,52 @@ i32 exampleWorkload(i32 x) {
 
 core::Profiler profiler_1;
 
+enum ProfilePoints {
+    PP_RESERVED,
+
+    PP_G,
+
+    PP_Example1,
+    PP_Example1_2,
+    PP_Example1_3,
+    PP_Example1_4,
+    PP_Example2,
+};
+
 i32 main() {
     core::initProgramCtx(assertHandler, nullptr);
 
     i32 ret = 0;
-    constexpr addr_size N_REPEAT = 10000000;
+    constexpr addr_size N_REPEAT = 100000;
 
     profiler_1.beginProfile();
 
     {
-        TIME_BLOCK(profiler_1, "Example 1");
-        for (addr_size i = 0; i < N_REPEAT / 2; i++) {
-            ret += exampleWorkload(i32(i));
+        TIME_BLOCK(profiler_1, PP_G, "G");
+
+        {
+            TIME_BLOCK(profiler_1, PP_Example1, "Example 1");
+            for (addr_size i = 0; i < N_REPEAT; i++) {
+                TIME_BLOCK(profiler_1, PP_Example1_4, "Example 1.4");
+                ret += exampleWorkload(i32(i));
+            }
+
+            {
+                TIME_BLOCK(profiler_1, PP_Example1_2, "Example 1.2");
+                for (addr_size i = N_REPEAT / 2 - 1; i < N_REPEAT; i++) {
+                    TIME_BLOCK(profiler_1, PP_Example1_3, "Example 1.3");
+                    ret += exampleWorkload(i32(i));
+                }
+            }
         }
 
         {
-            TIME_BLOCK(profiler_1, "Example 1.2");
-            for (addr_size i = N_REPEAT / 2 - 1; i < N_REPEAT; i++) {
+            TIME_BLOCK(profiler_1, PP_Example2, "Example 2");
+            for (addr_size i = 0; i < N_REPEAT; i++) {
                 ret += exampleWorkload(i32(i));
             }
         }
+
     }
 
     auto pRes = profiler_1.endProfile();

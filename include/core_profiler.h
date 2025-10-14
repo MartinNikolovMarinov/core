@@ -13,6 +13,8 @@ namespace core {
 using namespace coretypes;
 
 struct CORE_API_EXPORT ProfileTimePoint {
+    u32 id;
+    u32 parentId;
     u64 elapsedExclusiveTsc;
     u64 elapsedInclusiveTsc;
     u64 hitCount;
@@ -30,7 +32,7 @@ struct CORE_API_EXPORT ProfileResult {
     void logResult(core::LogLevel logLevel);
 };
 
-// The profiler is not thread-safe. It's recomended to create a separate profiler instance for each thread.
+// The profiler is not thread-safe. It's recommended to create a separate profiler instance for each thread.
 struct CORE_API_EXPORT Profiler {
     static constexpr addr_size MAX_TIMEPOINTS_COUNT = 4096;
 
@@ -48,18 +50,14 @@ struct CORE_API_EXPORT Profiler {
 };
 
 struct CORE_API_EXPORT ProfileBlock {
-    char const *label;
     u64 startTsc;
     u64 oldElapsedInclusiveTsc;
-    u32 timepointIdx;
     u32 parentBlockIdx;
 };
 
 #define TIME_BLOCK2(name, profiler, idx, size)                                                                     \
     /* Create a unique block variable for this time block */                                                       \
     core::ProfileBlock CORE_NAME_CONCAT(block, __LINE__);                                                          \
-    CORE_NAME_CONCAT(block, __LINE__).label = name;                                                                \
-    CORE_NAME_CONCAT(block, __LINE__).timepointIdx = idx;                                                          \
     CORE_NAME_CONCAT(block, __LINE__).startTsc = core::getPerfCounter();                                           \
     CORE_NAME_CONCAT(block, __LINE__).parentBlockIdx = profiler.globalBlockIdx;                                    \
     CORE_NAME_CONCAT(block, __LINE__).oldElapsedInclusiveTsc = profiler.getTimePoint(idx).elapsedInclusiveTsc;     \
@@ -71,18 +69,33 @@ struct CORE_API_EXPORT ProfileBlock {
     defer {                                                                                                        \
         u64 elapsedTsc = core::getPerfCounter() - CORE_NAME_CONCAT(block, __LINE__).startTsc;                      \
         profiler.globalBlockIdx = (CORE_NAME_CONCAT(block, __LINE__).parentBlockIdx);                              \
-        auto& parentBlock = profiler.getTimePoint(CORE_NAME_CONCAT(block, __LINE__).parentBlockIdx);               \
-        auto& currentBlock = profiler.getTimePoint(idx);                                                           \
-        parentBlock.elapsedExclusiveTsc -= elapsedTsc;                                                             \
-        currentBlock.elapsedExclusiveTsc += elapsedTsc;                                                            \
-        currentBlock.elapsedInclusiveTsc = CORE_NAME_CONCAT(block, __LINE__).oldElapsedInclusiveTsc + elapsedTsc;  \
-        currentBlock.hitCount++;                                                                                   \
-        currentBlock.label = name;                                                                                 \
-        currentBlock.processedBytes = size;                                                                        \
+        auto& parentTimePoint = profiler.getTimePoint(CORE_NAME_CONCAT(block, __LINE__).parentBlockIdx);           \
+        auto& currTimePoint = profiler.getTimePoint(idx);                                                          \
+        parentTimePoint.elapsedExclusiveTsc -= elapsedTsc;                                                         \
+        currTimePoint.elapsedExclusiveTsc += elapsedTsc;                                                           \
+        currTimePoint.elapsedInclusiveTsc = CORE_NAME_CONCAT(block, __LINE__).oldElapsedInclusiveTsc + elapsedTsc; \
+        currTimePoint.hitCount++;                                                                                  \
+        currTimePoint.label = name;                                                                                \
+        currTimePoint.processedBytes += size;                                                                      \
+        currTimePoint.id = idx;                                                                                    \
+        currTimePoint.parentId = profiler.globalBlockIdx;                                                          \
     }
 
-#define TIME_BLOCK(profiler, name) TIME_BLOCK2(name, profiler, __COUNTER__ + 1, 0)
-#define THROUGHPUT_BLOCK(profiler, name, size) TIME_BLOCK2(name, profiler, __COUNTER__ + 1, size)
-#define TIME_FUNCTION(profiler) TIME_BLOCK(profiler, __func__)
+
+/**
+ * @brief Creates a profiling block which measures elapsed time and/or data throughput inside a block scope.
+ *
+ * @param profilder - the profiler object which will keep all the necessary state.
+ * @param timepointId - the UNIQUE identifier which is used to track timepoints in a caller hierarchy.
+ *                      IMPORTANT: Behaviour is undefined if more than one time block uses the same identifier.
+ *                      The Id of 0 is reserved, DO NOT USE IT.
+ * @param label - the label which is associated with the time block MUST be a compiletime const char pointer.
+ * @param size - the throughput that will pass through this block.
+ *
+ * @return An error code if the thread could not be started.
+*/
+#define TIME_BLOCK(profiler, timepointId, label) TIME_BLOCK2(label, profiler, timepointId, 0)
+#define THROUGHPUT_BLOCK(profiler, timepointId, label, size) TIME_BLOCK2(label, profiler, timepointId, size)
+#define TIME_FUNCTION(profiler, timepointId) TIME_BLOCK(profiler, timepointId, __func__)
 
 } // namespace core

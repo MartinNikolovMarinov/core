@@ -10,8 +10,6 @@
 
 namespace core {
 
-using namespace coretypes;
-
 template <typename T, AllocatorId TAllocId = DEFAULT_ALLOCATOR_ID> struct ArrList;
 template <typename T, addr_size N>                                 struct ArrStatic;
 

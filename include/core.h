@@ -25,6 +25,7 @@
 #include "core_mem.h"
 #include "core_profiler.h"
 #include "core_rnd.h"
+#include "core_stack.h"
 #include "core_str_builder.h"
 #include "core_str_view.h"
 #include "core_system_checks.h"

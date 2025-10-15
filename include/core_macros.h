@@ -22,8 +22,8 @@ using namespace coretypes;
 // Zero cost defer:
 #ifndef defer
     struct CORE_API_EXPORT deferDummy {};
-    template <typename F> struct deferrer { F f; ~deferrer() { f(); } };
-    template <typename F> deferrer<F> operator*(core::deferDummy, F f) { return {f}; }
+    template <typename F> struct deferrer { F f; constexpr ~deferrer() { f(); } };
+    template <typename F> constexpr deferrer<F> operator*(core::deferDummy, F f) { return {f}; }
     #define DEFER_(LINE) zz_defer##LINE
     #define DEFER(LINE) DEFER_(LINE)
     #define defer auto DEFER(__LINE__) = core::deferDummy{} *[&]()

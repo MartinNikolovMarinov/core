@@ -6,13 +6,20 @@
 
 namespace core {
 
+namespace {
+
+const addr_size PAGE_SIZE = getPageSize();
+
+} // namespace
+
+
 expected<void*, PltErrCode> allocPages(addr_size count) {
      // flags - memory is private copy-on-write and is not backed by a file, i.e. anonymous
     i32 flags = ( MAP_PRIVATE | MAP_ANONYMOUS );
     // port - memory is mapped for reading and for writing.
     i32 prot = ( PROT_READ | PROT_WRITE );
 
-    void* addr = mmap(nullptr, count, prot, flags, 0, 0);
+    void* addr = mmap(nullptr, count * PAGE_SIZE, prot, flags, 0, 0);
     if (addr == MAP_FAILED || addr == nullptr) {
         return core::unexpected(PltErrCode(errno));
     }
@@ -25,7 +32,7 @@ expected<PltErrCode> freePages(void* addr, addr_size count) {
         return core::unexpected(PltErrCode(EINVAL));
     }
 
-    i32 err = munmap(addr, count);
+    i32 err = munmap(addr, count * PAGE_SIZE);
     if (err != 0) {
         return core::unexpected(PltErrCode(errno));
     }

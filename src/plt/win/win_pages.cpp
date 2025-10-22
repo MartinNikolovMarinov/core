@@ -4,8 +4,14 @@
 
 namespace core {
 
+namespace {
+
+const addr_size PAGE_SIZE = getPageSize();
+
+} // namespace
+
 expected<void*, PltErrCode> allocPages(size_t count) {
-    void* addr = VirtualAlloc(nullptr, count, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    void* addr = VirtualAlloc(nullptr, count * PAGE_SIZE, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
     if (addr == nullptr) {
         return core::unexpected(PltErrCode(GetLastError()));
     }

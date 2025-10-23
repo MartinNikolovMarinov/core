@@ -55,30 +55,30 @@ struct CORE_API_EXPORT ProfileBlock {
     u32 parentBlockIdx;
 };
 
-#define TIME_BLOCK2(name, profiler, idx, size)                                                                     \
-    /* Create a unique block variable for this time block */                                                       \
-    core::ProfileBlock CORE_NAME_CONCAT(block, __LINE__);                                                          \
-    CORE_NAME_CONCAT(block, __LINE__).startTsc = core::getPerfCounter();                                           \
-    CORE_NAME_CONCAT(block, __LINE__).parentBlockIdx = profiler.globalBlockIdx;                                    \
-    CORE_NAME_CONCAT(block, __LINE__).oldElapsedInclusiveTsc = profiler.getTimePoint(idx).elapsedInclusiveTsc;     \
-                                                                                                                   \
-    /* Set this block as the current global block */                                                               \
-    profiler.globalBlockIdx = idx;                                                                                 \
-                                                                                                                   \
-    /* At scope exit, update timings for the current block and its parent */                                       \
-    defer {                                                                                                        \
-        u64 elapsedTsc = core::getPerfCounter() - CORE_NAME_CONCAT(block, __LINE__).startTsc;                      \
-        profiler.globalBlockIdx = (CORE_NAME_CONCAT(block, __LINE__).parentBlockIdx);                              \
-        auto& parentTimePoint = profiler.getTimePoint(CORE_NAME_CONCAT(block, __LINE__).parentBlockIdx);           \
-        auto& currTimePoint = profiler.getTimePoint(idx);                                                          \
-        parentTimePoint.elapsedExclusiveTsc -= elapsedTsc;                                                         \
-        currTimePoint.elapsedExclusiveTsc += elapsedTsc;                                                           \
-        currTimePoint.elapsedInclusiveTsc = CORE_NAME_CONCAT(block, __LINE__).oldElapsedInclusiveTsc + elapsedTsc; \
-        currTimePoint.hitCount++;                                                                                  \
-        currTimePoint.label = name;                                                                                \
-        currTimePoint.processedBytes += size;                                                                      \
-        currTimePoint.id = idx;                                                                                    \
-        currTimePoint.parentId = profiler.globalBlockIdx;                                                          \
+#define TIME_BLOCK2(name, profiler, idx, size)                                                                       \
+    /* Create a unique block variable for this time block */                                                         \
+    core::ProfileBlock CORE_NAME_CONCAT(block, __LINE__);                                                            \
+    CORE_NAME_CONCAT(block, __LINE__).startTsc = core::getPerfCounter();                                             \
+    CORE_NAME_CONCAT(block, __LINE__).parentBlockIdx = (profiler).globalBlockIdx;                                    \
+    CORE_NAME_CONCAT(block, __LINE__).oldElapsedInclusiveTsc = (profiler).getTimePoint(idx).elapsedInclusiveTsc;     \
+                                                                                                                     \
+    /* Set this block as the current global block */                                                                 \
+    (profiler).globalBlockIdx = idx;                                                                                 \
+                                                                                                                     \
+    /* At scope exit, update timings for the current block and its parent */                                         \
+    defer {                                                                                                          \
+        u64 elapsedTsc = core::getPerfCounter() - CORE_NAME_CONCAT(block, __LINE__).startTsc;                        \
+        (profiler).globalBlockIdx = (CORE_NAME_CONCAT(block, __LINE__).parentBlockIdx);                              \
+        auto& parentTimePoint = (profiler).getTimePoint(CORE_NAME_CONCAT(block, __LINE__).parentBlockIdx);           \
+        auto& currTimePoint = (profiler).getTimePoint(idx);                                                          \
+        parentTimePoint.elapsedExclusiveTsc -= elapsedTsc;                                                           \
+        currTimePoint.elapsedExclusiveTsc += elapsedTsc;                                                             \
+        currTimePoint.elapsedInclusiveTsc = CORE_NAME_CONCAT(block, __LINE__).oldElapsedInclusiveTsc + elapsedTsc;   \
+        currTimePoint.hitCount++;                                                                                    \
+        currTimePoint.label = name;                                                                                  \
+        currTimePoint.processedBytes += size;                                                                        \
+        currTimePoint.id = idx;                                                                                      \
+        currTimePoint.parentId = (profiler).globalBlockIdx;                                                          \
     }
 
 

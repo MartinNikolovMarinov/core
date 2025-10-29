@@ -12,7 +12,7 @@ i32 sbIsUninitialized(const core::StrBuilder<TAllocId>& sb) {
     CT_CHECK(sb.view().len() == 0);
     CT_CHECK(sb.view().data() == nullptr);
     return 0;
-};
+}
 
 template <core::AllocatorId TAllocId>
 i32 initializeStrBuilderTest() {
@@ -378,7 +378,7 @@ i32 runTests() {
     if (runTest(tInfo, ensureCapStrBuilderTest<TAllocId>) != 0) { return -1; }
 
     return 0;
-};
+}
 
 } // namespace
 

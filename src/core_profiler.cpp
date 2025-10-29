@@ -89,7 +89,7 @@ inline void logElapsed(addr_size i, u64 totalElapsedTsc, u64 freq, const Profile
         core::testing::memoryUsedToStr(memBuffer, u64(f64(a.processedBytes) / (f64(tsc) / f64(freq))));
         core::logDirectStd("{}    - Total Throughput  : {}/s \n", nestPadding, memBuffer);
     }
-};
+}
 
 } // namespace
 

@@ -673,7 +673,7 @@ i32 runTests() {
     if (runTest(tInfo, chainBrakeBugTest<TAllocId>) != 0) { return -1; }
 
     return 0;
-};
+}
 
 }
 

@@ -275,7 +275,7 @@ inline DirEntry toDirEntry(const dirent& d) {
     return de;
 }
 
-};
+}
 
 core::expected<PltErrCode> dirWalk(const char* path, DirWalkCallback cb, void* userData) {
     if (path == nullptr || cb == nullptr) {

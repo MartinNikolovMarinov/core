@@ -26,7 +26,7 @@ void assertHandler(const char* failedExpr, const char* file, i32 line, const cha
     }
 
     throw std::runtime_error("Assertion failed!");
-};
+}
 
 static core::StdStatsAllocator g_stdStatsAllocator;
 static core::BumpAllocator g_bumpAllocator;

@@ -200,7 +200,7 @@ i32 runTests() {
     if (runTest(tInfo, swapUniquePtrTest<TAllocId>) != 0) { return -1; }
 
     return 0;
-};
+}
 
 } // namespace
 

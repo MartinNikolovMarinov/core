@@ -85,7 +85,7 @@ constexpr i32 digitToCharTest() {
     });
 
     return ret;
-};
+}
 
 constexpr i32 charToDigitTest() {
     struct TestCase {
@@ -290,7 +290,7 @@ constexpr i32 cstrSkipWhiteSpaceTest() {
     });
 
     return ret;
-};
+}
 
 i32 runCstrTestsSuite() {
     using namespace core::testing;

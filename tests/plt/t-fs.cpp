@@ -258,7 +258,7 @@ i32 tryOpenFileWithMostCommonModeCombinations(const char* path) {
     }
 
     return 0;
-};
+}
 
 bool createTestDirecotry() {
     TestPathBuilder pb;

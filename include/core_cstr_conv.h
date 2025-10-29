@@ -149,7 +149,7 @@ constexpr core::expected<u32, ConversionError> intToCstr(TInt n, char* out, addr
                 isSmallestInteger = true;
             }
             else [[likely]] {
-                n = -n;
+                n = TInt(-n);
             }
         }
     }
@@ -259,7 +259,7 @@ constexpr core::expected<TInt, ConversionError> cstrToInt(const char* s, u32 sle
     }
 
     if constexpr (core::is_signed_v<TInt>) {
-        if (neg) res = -res;
+        if (neg) res = TInt(-res);
     }
 
     return res;

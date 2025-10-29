@@ -25,7 +25,7 @@ constexpr u32 digitCount(u32 n) {
     };
 
     // b: Compute floor(log2(n)) by subtracting the number of leading zeros from 31.
-    u32 b = -(n > 0) & (31 - intrin_countLeadingZeros(n));
+    u32 b = -u32(n > 0) & (31 - intrin_countLeadingZeros(n));
 
     // a: Multiply b by 77 and divide by 256 to approximate floor(log10(n)). 77/256 is approximately ln(2)/ln(10) ≈
     // 0.301, which scales the binary exponent to an approximate decimal digit count.
@@ -55,7 +55,7 @@ constexpr u32 digitCount(u64 n) {
     };
 
     // b: Compute floor(log2(n)) by subtracting the number of leading zeros from 63.
-    u32 b = -(n > 0) & (63 - intrin_countLeadingZeros(n));
+    u32 b = -u32(n > 0) & (63 - intrin_countLeadingZeros(n));
 
     // a: Multiply b by 77 and divide by 256 to approximate floor(log10(n)). 77/256 is approximately ln(2)/ln(10) ≈
     // 0.301, which scales the binary exponent to an approximate decimal digit count.

@@ -89,6 +89,7 @@ bool loggerSetTag(i32 idx, core::StrView tag) {
     Panic(state.tagTranslationTable[idx][0] == '\0', "Tag index is already taken.");
 
     core::memcopy(state.tagTranslationTable[idx], tag.data(), tag.len());
+    state.tagTranslationTable[idx][tag.len()] = '\0';
     state.tagTranslationTableCount++;
 
     return true;
@@ -98,16 +99,26 @@ void loggerSetLevel(LogLevel level) { logdetails::g_state.minimumLogLevel = leve
 
 LogLevel loggerGetLevel() { return logdetails::g_state.minimumLogLevel; }
 
-void loggerMute(bool mute) { logdetails::g_state.muted = mute; }
-
-void loggerMuteTag(i32 idx, bool mute) {
+void loggerSetLevel(LogLevel level, i32 tagIdx) {
     auto& state = logdetails::g_state;
 
-    [[maybe_unused]] auto& tag = state.tagTranslationTable[idx];
-    AssertFmt(tag[0] != '\0', "Tag with idx={} is not set", idx);
+    Panic(tagIdx < i32(MAX_NUMBER_OF_TAGS), "Provided Tag index is out of range.");
+    Panic(state.tagTranslationTable[tagIdx][0] != '\0', "Tag is not set.");
 
-    state.ignoredTagIndices[idx] = mute;
+    state.logLevelPerTag[tagIdx] = level;
 }
+
+LogLevel loggerGetLevel(i32 tagIdx) {
+    auto& state = logdetails::g_state;
+
+    Panic(tagIdx < i32(MAX_NUMBER_OF_TAGS), "Provided Tag index is out of range.");
+    Panic(state.tagTranslationTable[tagIdx][0] != '\0', "Tag is not set.");
+
+    LogLevel logLevel = state.logLevelPerTag[tagIdx];
+    return logLevel;
+}
+
+void loggerMute(bool mute) { logdetails::g_state.muted = mute; }
 
 void loggerUseANSI(bool use) { logdetails::g_state.useAnsi = use; }
 

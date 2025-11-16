@@ -23,6 +23,7 @@ using FreeFn                 = void (*)(void* allocatorData, void *ptr, addr_siz
 using ClearFn                = void (*)(void* allocatorData);
 using TotalMemoryAllocatedFn = addr_size (*)(void* allocatorData);
 using InUseMemoryFn          = addr_size (*)(void* allocatorData);
+using AllocatorNameFn        = const char* (*)(void* allocatorData);
 
 struct CORE_API_EXPORT AllocatorContext {
     AllocateFn allocFn;
@@ -31,6 +32,7 @@ struct CORE_API_EXPORT AllocatorContext {
     ClearFn clearFn;
     TotalMemoryAllocatedFn totalMemoryAllocatedFn;
     InUseMemoryFn inUseMemoryFn;
+    AllocatorNameFn nameFn;
     void* allocatorData;
 
     AllocatorContext(void* allocatorData = nullptr);
@@ -40,6 +42,8 @@ struct CORE_API_EXPORT AllocatorContext {
 
     AllocatorContext& operator=(const AllocatorContext& other) = default;
     AllocatorContext& operator=(AllocatorContext&& other);
+
+    const char* name();
 
     void* alloc(addr_size count, addr_size size);
     void* zeroAlloc(addr_size count, addr_size size);
@@ -60,6 +64,10 @@ AllocatorContext createAllocatorCtx(TAllocator* allocator) {
     core::AllocatorContext ctx;
 
     ctx.allocatorData = allocator;
+    ctx.nameFn = [](void* allocatorData) -> const char* {
+        auto& a = *reinterpret_cast<TAllocator*>(allocatorData);
+        return a.name();
+    };
     ctx.allocFn = [](void* allocatorData, core::addr_size count, core::addr_size size) -> void* {
         auto& a = *reinterpret_cast<TAllocator*>(allocatorData);
         return a.alloc(count, size);
@@ -94,7 +102,7 @@ CORE_API_EXPORT void initProgramCtx(GlobalAssertHandlerFn assertHandler,
                                     LoggerCreateInfo* loggerCreateInfo,
                                     AllocatorContext&& actx);
 
-CORE_API_EXPORT void destroyProgramCtx();
+CORE_API_EXPORT void destroyProgramCtx(bool panicOnLeaks = true);
 
 CORE_API_EXPORT void registerAllocator(AllocatorContext&& ctx, AllocatorId id);
 CORE_API_EXPORT AllocatorContext& getAllocator(AllocatorId id);

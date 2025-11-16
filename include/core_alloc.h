@@ -25,6 +25,7 @@ concept AllocatorConcept = requires(T a) {
     { a.free(std::declval<void*>(), std::declval<addr_size>(), std::declval<addr_size>()) };
     { a.totalMemoryAllocated() } -> core::same_as<addr_size>;
     { a.inUseMemory() } -> core::same_as<addr_size>;
+    { a.name() } -> core::same_as<const char*>;
 };
 
 struct CORE_API_EXPORT StdAllocator;
@@ -41,6 +42,8 @@ struct CORE_API_EXPORT StdAllocator {
 
     StdAllocator();
     StdAllocator(StdAllocator&&) = default;
+
+    constexpr const char* name() { return "STD_ALLOCATOR"; }
 
     void* alloc(addr_size count, addr_size size);
     void* calloc(addr_size count, addr_size size);
@@ -61,6 +64,8 @@ struct StdStatsAllocator {
 
     CORE_API_EXPORT StdStatsAllocator();
     CORE_API_EXPORT StdStatsAllocator(StdStatsAllocator&& other);
+
+    constexpr const char* name() { return "STD_STATS_ALLOCATOR"; }
 
     CORE_API_EXPORT void* alloc(addr_size count, addr_size size);
     CORE_API_EXPORT void* calloc(addr_size count, addr_size size);
@@ -87,6 +92,8 @@ struct CORE_API_EXPORT BumpAllocator {
     BumpAllocator(void* data, addr_size cap);
     BumpAllocator(BumpAllocator&& other);
 
+    constexpr const char* name() { return "BUMP_ALLOCATOR"; }
+
     void setBuffer(void* data, addr_size cap);
 
     void* alloc(addr_size count, addr_size size);
@@ -112,6 +119,8 @@ struct CORE_API_EXPORT ThreadLocalBumpAllocator {
 
     NO_COPY(ThreadLocalBumpAllocator);
     NO_MOVE(ThreadLocalBumpAllocator);
+
+    constexpr const char* name() { return "THREAD_LOCAL_BUMP_ALLOCATOR"; }
 
     static ThreadLocalBumpAllocator create(void* data, addr_size cap); // calling this twice in the same thread will panic
 
@@ -148,6 +157,8 @@ struct CORE_API_EXPORT StdArenaAllocator {
     explicit StdArenaAllocator(addr_size blockSize);
     StdArenaAllocator(StdArenaAllocator&& other);
 
+    constexpr const char* name() { return "ARENA_ALLOCATOR"; }
+
     /**
      * @note Setting the block size will force a clear operation.
     */
@@ -180,6 +191,8 @@ struct CORE_API_EXPORT ThreadLocalStdArenaAllocator {
     NO_MOVE(ThreadLocalStdArenaAllocator);
 
     static ThreadLocalStdArenaAllocator create(addr_size blockSize);
+
+    constexpr const char* name() { return "THREAD_LOCAL_ARENA_ALLOCATOR"; }
 
     /**
      * @note Changing the block size will clear the allocator.

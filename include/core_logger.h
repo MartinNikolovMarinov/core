@@ -19,6 +19,7 @@ enum struct LogLevel : u8 {
     L_WARNING,
     L_ERROR,
     L_FATAL,
+    L_MUTE,
 
     SENTINEL
 };
@@ -50,7 +51,7 @@ struct LoggerState {
     PrintFunction      printHandler;
     bool               useAnsi;
     LogLevel           minimumLogLevel;
-    bool               ignoredTagIndices[MAX_NUMBER_OF_TAGS];
+    LogLevel           logLevelPerTag[MAX_NUMBER_OF_TAGS];
     bool               muted;
     core::Memory<char> loggerMemory;
     char               tagTranslationTable[MAX_NUMBER_OF_TAGS][MAX_TAG_LEN]; // NOTE: idx=0 is reserved.
@@ -68,14 +69,15 @@ CORE_API_EXPORT LoggerState& getLoggerState();
 
 } // namespace logdetails
 
-CORE_API_EXPORT bool     loggerInit(const LoggerCreateInfo& createInfo = LoggerCreateInfo::createDefault());
-CORE_API_EXPORT void     loggerDestroy();
-CORE_API_EXPORT bool     loggerSetTag(i32 idx, core::StrView tag);
-CORE_API_EXPORT void     loggerSetLevel(LogLevel level);
-CORE_API_EXPORT LogLevel loggerGetLevel();
-CORE_API_EXPORT void     loggerMute(bool mute);
-CORE_API_EXPORT void     loggerMuteTag(i32 idx, bool mute);
-CORE_API_EXPORT void     loggerUseANSI(bool use);
+[[nodiscard]] CORE_API_EXPORT bool     loggerInit(const LoggerCreateInfo& createInfo = LoggerCreateInfo::createDefault());
+              CORE_API_EXPORT void     loggerDestroy();
+[[nodiscard]] CORE_API_EXPORT bool     loggerSetTag(i32 idx, core::StrView tag);
+              CORE_API_EXPORT void     loggerSetLevel(LogLevel level);
+              CORE_API_EXPORT void     loggerSetLevel(LogLevel level, i32 tagIdx);
+              CORE_API_EXPORT LogLevel loggerGetLevel();
+              CORE_API_EXPORT LogLevel loggerGetLevel(i32 tagIdx);
+              CORE_API_EXPORT void     loggerMute(bool mute);
+              CORE_API_EXPORT void     loggerUseANSI(bool use);
 
 #define logTrace(format, ...) __log(0, core::LogLevel::L_TRACE,   core::LogSpecialMode::NONE, __func__, format, ##__VA_ARGS__)
 #define logDebug(format, ...) __log(0, core::LogLevel::L_DEBUG,   core::LogSpecialMode::NONE, __func__, format, ##__VA_ARGS__)
@@ -102,7 +104,7 @@ CORE_API_EXPORT void __debug_logBytes(const void *ptr, addr_size size);
 
 template <typename ...Args>
 bool logDirectStd(const char* fmt, Args... args) {
-    logdetails::LoggerState state = logdetails::getLoggerState();
+    logdetails::LoggerState& state = logdetails::getLoggerState();
 
     if (state.muted) return false;
 
@@ -134,13 +136,13 @@ bool logDirectStd(const char* fmt, Args... args) {
 
 template <typename ...Args>
 bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, const char* fmt, Args... args) {
-    logdetails::LoggerState state = logdetails::getLoggerState();
+    logdetails::LoggerState& state = logdetails::getLoggerState();
     auto& muted = state.muted;
     auto& minimumLogLevel = state.minimumLogLevel;
     auto& tagTranslationTableCount = state.tagTranslationTableCount;
     auto& tagTranslationTable = state.tagTranslationTable;
     auto& printHandler = state.printHandler;
-    auto& ignoredTagIndices = state.ignoredTagIndices;
+    auto& logLevelPerTag = state.logLevelPerTag;
     auto& useAnsi = state.useAnsi;
     AllocatorId allocatorId = state.allocatorId;
 
@@ -149,7 +151,7 @@ bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, co
     if (tagTranslationTableCount > 0) {
         Panic(tag < logdetails::MAX_NUMBER_OF_TAGS, "Provided Tag is out of range.");
         Panic(tagTranslationTable[tag][0] != '\0', "No Tag registered with that index.");
-        if (ignoredTagIndices[tag]) return false;
+        if (level < logLevelPerTag[tag]) return false;
     }
 
     state.loggerMemory[0] = '\0';
@@ -219,6 +221,7 @@ bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, co
             else         printHandler(core::sv("[TRACE]"));
             break;
 
+        case LogLevel::L_MUTE: [[fallthrough]]; // should never be reached
         case LogLevel::SENTINEL: [[fallthrough]];
         default:
             printHandler(core::sv("[UNKNOWN]"));

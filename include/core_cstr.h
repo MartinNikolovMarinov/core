@@ -3,6 +3,8 @@
 #include <core_traits.h>
 #include <core_types.h>
 
+#include <cstring>
+
 namespace core {
 
 using namespace coretypes;
@@ -24,6 +26,9 @@ template<typename TInt> constexpr inline char digitToChar(TInt digit);
 
                         constexpr const char* cstrSkipSpace(const char* s);
                         constexpr       char* cstrSkipSpace(char* s);
+
+                        inline i32 cstrCmpUnsafe(const char* a, const char* b);
+                        inline bool cstrEqUnsafe(const char* a, const char* b);
 
 constexpr inline bool isDigit(char c) { return c >= '0' && c <= '9'; }
 constexpr inline bool isHexDigit(char c) { return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F'); }
@@ -74,6 +79,22 @@ constexpr inline char* cstrSkipSpace(char* s) {
     if (s == nullptr) return s;
     while (isWhiteSpace(*s)) s++;
     return s;
+}
+
+inline i32 cstrCmpUnsafe(const char* a, const char* b) {
+    addr_size lena = cstrLen(a);
+    addr_size lenb = cstrLen(b);
+    addr_size len = lena < lenb ? lena : lenb;
+    i32 res = std::strncmp(a, b, len);
+    if (res == 0) {
+        if (lena > lenb) return 1;
+        if (lena < lenb) return -1;
+    }
+    return res;
+}
+
+inline bool cstrEqUnsafe(const char* a, const char* b) {
+    return cstrCmpUnsafe(a, b) == 0;
 }
 
 } // namespace core

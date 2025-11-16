@@ -26,7 +26,7 @@ void assertHandler(const char* failedExpr, const char* file, i32 line, const cha
     }
 
     throw std::runtime_error("Assertion failed!");
-};
+}
 
 i32 exampleWorkload(i32 x) {
     i32 a = x * 17 + 3;
@@ -64,47 +64,113 @@ enum ProfilePoints {
     PP_Example2,
 };
 
+// i32 main() {
+//     core::initProgramCtx(assertHandler, nullptr);
+
+//     i32 ret = 0;
+//     constexpr addr_size N_REPEAT = 10000000;
+
+//     profiler_1.beginProfile();
+
+//     {
+//         TIME_BLOCK(profiler_1, PP_G, "G");
+
+//         {
+//             TIME_BLOCK(profiler_1, PP_Example1, "Example 1");
+//             for (addr_size i = 0; i < N_REPEAT; i++) {
+//                 TIME_BLOCK(profiler_1, PP_Example1_4, "Example 1.4");
+//                 ret += exampleWorkload(i32(i));
+//             }
+
+//             {
+//                 TIME_BLOCK(profiler_1, PP_Example1_2, "Example 1.2");
+//                 for (addr_size i = N_REPEAT / 2 - 1; i < N_REPEAT; i++) {
+//                     TIME_BLOCK(profiler_1, PP_Example1_3, "Example 1.3");
+//                     ret += exampleWorkload(i32(i));
+//                 }
+//             }
+//         }
+
+//         {
+//             TIME_BLOCK(profiler_1, PP_Example2, "Example 2");
+//             for (addr_size i = 0; i < N_REPEAT; i++) {
+//                 ret += exampleWorkload(i32(i));
+//             }
+//         }
+
+//     }
+
+//     auto pRes = profiler_1.endProfile();
+//     logInfo("Profiler 1");
+//     pRes.logResult(core::LogLevel::L_INFO);
+
+//     return ret;
+// }
+
+u8 tag1 = 1;
+u8 tag2 = 2;
+
 i32 main() {
     core::initProgramCtx(assertHandler, nullptr);
+    defer { core::destroyProgramCtx(); };
 
-    i32 ret = 0;
-    constexpr addr_size N_REPEAT = 10000000;
+    Assert(core::loggerSetTag(tag1, "TAG_1"_sv));
+    Assert(core::loggerSetTag(tag2, "TAG_2"_sv));
 
-    profiler_1.beginProfile();
+    auto testLogWave = []() {
+        logTrace("Global");
+        logTraceTagged(tag1, "Tag 1");
+        logTraceTagged(tag2, "Tag 2");
 
-    {
-        TIME_BLOCK(profiler_1, PP_G, "G");
+        logDebug("Global");
+        logDebugTagged(tag1, "Tag 1");
+        logDebugTagged(tag2, "Tag 2");
 
-        {
-            TIME_BLOCK(profiler_1, PP_Example1, "Example 1");
-            for (addr_size i = 0; i < N_REPEAT; i++) {
-                TIME_BLOCK(profiler_1, PP_Example1_4, "Example 1.4");
-                ret += exampleWorkload(i32(i));
-            }
+        logInfo("Global");
+        logInfoTagged(tag1, "Tag 1");
+        logInfoTagged(tag2, "Tag 2");
 
-            {
-                TIME_BLOCK(profiler_1, PP_Example1_2, "Example 1.2");
-                for (addr_size i = N_REPEAT / 2 - 1; i < N_REPEAT; i++) {
-                    TIME_BLOCK(profiler_1, PP_Example1_3, "Example 1.3");
-                    ret += exampleWorkload(i32(i));
-                }
-            }
-        }
+        logWarn("Global");
+        logWarnTagged(tag1, "Tag 1");
+        logWarnTagged(tag2, "Tag 2");
 
-        {
-            TIME_BLOCK(profiler_1, PP_Example2, "Example 2");
-            for (addr_size i = 0; i < N_REPEAT; i++) {
-                ret += exampleWorkload(i32(i));
-            }
-        }
+        logErr("Global");
+        logErrTagged(tag1, "Tag 1");
+        logErrTagged(tag2, "Tag 2");
 
-    }
+        logFatal("Global");
+        logFatalTagged(tag1, "Tag 1");
+        logFatalTagged(tag2, "Tag 2");
+    };
 
-    auto pRes = profiler_1.endProfile();
-    logInfo("Profiler 1");
-    pRes.logResult(core::LogLevel::L_INFO);
+    core::logDirectStd("\nAll Default:\n\n");
+    testLogWave();
 
-    return ret;
+    core::loggerSetLevel(core::LogLevel::L_ERROR, tag1);
+    core::loggerSetLevel(core::LogLevel::L_DEBUG, tag2);
+    core::loggerSetLevel(core::LogLevel::L_TRACE);
+
+    core::logDirectStd("\nGlobal=Trace, tag1=Error, tag2=Debug:\n\n");
+    testLogWave();
+
+    core::loggerSetLevel(core::LogLevel::L_TRACE, tag1);
+    core::loggerSetLevel(core::LogLevel::L_TRACE, tag2);
+    core::loggerSetLevel(core::LogLevel::L_WARNING);
+
+    core::logDirectStd("\nGlobal=Warning, tag1=Trace, tag2=Trace:\n\n");
+    testLogWave();
+
+    core::loggerMute(true);
+
+    core::logDirectStd("\nMute:\n\n"); // not even this is printed out
+    testLogWave();
+
+    core::loggerMute(false);
+
+    core::loggerSetLevel(core::LogLevel::L_MUTE); // This allows only direcy logging.
+
+    core::logDirectStd("\nOnly Direct Logging:\n\n");
+    testLogWave();
+
+    return 0;
 }
-
-

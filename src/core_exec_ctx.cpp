@@ -2,6 +2,7 @@
 
 #include <core_alloc.h>
 #include <core_assert.h>
+#include <core_assert_fmt.h>
 #include <core_logger.h>
 
 #include <utility> // std::move aperantly is here.
@@ -13,10 +14,12 @@ namespace {
 AllocatorContext g_defaultAllocatorContext;
 StdAllocator g_defaultStdAllocator;
 
-constexpr u32 MAX_REGISTERABLE_ALLOCATORS = 5;
+constexpr u32 MAX_REGISTERABLE_ALLOCATORS = 20;
+addr_size g_registeredAllocatorsCount = 0;
 AllocatorContext g_registeredAllocators[MAX_REGISTERABLE_ALLOCATORS] = {};
 
 void zeroOutAllocatorContext(AllocatorContext& actx) {
+    actx.nameFn = nullptr;
     actx.allocFn = nullptr;
     actx.callocFn = nullptr;
     actx.freeFn = nullptr;
@@ -34,6 +37,7 @@ AllocatorContext::AllocatorContext(void* _allocatorData) {
 }
 
 AllocatorContext::AllocatorContext(AllocatorContext&& other) {
+    nameFn = other.nameFn;
     allocFn = other.allocFn;
     callocFn = other.callocFn;
     freeFn = other.freeFn;
@@ -46,6 +50,7 @@ AllocatorContext::AllocatorContext(AllocatorContext&& other) {
 }
 
 AllocatorContext& AllocatorContext::operator=(AllocatorContext&& other) {
+    nameFn = other.nameFn;
     allocFn = other.allocFn;
     callocFn = other.callocFn;
     freeFn = other.freeFn;
@@ -57,6 +62,10 @@ AllocatorContext& AllocatorContext::operator=(AllocatorContext&& other) {
     zeroOutAllocatorContext(other);
 
     return *this;
+}
+
+const char* AllocatorContext::name() {
+    return nameFn(allocatorData);
 }
 
 void* AllocatorContext::alloc(addr_size count, addr_size size) {
@@ -87,31 +96,60 @@ void initProgramCtx(GlobalAssertHandlerFn assertHandler,
                     LoggerCreateInfo* loggerCreateInfo) {
     core::setGlobalAssertHandler(assertHandler);
     g_defaultAllocatorContext = createAllocatorCtx(&g_defaultStdAllocator);
-    if (loggerCreateInfo == nullptr) core::loggerInit();
-    else                             core::loggerInit(*loggerCreateInfo);
+
+    if (loggerCreateInfo == nullptr) {
+        Panic(core::loggerInit(), "Failed to init logger");
+    }
+    else {
+        Panic(core::loggerInit(*loggerCreateInfo), "Failed to init logger");
+    }
 }
 
 void initProgramCtx(GlobalAssertHandlerFn assertHandler,
                     LoggerCreateInfo* loggerCreateInfo,
                     AllocatorContext&& actx) {
-    initProgramCtx(assertHandler, loggerCreateInfo);
+    core::setGlobalAssertHandler(assertHandler);
     g_defaultAllocatorContext = std::move(actx);
+
+    if (loggerCreateInfo == nullptr) {
+        Panic(core::loggerInit(), "Failed to init logger");
+    }
+    else {
+        Panic(core::loggerInit(*loggerCreateInfo), "Failed to init logger");
+    }
 }
 
-void destroyProgramCtx() {
+void destroyProgramCtx(bool panicOnLeaks) {
     core::setGlobalAssertHandler(nullptr);
+    core::loggerDestroy();
+
+    if (panicOnLeaks) {
+        for (addr_size i = 0; i < g_registeredAllocatorsCount; i++) {
+            PanicFmt(g_registeredAllocators[i].inUseMemory() == 0,
+                "Detected memory leak for allocator: {}, bytes_in_use: {}",
+                g_registeredAllocators[i].name(),
+                g_registeredAllocators[i].inUseMemory());
+        }
+        PanicFmt(g_defaultAllocatorContext.inUseMemory() == 0,
+                "Detected memory leak for allocator: {}, bytes_in_use: {}",
+                g_defaultAllocatorContext.name(),
+                g_defaultAllocatorContext.inUseMemory());
+    }
+
+    g_defaultAllocatorContext = {};
 }
 
 void registerAllocator(AllocatorContext&& ctx, AllocatorId id) {
     Panic(id - 1 < MAX_REGISTERABLE_ALLOCATORS);
     g_registeredAllocators[id - 1] = std::move(ctx);
+    g_registeredAllocatorsCount++;
 }
 
 AllocatorContext& getAllocator(AllocatorId id) {
     // IMPORTANT:
     // If you get a reference to an allocator by some id, MAKE SURE TO REGISTER IT before using it!
     // This function may be called at static initialization time, before any custom allocators have been registered,
-    // which makes checking `id < g_registeredAllocatorsCount` impossible.
+    // which makes checking the `g_registeredAllocatorsCount` variable impossible.
 
     Panic(id <= MAX_REGISTERABLE_ALLOCATORS);
 

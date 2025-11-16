@@ -292,6 +292,69 @@ constexpr i32 cstrSkipWhiteSpaceTest() {
     return ret;
 }
 
+i32 cstrCmpUnsafeTest() {
+    struct TestCase {
+        const char* a;
+        const char* b;
+        enum { positive = 1, negative = -1, zero = 0 } expected;
+    };
+
+    constexpr TestCase cases[] = {
+        { nullptr, nullptr, TestCase::zero },
+        { nullptr, "", TestCase::zero }, // might want this to be false
+        { "", nullptr, TestCase::zero },
+        { "", "", TestCase::zero },
+        { "asdzxcasd", "", TestCase::positive },
+        { "abc", "abc", TestCase::zero },
+        { "abc", "abd", TestCase::negative },
+        { "abd", "abc", TestCase::positive },
+        { "abc0", "abc", TestCase::positive },
+        { "abc", "abc0", TestCase::negative },
+    };
+
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+        switch (c.expected) {
+            case 1:  CT_CHECK(core::cstrCmpUnsafe(c.a, c.b) > 0, cErr);  break;
+            case -1: CT_CHECK(core::cstrCmpUnsafe(c.a, c.b) < 0, cErr);  break;
+            case 0:  CT_CHECK(core::cstrCmpUnsafe(c.a, c.b) == 0, cErr); break;
+        }
+
+        return 0;
+    });
+    CT_CHECK(ret == 0);
+
+    return 0;
+}
+
+i32 cstrEqUnsafeTest() {
+
+    struct TestCase {
+        const char* a;
+        const char* b;
+        bool expected;
+    };
+
+    constexpr TestCase cases[] = {
+        { nullptr, nullptr, true },
+        { nullptr, "", true }, // might want this to be false
+        { "", nullptr, true },
+        { "", "", true },
+        { "asdzxcasd", "", false },
+        { "abc", "abc", true },
+        { "abc", "abd", false },
+        { "abc", "abc0", false },
+        { "abc0", "abc", false },
+    };
+
+    i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
+        CT_CHECK(core::cstrEqUnsafe(c.a, c.b) == c.expected, cErr);
+        return 0;
+    });
+    CT_CHECK(ret == 0);
+
+    return 0;
+}
+
 i32 runCstrTestsSuite() {
     using namespace core::testing;
 
@@ -315,6 +378,10 @@ i32 runCstrTestsSuite() {
     if (runTest(tInfo, cstrLenTest) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(cstrSkipWhiteSpaceTest);
     if (runTest(tInfo, cstrSkipWhiteSpaceTest) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cstrCmpUnsafeTest);
+    if (runTest(tInfo, cstrCmpUnsafeTest) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cstrEqUnsafeTest);
+    if (runTest(tInfo, cstrEqUnsafeTest) != 0) { return -1; }
 
     return 0;
 }

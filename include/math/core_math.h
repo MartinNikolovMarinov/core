@@ -53,6 +53,8 @@ template <typename T>               constexpr T           absGeneric(T a);
 
                                     constexpr f32         modf(f32 x, f32* iptr);
                                     constexpr f64         modf(f64 x, f64* iptr);
+                                    inline f32            fmod(f32 x, f32 y);
+                                    inline f64            fmod(f64 x, f64 y);
 
                                     constexpr f32         floor(f32 x);
                                     constexpr f64         floor(f64 x);
@@ -459,6 +461,9 @@ constexpr TFloat modf(TFloat x, TFloat* iptr) {
 
 constexpr f32 modf(f32 x, f32* iptr) { return detail::modf(x, iptr); }
 constexpr f64 modf(f64 x, f64* iptr) { return detail::modf(x, iptr); }
+
+inline f32 fmod(f32 x, f32 y) { return std::fmod(x, y); }
+inline f64 fmod(f64 x, f64 y) { return std::fmod(x, y); }
 
 #pragma endregion
 

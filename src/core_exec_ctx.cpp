@@ -120,7 +120,6 @@ void initProgramCtx(GlobalAssertHandlerFn assertHandler,
 }
 
 void destroyProgramCtx(bool panicOnLeaks) {
-    core::setGlobalAssertHandler(nullptr);
     core::loggerDestroy();
 
     if (panicOnLeaks) {
@@ -136,6 +135,7 @@ void destroyProgramCtx(bool panicOnLeaks) {
                 g_defaultAllocatorContext.inUseMemory());
     }
 
+    core::setGlobalAssertHandler(nullptr);
     g_defaultAllocatorContext = {};
 }
 

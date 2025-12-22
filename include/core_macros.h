@@ -64,6 +64,22 @@ using namespace coretypes;
     #define CORE_NEVER_INLINE
 #endif
 
-#define CORE_NO_INLINE
+// pack_macros.h
+#pragma once
+
+// Define a portable-ish PACKED_STRUCT macro -- TODO: Write some compile-time tests for these!
+#if defined(_MSC_VER)
+    #define PACK_PUSH __pragma(pack(push, 1))
+    #define PACK_POP    __pragma(pack(pop))
+    #define PACKED
+#elif defined(__clang__) || defined(__GNUC__)
+    #define PACK_PUSH
+    #define PACK_POP
+    #define PACKED __attribute__((packed))
+#else
+    #define PACK_PUSH
+    #define PACK_POP
+    #define PACKED
+#endif
 
 } // namespace core

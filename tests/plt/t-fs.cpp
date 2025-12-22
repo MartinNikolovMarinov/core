@@ -430,13 +430,13 @@ i32 commonErrorsTest() {
                 CT_CHECK(res.hasErr());
             }
             {
-                [[maybe_unused]] core::ArrList<u8> unused;
+                [[maybe_unused]] core::Memory<u8> unused;
                 auto res = core::fileReadEntire(tc.path, unused);
                 CT_CHECK(res.hasErr());
             }
             {
                 [[maybe_unused]] core::ArrList<u8> unused(5, 0);
-                auto res = core::fileWriteEntire(tc.path, unused);
+                auto res = core::fileWriteEntire(tc.path, unused.data(), unused.len());
                 CT_CHECK(res.hasErr());
             }
             {
@@ -833,13 +833,25 @@ i32 readAndWriteEntireFileTest() {
 
         // Write the file
         {
-            auto res = core::fileWriteEntire(pb.path(), content);
+            auto res = core::fileWriteEntire(pb.path(), content.data(), content.len());
             CT_CHECK(!res.hasErr(), cErr);
+        }
+
+        // Get file size
+        addr_size fileSize = 0;
+        u8* rawBuffer = nullptr;
+        {
+            core::FileStat fileStat;
+            core::fileStat(pb.path(), fileStat);
+            fileSize = fileStat.size;
+            rawBuffer = reinterpret_cast<u8*>(
+                core::getAllocator(core::DEFAULT_ALLOCATOR_ID).alloc(fileSize, sizeof(u8))
+            );
         }
 
         // Read the file
         {
-            core::ArrList<u8> readBuffer;
+            core::Memory<u8> readBuffer (rawBuffer, fileSize);
             i32 counter = 5;
             while (counter-- > 0) {
                 // Read the entire file a couple of times with the same buffer.

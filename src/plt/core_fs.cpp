@@ -1,10 +1,10 @@
 #include <plt/core_fs.h>
+#include <plt/core_plt_error.h>
+#include <core_arr.h>
 
 namespace core {
 
-expected<PltErrCode> fileReadEntire(const char* path, ArrList<u8>& out) {
-    using value_type = typename core::ArrList<u8>::value_type;
-
+expected<PltErrCode> fileReadEntire(const char* path, core::Memory<u8>& out) {
     FileDesc file;
     {
         auto res = fileOpen(path, OpenMode::Read);
@@ -29,9 +29,7 @@ expected<PltErrCode> fileReadEntire(const char* path, ArrList<u8>& out) {
     if (size == 0) return {};
 
     if (out.len() < size) {
-        // Deliberately avoiding zeroing out memory here!
-        auto data = reinterpret_cast<value_type*>(getAllocator(DEFAULT_ALLOCATOR_ID).alloc(size, sizeof(u8)));
-        out.reset(&data, size, size);
+        return core::unexpected(ERR_PASSED_BUFFER_TOO_SMALL);
     }
 
     addr_size readbytes = 0;
@@ -73,7 +71,7 @@ core::expected<PltErrCode> fileWriteEntire(const char* path, const u8* data, add
     return {};
 }
 
-core::expected<PltErrCode> fileWriteEntire(const char* path, const core::ArrList<u8>& in) {
+core::expected<PltErrCode> fileWriteEntire(const char* path, const core::Memory<u8>& in) {
     return fileWriteEntire(path, in.data(), in.len());
 }
 

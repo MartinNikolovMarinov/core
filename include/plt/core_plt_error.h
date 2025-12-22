@@ -15,7 +15,7 @@ namespace detail {
 constexpr PltErrCode ERR_START_OF_CUSTOM_ERRORS = PltErrCode(0xffffffff00000000LL);
 
 constexpr PltErrCode ERR_MISC_CUSTOM_ERROR_START = detail::ERR_START_OF_CUSTOM_ERRORS + 0;
-constexpr PltErrCode ERR_OS_CUSTOM_ERROR_START = detail::ERR_START_OF_CUSTOM_ERRORS + 100;
+constexpr PltErrCode ERR_FS_CUSTOM_ERROR_START = detail::ERR_START_OF_CUSTOM_ERRORS + 100;
 constexpr PltErrCode ERR_THREAD_CUSTOM_ERROR_START = detail::ERR_START_OF_CUSTOM_ERRORS + 200;
 
 } // namespace detail
@@ -25,8 +25,9 @@ constexpr PltErrCode ERR_PLT_NONE = 0;
 constexpr PltErrCode ERR_ALLOCATOR_DEFAULT_NO_MEMORY = detail::ERR_MISC_CUSTOM_ERROR_START + 0;
 constexpr PltErrCode ERR_INVALID_ARGUMENT = detail::ERR_MISC_CUSTOM_ERROR_START + 1;
 
-constexpr PltErrCode ERR_PASSED_INVALID_FILE_DESCRIPTOR = detail::ERR_OS_CUSTOM_ERROR_START + 0;
-constexpr PltErrCode ERR_CLOSING_AN_INVALID_FILE_DESCRIPTOR = detail::ERR_OS_CUSTOM_ERROR_START + 1;
+constexpr PltErrCode ERR_PASSED_INVALID_FILE_DESCRIPTOR = detail::ERR_FS_CUSTOM_ERROR_START + 0;
+constexpr PltErrCode ERR_CLOSING_AN_INVALID_FILE_DESCRIPTOR = detail::ERR_FS_CUSTOM_ERROR_START + 1;
+constexpr PltErrCode ERR_PASSED_BUFFER_TOO_SMALL = detail::ERR_FS_CUSTOM_ERROR_START + 2;
 
 constexpr PltErrCode ERR_THREADING_INVALID_THREAD_NAME = detail::ERR_THREAD_CUSTOM_ERROR_START + 0;
 constexpr PltErrCode ERR_THREADING_STARTING_AN_ALREADY_RUNNING_THREAD = detail::ERR_THREAD_CUSTOM_ERROR_START + 1;
@@ -45,6 +46,7 @@ constexpr char const* customPltErrorDescribe(PltErrCode err) {
 
         case ERR_PASSED_INVALID_FILE_DESCRIPTOR:               return "Passed invalid file descriptor";
         case ERR_CLOSING_AN_INVALID_FILE_DESCRIPTOR:           return "Closing an invalid file descriptor";
+        case ERR_PASSED_BUFFER_TOO_SMALL:                      return "Passed memory buffer is too small";
 
         case ERR_THREADING_INVALID_THREAD_NAME:                return "Invalid thread name";
         case ERR_THREADING_STARTING_AN_ALREADY_RUNNING_THREAD: return "Starting an already running thread";

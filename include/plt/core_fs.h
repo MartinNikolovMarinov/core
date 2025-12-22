@@ -2,8 +2,8 @@
 
 #include "core_alloc.h"
 #include "core_API.h"
-#include "core_arr.h"
 #include "core_expected.h"
+#include "core_mem.h"
 #include "core_str_builder.h"
 #include "core_traits.h"
 #include "core_types.h"
@@ -105,9 +105,9 @@ CORE_API_EXPORT expected<addr_off, PltErrCode>  fileSeek(FileDesc& file, addr_of
 CORE_API_EXPORT expected<PltErrCode>            fileStat(const char* path, FileStat& out);
 CORE_API_EXPORT expected<addr_size, PltErrCode> fileSize(FileDesc& file);
 
-CORE_API_EXPORT expected<PltErrCode> fileReadEntire(const char* path, ArrList<u8>& out);
+CORE_API_EXPORT expected<PltErrCode> fileReadEntire(const char* path, Memory<u8>& out);
 CORE_API_EXPORT expected<PltErrCode> fileWriteEntire(const char* path, const u8* data, addr_size size);
-CORE_API_EXPORT expected<PltErrCode> fileWriteEntire(const char* path, const ArrList<u8>& in);
+CORE_API_EXPORT expected<PltErrCode> fileWriteEntire(const char* path, const Memory<u8>& in);
 
 CORE_API_EXPORT expected<PltErrCode>       dirCreate(const char* path);
 CORE_API_EXPORT expected<PltErrCode>       dirDelete(const char* path);

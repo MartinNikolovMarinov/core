@@ -141,10 +141,7 @@ private:
 };
 static_assert(AllocatorConcept<ThreadLocalBumpAllocator>);
 
-struct ArenaBlock {
-    void* begin;
-    void* curr;
-};
+struct ArenaBlock;
 
 /**
  * @note This allocator is not thread-safe.

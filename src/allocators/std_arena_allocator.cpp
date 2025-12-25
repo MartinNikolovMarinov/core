@@ -7,6 +7,11 @@
 
 namespace core {
 
+struct ArenaBlock {
+    void* begin;
+    void* curr;
+};
+
 namespace {
 
 thread_local ArenaBlock* tl_blocks = nullptr;

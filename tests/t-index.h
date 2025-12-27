@@ -112,6 +112,7 @@ i32 runMemTestsSuite();
 i32 runRndTestsSuite();
 i32 runStaticArrTestsSuite();
 i32 runStrBuilderTestsSuite();
+i32 runStrViewTestsSuite();
 i32 runTransformsTestsSuite();
 i32 runTupleTestsSuite();
 i32 runUniquePtrTestsSuite();

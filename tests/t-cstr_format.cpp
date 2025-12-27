@@ -1,6 +1,7 @@
 #include "core_cstr.h"
 #include "core_cstr_format.h"
 #include "t-index.h"
+#include "testing/testing_framework.h"
 
 namespace {
 
@@ -1308,6 +1309,16 @@ constexpr i32 escapedBracketTest() {
     return 0;
 }
 
+constexpr i32 formatErrorToCcstrTest() {
+    for (u8 i = u8(core::FormatError::INVALID_ARGUMENTS); i <= u8(core::FormatError::SENTINEL); i++) {
+        const char* msg = core::formatErrorToCStr(core::FormatError(i));
+        CT_CHECK(msg != nullptr);
+        CT_CHECK(core::cstrLen(msg) > 0 );
+    }
+
+    return 0;
+}
+
 } // namespace
 
 i32 runFormatTestsSuite() {
@@ -1330,6 +1341,8 @@ i32 runFormatTestsSuite() {
     if (runTest(tInfo, edgeCasesTest) != 0) return -1;
     tInfo.name = FN_NAME_TO_CPTR(escapedBracketTest);
     if (runTest(tInfo, escapedBracketTest) != 0) return -1;
+    tInfo.name = FN_NAME_TO_CPTR(formatErrorToCcstrTest);
+    if (runTest(tInfo, formatErrorToCcstrTest) != 0) return -1;
 
     return 0;
 }
@@ -1342,6 +1355,7 @@ constexpr i32 runCompiletimeFormatTestSuite1() {
     RunTestCompileTime(strFormattingTest);
     RunTestCompileTime(edgeCasesTest);
     RunTestCompileTime(escapedBracketTest);
+    RunTestCompileTime(formatErrorToCcstrTest);
 
     return 0;
 }

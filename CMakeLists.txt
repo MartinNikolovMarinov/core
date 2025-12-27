@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(core VERSION 0.5.1)
+project(core VERSION 0.6.1)
 
 # TODO: [SANITIZERS] Add an address sanitizer build and a thread sanitizer build. These have found incredibly nasty bugs that I would not have noticed ever.
 
@@ -244,6 +244,7 @@ if(CORE_BUILD_TESTS)
         tests/t-rnd.cpp
         tests/t-sarr.cpp
         tests/t-str_builder.cpp
+        tests/t-str_view.cpp
         tests/t-tuple.cpp
         tests/t-unique_ptr.cpp
         tests/t-utf.cpp

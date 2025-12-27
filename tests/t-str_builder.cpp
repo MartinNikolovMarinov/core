@@ -236,6 +236,14 @@ i32 moveAndCopyStrBuilderTest() {
         CT_CHECK(check(sb9) == 0);
     }
 
+    // Regression memory leak in constructors
+    {
+        StrBuilder sb ("is currently not empty"_sv);
+        sb = "should free old value"_sv;
+        sb = StrBuilder("should free old value"_sv);
+        sb.~StrBuilder();
+    }
+
     {
         PRAGMA_WARNING_PUSH
 

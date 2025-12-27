@@ -46,6 +46,7 @@
 #include "math/core_vec.h"
 
 #include "plt/core_atomics.h"
+#include "plt/core_fs_algorithms.h"
 #include "plt/core_fs.h"
 #include "plt/core_pages.h"
 #include "plt/core_path.h"

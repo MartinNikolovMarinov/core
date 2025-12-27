@@ -123,6 +123,8 @@ i32 runAllTests() {
     if (runTestSuite(sInfo, runStaticArrTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runStrBuilderTestsSuite);
     if (runTestSuite(sInfo, runStrBuilderTestsSuite) != 0) { ret = -1; }
+    sInfo.name = FN_NAME_TO_CPTR(runStrViewTestsSuite);
+    if (runTestSuite(sInfo, runStrViewTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runTupleTestsSuite);
     if (runTestSuite(sInfo, runTupleTestsSuite) != 0) { ret = -1; }
     sInfo.name = FN_NAME_TO_CPTR(runUniquePtrTestsSuite);

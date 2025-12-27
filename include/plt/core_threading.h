@@ -8,6 +8,9 @@
 #include <plt/core_atomics.h>
 #include <plt/core_plt_error.h>
 
+// FIXME: I do not like this API at all. Remove everything that models a thread, mutex or conditional variable
+//        The only parts that are good start with the threading* prefix.
+
 namespace core {
 
 using namespace coretypes;

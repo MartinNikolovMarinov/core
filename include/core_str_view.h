@@ -28,7 +28,7 @@ constexpr StrView operator""_sv(const char* str, size_t len) {
 }
 
 constexpr inline StrView trimWhiteSpaceLeft(StrView s) {
-    if (s.data() == nullptr || s.len() == 0) return s;
+    if (s.empty()) return s;
 
     addr_size i = 0;
     while (i < s.len() && isWhiteSpace(s[i])) {
@@ -40,7 +40,7 @@ constexpr inline StrView trimWhiteSpaceLeft(StrView s) {
 }
 
 constexpr inline StrView trimWhiteSpaceRight(StrView s) {
-    if (s.data() == nullptr || s.len() == 0) return s;
+    if (s.empty()) return s;
 
     addr_off boff = addr_off(s.len());
     while (boff > 0 && isWhiteSpace(s[addr_size(boff - 1)])) {
@@ -51,7 +51,7 @@ constexpr inline StrView trimWhiteSpaceRight(StrView s) {
 }
 
 constexpr inline StrView trim(StrView s) {
-    if (s.data() == nullptr || s.len() == 0) return s;
+    if (s.empty()) return s;
 
     StrView leftTrimmed = trimWhiteSpaceLeft(s);
     StrView bothTrimmed = trimWhiteSpaceRight(leftTrimmed);
@@ -62,7 +62,7 @@ constexpr inline StrView trim(StrView s) {
 constexpr inline bool cut(StrView s, char c, StrView& out) {
     out = {};
 
-    if (s.data() == nullptr || s.len() == 0) return false;
+    if (s.empty()) return false;
 
     for (addr_size i = 0; i < s.len() - 1; i++) {
         if (s[i] == c) {
@@ -75,7 +75,7 @@ constexpr inline bool cut(StrView s, char c, StrView& out) {
 }
 
 constexpr inline StrView skipWhiteSpace(StrView s) {
-    if (s.data() == nullptr || s.len() == 0) return s;
+    if (s.empty()) return s;
 
     addr_size i = 0;
     while (i < s.len() && isWhiteSpace(s[i])) {
@@ -87,7 +87,7 @@ constexpr inline StrView skipWhiteSpace(StrView s) {
 }
 
 constexpr inline StrView skip(StrView s, char c) {
-    if (s.data() == nullptr || s.len() == 0) return s;
+    if (s.empty()) return s;
 
     addr_size i = 0;
     while (i < s.len() && s[i] == c) {

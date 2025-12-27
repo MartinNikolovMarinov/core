@@ -92,6 +92,8 @@ struct Memory {
     constexpr T* last() { return end() - 1; }
     constexpr const T* last() const { return end() - 1; }
 
+    constexpr bool empty() const { return ptr == nullptr || length == 0; }
+
     constexpr bool eq(const Memory& other) const {
         bool areEqual = other.length == length && this->cmp(other) == 0;
         return areEqual;
@@ -168,7 +170,7 @@ template <typename T>
 void memoryFree(core::Memory<T>&& mem, core::AllocatorId allocatorId) {
     static_assert(std::is_trivially_destructible_v<T>, "T should be trivially destructible");
 
-    if (mem.ptr == nullptr || mem.length == 0) return;
+    if (mem.empty()) return;
     auto actx = core::getAllocator(allocatorId);
     actx.free(mem.data(), mem.len(), sizeof(T));
     mem.ptr = nullptr;

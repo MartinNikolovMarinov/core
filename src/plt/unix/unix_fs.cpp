@@ -1,5 +1,9 @@
+#include "core_expected.h"
+#include "core_types.h"
+#include "plt/core_plt_error.h"
 #include <core_mem.h>
 
+#include <expected>
 #include <plt/core_fs.h>
 
 #include <dirent.h>
@@ -70,6 +74,27 @@ constexpr inline i32 toOsFlags(OpenMode m) {
     return flag;
 }
 
+constexpr inline FileStat toFileStat(struct stat& statbuf) {
+    FileStat fstat;
+
+    fstat.size = addr_size(statbuf.st_size);
+
+    if (S_ISDIR(statbuf.st_mode)) {
+        fstat.type = FileType::Directory;
+    }
+    else if (S_ISREG(statbuf.st_mode)) {
+        fstat.type = FileType::Regular;
+    }
+    else if (S_ISLNK(statbuf.st_mode)) {
+        fstat.type = FileType::Symlink;
+    }
+    else {
+        fstat.type = FileType::Other;
+    }
+
+    return fstat;
+}
+
 // Default access mode for files is "-rw-rw-r--"
 static constexpr mode_t DEFAULT_FILE_ACCESS_MODE = (S_IRUSR | S_IWUSR) |
                                                    (S_IRGRP | S_IWGRP) |
@@ -119,8 +144,17 @@ core::expected<PltErrCode> fileDelete(const char* path) {
     return {};
 }
 
-core::expected<PltErrCode> fileRename(const char* path, const char* newPath) {
+core::expected<PltErrCode> fileMove(const char* path, const char* newPath) {
     i32 res = rename(path, newPath);
+    if (res < 0) {
+        return core::unexpected(PltErrCode(errno));
+    }
+
+    return {};
+}
+
+expected<PltErrCode> fileCopy(const char* from, const char* to) {
+    i32 res = link(from, to);
     if (res < 0) {
         return core::unexpected(PltErrCode(errno));
     }
@@ -157,6 +191,28 @@ core::expected<addr_size, PltErrCode> fileRead(FileDesc& file, void* out, addr_s
     return addr_size(res);
 }
 
+expected<PltErrCode> fileTruncate(const char* path, addr_size length) {
+    auto res = truncate(path, addr_off(length));
+    if (res < 0) {
+        return core::unexpected(PltErrCode(errno));
+    }
+
+    return {};
+}
+
+expected<PltErrCode> fileTruncate(FileDesc& file, addr_size length) {
+    if (!file.isValid()) {
+        return core::unexpected(core::ERR_PASSED_INVALID_FILE_DESCRIPTOR);
+    }
+
+    auto res = ftruncate(fromHandle(file.handle), addr_off(length));
+    if (res < 0) {
+        return core::unexpected(PltErrCode(errno));
+    }
+
+    return {};
+}
+
 core::expected<addr_off, PltErrCode> fileSeek(FileDesc& file, addr_off offset, SeekMode seekMode) {
     if (!file.isValid()) {
         return core::unexpected(core::ERR_PASSED_INVALID_FILE_DESCRIPTOR);
@@ -184,25 +240,11 @@ core::expected<PltErrCode> fileStat(const char* path, FileStat& out) {
         return core::unexpected(PltErrCode(errno));
     }
 
-    out.size = addr_size(statbuf.st_size);
-
-    if (S_ISDIR(statbuf.st_mode)) {
-        out.type = FileType::Directory;
-    }
-    else if (S_ISREG(statbuf.st_mode)) {
-        out.type = FileType::Regular;
-    }
-    else if (S_ISLNK(statbuf.st_mode)) {
-        out.type = FileType::Symlink;
-    }
-    else {
-        out.type = FileType::Other;
-    }
-
+    out = toFileStat(statbuf);
     return {};
 }
 
-core::expected<addr_size, PltErrCode> fileSize(FileDesc& file) {
+expected<PltErrCode> fileStat(FileDesc& file, FileStat& out) {
     if (!file.isValid()) {
         return core::unexpected(core::ERR_PASSED_INVALID_FILE_DESCRIPTOR);
     }
@@ -213,7 +255,17 @@ core::expected<addr_size, PltErrCode> fileSize(FileDesc& file) {
         return core::unexpected(PltErrCode(errno));
     }
 
-    return addr_size(statbuf.st_size);
+    out = toFileStat(statbuf);
+    return {};
+}
+
+core::expected<addr_size, PltErrCode> fileSize(FileDesc& file) {
+    core::FileStat fstat;
+    if (auto res = fileStat(file, fstat); res.hasErr()) {
+        return core::unexpected(res.err());
+    }
+
+    return addr_size(fstat.size);
 }
 
 core::expected<PltErrCode> dirCreate(const char* path) {
@@ -232,15 +284,6 @@ core::expected<PltErrCode> dirCreate(const char* path) {
 
 core::expected<PltErrCode> dirDelete(const char* path) {
     i32 res = rmdir(path);
-    if (res < 0) {
-        return core::unexpected(PltErrCode(errno));
-    }
-
-    return {};
-}
-
-core::expected<PltErrCode> dirRename(const char* path, const char* newPath) {
-    i32 res = rename(path, newPath);
     if (res < 0) {
         return core::unexpected(PltErrCode(errno));
     }
@@ -322,6 +365,41 @@ core::expected<PltErrCode> dirWalk(const char* path, DirWalkCallback cb, void* u
 
     if (errCode != 0) {
         return core::unexpected(errCode);
+    }
+
+    return {};
+}
+
+expected<PltErrCode> dirCWD(char* out, addr_size size) {
+    if (out == nullptr || size == 0) {
+        return core::unexpected(core::ERR_INVALID_ARGUMENT);
+    }
+
+    auto res = getcwd(out, size);
+    if (res == nullptr) {
+        return core::unexpected(PltErrCode(errno));
+    }
+
+    return {};
+}
+
+expected<PltErrCode> dirChangeCWD(const char* path) {
+    auto res = chdir(path);
+    if (res < 0) {
+        return core::unexpected(PltErrCode(errno));
+    }
+
+    return {};
+}
+
+expected<PltErrCode> fileFlush(FileDesc& file) {
+    if (!file.isValid()) {
+        return core::unexpected(core::ERR_PASSED_INVALID_FILE_DESCRIPTOR);
+    }
+
+    i32 res = fsync(fromHandle(file.handle));
+    if (res < 0) {
+        return core::unexpected(PltErrCode(errno));
     }
 
     return {};

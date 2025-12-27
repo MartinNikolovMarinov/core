@@ -1,21 +1,11 @@
 #pragma once
 
-#include "core_alloc.h"
 #include "core_API.h"
 #include "core_expected.h"
 #include "core_mem.h"
-#include "core_str_builder.h"
-#include "core_traits.h"
 #include "core_types.h"
-#include "plt/core_path.h"
-#include "plt/core_plt_error.h"
 
-// TODO: A few more functions that will be necessary:
-//       - fileCopy
-//       - fileMove
-//       - getCurrWorkingDir
-//       - changeCurrWorkingDir
-//       - flush a file descriptor to disc (if possible)
+#include "plt/core_plt_error.h"
 
 namespace core {
 
@@ -68,7 +58,7 @@ struct CORE_API_EXPORT FileStat {
     FileType  type;
     addr_size size;
 
-    // TODO: [TIME] Add time for last modification once some time abstraction is in place.
+    // TODO: Add last modification timestamp.
 };
 
 enum struct OpenMode : u8 {
@@ -98,22 +88,29 @@ using DirWalkCallback = bool (*)(const DirEntry& entry, addr_size idx, void* use
 CORE_API_EXPORT expected<FileDesc, PltErrCode>  fileOpen(const char* path, OpenMode mode = OpenMode::Default);
 CORE_API_EXPORT expected<PltErrCode>            fileClose(FileDesc& file);
 CORE_API_EXPORT expected<PltErrCode>            fileDelete(const char* path);
-CORE_API_EXPORT expected<PltErrCode>            fileRename(const char* path, const char* newPath);
+CORE_API_EXPORT expected<PltErrCode>            fileMove(const char* path, const char* newPath);
+CORE_API_EXPORT expected<PltErrCode>            fileCopy(const char* from, const char* to);
 CORE_API_EXPORT expected<addr_size, PltErrCode> fileWrite(FileDesc& file, const void* in, addr_size size);
 CORE_API_EXPORT expected<addr_size, PltErrCode> fileRead(FileDesc& file, void* out, addr_size size);
+CORE_API_EXPORT expected<PltErrCode>            fileTruncate(const char* path, addr_size length);
+CORE_API_EXPORT expected<PltErrCode>            fileTruncate(FileDesc& file, addr_size length);
 CORE_API_EXPORT expected<addr_off, PltErrCode>  fileSeek(FileDesc& file, addr_off offset, SeekMode mode = SeekMode::Begin);
 CORE_API_EXPORT expected<PltErrCode>            fileStat(const char* path, FileStat& out);
+CORE_API_EXPORT expected<PltErrCode>            fileStat(FileDesc& file, FileStat& out);
 CORE_API_EXPORT expected<addr_size, PltErrCode> fileSize(FileDesc& file);
+CORE_API_EXPORT expected<PltErrCode>            fileFlush(FileDesc& file);
 
 CORE_API_EXPORT expected<PltErrCode> fileReadEntire(const char* path, Memory<u8>& out);
+CORE_API_EXPORT expected<PltErrCode> fileReadEntire(const char* path, Memory<char>& out);
 CORE_API_EXPORT expected<PltErrCode> fileWriteEntire(const char* path, const u8* data, addr_size size);
 CORE_API_EXPORT expected<PltErrCode> fileWriteEntire(const char* path, const Memory<u8>& in);
+CORE_API_EXPORT expected<PltErrCode> fileWriteEntire(const char* path, const Memory<char>& in);
 
 CORE_API_EXPORT expected<PltErrCode>       dirCreate(const char* path);
 CORE_API_EXPORT expected<PltErrCode>       dirDelete(const char* path);
-CORE_API_EXPORT expected<PltErrCode>       dirDeleteRec(const char* path);
-CORE_API_EXPORT expected<PltErrCode>       dirRename(const char* path, const char* newPath);
 CORE_API_EXPORT expected<PltErrCode>       dirWalk(const char* path, DirWalkCallback cb, void* userData = nullptr);
 CORE_API_EXPORT expected<bool, PltErrCode> dirIsEmpty(const char* path);
+CORE_API_EXPORT expected<PltErrCode>       dirCWD(char* out, addr_size size);
+CORE_API_EXPORT expected<PltErrCode>       dirChangeCWD(const char* path);
 
 } // namespace core

@@ -156,7 +156,7 @@ core::expected<PltErrCode> fileDelete(const char* path) {
     return {};
 }
 
-core::expected<PltErrCode> fileRename(const char* path, const char* newPath) {
+core::expected<PltErrCode> fileMove(const char* path, const char* newPath) {
     if (!MoveFile(path, newPath)) {
         return core::unexpected(PltErrCode(GetLastError()));
     }
@@ -188,6 +188,16 @@ core::expected<addr_size, PltErrCode> fileRead(FileDesc& file, void* out, addr_s
     }
 
     return addr_size(bytesRead);
+}
+
+expected<PltErrCode> fileTruncate(const char* path, addr_size length) {
+    Assert(false, "TODO: not implemented yet");
+    return {};
+}
+
+expected<PltErrCode> fileTruncate(FileDesc& file, addr_size length) {
+    Assert(false, "TODO: not implemented yet");
+    return {};
 }
 
 core::expected<addr_off, PltErrCode> fileSeek(FileDesc& file, addr_off offset, SeekMode mode) {
@@ -251,14 +261,6 @@ core::expected<PltErrCode> dirCreate(const char* path) {
 
 core::expected<PltErrCode> dirDelete(const char* path) {
     if (!RemoveDirectory(path)) {
-        return core::unexpected(PltErrCode(GetLastError()));
-    }
-
-    return {};
-}
-
-core::expected<PltErrCode> dirRename(const char* path, const char* newPath) {
-    if (!MoveFile(path, newPath)) {
         return core::unexpected(PltErrCode(GetLastError()));
     }
 

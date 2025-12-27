@@ -1,4 +1,6 @@
 #include "../t-index.h"
+#include "core_exec_ctx.h"
+#include "plt/core_fs.h"
 
 constexpr const char* testDirectory = PATH_TO_TEST_DATA "/testing_directory";
 
@@ -397,6 +399,203 @@ i32 checkFileStatsTest() {
     return 0;
 }
 
+i32 fileCopyTest() {
+    TestPathBuilder pbSrc;
+    pbSrc.setDirPath(testDirectory);
+    pbSrc.setFileName("copy_src.txt");
+    const char* srcPath = pbSrc.path();
+
+    TestPathBuilder pbDst;
+    pbDst.setDirPath(testDirectory);
+    pbDst.setFileName("copy_dst.txt");
+    const char* dstPath = pbDst.path();
+
+    constexpr const char* payload = "copy payload";
+
+    // Create and write source file
+    {
+        core::FileDesc f;
+        auto res = core::fileOpen(srcPath, core::OpenMode::Write | core::OpenMode::Read | core::OpenMode::Create | core::OpenMode::Truncate);
+        CT_CHECK(!res.hasErr());
+        f = std::move(res.value());
+
+        auto w = core::fileWrite(f, payload, core::cstrLen(payload));
+        CT_CHECK(!w.hasErr());
+        auto closeRes = core::fileClose(f);
+        CT_CHECK(!closeRes.hasErr());
+    }
+
+    // Copy to destination
+    {
+        auto res = core::fileCopy(srcPath, dstPath);
+        CT_CHECK(!res.hasErr());
+    }
+
+    // Validate destination contents and size
+    {
+        core::FileDesc f;
+        auto res = core::fileOpen(dstPath, core::OpenMode::Read);
+        CT_CHECK(!res.hasErr());
+        f = std::move(res.value());
+
+        core::FileStat st{};
+        auto statRes = core::fileStat(f, st);
+        CT_CHECK(!statRes.hasErr());
+        CT_CHECK(st.type == core::FileType::Regular);
+        CT_CHECK(st.size == core::cstrLen(payload));
+
+        char buff[32] = {};
+        auto readRes = core::fileRead(f, buff, 32);
+        CT_CHECK(!readRes.hasErr());
+        CT_CHECK(readRes.value() == core::cstrLen(payload));
+        CT_CHECK(core::memcmp(buff, readRes.value(), payload, core::cstrLen(payload)) == 0);
+
+        auto closeRes = core::fileClose(f);
+        CT_CHECK(!closeRes.hasErr());
+    }
+
+    // Source should remain intact
+    {
+        core::FileStat st{};
+        auto statRes = core::fileStat(srcPath, st);
+        CT_CHECK(!statRes.hasErr());
+        CT_CHECK(st.size == core::cstrLen(payload));
+    }
+
+    // Cleanup
+    {
+        auto res = core::fileDelete(srcPath);
+        CT_CHECK(!res.hasErr());
+    }
+    {
+        auto res = core::fileDelete(dstPath);
+        CT_CHECK(!res.hasErr());
+    }
+
+    return 0;
+}
+
+i32 fileTruncateAndStatTest() {
+    TestPathBuilder pb;
+    pb.setDirPath(testDirectory);
+
+    // Truncate via descriptor.
+    pb.setFileName("truncate_fd.txt");
+
+    core::FileDesc fdTruncate;
+    {
+        auto res = core::fileOpen(pb.path(), core::OpenMode::Write | core::OpenMode::Read | core::OpenMode::Create | core::OpenMode::Truncate);
+        CT_CHECK(!res.hasErr());
+        fdTruncate = std::move(res.value());
+    }
+    {
+        constexpr const char* data = "abcdef";
+        auto res = core::fileWrite(fdTruncate, data, core::cstrLen(data));
+        CT_CHECK(!res.hasErr());
+    }
+    {
+        auto res = core::fileTruncate(fdTruncate, 3);
+        CT_CHECK(!res.hasErr());
+    }
+    {
+        core::FileStat stat{};
+        auto res = core::fileStat(fdTruncate, stat);
+        CT_CHECK(!res.hasErr());
+        CT_CHECK(stat.type == core::FileType::Regular);
+        CT_CHECK(stat.size == 3);
+    }
+    {
+        auto res = core::fileSeek(fdTruncate, 0, core::SeekMode::Begin);
+        CT_CHECK(!res.hasErr());
+
+        char buff[8] = {};
+        auto res2 = core::fileRead(fdTruncate, buff, 6);
+        CT_CHECK(!res2.hasErr());
+        CT_CHECK(res2.value() == 3);
+        CT_CHECK(core::memcmp(buff, res2.value(), "abc", 3) == 0);
+    }
+    CT_CHECK(closeAndDeleteFile(std::move(fdTruncate), pb.path()) == 0);
+
+    // Truncate via path (shrink then extend).
+    pb.setFileName("truncate_path.txt");
+    {
+        auto res = core::fileOpen(pb.path(), core::OpenMode::Write | core::OpenMode::Read | core::OpenMode::Create | core::OpenMode::Truncate);
+        CT_CHECK(!res.hasErr());
+
+        core::FileDesc f = std::move(res.value());
+        auto wr = core::fileWrite(f, "123456", 6);
+        CT_CHECK(!wr.hasErr());
+        auto closeRes = core::fileClose(f);
+        CT_CHECK(!closeRes.hasErr());
+    }
+    {
+        auto res = core::fileTruncate(pb.path(), 4);
+        CT_CHECK(!res.hasErr());
+        core::FileStat stat{};
+        auto statRes = core::fileStat(pb.path(), stat);
+        CT_CHECK(!statRes.hasErr());
+        CT_CHECK(stat.size == 4);
+    }
+    {
+        auto res = core::fileTruncate(pb.path(), 10);
+        CT_CHECK(!res.hasErr());
+        core::FileStat stat{};
+        auto statRes = core::fileStat(pb.path(), stat);
+        CT_CHECK(!statRes.hasErr());
+        CT_CHECK(stat.size == 10);
+    }
+    {
+        auto res = core::fileDelete(pb.path());
+        CT_CHECK(!res.hasErr());
+    }
+
+    return 0;
+}
+
+i32 fileFlushTest() {
+    TestPathBuilder pb;
+    pb.setDirPath(testDirectory);
+    pb.setFileName("flush_test.txt");
+
+    core::FileDesc writer;
+    {
+        auto res = core::fileOpen(pb.path(), core::OpenMode::Write | core::OpenMode::Read | core::OpenMode::Create | core::OpenMode::Truncate);
+        CT_CHECK(!res.hasErr());
+        writer = std::move(res.value());
+    }
+    {
+        constexpr const char* payload = "flushed!";
+        auto res = core::fileWrite(writer, payload, core::cstrLen(payload));
+        CT_CHECK(!res.hasErr());
+    }
+    {
+        auto res = core::fileFlush(writer);
+        CT_CHECK(!res.hasErr());
+    }
+
+    core::FileDesc reader;
+    {
+        auto res = core::fileOpen(pb.path(), core::OpenMode::Read);
+        CT_CHECK(!res.hasErr());
+        reader = std::move(res.value());
+    }
+    {
+        char buff[16] = {};
+        auto res = core::fileRead(reader, buff, 16);
+        CT_CHECK(!res.hasErr());
+        CT_CHECK(res.value() == core::cstrLen("flushed!"));
+        CT_CHECK(core::memcmp(buff, res.value(), "flushed!", core::cstrLen("flushed!")) == 0);
+    }
+    {
+        auto res = core::fileClose(reader);
+        CT_CHECK(!res.hasErr());
+    }
+
+    CT_CHECK(closeAndDeleteFile(std::move(writer), pb.path()) == 0);
+
+    return 0;
+}
+
 i32 commonErrorsTest() {
 
     // Test operations on non-existent files
@@ -421,7 +620,15 @@ i32 commonErrorsTest() {
                 CT_CHECK(res.hasErr());
             }
             {
-                auto res = core::fileRename(tc.path, "new name");
+                auto res = core::fileMove(tc.path, "new name");
+                CT_CHECK(res.hasErr());
+            }
+            {
+                auto res = core::fileCopy(tc.path, "new name");
+                CT_CHECK(res.hasErr());
+            }
+            {
+                auto res = core::fileTruncate(tc.path, 5);
                 CT_CHECK(res.hasErr());
             }
             {
@@ -444,10 +651,6 @@ i32 commonErrorsTest() {
                 CT_CHECK(res.hasErr());
             }
             {
-                auto res = core::dirRename(tc.path, "new name");
-                CT_CHECK(res.hasErr());
-            }
-            {
                 core::DirWalkCallback cb = [](const core::DirEntry&, addr_size, void*) -> bool { return true; };
                 auto res = core::dirWalk(tc.path, cb, nullptr);
                 CT_CHECK(res.hasErr());
@@ -457,10 +660,24 @@ i32 commonErrorsTest() {
                 CT_CHECK(res.hasErr());
             }
             {
-                auto res = core::dirDeleteRec(tc.path);
+                auto res = core::dirDeleteRec<core::DEFAULT_ALLOCATOR_ID>(tc.path);
+                CT_CHECK(res.hasErr());
+            }
+            {
+                auto res = core::dirChangeCWD(tc.path);
                 CT_CHECK(res.hasErr());
             }
         }
+    }
+
+    // dirCWD invalid buffer or size
+    {
+        auto res = core::dirCWD(nullptr, 0);
+        CT_CHECK(res.hasErr());
+
+        char tiny[1] = {};
+        auto res2 = core::dirCWD(tiny, 0);
+        CT_CHECK(res2.hasErr());
     }
 
     // Test operations on invalid file descriptor
@@ -477,6 +694,8 @@ i32 commonErrorsTest() {
         CT_CHECK(check(core::fileRead(f, nullptr, 0)) == 0);
         CT_CHECK(check(core::fileSeek(f, 0)) == 0);
         CT_CHECK(check(core::fileSize(f)) == 0);
+        CT_CHECK(check(core::fileFlush(f)) == 0);
+        CT_CHECK(check(core::fileTruncate(f, 0)) == 0);
     }
 
     return 0;
@@ -575,7 +794,54 @@ i32 edgeErrorCasesTest() {
     return 0;
 }
 
-i32 directoriesCreateRenameAndDeleteTest() {
+i32 dirCwdChangeTest() {
+    constexpr addr_size BUF_SIZE = 512;
+    char initial[BUF_SIZE] = {};
+    {
+        auto res = core::dirCWD(initial, BUF_SIZE);
+        CT_CHECK(!res.hasErr());
+    }
+
+    TestPathBuilder pb;
+    pb.setDirPath(testDirectory);
+    pb.appendToDirPath("cwd_test");
+
+    {
+        auto res = core::dirCreate(pb.path());
+        CT_CHECK(!res.hasErr());
+    }
+
+    {
+        auto res = core::dirChangeCWD(pb.path());
+        CT_CHECK(!res.hasErr());
+    }
+    {
+        char after[BUF_SIZE] = {};
+        auto res = core::dirCWD(after, BUF_SIZE);
+        CT_CHECK(!res.hasErr());
+        CT_CHECK(core::memcmp(after, core::cstrLen(after), pb.path(), core::cstrLen(pb.path())) == 0);
+    }
+
+    {
+        auto res = core::dirChangeCWD(initial);
+        CT_CHECK(!res.hasErr());
+    }
+    {
+        char back[BUF_SIZE] = {};
+        auto res = core::dirCWD(back, BUF_SIZE);
+        CT_CHECK(!res.hasErr());
+        CT_CHECK(core::memcmp(back, core::cstrLen(back), initial, core::cstrLen(initial)) == 0);
+    }
+
+    {
+        auto res = core::dirDelete(pb.path());
+        CT_CHECK(!res.hasErr());
+    }
+
+    return 0;
+}
+
+i32 directoriesCreateMoveAndDeleteTest() {
     TestPathBuilder pb;
     pb.setDirPath(testDirectory);
 
@@ -589,27 +855,27 @@ i32 directoriesCreateRenameAndDeleteTest() {
             CT_CHECK(!res.hasErr(), cErr);
         }
 
-        TestPathBuilder renamedpb;
-        renamedpb.setDirPath(testDirectory);
-        renamedpb.setFileName("renamed");
+        TestPathBuilder moveddpb;
+        moveddpb.setDirPath(testDirectory);
+        moveddpb.setFileName("moved");
 
-        // Rename It
+        // Move It
         {
-            auto res = core::dirRename(pb.path(), renamedpb.path());
+            auto res = core::fileMove(pb.path(), moveddpb.path());
             CT_CHECK(!res.hasErr(), cErr);
         }
 
         // Stat It
         {
             core::FileStat stat;
-            auto res = core::fileStat(renamedpb.path(), stat);
+            auto res = core::fileStat(moveddpb.path(), stat);
             CT_CHECK(!res.hasErr(), cErr);
             CT_CHECK(stat.type == core::FileType::Directory, cErr);
         }
 
         // Delete It
         {
-            auto res = core::dirDelete(renamedpb.path());
+            auto res = core::dirDelete(moveddpb.path());
             CT_CHECK(!res.hasErr(), cErr);
         }
 
@@ -785,7 +1051,7 @@ i32 basicListDirectoryContentsTest() {
 
     // Delete directory
     {
-        auto res = core::dirDeleteRec(pb.path());
+        auto res = core::dirDeleteRec<core::DEFAULT_ALLOCATOR_ID>(pb.path());
         CT_CHECK(!res.hasErr());
     }
 
@@ -955,6 +1221,18 @@ i32 runPltFileSystemTestsSuite() {
     if (runTest(tInfo, checkFileStatsTest) != 0) { return -1; }
     if (!checkTestDirecotryIsCleanned()) { return -1; }
 
+    tInfo.name = FN_NAME_TO_CPTR(fileCopyTest);
+    if (runTest(tInfo, fileCopyTest) != 0) { return -1; }
+    if (!checkTestDirecotryIsCleanned()) { return -1; }
+
+    tInfo.name = FN_NAME_TO_CPTR(fileTruncateAndStatTest);
+    if (runTest(tInfo, fileTruncateAndStatTest) != 0) { return -1; }
+    if (!checkTestDirecotryIsCleanned()) { return -1; }
+
+    tInfo.name = FN_NAME_TO_CPTR(fileFlushTest);
+    if (runTest(tInfo, fileFlushTest) != 0) { return -1; }
+    if (!checkTestDirecotryIsCleanned()) { return -1; }
+
     tInfo.name = FN_NAME_TO_CPTR(commonErrorsTest);
     if (runTest(tInfo, commonErrorsTest) != 0) { return -1; }
     if (!checkTestDirecotryIsCleanned()) { return -1; }
@@ -963,8 +1241,12 @@ i32 runPltFileSystemTestsSuite() {
     if (runTest(tInfo, edgeErrorCasesTest) != 0) { return -1; }
     if (!checkTestDirecotryIsCleanned()) { return -1; }
 
-    tInfo.name = FN_NAME_TO_CPTR(directoriesCreateRenameAndDeleteTest);
-    if (runTest(tInfo, directoriesCreateRenameAndDeleteTest) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(dirCwdChangeTest);
+    if (runTest(tInfo, dirCwdChangeTest) != 0) { return -1; }
+    if (!checkTestDirecotryIsCleanned()) { return -1; }
+
+    tInfo.name = FN_NAME_TO_CPTR(directoriesCreateMoveAndDeleteTest);
+    if (runTest(tInfo, directoriesCreateMoveAndDeleteTest) != 0) { return -1; }
     if (!checkTestDirecotryIsCleanned()) { return -1; }
 
     tInfo.name = FN_NAME_TO_CPTR(mostBasicReadAndWriteTest);

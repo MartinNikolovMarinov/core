@@ -1,4 +1,12 @@
+#include "core_cstr.h"
+#include "core_exec_ctx.h"
+#include "core_macros.h"
+#include "core_mem.h"
+#include "core_types.h"
 #include "t-index.h"
+#include "testing/testing_framework.h"
+
+namespace {
 
 constexpr i32 alignTest() {
     struct TestCase {
@@ -106,6 +114,64 @@ constexpr i32 memswapTest() {
         CT_CHECK(a2.b[1] == 3);
         CT_CHECK(a2.b[2] == 4);
         CT_CHECK(a2.c == 5);
+    }
+
+    return 0;
+}
+
+constexpr i32 swapTest() {
+    // Simple numeric types
+    {
+        i32 a = -7;
+        i32 b = 13;
+        core::swap(a, b);
+        CT_CHECK(a == 13);
+        CT_CHECK(b == -7);
+    }
+    {
+        f64 a = 1.25;
+        f64 b = -2.5;
+        core::swap(a, b);
+        CT_CHECK(a == -2.5);
+        CT_CHECK(b == 1.25);
+    }
+
+    // Struct types
+    {
+        struct Pair {
+            u16 x;
+            u16 y;
+        };
+
+        Pair first{ 10, 11 };
+        Pair second{ 20, 21 };
+        core::swap(first, second);
+        CT_CHECK(first.x == 20 && first.y == 21);
+        CT_CHECK(second.x == 10 && second.y == 11);
+    }
+
+    {
+        struct Complex {
+            i64 id;
+            char label[5];
+            bool flags[3];
+            u32 values[2];
+        };
+
+        Complex lhs{ 42, { 'a', 'b', 'c', 'd', '\0' }, { true, false, true }, { 7, 8 } };
+        Complex rhs{ 7, { 'x', 'y', 'z', 'w', '\0' }, { false, true, false }, { 1, 2 } };
+
+        core::swap(lhs, rhs);
+
+        CT_CHECK(lhs.id == 7);
+        CT_CHECK(lhs.label[0] == 'x' && lhs.label[1] == 'y' && lhs.label[2] == 'z' && lhs.label[3] == 'w' && lhs.label[4] == '\0');
+        CT_CHECK(lhs.flags[0] == false && lhs.flags[1] == true && lhs.flags[2] == false);
+        CT_CHECK(lhs.values[0] == 1 && lhs.values[1] == 2);
+
+        CT_CHECK(rhs.id == 42);
+        CT_CHECK(rhs.label[0] == 'a' && rhs.label[1] == 'b' && rhs.label[2] == 'c' && rhs.label[3] == 'd' && rhs.label[4] == '\0');
+        CT_CHECK(rhs.flags[0] == true && rhs.flags[1] == false && rhs.flags[2] == true);
+        CT_CHECK(rhs.values[0] == 7 && rhs.values[1] == 8);
     }
 
     return 0;
@@ -370,31 +436,63 @@ constexpr i32 memoryTests() {
 
     // Test slice()
     {
-        i32 arr[] = {1, 2, 3, 4, 5};
-        core::Memory<i32> m(arr, 5);
+        i32 arr[] = { 1, 2, 3, 4, 5 };
+        core::Memory<i32> m(arr, CORE_C_ARRLEN(arr));
 
-        auto s1 = m.slice(2);
-        CT_CHECK(s1.data() == arr + 2);
-        CT_CHECK(s1.len() == 3);
+        struct TestCase {
+            addr_size offset;
+            addr_size len;
+            i32 expected[5];
+            addr_size expectedLen;
+        };
 
-        auto s2 = m.slice(2, 2);
-        CT_CHECK(s2.data() == arr + 2);
-        CT_CHECK(s2.len() == 2);
+        constexpr TestCase cases[] = {
+            { 0, 0, { 0, 0, 0, 0, 0 }, 0 },
+            { 0, 1, { 1, 0, 0, 0, 0 }, 1 },
+            { 0, 2, { 1, 2, 0, 0, 0 }, 2 },
+            { 0, 3, { 1, 2, 3, 0, 0 }, 3 },
+            { 0, 4, { 1, 2, 3, 4, 0 }, 4 },
+            { 0, 5, { 1, 2, 3, 4, 5 }, 5 },
 
-        for (addr_size i = 0; i < m.len(); i++) {
-            {
-                auto s = m.slice(0, i);
-                for (addr_size j = 0; j < i; j++) {
-                    CT_CHECK(s[j] == arr[j]);
-                }
+            { 1, 0, { 0, 0, 0, 0, 0 }, 0 },
+            { 1, 1, { 2, 0, 0, 0, 0 }, 1 },
+            { 1, 2, { 2, 3, 0, 0, 0 }, 2 },
+            { 1, 3, { 2, 3, 4, 0, 0 }, 3 },
+            { 1, 4, { 2, 3, 4, 5, 0 }, 4 },
+
+            { 2, 0, { 0, 0, 0, 0, 0 }, 0 },
+            { 2, 1, { 3, 0, 0, 0, 0 }, 1 },
+            { 2, 2, { 3, 4, 0, 0, 0 }, 2 },
+            { 2, 3, { 3, 4, 5, 0, 0 }, 3 },
+
+            { 3, 0, { 0, 0, 0, 0, 0 }, 0 },
+            { 3, 1, { 4, 0, 0, 0, 0 }, 1 },
+            { 3, 2, { 4, 5, 0, 0, 0 }, 2 },
+
+            { 4, 0, { 0, 0, 0, 0, 0 }, 0 },
+            { 4, 1, { 5, 0, 0, 0, 0 }, 1 },
+
+            { 5, 0, { 0, 0, 0, 0, 0 }, 0 },
+        };
+
+        i32 ret = core::testing::executeTestTable("slice test case failed at index: ", cases, [&](auto& c, const char* cErr) {
+            auto s = m.slice(c.offset, c.len);
+
+            if (c.len == 0) {
+                CT_CHECK(s.data() == nullptr, cErr);
             }
-            {
-                auto s = m.slice(i, m.len() - i);
-                for (addr_size j = 0; j < s.len(); j++) {
-                    CT_CHECK(s[j] == arr[j + i]);
-                }
+            else {
+                CT_CHECK(s.data() == arr + c.offset, cErr);
             }
-        }
+            CT_CHECK(s.len() == c.expectedLen, cErr);
+
+            core::Memory<const i32> actual(s.data(), s.len());
+            core::Memory<const i32> expected(c.expected, c.expectedLen);
+            CT_CHECK(actual.eq(expected), cErr);
+
+            return 0;
+        });
+        CT_CHECK(ret == 0);
     }
 
     // Test eq() and cmp()
@@ -423,8 +521,124 @@ constexpr i32 memoryTests() {
         CT_CHECK(!m.contains(5));
     }
 
+    // Test slice()
+    {
+        i32 arr[] = { 10, 20, 30, 40, 50 };
+        core::Memory<i32> mem(arr, CORE_C_ARRLEN(arr));
+
+        auto tail = mem.slice(1);
+        CT_CHECK(tail.data() == arr + 1);
+        CT_CHECK(tail.len() == 4);
+        tail[0] = 21; // writes through to the original buffer
+        CT_CHECK(arr[1] == 21);
+
+        auto middle = mem.slice(2, 2);
+        CT_CHECK(middle.data() == arr + 2);
+        CT_CHECK(middle.len() == 2);
+        CT_CHECK(middle[0] == 30 && middle[1] == 40);
+        middle[1] = 41;
+        CT_CHECK(arr[3] == 41);
+
+        auto nested = tail.slice(1, 2);
+        CT_CHECK(nested.data() == arr + 2);
+        CT_CHECK(nested.len() == 2);
+        CT_CHECK(nested[0] == 30 && nested[1] == 41);
+        nested[0] = 31;
+        CT_CHECK(arr[2] == 31);
+
+        auto empty = mem.slice(0, 0);
+        CT_CHECK(empty.data() == nullptr);
+        CT_CHECK(empty.len() == 0);
+    }
+
     return 0;
 }
+
+i32 memoryTestsEdgeCases() {
+    // Operations on empty memory objects
+    {
+        PRAGMA_WARNING_PUSH
+        DISABLE_GCC_AND_CLANG_WARNING(-Wself-move)
+
+        auto m1 = core::Memory<char>();
+        CT_CHECK(m1.len() == 0);
+        CT_CHECK(m1.data() == nullptr);
+
+        m1 = std::move(m1); // move self.
+        CT_CHECK(m1.len() == 0);
+        CT_CHECK(m1.data() == nullptr);
+
+        auto m2 = core::Memory<char>();
+        CT_CHECK(m1.cmp(m2) == 0);
+        CT_CHECK(m1.eq(m2) == true);
+        CT_CHECK(m1.contains('a') == false);
+
+        PRAGMA_WARNING_POP
+    }
+
+    return 0;
+}
+
+template <core::AllocatorId TAllocId>
+i32 runMemoryAllocationTest() {
+    constexpr addr_size N = 512;
+    core::Memory<u8> container[N] = {};
+    core::Memory<u8> reallocated[N] = {};
+
+    // Initially allocate everything
+    for (addr_size i = 0; i < N; i++) {
+        auto m = core::memoryZeroAllocate<u8>(TAllocId, i + 1);
+        container[i] = m;
+    }
+
+    // Reallocated everything from the container
+    for (addr_size i = 0; i < N; i++) {
+        reallocated[i] = core::memoryReallocate(std::move(container[i]), container[i].len() * 2, TAllocId);
+    }
+
+    // Everything that was moved should be cleared to zero
+    for (addr_size i = 0; i < N; i++) {
+        CT_CHECK(container[i].data() == nullptr);
+        CT_CHECK(container[i].len() == 0);
+    }
+
+    // Free everything
+    for (addr_size i = 0; i < N; i++) {
+        core::memoryFree(std::move(reallocated[i]), TAllocId);
+    }
+
+    // Everything that was moved freed should be cleared to zero
+    for (addr_size i = 0; i < N; i++) {
+        CT_CHECK(reallocated[i].data() == nullptr);
+        CT_CHECK(reallocated[i].len() == 0);
+    }
+
+    // Reallocating uninitialized should do nothing
+    {
+        core::Memory<u8> uninitialized;
+        auto reallocatedUninitialized = core::memoryReallocate(std::move(uninitialized), 0, TAllocId);
+        CT_CHECK(reallocatedUninitialized.data() == uninitialized.data());
+        CT_CHECK(reallocatedUninitialized.data() == nullptr);
+    }
+
+    return 0;
+}
+
+template <core::AllocatorId TAllocId>
+i32 runDynamicMemoryTests() {
+    using namespace core::testing;
+
+    TestInfo tInfo = createTestInfoFor(RegisteredAllocators(TAllocId));
+
+    defer { core::getAllocator(TAllocId).clear(); };
+
+    tInfo.name = FN_NAME_TO_CPTR(runMemoryAllocationTest);
+    if (runTest(tInfo, runMemoryAllocationTest<TAllocId>) != 0) { return -1; }
+
+    return 0;
+}
+
+} // namespace
 
 i32 runMemTestsSuite() {
     using namespace core::testing;
@@ -436,6 +650,8 @@ i32 runMemTestsSuite() {
     if (runTest(tInfo, alignTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(memswapTest);
     if (runTest(tInfo, memswapTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(swapTest);
+    if (runTest(tInfo, swapTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(memcopyTest);
     if (runTest(tInfo, memcopyTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(memsetTest);
@@ -452,6 +668,21 @@ i32 runMemTestsSuite() {
     if (runTest(tInfo, ptrAdvanceTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(memoryTests);
     if (runTest(tInfo, memoryTests) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(memoryTestsEdgeCases);
+    if (runTest(tInfo, memoryTestsEdgeCases) != 0) { ret = -1; }
+
+    if (runDynamicMemoryTests<RA_STD_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runDynamicMemoryTests<RA_STD_STATS_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runDynamicMemoryTests<RA_THREAD_LOCAL_BUMP_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runDynamicMemoryTests<RA_THREAD_LOCAL_ARENA_ALLOCATOR_ID>() != 0) { return -1; }
+
+    constexpr u32 BUFFER_SIZE = core::CORE_MEGABYTE;
+    char buf[BUFFER_SIZE];
+    setBufferForBumpAllocator(buf, BUFFER_SIZE);
+    if (runDynamicMemoryTests<RA_BUMP_ALLOCATOR_ID>() != 0) { return -1; }
+
+    setBlockSizeForArenaAllocator(1024);
+    if (runDynamicMemoryTests<RA_ARENA_ALLOCATOR_ID>() != 0) { return -1; }
 
     return ret;
 }
@@ -459,6 +690,7 @@ i32 runMemTestsSuite() {
 constexpr i32 runCompiletimeMemTestsSuite() {
     RunTestCompileTime(alignTest);
     RunTestCompileTime(memswapTest);
+    RunTestCompileTime(swapTest);
     RunTestCompileTime(memcopyTest);
     RunTestCompileTime(memsetTest);
     RunTestCompileTime(memcmpWithCStrs);

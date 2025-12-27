@@ -6,8 +6,6 @@
 #include <core_extensions/hash_functions.h>
 #include <core_extensions/hash_functions.h>
 
-#include <iostream>
-
 using namespace coretypes;
 
 // #################### TESTING HELPERS ################################################################################

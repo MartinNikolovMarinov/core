@@ -1,12 +1,11 @@
-
 #pragma once
 
-#include <core_mem.h>
-#include <core_types.h>
 #include <core_exec_ctx.h>
-#include <math/core_math.h>
+#include <core_mem.h>
+#include <core_traits.h>
+#include <core_types.h>
 
-#include <new>
+#include <math/core_math.h>
 
 namespace core {
 
@@ -16,7 +15,7 @@ template <typename T, addr_size N>                                 struct ArrSta
 template<typename ...Args> constexpr auto createArrStatic(Args... args);
 
 template <typename From, typename To,
-          typename = std::enable_if_t<std::is_rvalue_reference_v<From&&>>>
+        typename = std::enable_if_t<std::is_rvalue_reference_v<From&&>>>
 inline void convArrList(To& to, From&& from) {
     using from_value_type = typename From::value_type;
     using to_value_type = typename To::value_type;
@@ -24,24 +23,24 @@ inline void convArrList(To& to, From&& from) {
 
     // Validate size compatibility
     static_assert(sizeof(from_value_type) % sizeof(to_value_type) == 0 ||
-                  sizeof(to_value_type) % sizeof(from_value_type) == 0,
-                  "The size of From's and To's value types must be compatible (i.e. divisible)");
+                sizeof(to_value_type) % sizeof(from_value_type) == 0,
+                "The size of From's and To's value types must be compatible (i.e. divisible)");
 
     size_type len, cap;
     from_value_type* rawData = from.release(len, cap);
 
     // Alignment check
     Assert(reinterpret_cast<addr_size>(rawData) % alignof(to_value_type) == 0,
-           "Data alignment mismatch: From's value type is not properly aligned for To's value type");
+        "Data alignment mismatch: From's value type is not properly aligned for To's value type");
 
     // Compute new length and capacity for the target type
     addr_size totalBytesLen = len * sizeof(from_value_type);
     addr_size totalBytesCap = cap * sizeof(from_value_type);
 
     Assert(totalBytesLen % sizeof(to_value_type) == 0,
-           "Length in bytes is not divisible by To's value type size");
+        "Length in bytes is not divisible by To's value type size");
     Assert(totalBytesCap % sizeof(to_value_type) == 0,
-           "Capacity in bytes is not divisible by To's value type size");
+        "Capacity in bytes is not divisible by To's value type size");
 
     size_type toLen = totalBytesLen / sizeof(to_value_type);
     size_type toCap = totalBytesCap / sizeof(to_value_type);
@@ -57,6 +56,10 @@ inline void convArrList(To& to, From&& from) {
 
 template <typename T, AllocatorId TAllocId>
 struct ArrList {
+    // NOTE: If T is not copy constructable some functionalities can't be used.
+    static_assert(std::is_copy_constructible_v<T> || std::is_move_constructible_v<T>,
+                "The provided T does not satisfy the requirements for ArrList");
+
     inline static core::AllocatorContext& allocator = core::getAllocator(TAllocId);
 
     using value_type = T;
@@ -195,7 +198,7 @@ struct ArrList {
     value_type* release(size_type& len, size_type& cap) {
         if constexpr (!dataIsTrivial) {
             Panic(false, "Releasing the ownership of a raw pointer, of non trivial type, is strongly discouraged."
-                         "Because you have to remember to manually call the destructor for each element.");
+                        "Because you have to remember to manually call the destructor for each element.");
         }
 
         value_type* res = m_data;
@@ -214,10 +217,23 @@ struct ArrList {
             return;
         }
 
-        // reallocate
         value_type* newData = reinterpret_cast<value_type *>(allocator.alloc(newCap, sizeof(value_type)));
         if (m_data != nullptr) {
-            core::memcopy(newData, m_data, m_len);
+            if constexpr (dataIsTrivial) {
+                core::memcopy(newData, m_data, m_len);
+            }
+            else {
+                for (size_type i = 0; i < m_len; ++i) {
+                    if constexpr (std::is_move_constructible_v<T>) {
+                        new (&newData[i]) T(std::move(m_data[i]));
+                    }
+                    else {
+                        static_assert(std::is_copy_constructible_v<T>);
+                        new (&newData[i]) T(m_data[i]);
+                    }
+                    m_data[i].~T();
+                }
+            }
             allocator.free(m_data, m_cap, sizeof(value_type));
         }
 
@@ -265,15 +281,36 @@ struct ArrList {
     void push(core::Memory<value_type> val) { push(val.data(), val.len()); }
 
     void remove(size_type idx) {
+        Assert(idx < m_len, "remove idx out of bounds");
         m_data[idx].~T();
 
         if (idx < m_len - 1) {
-            for (size_type i = idx; i < m_len - 1; ++i) {
-                m_data[i] = std::move(m_data[i + 1]);
+            if constexpr (dataIsTrivial) {
+                core::memcopy(m_data + idx, m_data + idx + 1, m_len - idx - 1);
+            }
+            else {
+                for (size_type i = idx; i < m_len - 1; ++i) {
+                    if constexpr (std::is_move_constructible_v<T>) {
+                        new (&m_data[i]) T(std::move(m_data[i + 1]));
+                    }
+                    else {
+                        static_assert(std::is_copy_constructible_v<T>);
+                        new (&m_data[i]) T(m_data[i + 1]);
+                    }
+                    m_data[i].~T();
+                }
             }
         }
 
         m_len--;
+    }
+
+    value_type pop() {
+        Assert(m_len > 0, "pop() called on empty ArrList");
+        m_len--;
+        value_type ret = std::move(m_data[m_len]);
+        m_data[m_len].~T();
+        return ret;
     }
 
     void assign(const value_type& val, size_type from, size_type to) {
@@ -380,6 +417,11 @@ struct ArrStatic {
         }
 
         m_len--;
+    }
+
+    constexpr value_type pop() {
+        --m_len;
+        return std::move(m_data[m_len]);
     }
 
     constexpr void assign(const value_type& val, size_type from, size_type to) {

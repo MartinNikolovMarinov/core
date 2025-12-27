@@ -26,11 +26,11 @@ template <typename T> inline addr_size    imemset(T* dest, const T& v, addr_size
 template <typename T> constexpr addr_size cmemset(T* dest, const T& v, addr_size len);
 template <typename T> constexpr addr_size memset(T* dest, const T& v, addr_size len);
 
-template <typename T> inline i32                    imemcmp(const T* a, addr_size lena, const T* b, addr_size lenb);
-template <typename T> constexpr i32                 cmemcmpBytes(const T* a, addr_size lena, const T* b, addr_size lenb);
-template <typename T> constexpr i32                 memcmp(const T* a, addr_size lena, const T* b, addr_size lenb);
+template <typename T>                 inline i32    imemcmp(const T* a, addr_size lena, const T* b, addr_size lenb);
+template <typename T>                 constexpr i32 cmemcmpBytes(const T* a, addr_size lena, const T* b, addr_size lenb);
+template <typename T>                 constexpr i32 memcmp(const T* a, addr_size lena, const T* b, addr_size lenb);
 template <typename T, typename CmpFn> constexpr i32 memcmp(const T* a, addr_size lena, const T* b, addr_size lenb, CmpFn cmpFn);
-template <typename T> constexpr i32                 memcmp(const T* a, const T* b, addr_size len);
+template <typename T>                 constexpr i32 memcmp(const T* a, const T* b, addr_size len);
 template <typename T, typename CmpFn> constexpr i32 memcmp(const T* a, const T* b, addr_size len, CmpFn cmpFn);
 
                       inline void    imemswap(void* a, void* b, addr_size len);
@@ -76,12 +76,18 @@ struct Memory {
     constexpr T& operator[](size_type idx) const { return ptr[idx]; }
     constexpr T* atUnsafe(size_type idx) const { return ptr + idx; }
     constexpr T* at(size_type idx) const {
-        if (idx < length) return atUnsafe(idx);
-        else return nullptr;
+        Assert(idx < length, "Index out of range");
+        return atUnsafe(idx);
     }
 
-    constexpr T* end() { return ptr + length; }
-    constexpr const T* end() const { return ptr + length; }
+    constexpr T* end() {
+        Assert(ptr != nullptr, "memory is not initialized");
+        return ptr + length;
+    }
+    constexpr const T* end() const {
+        Assert(ptr != nullptr, "memory is not initialized");
+        return ptr + length;
+    }
 
     constexpr T* last() { return end() - 1; }
     constexpr const T* last() const { return end() - 1; }
@@ -135,6 +141,20 @@ struct Memory {
 
 /**
  * \brief
+ * Allocates a memory block using the specified allocator. The allocated memory is zeroed-out.
+ */
+template <typename T>
+core::Memory<T> memoryZeroAllocate(core::AllocatorId allocatorId, addr_size count) {
+    auto actx = core::getAllocator(allocatorId);
+    auto fileMemory = core::Memory<T> (
+        reinterpret_cast<T*>(actx.zeroAlloc(count, sizeof(T))),
+        count
+    );
+    return fileMemory;
+}
+
+/**
+ * \brief
  * Frees the given memory block using the specified allocator.
  *
  * This function deallocates the memory pointed to by `mem.ptr`, using the allocator associated with `allocatorId`.
@@ -142,9 +162,12 @@ struct Memory {
  *
  * \warning
  * - The allocator must be the same one used to allocate the memory, or the behavior is VERY undefined.
+ * - Use only with types that are trivially destructible (no destructors are invoked).
  */
 template <typename T>
 void memoryFree(core::Memory<T>&& mem, core::AllocatorId allocatorId) {
+    static_assert(std::is_trivially_destructible_v<T>, "T should be trivially destructible");
+
     if (mem.ptr == nullptr || mem.length == 0) return;
     auto actx = core::getAllocator(allocatorId);
     actx.free(mem.data(), mem.len(), sizeof(T));
@@ -154,7 +177,7 @@ void memoryFree(core::Memory<T>&& mem, core::AllocatorId allocatorId) {
 
 /**
  * \brief
- * Moves a memory block to a new buffer of size `count` using the given allocator.
+ * Reallocates a memory block to a new buffer holding `count` elements using the given allocator.
  *
  * Allocates a new zero-initialized buffer of type `T[count]`, copies the contents from the original block,
  * and frees the original memory using the same allocator. Leaves `mem` null and empty.
@@ -168,13 +191,11 @@ void memoryFree(core::Memory<T>&& mem, core::AllocatorId allocatorId) {
  * \warning
  * - `count` must be greater than or equal to `mem.len()`, otherwise this is a logic error.
  * - The allocator must be the same one used to allocate the memory, or the behavior is VERY undefined.
- * - Use only with types that are standard layout, trivially copyable, and trivially move assignable.
+ * - Use only with types that are trivially copyable (copied via memcpy, destructors not invoked).
  */
 template <typename T>
-[[nodiscard]] Memory<T> memoryMove(core::Memory<T>&& mem, addr_size count, core::AllocatorId allocatorId) {
-    static_assert(std::is_standard_layout_v<T>, "T should be standard layout");
-    static_assert(std::is_trivially_copy_assignable_v<T>, "T should be trivially copy assignable");
-    static_assert(std::is_trivially_move_assignable_v<T>, "T should be trivially move assignable");
+[[nodiscard]] Memory<T> memoryReallocate(core::Memory<T>&& mem, addr_size count, core::AllocatorId allocatorId) {
+    static_assert(std::is_trivially_copyable_v<T>, "T should be trivially copyable");
 
     Assert(count >= mem.len(), "Trying to shrink with memoryMove is not advisable!");
 
@@ -183,7 +204,7 @@ template <typename T>
     auto actx = core::getAllocator(allocatorId);
 
     core::Memory<T> ret;
-    ret.ptr = reinterpret_cast<char*>(actx.zeroAlloc(count, sizeof(T)));
+    ret.ptr = reinterpret_cast<T*>(actx.zeroAlloc(count, sizeof(T)));
     ret.length = count;
 
     core::memcopy(ret.ptr, mem.data(),mem.len());
@@ -196,6 +217,8 @@ template <typename T>
 #pragma region Mem Copy ------------------------------------------------------------------------------------------------
 
 template <typename T> inline addr_size imemcopy(T* dest, const T* src, addr_size len) {
+    static_assert(std::is_trivially_copyable_v<T>, "memcopy requires trivially copyable types");
+
     if constexpr (sizeof(T) == sizeof(u8)) {
         std::memcpy(dest, src, len);
         return len;
@@ -214,13 +237,17 @@ template <typename T> inline addr_size imemcopy(T* dest, const T* src, addr_size
 
 template <typename T> constexpr addr_size cmemcopy(T* dest, const T* src, addr_size len) {
     static_assert(std::is_trivial_v<T>);
+
     for (addr_size i = 0; i < len; i++) {
         dest[i] = src[i];
     }
+
     return len;
 }
 
 template <typename T> constexpr addr_size memcopy(T* dest, const T* src, addr_size len) {
+    static_assert(std::is_trivially_copyable_v<T>, "memcopy requires trivially copyable types");
+
     IS_CONST_EVALUATED {
         if constexpr (std::is_trivial_v<T>) {
             return cmemcopy(dest, src, len);
@@ -304,6 +331,7 @@ template <typename T> constexpr i32 memcmp(const T* a, addr_size lena, const T* 
             return cmemcmpBytes(a, lena, b, lenb);
         }
     }
+
     return imemcmp(a, lena, b, lenb);
 }
 
@@ -311,6 +339,7 @@ template <typename T, typename CmpFn> constexpr i32 memcmp(const T* a, addr_size
     IS_CONST_EVALUATED {
         return cmemcmp<T, CmpFn>(a, lena, b, lenb, cmpFn);
     }
+
     return imemcmp(a, lena, b, lenb);
 }
 
@@ -329,27 +358,28 @@ inline void imemswap(void* a, void* b, addr_size len) {
     char* pb = reinterpret_cast<char*>(b);
 
     for (addr_size i = 0; i < len; ++i) {
-        pa[i] ^= pb[i];
-        pb[i] ^= pa[i];
-        pa[i] ^= pb[i];
+        char tmp = pa[i];
+        pa[i] = pb[i];
+        pb[i] = tmp;
     }
 }
 
 template <typename T>
 constexpr void memswap(T* a, T* b, addr_size len) {
-    if (a == b) return;
+    static_assert(std::is_trivially_copyable_v<T>, "memswap requires trivially copyable types");
 
     IS_CONST_EVALUATED {
-        // Slow element-wise swapping for constexpr contexts
         for (addr_size i = 0; i < len; ++i) {
-            swap(a[i], b[i]);
+            auto tmp = a[i];
+            a[i] = b[i];
+            b[i] = tmp;
         }
         return;
     }
 
-    // The below code can byte copy any T.
-    if constexpr (!std::is_void_v<T>) len *= sizeof(T);
-    imemswap(a, b, len);
+    addr_size byteLen = len;
+    if constexpr (!std::is_void_v<T>) byteLen *= sizeof(T);
+    imemswap(a, b, byteLen);
 }
 
 constexpr addr_size align(addr_size n) {
@@ -370,28 +400,21 @@ constexpr T* append(T* dst, const T& val) {
 
 template <typename T>
 constexpr void swap(T& a, T& b) {
+    static_assert(std::is_trivially_copyable_v<T>, "swap requires trivially copyable types");
     IS_CONST_EVALUATED {
-        if constexpr (std::is_copy_assignable_v<T>) {
-            T tmp = a;
-            a = b;
-            b = tmp;
-            return;
-        }
+        T tmp = a;
+        a = b;
+        b = tmp;
+        return;
     }
 
-    // Byte-wise swap using XOR for runtime context
-    char* pa = reinterpret_cast<char*>(&a);
-    char* pb = reinterpret_cast<char*>(&b);
-    for (std::size_t i = 0; i < sizeof(T); ++i) {
-        pa[i] ^= pb[i];
-        pb[i] ^= pa[i];
-        pa[i] ^= pb[i];
-    }
+    memswap(&a, &b, 1);
 }
 
 inline addr_off ptrDiff(const void* a, const void* b) {
-    // bit casting pointers is not allowed, so reinterpret_cast is needed here.
-    return reinterpret_cast<addr_off>(a) - reinterpret_cast<addr_off>(b);
+    const char* pa = reinterpret_cast<const char*>(a);
+    const char* pb = reinterpret_cast<const char*>(b);
+    return addr_off(pa - pb);
 }
 
 inline void* ptrAdvance(void* ptr, addr_size off) {

@@ -48,7 +48,7 @@ i32 stackPushPopTest() {
     {
         defer { CT::resetAll(); };
 
-        core::Stack<CT, TAllocId> stack;
+        core::Stack<CT, TAllocId> stack(2);
 
         CT ct{};
         CT::resetAll();
@@ -65,7 +65,7 @@ i32 stackPushPopTest() {
         {
             auto popped = stack.pop();
             CT_CHECK(popped.a == CT::defaultValue);
-            CT_CHECK(CT::dtorsCalled() == 0);
+            CT_CHECK(CT::dtorsCalled() == 1);
         }
 
         CT_CHECK(stack.len() == 1);

@@ -251,14 +251,14 @@ i32 pushIntoArrTests() {
             arr.push(lv);
             arr.push(std::move(lv2));
             CT_CHECK(CT::copyCtorCalled() == 1, "push should call the copy ctor.");
-            CT_CHECK(CT::moveCtorCalled() == 1, "push should call the move ctor.");
+            CT_CHECK(CT::moveCtorCalled() == 2, "push should call the move ctor for relocation and move input.");
             CT_CHECK(CT::assignmentsCopyCalled() == 0, "push should NOT call the copy assignment.");
             CT_CHECK(CT::assignmentsMoveCalled() == 0, "push should NOT call the move assignment.");
             for (addr_size i = 0; i < arr.len(); ++i) {
                 CT_CHECK(arr[i].a == 7, "The array default values are not correct.");
             }
         }
-        CT_CHECK(CT::dtorsCalled() == 2);
+        CT_CHECK(CT::dtorsCalled() == 3);
         CT::resetAll();
 
         // Testing a combination of append and ensureCap.
@@ -277,14 +277,14 @@ i32 pushIntoArrTests() {
             CT_CHECK(arr.len() == 2);
             CT_CHECK(arr.cap() == 2);
             CT_CHECK(CT::copyCtorCalled() == 1);
-            CT_CHECK(CT::moveCtorCalled() == 1);
+            CT_CHECK(CT::moveCtorCalled() == 2);
 
             arr.free(); // This should call the destructors.
             CT_CHECK(arr.len() == 0);
             CT_CHECK(arr.cap() == 0);
-            CT_CHECK(CT::dtorsCalled() == 2);
+            CT_CHECK(CT::dtorsCalled() == 3);
         }
-        CT_CHECK(CT::dtorsCalled() == 2);
+        CT_CHECK(CT::dtorsCalled() == 3);
         CT::resetAll();
 
         // Test appending multiple values
@@ -344,6 +344,47 @@ i32 pushIntoArrTests() {
         }
     }
 
+    return 0;
+}
+
+template <core::AllocatorId TAllocId>
+i32 popArrTest() {
+    using namespace core::testing;
+
+    {
+        core::ArrList<i32, TAllocId> arr;
+        arr.push(1);
+        arr.push(2);
+        arr.push(3);
+
+        i32 v1 = arr.pop();
+        CT_CHECK(v1 == 3);
+        CT_CHECK(arr.len() == 2);
+
+        i32 v2 = arr.pop();
+        CT_CHECK(v2 == 2);
+        CT_CHECK(arr.len() == 1);
+    }
+
+    {
+        defer { CT::resetAll(); };
+        core::ArrList<CT, TAllocId> arr;
+        CT a;
+        CT b;
+        CT::resetAll();
+
+        arr.push(a);
+        arr.push(b);
+
+        auto popped = arr.pop();
+        CT_CHECK(CT::moveCtorCalled() == 2);
+        CT_CHECK(arr.len() == 1);
+        CT_CHECK(CT::dtorsCalled() == 2);
+
+        (void)popped;
+    }
+
+    CT::resetAll();
     return 0;
 }
 
@@ -459,7 +500,7 @@ i32 removeFromArrTest() {
     }
 
     {
-        core::ArrList<CT, TAllocId> arr;
+        core::ArrList<CT, TAllocId> arr(2);
 
         defer { CT::resetAll(); };
 
@@ -487,7 +528,7 @@ i32 removeFromArrTest() {
             arr.push(a);
             arr.push(b);
             arr.remove(0);
-            CT_CHECK(CT::dtorsCalled() == 1);
+            CT_CHECK(CT::dtorsCalled() == 2);
             CT_CHECK(arr.len() == 1);
             arr.clear();
         }
@@ -669,6 +710,8 @@ i32 runTests() {
     if (runTest(tInfo, clearArrShouldCallDtorsTest<TAllocId>) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(removeFromArrTest);
     if (runTest(tInfo, removeFromArrTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(popArrTest);
+    if (runTest(tInfo, popArrTest<TAllocId>) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(resetArrTest);
     if (runTest(tInfo, resetArrTest<TAllocId>) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(releaseArrTest);

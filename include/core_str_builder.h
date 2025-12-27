@@ -206,7 +206,7 @@ struct CORE_API_EXPORT StrBuilder {
 
 private:
     void assignFromCstr(value_type** value, size_type& len, size_type& cap,
-                    const char* cstr, size_type cstrLen) {
+                        const char* cstr, size_type cstrLen) {
         if (cstrLen > 0) {
             len = cstrLen;
             cap = cstrLen + 1;

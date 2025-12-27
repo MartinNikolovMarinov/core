@@ -116,9 +116,9 @@ bool logDirectStd(const char* fmt, Args... args) {
             break;
         }
         else if (fmtRes.err() == FormatError::OUT_BUFFER_OVERFLOW) {
-            state.loggerMemory = memoryMove(
+            state.loggerMemory = memoryReallocate(
                 std::move(state.loggerMemory),
-                state.loggerMemory.len(),
+                state.loggerMemory.len() * 2,
                 state.allocatorId
             );
         }
@@ -166,9 +166,9 @@ bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, co
                 break;
             }
             else if (fmtRes.err() == FormatError::OUT_BUFFER_OVERFLOW) {
-                state.loggerMemory = memoryMove(
+                state.loggerMemory = memoryReallocate(
                     std::move(state.loggerMemory),
-                    state.loggerMemory.len(),
+                    state.loggerMemory.len() * 2,
                     allocatorId
                 );
             }

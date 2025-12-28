@@ -216,6 +216,41 @@ template <typename T>
     return ret;
 }
 
+/**
+ * \brief
+ * Sets the element at index `i` to `v`, expanding the backing buffer as needed using `allocatorId`.
+ *
+ * If `i` is beyond the current length, the buffer is grown (doubling strategy) to fit `i`, reusing
+ * `memoryReallocate` for allocation and copying.
+ *
+ * \param mem         The memory block to write into. Ownership may be transferred if reallocation occurs.
+ * \param i           Index to set.
+ * \param v           Value to write at index `i`.
+ * \param allocatorId The allocator used when growing the buffer.
+ *
+ * \return A Memory<T> pointing to the (potentially reallocated) buffer with the value written.
+ *
+ * \warning
+ * - The allocator must match the one that owns `mem`, otherwise behavior is undefined.
+ * - Only trivially copyable types are supported.
+ */
+template <typename T>
+[[nodiscard]] Memory<T> memorySet(core::Memory<T>& mem, addr_size i, T&& v, core::AllocatorId allocatorId) {
+    static_assert(std::is_trivially_copyable_v<T>, "T should be trivially copyable");
+
+    if (i >= mem.len()) {
+        addr_size newLen = mem.len() == 0 ? 1 : mem.len();
+        while (i >= newLen) {
+            newLen *= 2;
+        }
+
+        mem = memoryReallocate(std::move(mem), newLen, allocatorId);
+    }
+
+    mem[i] = std::move(v);
+    return mem;
+}
+
 #pragma region Mem Copy ------------------------------------------------------------------------------------------------
 
 template <typename T> inline addr_size imemcopy(T* dest, const T* src, addr_size len) {

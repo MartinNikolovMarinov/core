@@ -621,6 +621,31 @@ i32 runMemoryAllocationTest() {
         CT_CHECK(reallocatedUninitialized.data() == nullptr);
     }
 
+    // Memory set grow and preserve data.
+    {
+        core::Memory<u8> mem;
+        mem = core::memorySet(mem, 0, u8(123), TAllocId);
+        CT_CHECK(mem.len() == 1);
+        CT_CHECK(mem[0] == 123);
+
+        u8* prevPtr = mem.data();
+        mem = core::memorySet(mem, 0, u8(45), TAllocId);
+        CT_CHECK(mem.data() == prevPtr);
+        CT_CHECK(mem.len() == 1);
+        CT_CHECK(mem[0] == 45);
+
+        mem = core::memorySet(mem, 5, u8(7), TAllocId);
+        CT_CHECK(mem.data() != prevPtr); // pointer is no longer valid
+        CT_CHECK(mem.len() == 8);
+        CT_CHECK(mem[0] == 45);
+        CT_CHECK(mem[5] == 7);
+        for (addr_size idx = 1; idx < mem.len(); idx++) {
+            if (idx == 5) continue;
+            CT_CHECK(mem[idx] == 0);
+        }
+        core::memoryFree(std::move(mem), TAllocId);
+    }
+
     return 0;
 }
 

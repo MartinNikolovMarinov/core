@@ -587,7 +587,7 @@ i32 runMemoryAllocationTest() {
 
     // Initially allocate everything
     for (addr_size i = 0; i < N; i++) {
-        auto m = core::memoryZeroAllocate<u8>(TAllocId, i + 1);
+        auto m = core::memoryZeroAllocate<u8>(i + 1, TAllocId);
         container[i] = m;
     }
 

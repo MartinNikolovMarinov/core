@@ -1,16 +1,17 @@
 #pragma once
 
-#include "core_exec_ctx.h"
 #include <core_API.h>
 #include <core_assert.h>
 #include <core_bits.h>
 #include <core_cstr.h>
+#include <core_exec_ctx.h>
 #include <core_traits.h>
 #include <core_types.h>
 
 #include <math/core_math.h>
 
 #include <cstring>
+#include <utility>
 
 // TODO2: [PERFORMANCE] most functions here could have better performance.
 
@@ -18,11 +19,22 @@ namespace core {
 
 using namespace coretypes;
 
-template <typename T> inline addr_size    imemcopy(T* dest, const T* src, addr_size len);
+template <typename T> struct Memory;
+
+template <typename T> void memoryFree(Memory<T>&& mem, AllocatorId allocatorId);
+template <typename T> void memoryFree(Memory<T>&& mem, AllocatorContext& actx);
+template <typename T> [[nodiscard]] Memory<T> memoryReallocate(Memory<T>&& mem, addr_size count, AllocatorId allocatorId);
+template <typename T> [[nodiscard]] Memory<T> memoryReallocate(Memory<T>&& mem, addr_size count, AllocatorContext& actx);
+template <typename T> [[nodiscard]] Memory<T> memorySet(Memory<T>& mem, addr_size i, T&& v, AllocatorId allocatorId);
+template <typename T> [[nodiscard]] Memory<T> memorySet(Memory<T>& mem, addr_size i, T&& v, AllocatorContext& actx);
+template <typename T> [[nodiscard]] Memory<T> memoryZeroAllocate(addr_size count, AllocatorId allocatorId);
+template <typename T> [[nodiscard]] Memory<T> memoryZeroAllocate(addr_size count, AllocatorContext& actx);
+
+template <typename T> inline    addr_size imemcopy(T* dest, const T* src, addr_size len);
 template <typename T> constexpr addr_size cmemcopy(T* dest, const T* src, addr_size len);
 template <typename T> constexpr addr_size memcopy(T* dest, const T* src, addr_size len);
 
-template <typename T> inline addr_size    imemset(T* dest, const T& v, addr_size len);
+template <typename T> inline    addr_size imemset(T* dest, const T& v, addr_size len);
 template <typename T> constexpr addr_size cmemset(T* dest, const T& v, addr_size len);
 template <typename T> constexpr addr_size memset(T* dest, const T& v, addr_size len);
 
@@ -146,8 +158,12 @@ struct Memory {
  * Allocates a memory block using the specified allocator. The allocated memory is zeroed-out.
  */
 template <typename T>
-core::Memory<T> memoryZeroAllocate(core::AllocatorId allocatorId, addr_size count) {
-    auto actx = core::getAllocator(allocatorId);
+[[nodiscard]] core::Memory<T> memoryZeroAllocate(addr_size count, core::AllocatorId allocatorId) {
+    auto& actx = core::getAllocator(allocatorId);
+    return memoryZeroAllocate<T>(count, actx);
+}
+template <typename T>
+[[nodiscard]] core::Memory<T> memoryZeroAllocate(addr_size count, core::AllocatorContext& actx) {
     auto fileMemory = core::Memory<T> (
         reinterpret_cast<T*>(actx.zeroAlloc(count, sizeof(T))),
         count
@@ -170,8 +186,14 @@ template <typename T>
 void memoryFree(core::Memory<T>&& mem, core::AllocatorId allocatorId) {
     static_assert(std::is_trivially_destructible_v<T>, "T should be trivially destructible");
 
+    auto& actx = core::getAllocator(allocatorId);
+    memoryFree(std::move(mem), actx);
+}
+template <typename T>
+void memoryFree(core::Memory<T>&& mem, core::AllocatorContext& actx) {
+    static_assert(std::is_trivially_destructible_v<T>, "T should be trivially destructible");
+
     if (mem.empty()) return;
-    auto actx = core::getAllocator(allocatorId);
     actx.free(mem.data(), mem.len(), sizeof(T));
     mem.ptr = nullptr;
     mem.length = 0;
@@ -199,11 +221,16 @@ template <typename T>
 [[nodiscard]] Memory<T> memoryReallocate(core::Memory<T>&& mem, addr_size count, core::AllocatorId allocatorId) {
     static_assert(std::is_trivially_copyable_v<T>, "T should be trivially copyable");
 
+    auto& actx = core::getAllocator(allocatorId);
+    return memoryReallocate(std::move(mem), count, actx);
+}
+template <typename T>
+[[nodiscard]] Memory<T> memoryReallocate(core::Memory<T>&& mem, addr_size count, core::AllocatorContext& actx) {
+    static_assert(std::is_trivially_copyable_v<T>, "T should be trivially copyable");
+
     Assert(count >= mem.len(), "Trying to shrink with memoryMove is not advisable!");
 
     if (count == 0) return mem;
-
-    auto actx = core::getAllocator(allocatorId);
 
     core::Memory<T> ret;
     ret.ptr = reinterpret_cast<T*>(actx.zeroAlloc(count, sizeof(T)));
@@ -211,7 +238,7 @@ template <typename T>
 
     core::memcopy(ret.ptr, mem.data(),mem.len());
 
-    memoryFree(std::move(mem), allocatorId);
+    memoryFree(std::move(mem), actx);
 
     return ret;
 }
@@ -238,13 +265,20 @@ template <typename T>
 [[nodiscard]] Memory<T> memorySet(core::Memory<T>& mem, addr_size i, T&& v, core::AllocatorId allocatorId) {
     static_assert(std::is_trivially_copyable_v<T>, "T should be trivially copyable");
 
+    auto& actx = core::getAllocator(allocatorId);
+    return memorySet(mem, i, std::move(v), actx);
+}
+template <typename T>
+[[nodiscard]] Memory<T> memorySet(core::Memory<T>& mem, addr_size i, T&& v, core::AllocatorContext& actx) {
+    static_assert(std::is_trivially_copyable_v<T>, "T should be trivially copyable");
+
     if (i >= mem.len()) {
         addr_size newLen = mem.len() == 0 ? 1 : mem.len();
         while (i >= newLen) {
             newLen *= 2;
         }
 
-        mem = memoryReallocate(std::move(mem), newLen, allocatorId);
+        mem = memoryReallocate(std::move(mem), newLen, actx);
     }
 
     mem[i] = std::move(v);

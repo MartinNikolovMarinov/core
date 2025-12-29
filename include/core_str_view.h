@@ -21,6 +21,10 @@ constexpr inline StrView trim(StrView s);
 constexpr inline StrView cut(StrView s, char c, StrView& out);
 constexpr inline StrView skipWhiteSpace(StrView s);
 constexpr inline StrView skip(StrView s, char c);
+constexpr inline bool startsWith(StrView s, const char* prefix);
+constexpr inline bool startsWith(StrView s, StrView prefix);
+constexpr inline bool endsWith(StrView s, const char* postfix);
+constexpr inline bool endsWith(StrView s, StrView postfix);
 
 constexpr StrView operator""_sv(const char* str, size_t len) {
     return StrView(str, static_cast<StrView::size_type>(len));
@@ -120,6 +124,34 @@ constexpr inline StrView skip(StrView s, char c) {
                   ? core::sv(s.data() + i, addr_size(len))
                   : core::sv();
     return ret;
+}
+
+constexpr inline bool startsWith(StrView s, const char* prefix) {
+    return startsWith(s, core::sv(prefix));
+}
+constexpr inline bool startsWith(StrView s, StrView prefix) {
+    if (s.empty() || prefix.empty()) return false;
+    if (prefix.len() > s.len()) return false;
+
+    for (addr_size i = 0; i < prefix.len(); i++) {
+        if (s[i] != prefix[i]) return false;
+    }
+
+    return true;
+}
+
+constexpr inline bool endsWith(StrView s, const char* postfix) {
+    return endsWith(s, core::sv(postfix));
+}
+constexpr inline bool endsWith(StrView s, StrView postfix) {
+    if (s.empty() || postfix.empty()) return false;
+    if (postfix.len() > s.len()) return false;
+
+    for (addr_off i = addr_off(s.len()) - 1; i >= 0; i--) {
+        if (s[addr_size(i)] != postfix[addr_size(i)]) return false;
+    }
+
+    return true;
 }
 
 } // namespace core

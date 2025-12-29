@@ -216,6 +216,72 @@ constexpr i32 cutTest() {
     return 0;
 }
 
+constexpr i32 startsWithTest() {
+    struct TestCase {
+        core::StrView input;
+        const char* prefix;
+        bool expected;
+    };
+
+    constexpr TestCase cases[] = {
+        { core::sv("abc"), "a", true },
+        { core::sv("abc"), "ab", true },
+        { core::sv("abc"), "abc", true },
+        { core::sv("abcf"), "abce", false },
+
+        // Edge cases
+        { core::sv(), nullptr, false },
+        { core::sv(static_cast<const char*>(nullptr), 10), nullptr, false },
+        { core::sv("asdzxcas", 0), "asd", false },
+        { core::sv(""), "", false },
+        { core::sv("-"), "", false },
+        { core::sv("-"), nullptr, false },
+        { core::sv("-"), "--", false },
+    };
+
+    i32 ret = core::testing::executeTestTable("startsWithTest failed at: ", cases, [](const auto& tc, const char* cErr) {
+        auto res = core::startsWith(tc.input, tc.prefix);
+        CT_CHECK(res == tc.expected, cErr);
+        return 0;
+    });
+    CT_CHECK(ret == 0);
+
+    return 0;
+}
+
+constexpr i32 endsWithTest() {
+    struct TestCase {
+        core::StrView input;
+        const char* postfix;
+        bool expected;
+    };
+
+    constexpr TestCase cases[] = {
+        { core::sv("abc"), "c", true },
+        { core::sv("abc"), "bc", true },
+        { core::sv("abc"), "abc", true },
+        { core::sv("abcf"), "nbcf", false },
+
+        // Edge cases
+        { core::sv(), nullptr, false },
+        { core::sv(static_cast<const char*>(nullptr), 10), nullptr, false },
+        { core::sv("asdzxcas", 0), "xcas", false },
+        { core::sv(""), "", false },
+        { core::sv("-"), "", false },
+        { core::sv("-"), nullptr, false },
+        { core::sv("-"), "--", false },
+    };
+
+    i32 ret = core::testing::executeTestTable("endsWithTest failed at: ", cases, [](const auto& tc, const char* cErr) {
+        auto res = core::startsWith(tc.input, tc.postfix);
+        CT_CHECK(res == tc.expected, cErr);
+        return 0;
+    });
+    CT_CHECK(ret == 0);
+
+    return 0;
+}
+
 constexpr i32 literalOperatorTest() {
     auto v = "hello"_sv;
     CT_CHECK(v.len() == 5);
@@ -244,6 +310,10 @@ i32 runStrViewTestsSuite() {
     if (runTest(tInfo, skipCharTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(cutTest);
     if (runTest(tInfo, cutTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(startsWithTest);
+    if (runTest(tInfo, startsWithTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(endsWithTest);
+    if (runTest(tInfo, startsWithTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(literalOperatorTest);
     if (runTest(tInfo, literalOperatorTest) != 0) { ret = -1; }
 

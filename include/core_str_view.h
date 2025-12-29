@@ -18,9 +18,8 @@ constexpr inline StrView sv(const char* str, addr_size len) { return StrView{str
 constexpr inline StrView trimWhiteSpaceLeft(StrView s);
 constexpr inline StrView trimWhiteSpaceRight(StrView s);
 constexpr inline StrView trim(StrView s);
+constexpr inline StrView trim(StrView s, char c);
 constexpr inline StrView cut(StrView s, char c, StrView& out);
-constexpr inline StrView skipWhiteSpace(StrView s);
-constexpr inline StrView skip(StrView s, char c);
 constexpr inline bool startsWith(StrView s, const char* prefix);
 constexpr inline bool startsWith(StrView s, StrView prefix);
 constexpr inline bool endsWith(StrView s, const char* postfix);
@@ -69,6 +68,21 @@ constexpr inline StrView trim(StrView s) {
     return bothTrimmed;
 }
 
+constexpr inline StrView trim(StrView s, char c) {
+    if (s.empty()) return core::sv();
+
+    addr_off i = 0;
+    while (i < addr_off(s.len()) && s[addr_size(i)] == c) {
+        i++;
+    }
+
+    addr_off len = addr_off(s.len()) - i;
+    StrView ret = len > 0
+                  ? core::sv(s.data() + i, addr_size(len))
+                  : core::sv();
+    return ret;
+}
+
 constexpr inline StrView cut(StrView s, char c, StrView& out) {
     out = core::sv();
     if (s.empty()) return core::sv();
@@ -96,36 +110,6 @@ constexpr inline StrView cut(StrView s, char c, StrView& out) {
     return ret;
 }
 
-constexpr inline StrView skipWhiteSpace(StrView s) {
-    if (s.empty()) return core::sv();
-
-    addr_off i = 0;
-    while (i < addr_off(s.len()) && isWhiteSpace(s[addr_size(i)])) {
-        i++;
-    }
-
-    addr_off len = addr_off(s.len()) - i;
-    StrView ret = len > 0
-                  ? core::sv(s.data() + i, addr_size(len))
-                  : core::sv();
-    return ret;
-}
-
-constexpr inline StrView skip(StrView s, char c) {
-    if (s.empty()) return core::sv();
-
-    addr_off i = 0;
-    while (i < addr_off(s.len()) && s[addr_size(i)] == c) {
-        i++;
-    }
-
-    addr_off len = addr_off(s.len()) - i;
-    StrView ret = len > 0
-                  ? core::sv(s.data() + i, addr_size(len))
-                  : core::sv();
-    return ret;
-}
-
 constexpr inline bool startsWith(StrView s, const char* prefix) {
     return startsWith(s, core::sv(prefix));
 }
@@ -147,8 +131,14 @@ constexpr inline bool endsWith(StrView s, StrView postfix) {
     if (s.empty() || postfix.empty()) return false;
     if (postfix.len() > s.len()) return false;
 
-    for (addr_off i = addr_off(s.len()) - 1; i >= 0; i--) {
-        if (s[addr_size(i)] != postfix[addr_size(i)]) return false;
+    addr_off pi = addr_off(postfix.len()) - 1;
+    addr_off si = addr_off(s.len()) - 1;
+    while(pi >= 0) {
+        if (s[addr_size(si)] != postfix[addr_size(pi)]) {
+            return false;
+        }
+        pi--;
+        si--;
     }
 
     return true;

@@ -101,7 +101,7 @@ constexpr i32 trimTest() {
     return 0;
 }
 
-constexpr i32 skipWhiteSpaceTest() {
+constexpr i32 trimWhiteSpaceTest() {
     struct TestCase {
         core::StrView input;
         core::StrView expected;
@@ -112,12 +112,12 @@ constexpr i32 skipWhiteSpaceTest() {
         { core::sv(""), core::sv() },
         { core::sv("abcd"), core::sv("abcd") },
         { core::sv("   abcd"), core::sv("abcd") },
-        { core::sv("   abcd "), core::sv("abcd ") },
+        { core::sv("   abcd "), core::sv("abcd") },
         { core::sv("   "), core::sv() },
     };
 
-    i32 ret = core::testing::executeTestTable("skipWhiteSpace failed at: ", cases, [](const auto& tc, const char* cErr) {
-        auto skipped = core::skipWhiteSpace(tc.input);
+    i32 ret = core::testing::executeTestTable("trimWhiteSpace failed at: ", cases, [](const auto& tc, const char* cErr) {
+        auto skipped = core::trim(tc.input);
 
         CT_CHECK(skipped.eq(tc.expected), cErr);
         if (tc.expected.data() == nullptr) {
@@ -149,7 +149,7 @@ constexpr i32 skipCharTest() {
     };
 
     i32 ret = core::testing::executeTestTable("skip failed at: ", cases, [](const auto& tc, const char* cErr) {
-        auto skipped = core::skip(tc.input, tc.skipChar);
+        auto skipped = core::trim(tc.input, tc.skipChar);
 
         CT_CHECK(skipped.eq(tc.expected), cErr);
         if (tc.expected.data() == nullptr) {
@@ -273,7 +273,7 @@ constexpr i32 endsWithTest() {
     };
 
     i32 ret = core::testing::executeTestTable("endsWithTest failed at: ", cases, [](const auto& tc, const char* cErr) {
-        auto res = core::startsWith(tc.input, tc.postfix);
+        auto res = core::endsWith(tc.input, tc.postfix);
         CT_CHECK(res == tc.expected, cErr);
         return 0;
     });
@@ -304,8 +304,8 @@ i32 runStrViewTestsSuite() {
     if (runTest(tInfo, trimWhiteSpaceRightTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(trimTest);
     if (runTest(tInfo, trimTest) != 0) { ret = -1; }
-    tInfo.name = FN_NAME_TO_CPTR(skipWhiteSpaceTest);
-    if (runTest(tInfo, skipWhiteSpaceTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(trimWhiteSpaceTest);
+    if (runTest(tInfo, trimWhiteSpaceTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(skipCharTest);
     if (runTest(tInfo, skipCharTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(cutTest);
@@ -313,7 +313,7 @@ i32 runStrViewTestsSuite() {
     tInfo.name = FN_NAME_TO_CPTR(startsWithTest);
     if (runTest(tInfo, startsWithTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(endsWithTest);
-    if (runTest(tInfo, startsWithTest) != 0) { ret = -1; }
+    if (runTest(tInfo, endsWithTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(literalOperatorTest);
     if (runTest(tInfo, literalOperatorTest) != 0) { ret = -1; }
 
@@ -324,9 +324,11 @@ constexpr i32 runCompiletimeMemTestsSuite() {
     RunTestCompileTime(trimWhiteSpaceLeftTest);
     RunTestCompileTime(trimWhiteSpaceRightTest);
     RunTestCompileTime(trimTest);
-    RunTestCompileTime(skipWhiteSpaceTest);
+    RunTestCompileTime(trimWhiteSpaceTest);
     RunTestCompileTime(skipCharTest);
     RunTestCompileTime(cutTest);
+    RunTestCompileTime(startsWithTest);
+    RunTestCompileTime(endsWithTest);
     RunTestCompileTime(literalOperatorTest);
 
     return 0;

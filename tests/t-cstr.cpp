@@ -260,7 +260,7 @@ constexpr i32 cstrLenTest() {
     return ret;
 }
 
-constexpr i32 cstrSkipWhiteSpaceTest() {
+constexpr i32 cstrTrimWhiteSpaceTest() {
     struct TestCase {
         const char* src;
         const char* expected;
@@ -376,8 +376,8 @@ i32 runCstrTestsSuite() {
     if (runTest(tInfo, isWhiteSpaceTest) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(cstrLenTest);
     if (runTest(tInfo, cstrLenTest) != 0) { return -1; }
-    tInfo.name = FN_NAME_TO_CPTR(cstrSkipWhiteSpaceTest);
-    if (runTest(tInfo, cstrSkipWhiteSpaceTest) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(cstrTrimWhiteSpaceTest);
+    if (runTest(tInfo, cstrTrimWhiteSpaceTest) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(cstrCmpUnsafeTest);
     if (runTest(tInfo, cstrCmpUnsafeTest) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(cstrEqUnsafeTest);
@@ -395,7 +395,7 @@ constexpr i32 runCompiletimeCstrTestsSuite() {
     RunTestCompileTime(cmpIgnoreCaseASCIITest);
     RunTestCompileTime(isWhiteSpaceTest);
     RunTestCompileTime(cstrLenTest);
-    RunTestCompileTime(cstrSkipWhiteSpaceTest);
+    RunTestCompileTime(cstrTrimWhiteSpaceTest);
 
     return 0;
 }

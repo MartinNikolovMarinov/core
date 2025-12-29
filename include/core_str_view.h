@@ -19,7 +19,7 @@ constexpr inline StrView trimWhiteSpaceLeft(StrView s);
 constexpr inline StrView trimWhiteSpaceRight(StrView s);
 constexpr inline StrView trim(StrView s);
 constexpr inline StrView trim(StrView s, char c);
-constexpr inline StrView cut(StrView s, char c, StrView& out);
+constexpr inline StrView cut(StrView s, char delim, StrView& out, bool keepDelim = false);
 constexpr inline bool startsWith(StrView s, const char* prefix);
 constexpr inline bool startsWith(StrView s, StrView prefix);
 constexpr inline bool endsWith(StrView s, const char* postfix);
@@ -83,13 +83,13 @@ constexpr inline StrView trim(StrView s, char c) {
     return ret;
 }
 
-constexpr inline StrView cut(StrView s, char c, StrView& out) {
+constexpr inline StrView cut(StrView s, char delim, StrView& out, bool keepDelim) {
     out = core::sv();
     if (s.empty()) return core::sv();
 
     addr_off symbolIdx = -1;
     for (addr_size i = 0; i < s.len(); i++) {
-        if (s[i] == c) {
+        if (s[i] == delim) {
             symbolIdx = addr_off(i);
             break;
         }
@@ -103,8 +103,9 @@ constexpr inline StrView cut(StrView s, char c, StrView& out) {
                   ? core::sv(s.data() + symbolIdx + 1, addr_size(retLen))
                   : core::sv();
 
-    out = symbolIdx > 0
-          ? core::sv(s.data(), addr_size(symbolIdx))
+    addr_off outLen = symbolIdx + addr_off(keepDelim);
+    out = outLen > 0
+          ? core::sv(s.data(), addr_size(outLen))
           : core::sv();
 
     return ret;

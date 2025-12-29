@@ -117,14 +117,14 @@ constexpr i32 trimWhiteSpaceTest() {
     };
 
     i32 ret = core::testing::executeTestTable("trimWhiteSpace failed at: ", cases, [](const auto& tc, const char* cErr) {
-        auto skipped = core::trim(tc.input);
+        auto trimmed = core::trim(tc.input);
 
-        CT_CHECK(skipped.eq(tc.expected), cErr);
+        CT_CHECK(trimmed.eq(tc.expected), cErr);
         if (tc.expected.data() == nullptr) {
-            CT_CHECK(skipped.data() == tc.expected.data(), cErr);
+            CT_CHECK(trimmed.data() == tc.expected.data(), cErr);
         }
-        CT_CHECK(skipped.len() == tc.expected.len(), cErr);
-        CT_CHECK(skipped.empty() == tc.expected.empty(), cErr);
+        CT_CHECK(trimmed.len() == tc.expected.len(), cErr);
+        CT_CHECK(trimmed.empty() == tc.expected.empty(), cErr);
 
         return 0;
     });
@@ -133,10 +133,10 @@ constexpr i32 trimWhiteSpaceTest() {
     return 0;
 }
 
-constexpr i32 skipCharTest() {
+constexpr i32 trimSpecificCharTest() {
     struct TestCase {
         core::StrView input;
-        char skipChar;
+        char trimChar;
         core::StrView expected;
     };
 
@@ -148,15 +148,15 @@ constexpr i32 skipCharTest() {
         { core::sv("....."), '.', core::sv() },
     };
 
-    i32 ret = core::testing::executeTestTable("skip failed at: ", cases, [](const auto& tc, const char* cErr) {
-        auto skipped = core::trim(tc.input, tc.skipChar);
+    i32 ret = core::testing::executeTestTable("trimSpecificCharTest failed at: ", cases, [](const auto& tc, const char* cErr) {
+        auto trimmed = core::trim(tc.input, tc.trimChar);
 
-        CT_CHECK(skipped.eq(tc.expected), cErr);
+        CT_CHECK(trimmed.eq(tc.expected), cErr);
         if (tc.expected.data() == nullptr) {
-            CT_CHECK(skipped.data() == tc.expected.data(), cErr);
+            CT_CHECK(trimmed.data() == tc.expected.data(), cErr);
         }
-        CT_CHECK(skipped.len() == tc.expected.len(), cErr);
-        CT_CHECK(skipped.empty() == tc.expected.empty(), cErr);
+        CT_CHECK(trimmed.len() == tc.expected.len(), cErr);
+        CT_CHECK(trimmed.empty() == tc.expected.empty(), cErr);
 
         return 0;
     });
@@ -169,33 +169,50 @@ constexpr i32 cutTest() {
     struct TestCase {
         core::StrView input;
         char c;
+        bool keepDelim;
         core::StrView expectedCut;
         core::StrView expectedReturn;
     };
 
     constexpr TestCase cases[] = {
-        { "-bcde"_sv, '-', core::sv(), "bcde"_sv },
-        { "a-cde"_sv, '-', "a"_sv, "cde"_sv },
-        { "ab-de"_sv, '-', "ab"_sv, "de"_sv },
-        { "abc-e"_sv, '-', "abc"_sv, "e"_sv },
-        { "abcd-"_sv, '-', "abcd"_sv, core::sv() },
-        { "abcde"_sv, '-', core::sv(), core::sv() },
+        { "-bcde"_sv, '-', false, core::sv(), "bcde"_sv },
+        { "a-cde"_sv, '-', false, "a"_sv, "cde"_sv },
+        { "ab-de"_sv, '-', false, "ab"_sv, "de"_sv },
+        { "abc-e"_sv, '-', false, "abc"_sv, "e"_sv },
+        { "abcd-"_sv, '-', false, "abcd"_sv, core::sv() },
+        { "abcde"_sv, '-', false, core::sv(), core::sv() },
+
+        { "-bcde"_sv, '-', true, "-"_sv, "bcde"_sv },
+        { "a-cde"_sv, '-', true, "a-"_sv, "cde"_sv },
+        { "ab-de"_sv, '-', true, "ab-"_sv, "de"_sv },
+        { "abc-e"_sv, '-', true, "abc-"_sv, "e"_sv },
+        { "abcd-"_sv, '-', true, "abcd-"_sv, core::sv() },
+        { "abcde"_sv, '-', true, core::sv(), core::sv() },
 
         // Simulating real use case
-        { "abc\ndef\n"_sv, '\n', "abc"_sv, "def\n"_sv },
-        { "def\n"_sv, '\n', "def"_sv, core::sv() },
+        { "abc\ndef\n"_sv, '\n', false, "abc"_sv, "def\n"_sv },
+        { "def\n"_sv, '\n', false, "def"_sv, core::sv() },
+
+        { "abc\ndef\n"_sv, '\n', true, "abc\n"_sv, "def\n"_sv },
+        { "def\n"_sv, '\n', true, "def\n"_sv, core::sv() },
 
         // Edge cases
-        { "?"_sv, '?', core::sv(), core::sv() },
-        { ""_sv, '-', core::sv(), core::sv() },
-        { "abc"_sv, '-', core::sv(), core::sv() },
-        { "-"_sv, '+', core::sv(), core::sv() },
-        { core::sv(), 'x', core::sv(), core::sv() },
+        { "?"_sv, '?', false, core::sv(), core::sv() },
+        { ""_sv, '-', false, core::sv(), core::sv() },
+        { "abc"_sv, '-', false, core::sv(), core::sv() },
+        { "-"_sv, '+', false, core::sv(), core::sv() },
+        { core::sv(), 'x', false, core::sv(), core::sv() },
+
+        { "?"_sv, '?', true, "?"_sv, core::sv() },
+        { ""_sv, '-', true, core::sv(), core::sv() },
+        { "abc"_sv, '-', true, core::sv(), core::sv() },
+        { "-"_sv, '+', true, core::sv(), core::sv() },
+        { core::sv(), 'x', true, core::sv(), core::sv() },
     };
 
     i32 ret = core::testing::executeTestTable("cutTest failed at: ", cases, [](const auto& tc, const char* cErr) {
         core::StrView gotCut;
-        core::StrView gotReturn = core::cut(tc.input, tc.c, gotCut);
+        core::StrView gotReturn = core::cut(tc.input, tc.c, gotCut, tc.keepDelim);
 
         CT_CHECK(gotCut.eq(tc.expectedCut), cErr);
         CT_CHECK(gotCut.empty() == tc.expectedCut.empty(), cErr);
@@ -306,8 +323,8 @@ i32 runStrViewTestsSuite() {
     if (runTest(tInfo, trimTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(trimWhiteSpaceTest);
     if (runTest(tInfo, trimWhiteSpaceTest) != 0) { ret = -1; }
-    tInfo.name = FN_NAME_TO_CPTR(skipCharTest);
-    if (runTest(tInfo, skipCharTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(trimSpecificCharTest);
+    if (runTest(tInfo, trimSpecificCharTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(cutTest);
     if (runTest(tInfo, cutTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(startsWithTest);
@@ -325,7 +342,7 @@ constexpr i32 runCompiletimeMemTestsSuite() {
     RunTestCompileTime(trimWhiteSpaceRightTest);
     RunTestCompileTime(trimTest);
     RunTestCompileTime(trimWhiteSpaceTest);
-    RunTestCompileTime(skipCharTest);
+    RunTestCompileTime(trimSpecificCharTest);
     RunTestCompileTime(cutTest);
     RunTestCompileTime(startsWithTest);
     RunTestCompileTime(endsWithTest);

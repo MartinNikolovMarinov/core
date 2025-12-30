@@ -207,6 +207,8 @@ target_compile_definitions(${target_core} PUBLIC
     "CORE_DEBUG=$<BOOL:${CORE_DEBUG}>"
     "CORE_ASSERT_ENABLED=$<BOOL:${CORE_ASSERT_ENABLED}>"
     "CORE_RUN_COMPILETIME_TESTS=$<BOOL:${CORE_RUN_COMPILETIME_TESTS}>"
+    "CORE_TESTS_USE_ANSI=$<BOOL:${CORE_TESTS_USE_ANSI}>"
+    "CORE_TESTS_STOP_ON_FIRST_FAILED=$<BOOL:${CORE_TESTS_STOP_ON_FIRST_FAILED}>"
 )
 
 # Set Default Flags:
@@ -282,8 +284,6 @@ if(CORE_BUILD_TESTS)
     # Definitions
     target_compile_definitions(${target_test} PRIVATE
         -DPATH_TO_TEST_DATA="${CMAKE_CURRENT_BINARY_DIR}"
-        "CORE_TESTS_USE_ANSI=$<BOOL:${CORE_TESTS_USE_ANSI}>"
-        "CORE_TESTS_STOP_ON_FIRST_FAILED=$<BOOL:${CORE_TESTS_STOP_ON_FIRST_FAILED}>"
     )
 
     core_target_set_default_flags(${target_test} ${CORE_DEBUG} ${CORE_SAVE_TEMPORARY_FILES})

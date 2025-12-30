@@ -46,33 +46,33 @@ constexpr inline core::testing::TestInfo createTestInfoFor(RegisteredAllocators 
             tInfo.trackMemory = false; // the default allocator can't track memory allocations.
             tInfo.detectLeaks = false; // the default allocator can't detect memory leaks.
             tInfo.description = "STD Allocator";
-            tInfo.allocatorContext = &core::getAllocator(id);
+            tInfo.actx = &core::getAllocator(id);
             return tInfo;
         case RA_STD_STATS_ALLOCATOR_ID:
             tInfo.trackMemory = true;
             tInfo.detectLeaks = true;
             tInfo.description = "Stats STD Allocator";
-            tInfo.allocatorContext = &core::getAllocator(id);
+            tInfo.actx = &core::getAllocator(id);
             return tInfo;
         case RA_BUMP_ALLOCATOR_ID:
             tInfo.trackMemory = true;
             tInfo.description = "BUMP Allocator";
-            tInfo.allocatorContext = &core::getAllocator(id);
+            tInfo.actx = &core::getAllocator(id);
             return tInfo;
         case RA_ARENA_ALLOCATOR_ID:
             tInfo.trackMemory = true;
             tInfo.description = "ARENA Allocator";
-            tInfo.allocatorContext = &core::getAllocator(id);
+            tInfo.actx = &core::getAllocator(id);
             return tInfo;
         case RA_THREAD_LOCAL_BUMP_ALLOCATOR_ID:
             tInfo.trackMemory = true;
             tInfo.description = "THREAD LOCAL BUMP Allocator";
-            tInfo.allocatorContext = &core::getAllocator(id);
+            tInfo.actx = &core::getAllocator(id);
             return tInfo;
         case RA_THREAD_LOCAL_ARENA_ALLOCATOR_ID:
             tInfo.trackMemory = true;
             tInfo.description = "THREAD LOCAL ARENA Allocator";
-            tInfo.allocatorContext = &core::getAllocator(id);
+            tInfo.actx = &core::getAllocator(id);
             return tInfo;
 
         case RA_SENTINEL: [[fallthrough]];

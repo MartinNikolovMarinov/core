@@ -24,6 +24,8 @@ using ClearFn                = void (*)(void* allocatorData);
 using TotalMemoryAllocatedFn = addr_size (*)(void* allocatorData);
 using InUseMemoryFn          = addr_size (*)(void* allocatorData);
 using AllocatorNameFn        = const char* (*)(void* allocatorData);
+using TracksMemoryFn        = bool (*)(void* allocatorData);
+using CanDetectLeaksFn      = bool (*)(void* allocatorData);
 
 struct CORE_API_EXPORT AllocatorContext {
     AllocateFn allocFn;
@@ -33,6 +35,8 @@ struct CORE_API_EXPORT AllocatorContext {
     TotalMemoryAllocatedFn totalMemoryAllocatedFn;
     InUseMemoryFn inUseMemoryFn;
     AllocatorNameFn nameFn;
+    TracksMemoryFn tracksMemoryFn;
+    CanDetectLeaksFn canDetectLeaksFn;
     void* allocatorData;
 
     AllocatorContext(void* allocatorData = nullptr);
@@ -51,6 +55,9 @@ struct CORE_API_EXPORT AllocatorContext {
     void clear();
     addr_size totalMemoryAllocated();
     addr_size inUseMemory();
+
+    bool tracksMemory();
+    bool canDetectLeaks();
 
     template <typename T, typename... Args>
     T* construct(Args&&... args) {
@@ -91,6 +98,14 @@ AllocatorContext createAllocatorCtx(TAllocator* allocator) {
     ctx.inUseMemoryFn = [](void* allocatorData) -> core::addr_size {
         auto& a = *reinterpret_cast<TAllocator*>(allocatorData);
         return a.inUseMemory();
+    };
+    ctx.tracksMemoryFn = [](void* allocatorData) -> bool {
+        auto& a = *reinterpret_cast<TAllocator*>(allocatorData);
+        return a.tracksMemory();
+    };
+    ctx.canDetectLeaksFn = [](void* allocatorData) -> bool {
+        auto& a = *reinterpret_cast<TAllocator*>(allocatorData);
+        return a.canDetectLeaks();
     };
 
     return ctx;

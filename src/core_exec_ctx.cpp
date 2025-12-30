@@ -26,6 +26,8 @@ void zeroOutAllocatorContext(AllocatorContext& actx) {
     actx.clearFn = nullptr;
     actx.totalMemoryAllocatedFn = nullptr;
     actx.inUseMemoryFn = nullptr;
+    actx.tracksMemoryFn = nullptr;
+    actx.canDetectLeaksFn = nullptr;
     actx.allocatorData = nullptr;
 }
 
@@ -44,6 +46,8 @@ AllocatorContext::AllocatorContext(AllocatorContext&& other) {
     clearFn = other.clearFn;
     totalMemoryAllocatedFn = other.totalMemoryAllocatedFn;
     inUseMemoryFn = other.inUseMemoryFn;
+    tracksMemoryFn = other.tracksMemoryFn;
+    canDetectLeaksFn = other.canDetectLeaksFn;
     allocatorData = other.allocatorData;
 
     zeroOutAllocatorContext(other);
@@ -57,6 +61,8 @@ AllocatorContext& AllocatorContext::operator=(AllocatorContext&& other) {
     clearFn = other.clearFn;
     totalMemoryAllocatedFn = other.totalMemoryAllocatedFn;
     inUseMemoryFn = other.inUseMemoryFn;
+    tracksMemoryFn = other.tracksMemoryFn;
+    canDetectLeaksFn = other.canDetectLeaksFn;
     allocatorData = other.allocatorData;
 
     zeroOutAllocatorContext(other);
@@ -90,6 +96,14 @@ addr_size AllocatorContext::totalMemoryAllocated() {
 
 addr_size AllocatorContext::inUseMemory() {
     return inUseMemoryFn(allocatorData);
+}
+
+bool AllocatorContext::tracksMemory() {
+    return tracksMemoryFn(allocatorData);
+}
+
+bool AllocatorContext::canDetectLeaks() {
+    return canDetectLeaksFn(allocatorData);
 }
 
 void initProgramCtx(GlobalAssertHandlerFn assertHandler,

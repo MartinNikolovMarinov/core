@@ -126,7 +126,7 @@ constexpr u32 MEMORY_USED_TO_STR_BUFFER_SIZE = 128;
 CORE_API_EXPORT char* memoryUsedToStr(char out[MEMORY_USED_TO_STR_BUFFER_SIZE], addr_size deltaMemory);
 
 struct TestInfo {
-    core::AllocatorContext* allocatorContext = &getAllocator(DEFAULT_ALLOCATOR_ID);
+    core::AllocatorContext* actx = &getAllocator(DEFAULT_ALLOCATOR_ID);
     const char* name = nullptr;
     const char* description = nullptr;
     bool useAnsiColors = true;
@@ -157,8 +157,8 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
     const char* testName = info.name;
     bool useAnsiColors = info.useAnsiColors;
 
-    auto allocatedBefore = info.allocatorContext->totalMemoryAllocated();
-    auto inUseBefore = info.allocatorContext->inUseMemory();
+    auto allocatedBefore = info.actx->totalMemoryAllocated();
+    auto inUseBefore = info.actx->inUseMemory();
     auto start = core::getMonotonicNowNs();
 
     std::cout << "\t[TEST " << "№ " << g_testCount << " RUNNING] " << testName;
@@ -169,8 +169,8 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
 
     auto returnCode = fn(args...);
 
-    auto allocatedAfter = info.allocatorContext->totalMemoryAllocated();
-    auto inUseAfter = info.allocatorContext->inUseMemory();
+    auto allocatedAfter = info.actx->totalMemoryAllocated();
+    auto inUseAfter = info.actx->inUseMemory();
     auto end = core::getMonotonicNowNs();
 
     auto deltaAllocatedMemory = allocatedAfter - allocatedBefore;
@@ -221,6 +221,7 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
 }
 
 struct TestSuiteInfo {
+    core::AllocatorContext* actx = &getAllocator(DEFAULT_ALLOCATOR_ID);
     const char* name = nullptr;
     bool useAnsiColors = true;
     bool trackTime = true;
@@ -237,7 +238,7 @@ i32 runTestSuite(const TestSuiteInfo& info, TSuite suite) {
     auto start = core::getMonotonicNowNs();
 
     std::cout << "[SUITE RUNNING] " << suiteName << std::endl;
-    i32 returnCode = suite();
+    i32 returnCode = suite(info);
 
     std::cout << "[SUITE " << detail::passedOrFailedStr(returnCode == 0, useAnsiColors) << "] " << suiteName;
 

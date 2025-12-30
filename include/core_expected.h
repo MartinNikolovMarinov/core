@@ -3,6 +3,7 @@
 #pragma once
 
 #include <core_assert.h>
+#include <core_assert_fmt.h>
 #include <core_traits.h>
 #include <core_types.h>
 
@@ -20,8 +21,11 @@ template <typename...>               struct expected;
 template <typename T, typename TErr> struct expected<T, TErr>;
 template <typename TErr>             struct expected<TErr>;
 
-template <typename T, typename TErr> constexpr inline T&&  Unpack(expected<T, TErr>&& exp, [[maybe_unused]] const char* msg = nullptr);
-template <typename TErr>             constexpr inline void Expect(expected<TErr>&& expr, [[maybe_unused]] const char* msg = nullptr);
+template <typename T, typename TErr, typename... Args>
+constexpr inline T&& Unpack(expected<T, TErr>&& exp, [[maybe_unused]] const char* msg = nullptr, Args... args);
+
+template <typename TErr, typename... Args>
+constexpr inline void Expect(expected<TErr>&& expr, [[maybe_unused]] const char* msg = nullptr, Args... args);
 
 // NOTE: Using an unexpected_t wrapper allows the expected struct to be used with the same type for both error and value.
 template <typename E>
@@ -97,15 +101,28 @@ private:
     TErr m_err;
 };
 
-template <typename T, typename TErr>
-constexpr inline T&& Unpack(expected<T, TErr>&& exp, [[maybe_unused]] const char* msg) {
-    Panic(!exp.hasErr(), msg);
-    return std::move(exp.value());
+template <typename T, typename TErr, typename... Args>
+constexpr inline T&& Unpack(expected<T, TErr>&& expr, [[maybe_unused]] const char* msg, Args... args) {
+    if constexpr (sizeof...(Args) > 0) {
+        PanicFmt(!expr.hasErr(), msg, args...);
+    }
+    else {
+        Panic(!expr.hasErr(), msg);
+    }
+
+    return std::move(expr.value());
 }
 
-template <typename TErr>
-constexpr inline void Expect(expected<TErr>&& expr, [[maybe_unused]] const char* msg) {
+template <typename TErr, typename... Args>
+constexpr inline void Expect(expected<TErr>&& expr, [[maybe_unused]] const char* msg, Args... args) {
     Panic(!expr.hasErr(), msg);
+
+    if constexpr (sizeof...(Args) > 0) {
+        PanicFmt(!expr.hasErr(), msg, args...);
+    }
+    else {
+        Panic(!expr.hasErr(), msg);
+    }
 }
 
 } // namespace core

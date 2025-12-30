@@ -26,6 +26,8 @@ concept AllocatorConcept = requires(T a) {
     { a.totalMemoryAllocated() } -> core::same_as<addr_size>;
     { a.inUseMemory() } -> core::same_as<addr_size>;
     { a.name() } -> core::same_as<const char*>;
+    { a.tracksMemory() } -> core::same_as<bool>;
+    { a.canDetectLeaks() } -> core::same_as<bool>;
 };
 
 struct CORE_API_EXPORT StdAllocator;
@@ -51,6 +53,9 @@ struct CORE_API_EXPORT StdAllocator {
     void clear(); // does nothing
     addr_size totalMemoryAllocated(); // always returns 0
     addr_size inUseMemory(); // always returns 0
+
+    constexpr bool tracksMemory() { return false; }
+    constexpr bool canDetectLeaks() { return false; }
 };
 static_assert(AllocatorConcept<StdAllocator>);
 
@@ -73,6 +78,9 @@ struct StdStatsAllocator {
     CORE_API_EXPORT void clear();
     CORE_API_EXPORT addr_size totalMemoryAllocated();
     CORE_API_EXPORT addr_size inUseMemory();
+
+    constexpr bool tracksMemory() { return true; }
+    constexpr bool canDetectLeaks() { return true; }
 
 private:
     core::AtomicU64 m_totalMemoryAllocated;
@@ -102,6 +110,9 @@ struct CORE_API_EXPORT BumpAllocator {
     void clear();
     addr_size totalMemoryAllocated(); // same as inUseMemory
     addr_size inUseMemory();
+
+    constexpr bool tracksMemory() { return true; }
+    constexpr bool canDetectLeaks() { return false; }
 
 private:
     void* m_startAddr;
@@ -136,6 +147,9 @@ struct CORE_API_EXPORT ThreadLocalBumpAllocator {
     addr_size totalMemoryAllocated(); // same as inUseMemory
     addr_size inUseMemory();
 
+    constexpr bool tracksMemory() { return true; }
+    constexpr bool canDetectLeaks() { return false; }
+
 private:
     ThreadLocalBumpAllocator();
 };
@@ -167,6 +181,9 @@ struct CORE_API_EXPORT StdArenaAllocator {
     void clear();
     addr_size totalMemoryAllocated();
     addr_size inUseMemory();
+
+    constexpr bool tracksMemory() { return true; }
+    constexpr bool canDetectLeaks() { return false; }
 
     void reset();
 
@@ -202,6 +219,9 @@ struct CORE_API_EXPORT ThreadLocalStdArenaAllocator {
     void clear();
     addr_size totalMemoryAllocated();
     addr_size inUseMemory();
+
+    constexpr bool tracksMemory() { return true; }
+    constexpr bool canDetectLeaks() { return false; }
 
     void reset();
 

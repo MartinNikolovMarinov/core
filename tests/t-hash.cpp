@@ -67,9 +67,9 @@ i32 runHashTestsSuite() {
 
     tInfo.name = FN_NAME_TO_CPTR(hashCorrectnessTest);
 
-    tInfo.description = "fnv1a_64";
+    tInfo.allocatorName = "fnv1a_64";
     if (runTest(tInfo, hashCorrectnessTest<decltype(core::fnv1a_64)>, &core::fnv1a_64) != 0) { ret = -1; }
-    tInfo.description = "djb2_64";
+    tInfo.allocatorName = "djb2_64";
     if (runTest(tInfo, hashCorrectnessTest<decltype(core::djb2_64)>, &core::djb2_64) != 0) { ret = -1; }
 
     return ret;

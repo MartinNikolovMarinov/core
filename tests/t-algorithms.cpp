@@ -245,11 +245,12 @@ constexpr i32 constBasicPushUniqueTest() {
     return 0;
 }
 
-i32 runAlgorithmsTestsSuite() {
+i32 runAlgorithmsTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
+    tInfo.expectZeroAllocations = false;
 
     tInfo.name = FN_NAME_TO_CPTR(findAlgorithmTest);
     if (runTest(tInfo, findAlgorithmTest) != 0) { ret = -1; }
@@ -257,6 +258,11 @@ i32 runAlgorithmsTestsSuite() {
     if (runTest(tInfo, forAllAlgorithmTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(basicpushUniqueTest);
     if (runTest(tInfo, basicpushUniqueTest) != 0) { ret = -1; }
+
+    // Below tests are expected to NOT allocate memory.
+    tInfo.expectZeroAllocations = true;
+    tInfo.allocatorName = nullptr;
+
     tInfo.name = FN_NAME_TO_CPTR(constFindAlgorithmTest);
     if (runTest(tInfo, constFindAlgorithmTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(constBasicPushUniqueTest);

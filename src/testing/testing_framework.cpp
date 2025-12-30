@@ -75,4 +75,30 @@ char* memoryUsedToStr(char out[MEMORY_USED_TO_STR_BUFFER_SIZE], addr_size deltaM
     return out;
 }
 
+TestInfo createTestInfo(const TestSuiteInfo& sinfo) {
+    TestInfo tInfo = {};
+    tInfo.trackTime = true;
+    tInfo.useAnsiColors = sinfo.useAnsiColors;
+    tInfo.actx = sinfo.actx;
+    tInfo.trackMemory = sinfo.actx->tracksMemory();
+    tInfo.detectLeaks = sinfo.actx->canDetectLeaks();
+    tInfo.allocatorName = sinfo.actx->name();
+    tInfo.expectZeroAllocations = sinfo.expectZeroAllocation;
+    return tInfo;
+}
+
+TestInfo createTestInfo(core::AllocatorId allocatorId, bool useAnsiColors, bool expectZeroAllocation) {
+    auto& actx = core::getAllocator(allocatorId);
+
+    TestInfo tInfo = {};
+    tInfo.trackTime = true;
+    tInfo.useAnsiColors = useAnsiColors;
+    tInfo.actx = &actx;
+    tInfo.trackMemory = actx.tracksMemory();
+    tInfo.detectLeaks = actx.canDetectLeaks();
+    tInfo.allocatorName = actx.name();
+    tInfo.expectZeroAllocations = expectZeroAllocation;
+    return tInfo;
+}
+
 } // namespace core::testing

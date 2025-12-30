@@ -128,11 +128,12 @@ CORE_API_EXPORT char* memoryUsedToStr(char out[MEMORY_USED_TO_STR_BUFFER_SIZE], 
 struct TestInfo {
     core::AllocatorContext* actx = &getAllocator(DEFAULT_ALLOCATOR_ID);
     const char* name = nullptr;
-    const char* description = nullptr;
+    const char* allocatorName = nullptr;
     bool useAnsiColors = true;
     bool trackMemory = true;
     bool trackTime = true;
     bool detectLeaks = false;
+    bool expectZeroAllocations = true;
 
     TestInfo() = default;
     TestInfo(const char* _name) : name(_name) {}
@@ -162,8 +163,8 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
     auto start = core::getMonotonicNowNs();
 
     std::cout << "\t[TEST " << "№ " << g_testCount << " RUNNING] " << testName;
-    if (info.description) {
-        std::cout << " ( " << info.description << " )";
+    if (info.allocatorName) {
+        std::cout << " ( " << info.allocatorName << " )";
     }
     std::cout << '\n';
 
@@ -180,8 +181,8 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
     std::cout << "\t[TEST " << "№ " << g_testCount << " "
               << detail::passedOrFailedStr(returnCode == 0, useAnsiColors) << "] "
               << testName;
-    if (info.description) {
-        std::cout << " ( " << info.description << " )";
+    if (info.allocatorName) {
+        std::cout << " ( " << info.allocatorName << " )";
     }
 
     if (info.detectLeaks && deltaInUseMemory != 0) {
@@ -190,6 +191,15 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
 #if defined(CORE_TESTS_STOP_ON_FIRST_FAILED) && CORE_TESTS_STOP_ON_FIRST_FAILED == 1
         std::cout << std::endl;
         Assert(false, "Memory Leak Detected");
+#endif
+    }
+
+    if (info.expectZeroAllocations && deltaAllocatedMemory > 0) {
+        std::cout << ANSI_RED(" !!TEST EXPECTED ZERO ALLOCATIONS!!");
+        returnCode = -1;
+#if defined(CORE_TESTS_STOP_ON_FIRST_FAILED) && CORE_TESTS_STOP_ON_FIRST_FAILED == 1
+        std::cout << std::endl;
+        Assert(false, "Test Expected Zero Allocations");
 #endif
     }
 
@@ -222,6 +232,7 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
 
 struct TestSuiteInfo {
     core::AllocatorContext* actx = &getAllocator(DEFAULT_ALLOCATOR_ID);
+    bool expectZeroAllocation = true;
     const char* name = nullptr;
     bool useAnsiColors = true;
     bool trackTime = true;
@@ -259,6 +270,9 @@ i32 runTestSuite(const TestSuiteInfo& info, TSuite suite) {
     std::cout << std::endl;
     return returnCode;
 }
+
+CORE_API_EXPORT TestInfo createTestInfo(const TestSuiteInfo& sinfo);
+CORE_API_EXPORT TestInfo createTestInfo(core::AllocatorId allocatorId, bool useAnsiColors, bool expectZeroAllocation);
 
 #if defined(CORE_RUN_COMPILETIME_TESTS) && CORE_RUN_COMPILETIME_TESTS == 1
     #define RunTestCompileTime(test, ...) \

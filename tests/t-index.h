@@ -17,6 +17,8 @@ constexpr bool g_useAnsi = false;
 #endif
 
 enum RegisteredAllocators : core::AllocatorId {
+    UNDEFINED,
+
     RA_STD_ALLOCATOR_ID,
     RA_STD_STATS_ALLOCATOR_ID,
     RA_BUMP_ALLOCATOR_ID,
@@ -27,111 +29,54 @@ enum RegisteredAllocators : core::AllocatorId {
     RA_SENTINEL
 };
 
-constexpr inline core::testing::TestInfo createTestInfo() {
-    core::testing::TestInfo tInfo = {};
-    tInfo.trackTime = true;
-    tInfo.trackMemory = false;
-    tInfo.detectLeaks = false;
-    tInfo.useAnsiColors = g_useAnsi;
-    return tInfo;
-}
-
-constexpr inline core::testing::TestInfo createTestInfoFor(RegisteredAllocators id) {
-    using namespace core::testing;
-
-    TestInfo tInfo = createTestInfo();
-
-    switch (id) {
-        case RA_STD_ALLOCATOR_ID:
-            tInfo.trackMemory = false; // the default allocator can't track memory allocations.
-            tInfo.detectLeaks = false; // the default allocator can't detect memory leaks.
-            tInfo.description = "STD Allocator";
-            tInfo.actx = &core::getAllocator(id);
-            return tInfo;
-        case RA_STD_STATS_ALLOCATOR_ID:
-            tInfo.trackMemory = true;
-            tInfo.detectLeaks = true;
-            tInfo.description = "Stats STD Allocator";
-            tInfo.actx = &core::getAllocator(id);
-            return tInfo;
-        case RA_BUMP_ALLOCATOR_ID:
-            tInfo.trackMemory = true;
-            tInfo.description = "BUMP Allocator";
-            tInfo.actx = &core::getAllocator(id);
-            return tInfo;
-        case RA_ARENA_ALLOCATOR_ID:
-            tInfo.trackMemory = true;
-            tInfo.description = "ARENA Allocator";
-            tInfo.actx = &core::getAllocator(id);
-            return tInfo;
-        case RA_THREAD_LOCAL_BUMP_ALLOCATOR_ID:
-            tInfo.trackMemory = true;
-            tInfo.description = "THREAD LOCAL BUMP Allocator";
-            tInfo.actx = &core::getAllocator(id);
-            return tInfo;
-        case RA_THREAD_LOCAL_ARENA_ALLOCATOR_ID:
-            tInfo.trackMemory = true;
-            tInfo.description = "THREAD LOCAL ARENA Allocator";
-            tInfo.actx = &core::getAllocator(id);
-            return tInfo;
-
-        case RA_SENTINEL: [[fallthrough]];
-        default:
-            break;
-    }
-
-    Assert(false, "Invalid allocator id");
-    return tInfo;
-}
-
 void setBufferForBumpAllocator(void* data, addr_size size);
 void setBlockSizeForArenaAllocator(addr_size size);
 
 // ##################### TEST SUITES ###################################################################################
 
-i32 runAlgorithmsTestsSuite();
-i32 runArrTestsSuite();
-i32 runStackTestsSuite();
-i32 runBitsTestsSuite();
-i32 runCmdParserTestsSuite();
-i32 runCstrConvTestsSuite();
-i32 runCstrConv_CstrToFloat_TestsSuite();
-i32 runCstrConv_FloatToCstr_TestsSuite();
-i32 verifyRyuAlgorithm();
-i32 runCstrTestsSuite();
-i32 runDeferTestsSuite();
-i32 runExpectedTestsSuite();
-i32 runHashMapTestsSuite();
-i32 runHashTestsSuite();
-i32 runIntrinsicsTestsSuite();
-i32 runIntsTestsSuite();
-i32 runLoggerTestsSuite();
-i32 runMathTestsSuite();
-i32 runMatrixTestsSuite();
-i32 runMemTestsSuite();
-i32 runRndTestsSuite();
-i32 runStaticArrTestsSuite();
-i32 runStrBuilderTestsSuite();
-i32 runStrViewTestsSuite();
-i32 runTransformsTestsSuite();
-i32 runTupleTestsSuite();
-i32 runUniquePtrTestsSuite();
-i32 runUtfTestsSuite();
-i32 runVecTestsSuite();
-i32 runFormatTestsSuite();
+i32 runAlgorithmsTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runArrTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runStackTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runBitsTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runCmdParserTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runCstrConvTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runCstrConv_CstrToFloat_TestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runCstrConv_FloatToCstr_TestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 verifyRyuAlgorithm(const core::testing::TestSuiteInfo& sInfo);
+i32 runCstrTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runDeferTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runExpectedTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runHashMapTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runHashTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runIntrinsicsTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runIntsTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runLoggerTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runMathTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runMatrixTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runMemTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runRndTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runStaticArrTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runStrBuilderTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runStrViewTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runTransformsTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runTupleTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runUniquePtrTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runUtfTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runVecTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runFormatTestsSuite(const core::testing::TestSuiteInfo& sInfo);
 
-i32 runBumpAllocatorTestsSuite();
-i32 runStdAllocatorTestsSuite();
-i32 runStdStatsAllocatorTestsSuite();
-i32 runArenaAllocatorTestsSuite();
+i32 runBumpAllocatorTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runStdAllocatorTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runStdStatsAllocatorTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runArenaAllocatorTestsSuite(const core::testing::TestSuiteInfo& sInfo);
 
-i32 runPltErrorTestsSuite();
-i32 runPltFileSystemTestsSuite();
-i32 runPltPagesTestsSuite();
-i32 runPltStacktraceTestsSuite();
-i32 runPltThreadingTestsSuite();
-i32 runPltTimeTestsSuite();
+i32 runPltErrorTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runPltFileSystemTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runPltPagesTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runPltStacktraceTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runPltThreadingTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runPltTimeTestsSuite(const core::testing::TestSuiteInfo& sInfo);
 
-i32 runAsmTestsSuite();
+i32 runAsmTestsSuite(const core::testing::TestSuiteInfo& sInfo);
 
 i32 runAllTests();

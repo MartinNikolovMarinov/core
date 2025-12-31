@@ -189,9 +189,9 @@ constexpr i32 cmpIgnoreCaseASCIITest() {
 
     i32 ret = core::testing::executeTestTable("test case failed at index: ", cases, [](auto& c, const char* cErr) {
         switch (c.expected) {
-            case 1:  CT_CHECK(core::cmpIgnoreCaseANSI(c.a, c.b) > 0, cErr);  break;
-            case -1: CT_CHECK(core::cmpIgnoreCaseANSI(c.a, c.b) < 0, cErr);  break;
-            case 0:  CT_CHECK(core::cmpIgnoreCaseANSI(c.a, c.b) == 0, cErr); break;
+            case 1:  CT_CHECK(core::cstrCmpIgnoreCaseANSI(c.a, c.b) > 0, cErr);  break;
+            case -1: CT_CHECK(core::cstrCmpIgnoreCaseANSI(c.a, c.b) < 0, cErr);  break;
+            case 0:  CT_CHECK(core::cstrCmpIgnoreCaseANSI(c.a, c.b) == 0, cErr); break;
         }
 
         return 0;

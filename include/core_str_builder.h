@@ -14,7 +14,9 @@ using namespace coretypes;
 
 // TODO2: [PERFORMANCE] Might want to implement small string optimization.
 
-template <AllocatorId TAllocId = DEFAULT_ALLOCATOR_ID>
+template <AllocatorId TAllocId = DEFAULT_ALLOCATOR_ID> struct CORE_API_EXPORT StrBuilder;
+
+template <AllocatorId TAllocId>
 struct CORE_API_EXPORT StrBuilder {
     inline static core::AllocatorContext& allocator = core::getAllocator(TAllocId);
 

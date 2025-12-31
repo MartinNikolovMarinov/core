@@ -14,6 +14,9 @@ using namespace coretypes;
 struct CORE_API_EXPORT AllocatorContext;
 struct LoggerCreateInfo;
 
+template <AllocatorConcept TAllocator>
+AllocatorContext createAllocatorCtx(TAllocator* allocator);
+
 using AllocatorId = u32;
 constexpr AllocatorId DEFAULT_ALLOCATOR_ID = 0;
 

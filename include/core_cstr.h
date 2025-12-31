@@ -27,8 +27,10 @@ template<typename TInt> constexpr inline char digitToChar(TInt digit);
                         constexpr const char* cstrSkipSpace(const char* s);
                         constexpr       char* cstrSkipSpace(char* s);
 
-                        inline i32 cstrCmpUnsafe(const char* a, const char* b);
-                        inline bool cstrEqUnsafe(const char* a, const char* b);
+                                  inline i32  cstrCmpUnsafe(const char* a, const char* b);
+                                  inline bool cstrEqUnsafe(const char* a, const char* b);
+                        constexpr inline i32  cstrCmpIgnoreCaseANSI(char a, char b);
+
 
 constexpr inline bool isDigit(char c) { return c >= '0' && c <= '9'; }
 constexpr inline bool isHexDigit(char c) { return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F'); }
@@ -51,7 +53,7 @@ constexpr inline char toUpperCaseASCII(char c) { return (c & ~0x20); }
 constexpr inline bool isLowerCaseASCII(char c) { return c == toLowerCaseASCII(c); }
 constexpr inline bool isUpperCaseASCII(char c) { return c == toUpperCaseASCII(c); }
 
-constexpr inline i32 cmpIgnoreCaseANSI(char a, char b) { return i32(toLowerCaseASCII(a) - toLowerCaseASCII(b)); }
+constexpr inline i32 cstrCmpIgnoreCaseANSI(char a, char b) { return i32(toLowerCaseASCII(a) - toLowerCaseASCII(b)); }
 
 namespace detail {
 

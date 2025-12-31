@@ -13,6 +13,9 @@ constexpr bool leastSignificantNBits(u8 v, u8 bitSeq, u8 n);
 constexpr bool mostSignificantNBits(u8 v, u8 bitSeq, u8 n);
 
 template <typename To, typename From>
+constexpr inline To bitCast(const From& src) noexcept;
+
+template <typename To, typename From>
 constexpr inline To bitCast(const From& src) noexcept {
     return intrin_bitCast<To, From>(src);
 }

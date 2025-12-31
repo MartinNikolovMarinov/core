@@ -15,10 +15,14 @@ namespace core {
 
 using namespace coretypes;
 
-                      constexpr u32        intrin_countLeadingZeros(u32 n);
-                      constexpr u32        intrin_countLeadingZeros(u64 n);
+                      constexpr u32        intrin_countLeadingZeros(i8 n);
+                      constexpr u32        intrin_countLeadingZeros(i16 n);
                       constexpr u32        intrin_countLeadingZeros(i32 n);
                       constexpr u32        intrin_countLeadingZeros(i64 n);
+                      constexpr u32        intrin_countLeadingZeros(u8 n);
+                      constexpr u32        intrin_countLeadingZeros(u16 n);
+                      constexpr u32        intrin_countLeadingZeros(u32 n);
+                      constexpr u32        intrin_countLeadingZeros(u64 n);
 
                       constexpr f32        intrin_hugeValf();
                       constexpr f32        intrin_nanf();

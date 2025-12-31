@@ -50,6 +50,7 @@ template <typename T> constexpr void memswap(T* a, T* b, addr_size len);
 template <typename T> constexpr void swap(T& a, T& b);
 
                       constexpr addr_size   align(addr_size n);
+                      constexpr addr_size   align(addr_size n, u32 alignment);
 template <typename T> constexpr T*          append(T* dst, const T& val);
                       inline addr_off       ptrDiff(const void* a, const void* b);
                       inline void*          ptrAdvance(void* ptr, addr_size off);

@@ -109,11 +109,12 @@ i32 onOomArenaAllocatorTest() {
     return 0;
 }
 
-i32 runArenaAllocatorTestsSuite() {
+i32 runArenaAllocatorTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
+    tInfo.expectZeroAllocations = false;
 
     tInfo.name = FN_NAME_TO_CPTR(arenaAllocatorBasicValidityTest);
     if (runTest(tInfo, arenaAllocatorBasicValidityTest) != 0) { ret = -1; }

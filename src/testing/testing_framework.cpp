@@ -83,7 +83,7 @@ TestInfo createTestInfo(const TestSuiteInfo& sinfo) {
     tInfo.trackMemory = sinfo.actx->tracksMemory();
     tInfo.detectLeaks = sinfo.actx->canDetectLeaks();
     tInfo.allocatorName = sinfo.actx->name();
-    tInfo.expectZeroAllocations = sinfo.expectZeroAllocation;
+    tInfo.expectZeroAllocations = sinfo.expectZeroAllocations;
     return tInfo;
 }
 

@@ -743,10 +743,10 @@ constexpr i32 inputCloseToLimitTest() {
     return 0;
 }
 
-i32 runCstrConv_CstrToFloat_TestsSuite() {
+i32 runCstrConv_CstrToFloat_TestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
     tInfo.name = FN_NAME_TO_CPTR(exponentNotationTest);
     if (runTest(tInfo, exponentNotationTest) != 0) { return -1; }

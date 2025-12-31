@@ -116,11 +116,11 @@ constexpr i32 mostSignificantNBistsTest() {
     return ret;
 }
 
-i32 runBitsTestsSuite() {
+i32 runBitsTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
     tInfo.name = FN_NAME_TO_CPTR(leastSignificantNBitsTest);
     if (runTest(tInfo, leastSignificantNBitsTest) != 0) { ret = -1; }

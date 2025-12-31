@@ -26,6 +26,7 @@ i32 testLoggerLevelsTest() {
         core::loggerSetLevel(level);
 
         CT_CHECK(core::loggerInit(createInfo) == true, cErr);
+        defer { core::loggerDestroy(); };
 
         {
             bool res = logTrace("test");
@@ -71,6 +72,11 @@ i32 testLoggerLevelsTest() {
 }
 
 i32 muteLoggerTest() {
+    core::LoggerCreateInfo createInfo = core::LoggerCreateInfo::createDefault();
+    createInfo.print = devNullLogHandler;
+    CT_CHECK(core::loggerInit(createInfo) == true);
+    defer { core::loggerDestroy(); };
+
     core::loggerSetLevel(core::LogLevel::L_TRACE);
     defer { core::loggerSetLevel(core::LogLevel::L_TRACE); };
 
@@ -94,10 +100,17 @@ i32 muteLoggerTest() {
     return 0;
 }
 
-i32 runLoggerTestsSuite() {
+i32 runLoggerTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
-    TestInfo tInfo = createTestInfo();
+    // HACK: First destroy the logger, because calling coreInit initializes the program context and the logging system.
+    //       This should never be done by user code anyway.
+    core::loggerDestroy();
+
+    TestInfo tInfo = createTestInfo(sInfo);
+
+    // The logger does use dynamic memory from the default allocator.
+    tInfo.expectZeroAllocations = false;
 
     tInfo.name = FN_NAME_TO_CPTR(testLoggerLevelsTest);
     if (runTest(tInfo, testLoggerLevelsTest) != 0) { return -1; }

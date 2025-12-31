@@ -24,11 +24,11 @@ i32 allocateAndFreePagesTest() {
     return 0;
 }
 
-i32 runPltPagesTestsSuite() {
+i32 runPltPagesTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
     tInfo.name = FN_NAME_TO_CPTR(getTheSystemPageSizeTest);
     if(runTest(tInfo, getTheSystemPageSizeTest) != 0) { ret = -1; }

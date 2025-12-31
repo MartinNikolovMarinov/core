@@ -24,8 +24,8 @@ using ClearFn                = void (*)(void* allocatorData);
 using TotalMemoryAllocatedFn = addr_size (*)(void* allocatorData);
 using InUseMemoryFn          = addr_size (*)(void* allocatorData);
 using AllocatorNameFn        = const char* (*)(void* allocatorData);
-using TracksMemoryFn        = bool (*)(void* allocatorData);
-using CanDetectLeaksFn      = bool (*)(void* allocatorData);
+using TracksMemoryFn         = bool (*)(void* allocatorData);
+using CanDetectLeaksFn       = bool (*)(void* allocatorData);
 
 struct CORE_API_EXPORT AllocatorContext {
     AllocateFn allocFn;

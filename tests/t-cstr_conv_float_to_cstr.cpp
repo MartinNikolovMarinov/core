@@ -985,10 +985,10 @@ constexpr i32 shortBufferWritesTest() {
     return 0;
 }
 
-i32 runCstrConv_FloatToCstr_TestsSuite() {
+i32 runCstrConv_FloatToCstr_TestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
     tInfo.name = FN_NAME_TO_CPTR(toExponentNotationTest);
     if (runTest(tInfo, toExponentNotationTest) != 0) { return -1; }

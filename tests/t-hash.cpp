@@ -59,17 +59,15 @@ i32 hashCorrectnessTest(THash calcHash) {
     return 0;
 }
 
-i32 runHashTestsSuite() {
+i32 runHashTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
-    tInfo.name = FN_NAME_TO_CPTR(hashCorrectnessTest);
-
-    tInfo.allocatorName = "fnv1a_64";
+    tInfo.name = FN_NAME_TO_CPTR(hashCorrectnessTest) "<fnv1a_64>";
     if (runTest(tInfo, hashCorrectnessTest<decltype(core::fnv1a_64)>, &core::fnv1a_64) != 0) { ret = -1; }
-    tInfo.allocatorName = "djb2_64";
+    tInfo.name = FN_NAME_TO_CPTR(hashCorrectnessTest) "<djb2_64>";
     if (runTest(tInfo, hashCorrectnessTest<decltype(core::djb2_64)>, &core::djb2_64) != 0) { ret = -1; }
 
     return ret;

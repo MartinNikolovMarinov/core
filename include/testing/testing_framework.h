@@ -232,7 +232,7 @@ i32 runTest(const TestInfo& info, TFunc fn, Args... args) {
 
 struct TestSuiteInfo {
     core::AllocatorContext* actx = &getAllocator(DEFAULT_ALLOCATOR_ID);
-    bool expectZeroAllocation = true;
+    bool expectZeroAllocations = true;
     const char* name = nullptr;
     bool useAnsiColors = true;
     bool trackTime = true;

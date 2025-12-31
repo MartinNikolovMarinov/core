@@ -134,11 +134,11 @@ i32 asmMulWithWrappingCheck_x86_64() {
 
 #endif
 
-i32 runAsmTestsSuite() {
+i32 runAsmTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
-    [[maybe_unused]] TestInfo tInfo = createTestInfo();
+    [[maybe_unused]] TestInfo tInfo = createTestInfo(sInfo);
 
 #if defined(CPU_ARCH_X86_64) && CPU_ARCH_X86_64 == 1
 

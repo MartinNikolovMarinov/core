@@ -238,10 +238,10 @@ i32 replaceWithStaticArrTest() {
     return 0;
 }
 
-i32 runStaticArrTestsSuite() {
+i32 runStaticArrTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
     tInfo.name = FN_NAME_TO_CPTR(initializeStaticArrBasicTest);
     if (runTest(tInfo, initializeStaticArrBasicTest) != 0) { return -1; }

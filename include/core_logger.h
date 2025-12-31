@@ -57,6 +57,7 @@ struct LoggerState {
     char               tagTranslationTable[MAX_NUMBER_OF_TAGS][MAX_TAG_LEN]; // NOTE: idx=0 is reserved.
     i32                tagTranslationTableCount;
     AllocatorId        allocatorId;
+    bool               isInitialized;
 
     constexpr core::StrView getSectionSeparator() {
         return useAnsi ?

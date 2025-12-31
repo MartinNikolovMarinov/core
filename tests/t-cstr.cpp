@@ -355,10 +355,10 @@ i32 cstrEqUnsafeTest() {
     return 0;
 }
 
-i32 runCstrTestsSuite() {
+i32 runCstrTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
     tInfo.name = FN_NAME_TO_CPTR(isDigitTest);
     if (runTest(tInfo, isDigitTest) != 0) { return -1; }

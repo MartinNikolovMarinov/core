@@ -510,11 +510,11 @@ constexpr i32 rotrTest() {
     return 0;
 }
 
-i32 runIntrinsicsTestsSuite() {
+i32 runIntrinsicsTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
     tInfo.name = FN_NAME_TO_CPTR(leadingZeroCountTest);
     if (runTest(tInfo, leadingZeroCountTest) != 0) { ret = -1;}

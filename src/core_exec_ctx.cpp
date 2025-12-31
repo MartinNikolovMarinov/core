@@ -143,6 +143,7 @@ void destroyProgramCtx(bool panicOnLeaks) {
                 g_registeredAllocators[i].name(),
                 g_registeredAllocators[i].inUseMemory());
         }
+
         PanicFmt(g_defaultAllocatorContext.inUseMemory() == 0,
                 "Detected memory leak for allocator: {}, bytes_in_use: {}",
                 g_defaultAllocatorContext.name(),

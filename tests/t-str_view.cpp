@@ -309,11 +309,11 @@ constexpr i32 literalOperatorTest() {
 
 } // namespace
 
-i32 runStrViewTestsSuite() {
+i32 runStrViewTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
     tInfo.name = FN_NAME_TO_CPTR(trimWhiteSpaceLeftTest);
     if (runTest(tInfo, trimWhiteSpaceLeftTest) != 0) { ret = -1; }

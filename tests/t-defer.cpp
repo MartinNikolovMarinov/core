@@ -22,11 +22,11 @@ i32 deferTest() {
     return 0;
 }
 
-i32 runDeferTestsSuite() {
+i32 runDeferTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
     tInfo.name = FN_NAME_TO_CPTR(deferTest);
     if (runTest(tInfo, deferTest) != 0) { ret = -1; }

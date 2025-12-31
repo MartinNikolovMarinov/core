@@ -1321,10 +1321,11 @@ constexpr i32 formatErrorToCcstrTest() {
 
 } // namespace
 
-i32 runFormatTestsSuite() {
+i32 runFormatTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
+
     tInfo.name = FN_NAME_TO_CPTR(basicFormatTest);
     if (runTest(tInfo, basicFormatTest) != 0) return -1;
     tInfo.name = FN_NAME_TO_CPTR(booleanFormattingTest);

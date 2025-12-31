@@ -100,12 +100,13 @@ i32 onOomBumpAllocatorTest() {
     return 0;
 }
 
-i32 runBumpAllocatorTestsSuite() {
+i32 runBumpAllocatorTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
 
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
+    tInfo.expectZeroAllocations = false;
 
     tInfo.name = FN_NAME_TO_CPTR(bumpAllocatorBasicValidityTest);
     if (runTest(tInfo, bumpAllocatorBasicValidityTest) != 0) { ret = -1; }

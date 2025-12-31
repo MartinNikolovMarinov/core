@@ -149,11 +149,11 @@ constexpr i32 convertingUtf8SequenceToUtf32RuneFourBitTest() {
     return 0;
 }
 
-i32 runUtfTestsSuite() {
+i32 runUtfTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
     tInfo.name = FN_NAME_TO_CPTR(convertingUtf8SequenceToUtf32RuneOneBitTest);
     if (runTest(tInfo, convertingUtf8SequenceToUtf32RuneOneBitTest) != 0) { ret = -1; }

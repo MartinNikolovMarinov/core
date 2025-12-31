@@ -77,11 +77,11 @@ constexpr i32 runCreateTuplesOfDifferentSizesTest() {
 
 PRAGMA_WARNING_POP
 
-i32 runTupleTestsSuite() {
+i32 runTupleTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
     tInfo.name = FN_NAME_TO_CPTR(runTupleArgumentIncrementTest);
     if (runTest(tInfo, runTupleArgumentIncrementTest) != 0) { ret = -1; }

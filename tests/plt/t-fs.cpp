@@ -2,6 +2,8 @@
 #include "core_exec_ctx.h"
 #include "plt/core_fs.h"
 
+namespace {
+
 constexpr const char* testDirectory = PATH_TO_TEST_DATA "/testing_directory";
 
 constexpr const char* testNamesTable[] = {
@@ -596,6 +598,7 @@ i32 fileFlushTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 commonErrorsTest() {
 
     // Test operations on non-existent files
@@ -660,7 +663,7 @@ i32 commonErrorsTest() {
                 CT_CHECK(res.hasErr());
             }
             {
-                auto res = core::dirDeleteRec<core::DEFAULT_ALLOCATOR_ID>(tc.path);
+                auto res = core::dirDeleteRec<TAllocId>(tc.path);
                 CT_CHECK(res.hasErr());
             }
             {
@@ -926,6 +929,7 @@ i32 mostBasicReadAndWriteTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 basicListDirectoryContentsTest() {
     TestPathBuilder pb;
 
@@ -1058,6 +1062,7 @@ i32 basicListDirectoryContentsTest() {
     return 0;
 }
 
+template <core::AllocatorId TAllocId>
 i32 readAndWriteEntireFileTest() {
     struct TestCase {
         const char* path;
@@ -1092,7 +1097,7 @@ i32 readAndWriteEntireFileTest() {
         pb.resetFilePart();
         pb.setFileName(c.path);
 
-        core::ArrList<u8> content(core::cstrLen(c.content));
+        core::ArrList<u8, TAllocId> content(core::cstrLen(c.content));
         for (addr_size i = 0; i < core::cstrLen(c.content); ++i) {
             content.push(u8(c.content[i]));
         }
@@ -1111,9 +1116,12 @@ i32 readAndWriteEntireFileTest() {
             core::fileStat(pb.path(), fileStat);
             fileSize = fileStat.size;
             rawBuffer = reinterpret_cast<u8*>(
-                core::getAllocator(core::DEFAULT_ALLOCATOR_ID).alloc(fileSize, sizeof(u8))
+                core::getAllocator(TAllocId).alloc(fileSize, sizeof(u8))
             );
         }
+        defer {
+            core::getAllocator(TAllocId).free(rawBuffer, fileSize, sizeof(u8));
+        };
 
         // Read the file
         {
@@ -1200,14 +1208,42 @@ i32 seekWriteAndReadTest() {
     return 0;
 }
 
-i32 runPltFileSystemTestsSuite() {
+template <core::AllocatorId TAllocId>
+i32 runDynamicMemoryTests(const core::testing::TestSuiteInfo& sInfo) {
+    using namespace core::testing;
+
+    TestInfo tInfo = createTestInfo(TAllocId, sInfo.useAnsiColors, false);
+
+    defer { core::getAllocator(TAllocId).clear(); };
+
+    tInfo.name = FN_NAME_TO_CPTR(basicListDirectoryContentsTest);
+    if (runTest(tInfo, basicListDirectoryContentsTest<TAllocId>) != 0) { return -1; }
+    if (!checkTestDirecotryIsCleanned()) { return -1; }
+
+    tInfo.name = FN_NAME_TO_CPTR(readAndWriteEntireFileTest);
+    if (runTest(tInfo, readAndWriteEntireFileTest<TAllocId>) != 0) { return -1; }
+    if (!checkTestDirecotryIsCleanned()) { return -1; }
+
+    tInfo.name = FN_NAME_TO_CPTR(commonErrorsTest);
+    if (runTest(tInfo, commonErrorsTest<TAllocId>) != 0) { return -1; }
+    if (!checkTestDirecotryIsCleanned()) { return -1; }
+
+    return 0;
+}
+
+} // namespace
+
+i32 runPltFileSystemTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     if (!createTestDirecotry()) {
         return -1;
     }
 
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
+
+    // The tests below likely do allocate memory inside cstd but it's not tracked by registered allocators.
+    tInfo.expectZeroAllocations = true;
 
     tInfo.name = FN_NAME_TO_CPTR(createAndDeleteFileTest);
     if (runTest(tInfo, createAndDeleteFileTest) != 0) { return -1; }
@@ -1233,14 +1269,6 @@ i32 runPltFileSystemTestsSuite() {
     if (runTest(tInfo, fileFlushTest) != 0) { return -1; }
     if (!checkTestDirecotryIsCleanned()) { return -1; }
 
-    tInfo.name = FN_NAME_TO_CPTR(commonErrorsTest);
-    if (runTest(tInfo, commonErrorsTest) != 0) { return -1; }
-    if (!checkTestDirecotryIsCleanned()) { return -1; }
-
-    tInfo.name = FN_NAME_TO_CPTR(edgeErrorCasesTest);
-    if (runTest(tInfo, edgeErrorCasesTest) != 0) { return -1; }
-    if (!checkTestDirecotryIsCleanned()) { return -1; }
-
     tInfo.name = FN_NAME_TO_CPTR(dirCwdChangeTest);
     if (runTest(tInfo, dirCwdChangeTest) != 0) { return -1; }
     if (!checkTestDirecotryIsCleanned()) { return -1; }
@@ -1249,21 +1277,32 @@ i32 runPltFileSystemTestsSuite() {
     if (runTest(tInfo, directoriesCreateMoveAndDeleteTest) != 0) { return -1; }
     if (!checkTestDirecotryIsCleanned()) { return -1; }
 
+    tInfo.name = FN_NAME_TO_CPTR(seekWriteAndReadTest);
+    if (runTest(tInfo, seekWriteAndReadTest) != 0) { return -1; }
+    if (!checkTestDirecotryIsCleanned()) { return -1; }
+
     tInfo.name = FN_NAME_TO_CPTR(mostBasicReadAndWriteTest);
     if (runTest(tInfo, mostBasicReadAndWriteTest) != 0) { return -1; }
     if (!checkTestDirecotryIsCleanned()) { return -1; }
 
-    tInfo.name = FN_NAME_TO_CPTR(basicListDirectoryContentsTest);
-    if (runTest(tInfo, basicListDirectoryContentsTest) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(edgeErrorCasesTest);
+    if (runTest(tInfo, edgeErrorCasesTest) != 0) { return -1; }
     if (!checkTestDirecotryIsCleanned()) { return -1; }
 
-    tInfo.name = FN_NAME_TO_CPTR(readAndWriteEntireFileTest);
-    if (runTest(tInfo, readAndWriteEntireFileTest) != 0) { return -1; }
-    if (!checkTestDirecotryIsCleanned()) { return -1; }
+    // Below this point tests use dynamic memory
 
-    tInfo.name = FN_NAME_TO_CPTR(seekWriteAndReadTest);
-    if (runTest(tInfo, seekWriteAndReadTest) != 0) { return -1; }
-    if (!checkTestDirecotryIsCleanned()) { return -1; }
+    if (runDynamicMemoryTests<RA_STD_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
+    if (runDynamicMemoryTests<RA_STD_STATS_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
+    if (runDynamicMemoryTests<RA_THREAD_LOCAL_BUMP_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
+    if (runDynamicMemoryTests<RA_THREAD_LOCAL_ARENA_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
+
+    constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE * 5;
+    char buf[BUFFER_SIZE];
+    setBufferForBumpAllocator(buf, BUFFER_SIZE);
+    if (runDynamicMemoryTests<RA_BUMP_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
+
+    setBlockSizeForArenaAllocator(512);
+    if (runDynamicMemoryTests<RA_ARENA_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
 
     return 0;
 }

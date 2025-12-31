@@ -18,11 +18,11 @@ i32 pltErrorDescribeWorksTest() {
     return 0;
 }
 
-i32 runPltErrorTestsSuite() {
+i32 runPltErrorTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
     tInfo.name = FN_NAME_TO_CPTR(pltErrorDescribeWorksTest);
     if (runTest(tInfo, pltErrorDescribeWorksTest) != 0) { ret = -1; }

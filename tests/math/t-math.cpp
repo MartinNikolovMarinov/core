@@ -515,11 +515,11 @@ constexpr i32 safeDivTest() {
     return ret;
 }
 
-i32 runMathTestsSuite() {
+i32 runMathTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
     tInfo.name = FN_NAME_TO_CPTR(pow10Test);
     if (runTest(tInfo, pow10Test) != 0) { ret = -1; }

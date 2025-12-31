@@ -853,10 +853,10 @@ constexpr i32 intToBinaryErrorTest() {
     return 0;
 }
 
-i32 runCstrConvTestsSuite() {
+i32 runCstrConvTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
     tInfo.name = FN_NAME_TO_CPTR(cstrToIntTest);
     if (runTest(tInfo, cstrToIntTest) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(cstrToIntErrorsTest);

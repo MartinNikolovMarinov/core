@@ -22,7 +22,8 @@ constexpr LoggerState getDefaultLoggerState() {
         {},
         {},
         0,
-        0
+        0,
+        false
     };
 }
 
@@ -51,6 +52,8 @@ LoggerCreateInfo LoggerCreateInfo::createDefault() {
 bool loggerInit(const LoggerCreateInfo& createInfo) {
     auto& state = logdetails::g_state;
 
+    Panic(!state.isInitialized, "Trying to re-initialize the logging system; call destroy first.");
+
     if (createInfo.print == nullptr) {
         state.printHandler = [](StrView message) {
             [[maybe_unused]] i32 ret = printf("%.*s", i32(message.len()), message.data());
@@ -70,11 +73,19 @@ bool loggerInit(const LoggerCreateInfo& createInfo) {
 
     state.tagTranslationTable[0][0] = 'R'; // mark as reserved.
 
+    state.isInitialized = true;
+
     return true;
 }
 
 void loggerDestroy() {
     auto& state = logdetails::g_state;
+
+    if (!state.isInitialized) {
+        // HACK: This should be panicing instead of returning but that will break the testing framework.
+        return;
+    }
+
     core::memoryFree(std::move(state.loggerMemory), state.allocatorId);
 
     // reset the state:

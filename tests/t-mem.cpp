@@ -650,10 +650,10 @@ i32 runMemoryAllocationTest() {
 }
 
 template <core::AllocatorId TAllocId>
-i32 runDynamicMemoryTests() {
+i32 runDynamicMemoryTests(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
-    TestInfo tInfo = createTestInfoFor(RegisteredAllocators(TAllocId));
+    TestInfo tInfo = createTestInfo(TAllocId, sInfo.useAnsiColors, false);
 
     defer { core::getAllocator(TAllocId).clear(); };
 
@@ -665,11 +665,11 @@ i32 runDynamicMemoryTests() {
 
 } // namespace
 
-i32 runMemTestsSuite() {
+i32 runMemTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
     tInfo.name = FN_NAME_TO_CPTR(alignTest);
     if (runTest(tInfo, alignTest) != 0) { ret = -1; }
@@ -696,18 +696,18 @@ i32 runMemTestsSuite() {
     tInfo.name = FN_NAME_TO_CPTR(memoryTestsEdgeCases);
     if (runTest(tInfo, memoryTestsEdgeCases) != 0) { ret = -1; }
 
-    if (runDynamicMemoryTests<RA_STD_ALLOCATOR_ID>() != 0) { return -1; }
-    if (runDynamicMemoryTests<RA_STD_STATS_ALLOCATOR_ID>() != 0) { return -1; }
-    if (runDynamicMemoryTests<RA_THREAD_LOCAL_BUMP_ALLOCATOR_ID>() != 0) { return -1; }
-    if (runDynamicMemoryTests<RA_THREAD_LOCAL_ARENA_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runDynamicMemoryTests<RA_STD_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
+    if (runDynamicMemoryTests<RA_STD_STATS_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
+    if (runDynamicMemoryTests<RA_THREAD_LOCAL_BUMP_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
+    if (runDynamicMemoryTests<RA_THREAD_LOCAL_ARENA_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
 
     constexpr u32 BUFFER_SIZE = core::CORE_MEGABYTE;
     char buf[BUFFER_SIZE];
     setBufferForBumpAllocator(buf, BUFFER_SIZE);
-    if (runDynamicMemoryTests<RA_BUMP_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runDynamicMemoryTests<RA_BUMP_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
 
     setBlockSizeForArenaAllocator(1024);
-    if (runDynamicMemoryTests<RA_ARENA_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runDynamicMemoryTests<RA_ARENA_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
 
     return ret;
 }

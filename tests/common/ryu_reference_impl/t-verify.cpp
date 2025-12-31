@@ -116,7 +116,9 @@ void verify(u32 x, u32 to) {
     }
 }
 
-i32 verifyRyuAlgorithm() {
+i32 verifyRyuAlgorithm(const core::testing::TestSuiteInfo& sInfo) {
+    auto& actx = *sInfo.actx;
+
     i32 coresN = core::Unpack(core::threadingGetNumCores());
 
     auto threads = core::ArrList<core::Thread>(addr_size(coresN));
@@ -130,11 +132,19 @@ i32 verifyRyuAlgorithm() {
         u32 dx;
     };
 
+    TArgs* args[255] = {};
+    defer {
+        for (i32 i = 0; i < 255; i++) {
+            if (args[i] != nullptr) {
+                actx.free(args[i], 1, sizeof(TArgs));
+            }
+        }
+    };
+
     for (i32 i = 0; i < i32(coresN); i++) {
         core::Thread& t = threads[addr_size(i)];
         core::Expect(core::threadInit(t));
 
-        auto& actx = core::getAllocator(core::DEFAULT_ALLOCATOR_ID);
         TArgs* tArgs = reinterpret_cast<TArgs*>(actx.alloc(1, sizeof(TArgs)));
         x += dx;
         tArgs->x = x;
@@ -146,6 +156,8 @@ i32 verifyRyuAlgorithm() {
             TArgs args = *argsp;
             verify(args.x, args.x + args.dx);
         }));
+
+        args[i] = tArgs;
     }
 
     verify(x, xMax);

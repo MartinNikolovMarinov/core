@@ -181,10 +181,10 @@ i32 swapUniquePtrTest() {
 }
 
 template <core::AllocatorId TAllocId>
-i32 runTests() {
+i32 runTests(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
-    TestInfo tInfo = createTestInfoFor(RegisteredAllocators(TAllocId));
+    TestInfo tInfo = createTestInfo(RegisteredAllocators(TAllocId), sInfo.useAnsiColors, false);
 
     defer { core::getAllocator(TAllocId).clear(); };
 
@@ -204,21 +204,21 @@ i32 runTests() {
 
 } // namespace
 
-i32 runUniquePtrTestsSuite() {
+i32 runUniquePtrTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
-    if (runTests<RA_STD_ALLOCATOR_ID>() != 0) { return -1; }
-    if (runTests<RA_STD_STATS_ALLOCATOR_ID>() != 0) { return -1; }
-    if (runTests<RA_THREAD_LOCAL_BUMP_ALLOCATOR_ID>() != 0) { return -1; }
-    if (runTests<RA_THREAD_LOCAL_ARENA_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runTests<RA_STD_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
+    if (runTests<RA_STD_STATS_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
+    if (runTests<RA_THREAD_LOCAL_BUMP_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
+    if (runTests<RA_THREAD_LOCAL_ARENA_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
 
     constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE * 2;
     char buf[BUFFER_SIZE];
     setBufferForBumpAllocator(buf, BUFFER_SIZE);
-    if (runTests<RA_BUMP_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runTests<RA_BUMP_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
 
     setBlockSizeForArenaAllocator(256);
-    if (runTests<RA_ARENA_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runTests<RA_ARENA_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
 
     return 0;
 }

@@ -141,10 +141,10 @@ i32 stackEnsureCapacityTest() {
 }
 
 template <core::AllocatorId TAllocId>
-i32 runStackTests() {
+i32 runStackTests(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
-    TestInfo tInfo = createTestInfoFor(RegisteredAllocators(TAllocId));
+    TestInfo tInfo = createTestInfo(RegisteredAllocators(TAllocId), sInfo.useAnsiColors, false);
 
     defer { core::getAllocator(TAllocId).clear(); };
 
@@ -162,21 +162,21 @@ i32 runStackTests() {
 
 } // namespace
 
-i32 runStackTestsSuite() {
+i32 runStackTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
-    if (runStackTests<RA_STD_ALLOCATOR_ID>() != 0) { return -1; }
-    if (runStackTests<RA_STD_STATS_ALLOCATOR_ID>() != 0) { return -1; }
-    if (runStackTests<RA_THREAD_LOCAL_BUMP_ALLOCATOR_ID>() != 0) { return -1; }
-    if (runStackTests<RA_THREAD_LOCAL_ARENA_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runStackTests<RA_STD_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
+    if (runStackTests<RA_STD_STATS_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
+    if (runStackTests<RA_THREAD_LOCAL_BUMP_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
+    if (runStackTests<RA_THREAD_LOCAL_ARENA_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
 
     constexpr u32 BUFFER_SIZE = core::CORE_KILOBYTE * 3;
     char buf[BUFFER_SIZE];
     setBufferForBumpAllocator(buf, BUFFER_SIZE);
-    if (runStackTests<RA_BUMP_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runStackTests<RA_BUMP_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
 
     setBlockSizeForArenaAllocator(256);
-    if (runStackTests<RA_ARENA_ALLOCATOR_ID>() != 0) { return -1; }
+    if (runStackTests<RA_ARENA_ALLOCATOR_ID>(sInfo) != 0) { return -1; }
 
     return 0;
 }

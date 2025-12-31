@@ -86,12 +86,12 @@ i32 onOOMStdStatsAllocatorTest() {
     return 0;
 }
 
-i32 runStdStatsAllocatorTestsSuite() {
+i32 runStdStatsAllocatorTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
-
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
+    tInfo.expectZeroAllocations = false;
 
     tInfo.name = FN_NAME_TO_CPTR(stdStatsAllocatorBasicValidityTest);
     if (runTest(tInfo, stdStatsAllocatorBasicValidityTest) != 0) { ret = -1; }

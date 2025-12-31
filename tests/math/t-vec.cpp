@@ -240,11 +240,11 @@ constexpr i32 vectorCrossProductTest() {
     return 0;
 }
 
-i32 runVecTestsSuite() {
+i32 runVecTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
     tInfo.name = FN_NAME_TO_CPTR(vectorEqualsTest);
     if (runTest(tInfo, vectorEqualsTest) != 0) { ret = -1; }

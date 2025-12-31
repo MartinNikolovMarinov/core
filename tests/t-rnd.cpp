@@ -49,12 +49,12 @@ i32 rndRawStrTest() {
     return 0;
 }
 
-i32 runRndTestsSuite() {
+i32 runRndTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     core::rndInit();
 
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
     tInfo.name = FN_NAME_TO_CPTR(rndSignedIntegersTest);
     if (runTest(tInfo, rndSignedIntegersTest) != 0) { return -1; }

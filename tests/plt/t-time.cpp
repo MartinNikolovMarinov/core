@@ -82,11 +82,11 @@ i32 performanceCounterTest() {
     return 0;
 }
 
-i32 runPltTimeTestsSuite() {
+i32 runPltTimeTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
     tInfo.name = FN_NAME_TO_CPTR(unixTimestampTest);
     if (runTest(tInfo, unixTimestampTest) != 0) { ret = -1; }

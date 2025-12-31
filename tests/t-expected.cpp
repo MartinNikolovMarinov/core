@@ -196,11 +196,11 @@ i32 expectedWithDestructorsTest() {
 
 PRAGMA_WARNING_POP
 
-i32 runExpectedTestsSuite() {
+i32 runExpectedTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
     i32 ret = 0;
-    TestInfo tInfo = createTestInfo();
+    TestInfo tInfo = createTestInfo(sInfo);
 
     tInfo.name = FN_NAME_TO_CPTR(expectedBasicCaseTest);
     if (runTest(tInfo, expectedBasicCaseTest) != 0) { ret = -1;}

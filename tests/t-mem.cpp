@@ -615,7 +615,7 @@ i32 runMemoryAllocationTest() {
 
     // Reallocating uninitialized should do nothing
     {
-        core::Memory<u8> uninitialized;
+        core::Memory<u8> uninitialized = {};
         auto reallocatedUninitialized = core::memoryReallocate(std::move(uninitialized), 0, TAllocId);
         CT_CHECK(reallocatedUninitialized.data() == uninitialized.data());
         CT_CHECK(reallocatedUninitialized.data() == nullptr);
@@ -623,7 +623,7 @@ i32 runMemoryAllocationTest() {
 
     // Memory set grow and preserve data.
     {
-        core::Memory<u8> mem;
+        core::Memory<u8> mem = {};
         mem = core::memorySet(mem, 0, u8(123), TAllocId);
         CT_CHECK(mem.len() == 1);
         CT_CHECK(mem[0] == 123);

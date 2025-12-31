@@ -10,6 +10,8 @@ using namespace coretypes;
 
 using StrView = core::Memory<const char>;
 
+static_assert(std::is_trivial_v<StrView>, "StrView must be a trivial type");
+
 constexpr inline StrView sv()                               { return StrView{nullptr, 0}; }
 constexpr inline StrView sv(const char* str)                { return StrView{str, core::cstrLen(str)}; }
 constexpr inline StrView sv(const char* str, addr_size len) { return StrView{str, len}; }

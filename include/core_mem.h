@@ -60,27 +60,6 @@ template <typename T>
 struct Memory {
     using size_type = addr_size;
 
-    constexpr Memory() : ptr(nullptr), length(0) {}
-    constexpr Memory(T* _ptr, size_type _len) : ptr(_ptr), length(_len) {}
-    constexpr Memory(const Memory&) = default;
-    constexpr Memory(Memory&& other) {
-        if (this == &other) return;
-        ptr = other.ptr;
-        length = other.length;
-        other.ptr = nullptr;
-        other.length = 0;
-    }
-
-    constexpr Memory& operator=(const Memory&) = default;
-    constexpr Memory& operator=(Memory&& other) {
-        if (this == &other) return *this;
-        ptr = other.ptr;
-        length = other.length;
-        other.ptr = nullptr;
-        other.length = 0;
-        return *this;
-    }
-
     constexpr T* data() const { return ptr; }
     constexpr size_type len() const { return length; }
 
@@ -153,6 +132,8 @@ struct Memory {
     T* ptr;
     size_type length;
 };
+
+static_assert(std::is_trivial_v<Memory<i32>>, "Memory must be a trivial type.");
 
 /**
  * \brief

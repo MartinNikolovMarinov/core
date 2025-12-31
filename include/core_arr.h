@@ -355,15 +355,23 @@ struct ArrStatic {
     static constexpr bool dataIsTrivial = std::is_trivial_v<value_type>;
 
     static_assert(std::is_standard_layout_v<T>, "ArrStatic should be standard layout");
-    static_assert(std::is_trivially_copy_assignable_v<T>, "ArrStatic should be trivially copy assignable");
-    static_assert(std::is_trivially_move_assignable_v<T>, "ArrStatic should be trivially move assignable");
+
+    // NOTE: Reason for using assign operator instead of copy constructor -
+    //       "placement new expression is not supported in constant expressions before C++2c"
+    static_assert(std::is_copy_assignable_v<T> || std::is_move_assignable_v<T>,
+                "The provided T does not satisfy the requirements for ArrStatic");
 
     constexpr ArrStatic() : m_len(0) {}
     constexpr ArrStatic(const ArrStatic& other) = default;
     constexpr ArrStatic(ArrStatic&& other) = default;
     constexpr ArrStatic(size_type len, const T& v) : m_len(len) {
         for (size_type i = 0; i < m_len; i++) {
-            m_data[i] = v;
+            if constexpr (std::is_move_constructible_v<T>) {
+                m_data[i] = std::move(v);
+            }
+            else {
+                m_data[i] = T(v);
+            }
         }
     }
 
@@ -404,7 +412,13 @@ struct ArrStatic {
 
     constexpr void push(const value_type* val, size_type len) {
         for (size_type i = 0; i < len; i++) {
-            m_data[i + m_len] = val[i];
+            if constexpr (std::is_move_constructible_v<T>) {
+                m_data[i + m_len] = std::move(val[i]);
+            }
+            else {
+                static_assert(std::is_copy_constructible_v<T>);
+                m_data[i + m_len] = val[i];
+            }
         }
         m_len += len;
     }
@@ -412,7 +426,13 @@ struct ArrStatic {
     constexpr void remove(size_type idx) {
         if (idx < m_len - 1) {
             for (size_type i = idx; i < m_len - 1; ++i) {
-                m_data[i] = std::move(m_data[i + 1]);
+                if constexpr (std::is_move_constructible_v<T>) {
+                    m_data[i] = std::move(m_data[i + 1]);
+                }
+                else {
+                    static_assert(std::is_copy_constructible_v<T>);
+                    m_data[i] = m_data[i + 1];
+                }
             }
         }
 
@@ -427,7 +447,12 @@ struct ArrStatic {
     constexpr void assign(const value_type& val, size_type from, size_type to) {
         if (to > from) {
             for (size_type i = from; i < to; i++) {
-                m_data[i] = val;
+                if constexpr (std::is_move_constructible_v<T>) {
+                    m_data[i] = std::move(val);
+                }
+                else {
+                    m_data[i] = val;
+                }
             }
         }
     }
@@ -442,6 +467,7 @@ private:
 };
 
 static_assert(std::is_standard_layout_v<ArrStatic<i32, 3>>, "ArrStatic should be trivial");
+static_assert(std::is_standard_layout_v<ArrStatic<core::Memory<char>, 3>>, "ArrStatic should be trivial");
 
 namespace detail {
 

@@ -17,6 +17,37 @@ namespace core::testing {
 
 using namespace coretypes;
 
+struct ConstructorTester;
+using CT = ConstructorTester;
+
+struct TestInfo;
+struct TestSuiteInfo;
+
+template <addr_size PLen, typename TCase, addr_size NCases, typename Afunc>
+[[nodiscard]] constexpr i32 executeTestTable(const char (&errMsgPrefix)[PLen],
+                                             const TCase (&cases)[NCases],
+                                             Afunc assertionFn,
+                                             i32 maxTestDigits = 5);
+
+template <typename TFunc, typename... Args>
+i32 runTest(const TestInfo& info, TFunc fn, Args... args);
+template <typename TSuite>
+i32 runTestSuite(const TestSuiteInfo& info, TSuite suite);
+
+constexpr u32 ELAPSED_TIME_TO_STR_BUFFER_SIZE = 256;
+CORE_API_EXPORT char* elapsedTimeToStr(char out[ELAPSED_TIME_TO_STR_BUFFER_SIZE], u64 deltaTimeNs);
+constexpr u32 MEMORY_USED_TO_STR_BUFFER_SIZE = 128;
+CORE_API_EXPORT char* memoryUsedToStr(char out[MEMORY_USED_TO_STR_BUFFER_SIZE], addr_size deltaMemory);
+
+CORE_API_EXPORT TestInfo createTestInfo(const TestSuiteInfo& sinfo);
+CORE_API_EXPORT TestInfo createTestInfo(core::AllocatorId allocatorId, bool useAnsiColors, bool expectZeroAllocation);
+
+namespace detail {
+
+constexpr inline const char* passedOrFailedStr(bool passed, bool useAnsiColors);
+
+} // namespace detail
+
 struct ConstructorTester {
     static constexpr i32 defaultValue = 7;
 
@@ -86,8 +117,6 @@ private:
     inline static i32 g_assignmentsMoveCalled;
 };
 
-using CT = ConstructorTester;
-
 /**
  * \brief This code is quite complex, because it does zero allocations, but it's purpose is quite simple. It iterates over
  *        a table of test cases, and executes the assertion function on each one. The assertion function, the test case
@@ -103,7 +132,7 @@ template <addr_size PLen, typename TCase, addr_size NCases, typename Afunc>
 [[nodiscard]] constexpr i32 executeTestTable(const char (&errMsgPrefix)[PLen],
                                              const TCase (&cases)[NCases],
                                              Afunc assertionFn,
-                                             i32 maxTestDigits = 5) {
+                                             i32 maxTestDigits) {
     addr_size i = 0;
     char errMsg[PLen + 20] = {}; // The 20 gives space for the test number.
     for (addr_size j = 0; j < PLen; j++) { // NOTE: intentionally not using memcopy, because this needs to work in constexpr.
@@ -119,11 +148,6 @@ template <addr_size PLen, typename TCase, addr_size NCases, typename Afunc>
 }
 
 inline i32 g_testCount = 0;
-
-constexpr u32 ELAPSED_TIME_TO_STR_BUFFER_SIZE = 256;
-CORE_API_EXPORT char* elapsedTimeToStr(char out[ELAPSED_TIME_TO_STR_BUFFER_SIZE], u64 deltaTimeNs);
-constexpr u32 MEMORY_USED_TO_STR_BUFFER_SIZE = 128;
-CORE_API_EXPORT char* memoryUsedToStr(char out[MEMORY_USED_TO_STR_BUFFER_SIZE], addr_size deltaMemory);
 
 struct TestInfo {
     core::AllocatorContext* actx = &getAllocator(DEFAULT_ALLOCATOR_ID);
@@ -271,9 +295,6 @@ i32 runTestSuite(const TestSuiteInfo& info, TSuite suite) {
     return returnCode;
 }
 
-CORE_API_EXPORT TestInfo createTestInfo(const TestSuiteInfo& sinfo);
-CORE_API_EXPORT TestInfo createTestInfo(core::AllocatorId allocatorId, bool useAnsiColors, bool expectZeroAllocation);
-
 #if defined(CORE_RUN_COMPILETIME_TESTS) && CORE_RUN_COMPILETIME_TESTS == 1
     #define RunTestCompileTime(test, ...) \
         { [[maybe_unused]] constexpr auto __notused__ = core::force_consteval<test(__VA_ARGS__)>; }
@@ -319,4 +340,3 @@ inline bool eq(const testing::CT& a, const testing::CT& b) {
 static_assert(core::HashableConcept<testing::CT>, "CT must satisfy the HashableConcept.");
 
 } // namespace core
-

@@ -30,9 +30,13 @@ template <addr_size PLen, typename TCase, addr_size NCases, typename Afunc>
                                              i32 maxTestDigits = 5);
 
 template <typename TFunc, typename... Args>
-i32 runTest(const TestInfo& info, TFunc fn, Args... args);
+[[nodiscard]] i32 runTest(const TestInfo& info, TFunc fn, Args... args);
 template <typename TSuite>
-i32 runTestSuite(const TestSuiteInfo& info, TSuite suite);
+[[nodiscard]] i32 runTestSuite(const TestSuiteInfo& info, TSuite suite);
+template <typename TSuite>
+[[nodiscard]] i32  executeTestSuteInGroup(const TestSuiteInfo& info, TSuite suite);
+[[nodiscard]] u64  beginTestSuiteGroup(const TestSuiteInfo& info);
+              void endTestSuiteGroup(const TestSuiteInfo& info, i32 returnCode, u64 start);
 
 constexpr u32 ELAPSED_TIME_TO_STR_BUFFER_SIZE = 256;
 CORE_API_EXPORT char* elapsedTimeToStr(char out[ELAPSED_TIME_TO_STR_BUFFER_SIZE], u64 deltaTimeNs);
@@ -268,13 +272,28 @@ struct TestSuiteInfo {
 
 template <typename TSuite>
 i32 runTestSuite(const TestSuiteInfo& info, TSuite suite) {
+    u64 start = beginTestSuiteGroup(info);
+    i32 returnCode = executeTestSuteInGroup(info, suite);
+    endTestSuiteGroup(info, returnCode, start);
+    return returnCode;
+}
+
+inline u64 beginTestSuiteGroup(const TestSuiteInfo& info) {
+    const char* suiteName = info.name;
+    std::cout << "[SUITE RUNNING] " << suiteName << std::endl;
+    auto start = core::getMonotonicNowNs();
+    return start;
+}
+
+template <typename TSuite>
+i32 executeTestSuteInGroup(const TestSuiteInfo& info, TSuite suite) {
+    i32 returnCode = suite(info);
+    return returnCode;
+}
+
+inline void endTestSuiteGroup(const TestSuiteInfo& info, i32 returnCode, u64 start) {
     const char* suiteName = info.name;
     bool useAnsiColors = info.useAnsiColors;
-    auto start = core::getMonotonicNowNs();
-
-    std::cout << "[SUITE RUNNING] " << suiteName << std::endl;
-    i32 returnCode = suite(info);
-
     std::cout << "[SUITE " << detail::passedOrFailedStr(returnCode == 0, useAnsiColors) << "] " << suiteName;
 
     bool isFirst = true;
@@ -292,7 +311,6 @@ i32 runTestSuite(const TestSuiteInfo& info, TSuite suite) {
     if (!isFirst) std::cout << " ]";
 
     std::cout << std::endl;
-    return returnCode;
 }
 
 #if defined(CORE_RUN_COMPILETIME_TESTS) && CORE_RUN_COMPILETIME_TESTS == 1

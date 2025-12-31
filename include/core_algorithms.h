@@ -12,6 +12,7 @@ using namespace coretypes;
 template <typename T, typename TPredicate>                      inline constexpr addr_off find(const T* arr, addr_size len, TPredicate pred);
 template <typename T, AllocatorId AllocId, typename TPredicate> inline addr_off           find(const ArrList<T, AllocId>& arr, TPredicate pred);
 template <typename T, addr_size N, typename TPredicate>         inline constexpr addr_off find(const ArrStatic<T,  N>& arr, TPredicate pred);
+template <typename T, typename TPredicate>                      inline constexpr addr_off find(const Memory<T>& memory, TPredicate pred);
 
 template <typename T, typename TEq>                           inline constexpr void pushUnique(T* arr, addr_size len, const T& el, TEq eqFn);
 template <typename T, typename TEq>                           inline constexpr void pushUnique(T* arr, addr_size len, T&& el, TEq eqFn);

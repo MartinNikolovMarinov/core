@@ -30,6 +30,8 @@ concept AllocatorConcept = requires(T a) {
     { a.canDetectLeaks() } -> core::same_as<bool>;
 };
 
+struct ArenaBlock;
+
 struct CORE_API_EXPORT StdAllocator;
 struct                 StdStatsAllocator;
 struct CORE_API_EXPORT BumpAllocator;
@@ -154,8 +156,6 @@ private:
     ThreadLocalBumpAllocator();
 };
 static_assert(AllocatorConcept<ThreadLocalBumpAllocator>);
-
-struct ArenaBlock;
 
 /**
  * @note This allocator is not thread-safe.

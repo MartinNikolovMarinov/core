@@ -102,7 +102,7 @@ private:
 };
 
 template <typename T, typename TErr, typename... Args>
-constexpr inline T&& Unpack(expected<T, TErr>&& expr, [[maybe_unused]] const char* msg, Args... args) {
+constexpr inline T&& Unpack(expected<T, TErr>&& expr, [[maybe_unused]] const char* msg, [[maybe_unused]] Args... args) {
     if constexpr (sizeof...(Args) > 0) {
         PanicFmt(!expr.hasErr(), msg, args...);
     }
@@ -114,9 +114,7 @@ constexpr inline T&& Unpack(expected<T, TErr>&& expr, [[maybe_unused]] const cha
 }
 
 template <typename TErr, typename... Args>
-constexpr inline void Expect(expected<TErr>&& expr, [[maybe_unused]] const char* msg, Args... args) {
-    Panic(!expr.hasErr(), msg);
-
+constexpr inline void Expect(expected<TErr>&& expr, [[maybe_unused]] const char* msg, [[maybe_unused]] Args... args) {
     if constexpr (sizeof...(Args) > 0) {
         PanicFmt(!expr.hasErr(), msg, args...);
     }

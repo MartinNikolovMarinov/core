@@ -65,8 +65,11 @@ struct Memory {
 
     constexpr operator bool() const { return ptr != nullptr; }
 
+    constexpr T& operator[](i32 idx) const { return ptr[idx]; }
     constexpr T& operator[](size_type idx) const { return ptr[idx]; }
+    constexpr T& atUnsafe(i32 idx) const { return ptr[idx]; }
     constexpr T* atUnsafe(size_type idx) const { return ptr + idx; }
+    constexpr T& at(i32 idx) const { return at(addr_size(idx)); }
     constexpr T* at(size_type idx) const {
         Assert(idx < length, "Index out of range");
         return atUnsafe(idx);

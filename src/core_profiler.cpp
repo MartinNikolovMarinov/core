@@ -142,7 +142,7 @@ void ProfileResult::logResult(core::LogLevel logLevel) {
     core::Stack<LogStackEntry> logStack;
 
     for (addr_size i = 0; i < rootLevelPoints.len(); i++) {
-        auto& rootTimePoint = timepoints[rootLevelPoints[i]];
+        auto& rootTimePoint = timepoints[addr_size(rootLevelPoints[i])];
         u32 nestedLevel = 0;
 
         logStack.clear();
@@ -165,7 +165,7 @@ void ProfileResult::logResult(core::LogLevel logLevel) {
 
             // Log the current:
             {
-                auto& t = timepoints[curr.id];
+                auto& t = timepoints[addr_size(curr.id)];
                 paddingBuffer[curr.level] = '\0';
                 logElapsed(curr.id, totalElapsedTsc, cpuFrequencyHz, t, paddingBuffer);
                 paddingBuffer[curr.level] = ' ';

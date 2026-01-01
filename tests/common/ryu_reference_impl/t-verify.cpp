@@ -132,11 +132,11 @@ i32 verifyRyuAlgorithm(const core::testing::TestSuiteInfo& sInfo) {
         u32 dx;
     };
 
-    TArgs* args[255] = {};
+    TArgs* arguments[255] = {};
     defer {
         for (i32 i = 0; i < 255; i++) {
-            if (args[i] != nullptr) {
-                actx.free(args[i], 1, sizeof(TArgs));
+            if (arguments[i] != nullptr) {
+                actx.free(arguments[i], 1, sizeof(TArgs));
             }
         }
     };
@@ -157,7 +157,7 @@ i32 verifyRyuAlgorithm(const core::testing::TestSuiteInfo& sInfo) {
             verify(args.x, args.x + args.dx);
         }));
 
-        args[i] = tArgs;
+        arguments[i] = tArgs;
     }
 
     verify(x, xMax);

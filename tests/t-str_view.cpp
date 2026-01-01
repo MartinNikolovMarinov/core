@@ -233,6 +233,49 @@ constexpr i32 cutTest() {
     return 0;
 }
 
+constexpr i32 splitTest() {
+    struct TestCase {
+        core::StrView input;
+        char delim;
+        addr_size outLen;
+        bool expectedOk;
+        addr_size expectedCount;
+        core::StrView expected[5];
+    };
+
+    constexpr TestCase cases[] = {
+        { "a,b,c"_sv, ',', 3, true, 3, { "a"_sv, "b"_sv, "c"_sv, core::sv(), core::sv() } },
+        { "a,,c"_sv, ',', 3, true, 3, { "a"_sv, ""_sv, "c"_sv, core::sv(), core::sv() } },
+        { ",a,"_sv, ',', 3, true, 3, { ""_sv, "a"_sv, ""_sv, core::sv(), core::sv() } },
+        { "abc"_sv, ',', 2, true, 1, { "abc"_sv, core::sv(), core::sv(), core::sv(), core::sv() } },
+        { core::sv(), ',', 0, true, 0, { core::sv(), core::sv(), core::sv(), core::sv(), core::sv() } },
+        { "a,b,c"_sv, ',', 2, false, 2, { "a"_sv, "b"_sv, core::sv(), core::sv(), core::sv() } },
+    };
+
+    i32 ret = core::testing::executeTestTable("splitTest failed at: ", cases, [](const auto& tc, const char* cErr) {
+        core::StrView out[5] = {};
+        addr_size outCount = 0;
+        bool ok = core::split(tc.input, tc.delim, out, tc.outLen, outCount);
+
+        CT_CHECK(ok == tc.expectedOk, cErr);
+        if (ok) {
+            CT_CHECK(outCount == tc.expectedCount, cErr);
+            for (addr_size i = 0; i < tc.expectedCount; i++) {
+                CT_CHECK(out[i].eq(tc.expected[i]), cErr);
+                CT_CHECK(out[i].empty() == tc.expected[i].empty(), cErr);
+            }
+        }
+        else {
+            CT_CHECK(outCount == tc.expectedCount, cErr);
+        }
+
+        return 0;
+    });
+    CT_CHECK(ret == 0);
+
+    return 0;
+}
+
 constexpr i32 startsWithTest() {
     struct TestCase {
         core::StrView input;
@@ -327,6 +370,8 @@ i32 runStrViewTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     if (runTest(tInfo, trimSpecificCharTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(cutTest);
     if (runTest(tInfo, cutTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(splitTest);
+    if (runTest(tInfo, splitTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(startsWithTest);
     if (runTest(tInfo, startsWithTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(endsWithTest);
@@ -344,6 +389,7 @@ constexpr i32 runCompiletimeMemTestsSuite() {
     RunTestCompileTime(trimWhiteSpaceTest);
     RunTestCompileTime(trimSpecificCharTest);
     RunTestCompileTime(cutTest);
+    RunTestCompileTime(splitTest);
     RunTestCompileTime(startsWithTest);
     RunTestCompileTime(endsWithTest);
     RunTestCompileTime(literalOperatorTest);

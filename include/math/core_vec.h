@@ -271,6 +271,8 @@ struct vec {
 
     static constexpr addr_size dimensions() { return Dim; }
 
+    static constexpr vec uniform(T v) { return vuniform<Dim, T>(v); }
+
     DataType data[addr_size(Dim)]; // initializing to zero allows use in constexpr.
 
     vec() = default;

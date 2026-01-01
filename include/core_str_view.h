@@ -22,6 +22,7 @@ constexpr inline StrView trimWhiteSpaceRight(StrView s);
 constexpr inline StrView trim(StrView s);
 constexpr inline StrView trim(StrView s, char c);
 constexpr inline StrView cut(StrView s, char delim, StrView& out, bool keepDelim = false);
+constexpr inline bool split(StrView s, char delim, StrView* out, addr_size outLen, addr_size& outCount);
 constexpr inline bool startsWith(StrView s, const char* prefix);
 constexpr inline bool startsWith(StrView s, StrView prefix);
 constexpr inline bool endsWith(StrView s, const char* postfix);
@@ -111,6 +112,26 @@ constexpr inline StrView cut(StrView s, char delim, StrView& out, bool keepDelim
           : core::sv();
 
     return ret;
+}
+
+constexpr inline bool split(StrView s, char delim, StrView* out, addr_size outLen, addr_size& outCount) {
+    outCount = 0;
+    if (s.empty()) return true;
+    if (out == nullptr || outLen == 0) return false;
+
+    addr_size start = 0;
+    for (addr_size i = 0; i < s.len(); i++) {
+        if (s[i] == delim) {
+            if (outCount >= outLen) return false;
+            out[outCount++] = core::sv(s.data() + start, i - start);
+            start = i + 1;
+        }
+    }
+
+    if (outCount >= outLen) return false;
+    out[outCount++] = core::sv(s.data() + start, s.len() - start);
+
+    return true;
 }
 
 constexpr inline bool startsWith(StrView s, const char* prefix) {

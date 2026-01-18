@@ -43,6 +43,7 @@
 #include "math/core_matrix.h"
 #include "math/core_projections.h"
 #include "math/core_transforms.h"
+#include "math/core_triangles.h"
 #include "math/core_vec.h"
 
 #include "plt/core_atomics.h"

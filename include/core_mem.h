@@ -60,6 +60,9 @@ template <typename T>
 struct Memory {
     using size_type = addr_size;
 
+    T* ptr;
+    size_type length;
+
     constexpr T* data() const { return ptr; }
     constexpr size_type len() const { return length; }
 
@@ -131,9 +134,6 @@ struct Memory {
         Assert(offset + slen <= length, "slice outside memory boundary");
         return Memory(ptr + offset, slen);
     }
-
-    T* ptr;
-    size_type length;
 };
 
 static_assert(std::is_trivial_v<Memory<i32>>, "Memory must be a trivial type.");

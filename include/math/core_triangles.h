@@ -2,13 +2,25 @@
 
 #include <core_types.h>
 
-#include <math/core_math.h>
 #include <math/core_bbox.h>
+#include <math/core_math.h>
+#include <math/core_vec.h>
 
 namespace core {
 
 using namespace coretypes;
 
+template<typename T> f32 calcTriangleAreaF32(vec2<T> a, vec2<T> b, vec2<T> c);
+template<typename T> f32 calcTriangleAreaF32(T ax, T ay, T bx, T by, T cx, T cy);
+template<typename T> f64 calcTriangleAreaF64(vec2<T> a, vec2<T> b, vec2<T> c);
+template<typename T> f64 calcTriangleAreaF64(T ax, T ay, T bx, T by, T cx, T cy);
+template<typename T> Bbox2D<T> calcTriangleBBox(T ax, T ay, T bx, T by, T cx, T cy);
+template<typename T> Bbox2D<T> calcTriangleBBox(vec2<T> a, vec2<T> b, vec2<T> c);
+
+template<typename T>
+f32 calcTriangleAreaF32(vec2<T> a, vec2<T> b, vec2<T> c) {
+    return calcTriangleAreaF32(a.x(), a.y(), b.x(), b.y(), c.x(), c.y());
+}
 template<typename T>
 f32 calcTriangleAreaF32(T ax, T ay, T bx, T by, T cx, T cy) {
     static_assert(std::is_integral_v<T>, "T must be integral type");
@@ -16,6 +28,10 @@ f32 calcTriangleAreaF32(T ax, T ay, T bx, T by, T cx, T cy) {
     return ret;
 }
 
+template<typename T>
+f64 calcTriangleAreaF64(vec2<T> a, vec2<T> b, vec2<T> c) {
+    return calcTriangleAreaF64(a.x(), a.y(), b.x(), b.y(), c.x(), c.y());
+}
 template<typename T>
 f64 calcTriangleAreaF64(T ax, T ay, T bx, T by, T cx, T cy) {
     static_assert(std::is_integral_v<T>, "T must be integral type");
@@ -32,8 +48,13 @@ Bbox2D<T> calcTriangleBBox(T ax, T ay, T bx, T by, T cx, T cy) {
     T maxx = core::core_max(core::core_max(ax, bx), cx);
     T maxy = core::core_max(core::core_max(ay, by), cy);
 
-    Bbox2D bbox (core::v(minx, miny), core::v(maxx, maxy));
+    Bbox2D<T> bbox (core::v(minx, miny), core::v(maxx, maxy));
     return bbox;
+}
+
+template<typename T>
+Bbox2D<T> calcTriangleBBox(vec2<T> a, vec2<T> b, vec2<T> c) {
+    return calcTriangleBBox(a.x(), a.y(), b.x(), b.y(), c.x(), c.y());
 }
 
 } // namespace core

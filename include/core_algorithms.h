@@ -28,6 +28,10 @@ template <typename TKey, typename TVal, AllocatorId AllocId, typename TPredicate
                                                                                                                 const core::HashMap<TKey, TVal, AllocId>& b,
                                                                                                                 TPredicate pred);
 
+template <typename T, typename TCompare> constexpr void quickSort(T* arr, addr_size len, TCompare compare);
+
+template <typename T, typename TPredicate> constexpr bool compareArraysBy(T* a, T* b, addr_size len, TPredicate pred);
+
 // Find element in raw pointer.
 template <typename T, typename TPredicate>
 inline constexpr addr_off find(const T* arr, addr_size len, TPredicate pred) {
@@ -158,6 +162,76 @@ inline bool forAll(const core::HashMap<TKey, TVal, AllocId>& a,
         return true;
     });
     return ret;
+}
+
+namespace {
+
+template <typename T, typename TCompare>
+constexpr  addr_size partitionHoareHalfOpen(T* arr, addr_size lo, addr_size hi, TCompare compare)
+{
+    // partitions [lo, hi) and returns split point p such that:
+    // [lo, p) <= pivot and [p, hi) >= pivot (conceptually)
+
+    // median-of-three on lo, mid, hi-1
+    addr_size last = hi - 1;
+    addr_size mid  = lo + (hi - lo) / 2;
+
+    if (compare(arr[mid],  arr[lo])  < 0) core::swap(arr[mid],  arr[lo]);
+    if (compare(arr[last], arr[lo])  < 0) core::swap(arr[last], arr[lo]);
+    if (compare(arr[last], arr[mid]) < 0) core::swap(arr[last], arr[mid]);
+
+    T pivot = arr[mid]; // copy: pivot must not change
+
+    addr_size i = lo;
+    addr_size j = hi;
+
+    for (;;) {
+        while (i < hi && compare(arr[i], pivot) < 0) ++i;
+
+        // j is in (lo, hi]; decrement first, but keep it bounded
+        do { --j; } while (j > lo && compare(arr[j], pivot) > 0);
+
+        if (i >= j) return i; // split point (half-open friendly)
+
+        core::swap(arr[i], arr[j]);
+        ++i;
+    }
+}
+
+template <typename T, typename TCompare>
+constexpr void quickSortImpl(T* arr, addr_size lo, addr_size hi, TCompare compare)
+{
+    while (hi - lo > 1) {
+        addr_size p = partitionHoareHalfOpen(arr, lo, hi, compare);
+
+        if (p - lo < hi - p) {
+            quickSortImpl(arr, lo, p, compare);
+            lo = p;
+        }
+        else {
+            quickSortImpl(arr, p, hi, compare);
+            hi = p;
+        }
+    }
+}
+
+} // namespace
+
+template <typename T, typename TCompare>
+constexpr void quickSort(T* arr, addr_size len, TCompare compare)
+{
+    if (len < 2) return;
+    quickSortImpl(arr, 0, len, compare);
+}
+
+template <typename T, typename TPredicate>
+constexpr bool compareArraysBy(T* a, T* b, addr_size len, TPredicate pred) {
+    for (addr_size i = 0; i < len; i++) {
+        if (!pred(a[i], b[i])) {
+            return false;
+        }
+    }
+    return true;
 }
 
 } // namespace core

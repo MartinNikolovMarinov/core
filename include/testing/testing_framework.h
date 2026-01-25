@@ -28,6 +28,11 @@ template <addr_size PLen, typename TCase, addr_size NCases, typename Afunc>
                                              const TCase (&cases)[NCases],
                                              Afunc assertionFn,
                                              i32 maxTestDigits = 5);
+template <addr_size PLen, typename TCase, addr_size NCases, typename Afunc>
+[[nodiscard]] constexpr i32 executeTestTable(const char (&errMsgPrefix)[PLen],
+                                             TCase (&cases)[NCases],
+                                             Afunc assertionFn,
+                                             i32 maxTestDigits = 5);
 
 template <typename TFunc, typename... Args>
 [[nodiscard]] i32 runTest(const TestInfo& info, TFunc fn, Args... args);
@@ -121,6 +126,33 @@ private:
     inline static i32 g_assignmentsMoveCalled;
 };
 
+namespace detail {
+
+template <addr_size PLen, typename TCase, typename Afunc>
+[[nodiscard]] constexpr i32 executeTestTableImpl(const char (&errMsgPrefix)[PLen],
+                                                 TCase* cases,
+                                                 addr_size nCases,
+                                                 Afunc assertionFn,
+                                                 i32 maxTestDigits)
+{
+    addr_size i = 0;
+    char errMsg[PLen + 20] = {}; // 20 gives space for the test number.
+
+    for (addr_size j = 0; j < PLen; ++j) { // NOTE: intentionally not using memcopy, because this needs to work in constexpr.
+        errMsg[j] = errMsgPrefix[j];
+    }
+
+    char* appendIdx = &errMsg[PLen - 1];
+    for (addr_size idx = 0; idx < nCases; ++idx) {
+        core::intToCstr(i, appendIdx, PLen - 1, u32(maxTestDigits));
+        if (assertionFn(cases[idx], errMsg) != 0) return -1;
+        ++i;
+    }
+    return 0;
+}
+
+} // namespace detail
+
 /**
  * \brief This code is quite complex, because it does zero allocations, but it's purpose is quite simple. It iterates over
  *        a table of test cases, and executes the assertion function on each one. The assertion function, the test case
@@ -132,23 +164,23 @@ private:
  * \param assertionFn The assertion function.
  * \param maxTestDigits The maximum digits for the test number.
 */
+
+template <addr_size PLen, typename TCase, addr_size NCases, typename Afunc>
+[[nodiscard]] constexpr i32 executeTestTable(const char (&errMsgPrefix)[PLen],
+                                             TCase (&cases)[NCases],
+                                             Afunc assertionFn,
+                                             i32 maxTestDigits)
+{
+    return detail::executeTestTableImpl(errMsgPrefix, cases, NCases, assertionFn, maxTestDigits);
+}
+
 template <addr_size PLen, typename TCase, addr_size NCases, typename Afunc>
 [[nodiscard]] constexpr i32 executeTestTable(const char (&errMsgPrefix)[PLen],
                                              const TCase (&cases)[NCases],
                                              Afunc assertionFn,
-                                             i32 maxTestDigits) {
-    addr_size i = 0;
-    char errMsg[PLen + 20] = {}; // The 20 gives space for the test number.
-    for (addr_size j = 0; j < PLen; j++) { // NOTE: intentionally not using memcopy, because this needs to work in constexpr.
-        errMsg[j] = errMsgPrefix[j];
-    }
-    char* appendIdx = &errMsg[PLen - 1];
-    for (auto& c : cases) {
-        core::intToCstr(i, appendIdx, PLen - 1, u32(maxTestDigits));
-        if (assertionFn(c, errMsg) != 0) return -1;
-        i++;
-    }
-    return 0;
+                                             i32 maxTestDigits)
+{
+    return detail::executeTestTableImpl(errMsgPrefix, cases, NCases, assertionFn, maxTestDigits);
 }
 
 inline i32 g_testCount = 0;

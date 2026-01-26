@@ -273,13 +273,74 @@ constexpr i32 quickSortTest() {
         },
     };
 
-    i32 arr [] = { 2, 7, 3, 5, 9, 12, 9 };
-    core::quickSort(arr, CORE_C_ARRLEN(arr), [](i32 a, i32 b) { return a - b; });
-
     i32 ret = core::testing::executeTestTable("quickSortTest test case failed at index: ", cases, [](TestCase& c, const char* cErr) {
         core::quickSort(c.input, c.len, c.cmp);
         bool equal = core::compareArraysBy(c.input, c.expected, c.len, [](i32 a, i32 b) { return a == b; });
         CT_CHECK(equal, cErr);
+        return 0;
+    });
+    CT_CHECK(ret == 0);
+
+    return 0;
+}
+
+constexpr i32 binarySearchTest() {
+    struct TestCase {
+        i32 arr[20];
+        addr_size len;
+        addr_off expected;
+        addr_off (*eq)(i32 a, addr_size idx);
+    };
+
+    TestCase cases[] = {
+        // Even number of elements:
+        { { 1, 2, 3, 4 }, 4, 0, [](i32 a, addr_size) -> addr_off { return a - 1; } },
+        { { 1, 2, 3, 4 }, 4, 1, [](i32 a, addr_size) -> addr_off { return a - 2; } },
+        { { 1, 2, 3, 4 }, 4, 2, [](i32 a, addr_size) -> addr_off { return a - 3; } },
+        { { 1, 2, 3, 4 }, 4, 3, [](i32 a, addr_size) -> addr_off { return a - 4; } },
+        { { 1, 2, 3, 4 }, 4, -1, [](i32 a, addr_size) -> addr_off { return a - 5; } },
+        { { 1, 2, 3, 4 }, 4, -1, [](i32 a, addr_size) -> addr_off { return a - 0; } },
+
+        // Odd number of elements:
+        { { 1, 2, 3, 4, 5 }, 5, 0, [](i32 a, addr_size) -> addr_off { return (a > 1) - (a < 1); } },
+        { { 1, 2, 3, 4, 5 }, 5, 1, [](i32 a, addr_size) -> addr_off { return (a > 2) - (a < 2); } },
+        { { 1, 2, 3, 4, 5 }, 5, 2, [](i32 a, addr_size) -> addr_off { return (a > 3) - (a < 3); } },
+        { { 1, 2, 3, 4, 5 }, 5, 3, [](i32 a, addr_size) -> addr_off { return (a > 4) - (a < 4); } },
+        { { 1, 2, 3, 4, 5 }, 5, 4, [](i32 a, addr_size) -> addr_off { return (a > 5) - (a < 5); } },
+        { { 1, 2, 3, 4, 5 }, 5, -1, [](i32 a, addr_size) -> addr_off { return a - 6; } },
+        { { 1, 2, 3, 4, 5 }, 5, -1, [](i32 a, addr_size) -> addr_off { return a - 0; } },
+
+        // Positive and negative numbers:
+        { { -10, -5, 0, 5, 10 }, 5, 0, [](i32 a, addr_size) -> addr_off { return (a > -10) - (a < -10); } },
+        { { -10, -5, 0, 5, 10 }, 5, 2, [](i32 a, addr_size) -> addr_off { return (a > 0) - (a < 0); } },
+        { { -10, -5, 0, 5, 10 }, 5, 4, [](i32 a, addr_size) -> addr_off { return (a > 10) - (a < 10); } },
+        { { -10, -5, 0, 5, 10 }, 5, -1, [](i32 a, addr_size) -> addr_off { return (a > -3) - (a < -3); } },
+        { { -10, -5, 0, 5, 10 }, 5, -1, [](i32 a, addr_size) -> addr_off { return (a > -11) - (a < -11); } },
+        { { -10, -5, 0, 5, 10 }, 5, -1, [](i32 a, addr_size) -> addr_off { return (a > 11) - (a < 11); } },
+
+        // Edge cases:
+        { { 42, 45 }, 2, 0, [](i32 a, addr_size) -> addr_off { return (a > 42) - (a < 42); } },
+        { { 42, 45 }, 2, 1, [](i32 a, addr_size) -> addr_off { return (a > 45) - (a < 45); } },
+        { { 42 }, 1, 0, [](i32 a, addr_size) -> addr_off { return (a > 42) - (a < 42); } },
+        { { 42 }, 1, -1, [](i32 a, addr_size) -> addr_off { return (a > 41) - (a < 41); } },
+        { { }, 0, -1, [](i32, addr_size) -> addr_off { return 1; } },
+        {
+            { core::limitMin<i32>(), -100, 0, 100, core::limitMax<i32>() },
+            5,
+            0,
+            [](i32 a, addr_size) -> addr_off { return (a > core::limitMin<i32>()) - (a < core::limitMin<i32>()); }
+        },
+        {
+            { core::limitMin<i32>(), -100, 0, 100, core::limitMax<i32>() },
+            5,
+            4,
+            [](i32 a, addr_size) -> addr_off { return (a > core::limitMax<i32>()) - (a < core::limitMax<i32>()); }
+        },
+    };
+
+    i32 ret = core::testing::executeTestTable("binarySearchTest test case failed at index: ", cases, [](auto& c, const char* cErr) {
+        addr_off got = core::binarySearch(c.arr, c.len, c.eq);
+        CT_CHECK(got == c.expected, cErr);
         return 0;
     });
     CT_CHECK(ret == 0);
@@ -311,6 +372,8 @@ i32 runAlgorithmsTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     if (runTest(tInfo, constBasicPushUniqueTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(quickSortTest);
     if (runTest(tInfo, quickSortTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(binarySearchTest);
+    if (runTest(tInfo, binarySearchTest) != 0) { ret = -1; }
 
     return ret;
 }
@@ -319,6 +382,7 @@ constexpr i32 runCompiletimeAlgorithmTestsSuite() {
     RunTestCompileTime(constFindAlgorithmTest);
     RunTestCompileTime(constBasicPushUniqueTest);
     RunTestCompileTime(quickSortTest);
+    RunTestCompileTime(binarySearchTest);
 
     return 0;
 }

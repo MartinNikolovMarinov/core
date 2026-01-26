@@ -28,9 +28,10 @@ template <typename TKey, typename TVal, AllocatorId AllocId, typename TPredicate
                                                                                                                 const core::HashMap<TKey, TVal, AllocId>& b,
                                                                                                                 TPredicate pred);
 
-template <typename T, typename TCompare> constexpr void quickSort(T* arr, addr_size len, TCompare compare);
+template <typename T, typename TCompare>   inline constexpr void     quickSort(T* arr, addr_size len, TCompare compare);
+template <typename T, typename TPredicate> inline constexpr addr_off binarySearch(T* arr, addr_size len, TPredicate pred);
 
-template <typename T, typename TPredicate> constexpr bool compareArraysBy(T* a, T* b, addr_size len, TPredicate pred);
+template <typename T, typename TPredicate> inline constexpr bool compareArraysBy(T* a, T* b, addr_size len, TPredicate pred);
 
 // Find element in raw pointer.
 template <typename T, typename TPredicate>
@@ -164,7 +165,7 @@ inline bool forAll(const core::HashMap<TKey, TVal, AllocId>& a,
     return ret;
 }
 
-namespace {
+namespace detail {
 
 template <typename T, typename TCompare>
 constexpr  addr_size partitionHoareHalfOpen(T* arr, addr_size lo, addr_size hi, TCompare compare)
@@ -199,7 +200,7 @@ constexpr  addr_size partitionHoareHalfOpen(T* arr, addr_size lo, addr_size hi, 
 }
 
 template <typename T, typename TCompare>
-constexpr void quickSortImpl(T* arr, addr_size lo, addr_size hi, TCompare compare)
+inline constexpr void quickSortImpl(T* arr, addr_size lo, addr_size hi, TCompare compare)
 {
     while (hi - lo > 1) {
         addr_size p = partitionHoareHalfOpen(arr, lo, hi, compare);
@@ -215,17 +216,45 @@ constexpr void quickSortImpl(T* arr, addr_size lo, addr_size hi, TCompare compar
     }
 }
 
-} // namespace
+} // namespace detail
 
 template <typename T, typename TCompare>
-constexpr void quickSort(T* arr, addr_size len, TCompare compare)
+inline constexpr void quickSort(T* arr, addr_size len, TCompare compare)
 {
     if (len < 2) return;
-    quickSortImpl(arr, 0, len, compare);
+    detail::quickSortImpl(arr, 0, len, compare);
+}
+
+namespace detail {
+
+template <typename T, typename TCompare>
+inline constexpr addr_off binarySearchImpl(T* arr, addr_off low, addr_off hi, TCompare compare) {
+    while (low <= hi) {
+        addr_off m = low + (hi - low) / 2;
+
+        auto result = compare(arr[m], addr_size(m));
+        if (result == 0) return addr_off(m);
+
+        if (result > 0) {
+            if (m == 0) break; // avoid unsigned underflow
+            hi = m - 1;
+        }
+        else {
+            low = m + 1;
+        }
+    }
+    return addr_off(-1);
+}
+
+} // namespace detail
+
+template <typename T, typename TCompare>
+inline constexpr addr_off binarySearch(T* arr, addr_size len, TCompare compare) {
+    return detail::binarySearchImpl(arr, 0, addr_off(len) - 1, compare);
 }
 
 template <typename T, typename TPredicate>
-constexpr bool compareArraysBy(T* a, T* b, addr_size len, TPredicate pred) {
+inline constexpr bool compareArraysBy(T* a, T* b, addr_size len, TPredicate pred) {
     for (addr_size i = 0; i < len; i++) {
         if (!pred(a[i], b[i])) {
             return false;

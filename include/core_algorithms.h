@@ -29,6 +29,7 @@ template <typename TKey, typename TVal, AllocatorId AllocId, typename TPredicate
                                                                                                                 TPredicate pred);
 
 template <typename T, typename TCompare>   inline constexpr void     quickSort(T* arr, addr_size len, TCompare compare);
+template <typename T, typename TCompare>   inline constexpr void     quickSort(core::Memory<T> memory, TCompare compare);
 template <typename T, typename TPredicate> inline constexpr addr_off binarySearch(T* arr, addr_size len, TPredicate pred);
 
 template <typename T, typename TPredicate> inline constexpr bool compareArraysBy(T* a, T* b, addr_size len, TPredicate pred);
@@ -186,7 +187,7 @@ constexpr  addr_size partitionHoareHalfOpen(T* arr, addr_size lo, addr_size hi, 
     addr_size i = lo;
     addr_size j = hi;
 
-    for (;;) {
+    while (true) {
         while (i < hi && compare(arr[i], pivot) < 0) ++i;
 
         // j is in (lo, hi]; decrement first, but keep it bounded
@@ -223,6 +224,11 @@ inline constexpr void quickSort(T* arr, addr_size len, TCompare compare)
 {
     if (len < 2) return;
     detail::quickSortImpl(arr, 0, len, compare);
+}
+
+template <typename T, typename TCompare>
+inline constexpr void quickSort(core::Memory<T> memory, TCompare compare) {
+    quickSort(memory.data(), memory.len(), compare);
 }
 
 namespace detail {

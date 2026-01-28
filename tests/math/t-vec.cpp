@@ -240,6 +240,75 @@ constexpr i32 vectorCrossProductTest() {
     return 0;
 }
 
+constexpr i32 vectorGetterSwizzleTest() {
+    {
+        auto v = core::v(1, 2);
+        CT_CHECK(v.xy().equals(core::v(1, 2)));
+        CT_CHECK(v.yx().equals(core::v(2, 1)));
+    }
+    {
+        auto v = core::v(1, 2, 3);
+        CT_CHECK(v.xy().equals(core::v(1, 2)));
+        CT_CHECK(v.xz().equals(core::v(1, 3)));
+        CT_CHECK(v.yx().equals(core::v(2, 1)));
+        CT_CHECK(v.yz().equals(core::v(2, 3)));
+        CT_CHECK(v.zx().equals(core::v(3, 1)));
+        CT_CHECK(v.zy().equals(core::v(3, 2)));
+
+        CT_CHECK(v.xyz().equals(core::v(1, 2, 3)));
+        CT_CHECK(v.xzy().equals(core::v(1, 3, 2)));
+        CT_CHECK(v.yxz().equals(core::v(2, 1, 3)));
+        CT_CHECK(v.yzx().equals(core::v(2, 3, 1)));
+        CT_CHECK(v.zxy().equals(core::v(3, 1, 2)));
+        CT_CHECK(v.zyx().equals(core::v(3, 2, 1)));
+    }
+    {
+        auto v = core::v(1, 2, 3, 4);
+        CT_CHECK(v.xy().equals(core::v(1, 2)));
+        CT_CHECK(v.xz().equals(core::v(1, 3)));
+        CT_CHECK(v.xw().equals(core::v(1, 4)));
+        CT_CHECK(v.yx().equals(core::v(2, 1)));
+        CT_CHECK(v.yz().equals(core::v(2, 3)));
+        CT_CHECK(v.yw().equals(core::v(2, 4)));
+        CT_CHECK(v.zx().equals(core::v(3, 1)));
+        CT_CHECK(v.zy().equals(core::v(3, 2)));
+        CT_CHECK(v.zw().equals(core::v(3, 4)));
+        CT_CHECK(v.wx().equals(core::v(4, 1)));
+        CT_CHECK(v.wy().equals(core::v(4, 2)));
+        CT_CHECK(v.wz().equals(core::v(4, 3)));
+
+        CT_CHECK(v.xyz().equals(core::v(1, 2, 3)));
+        CT_CHECK(v.xzy().equals(core::v(1, 3, 2)));
+        CT_CHECK(v.xyw().equals(core::v(1, 2, 4)));
+        CT_CHECK(v.xwy().equals(core::v(1, 4, 2)));
+        CT_CHECK(v.xzw().equals(core::v(1, 3, 4)));
+        CT_CHECK(v.xwz().equals(core::v(1, 4, 3)));
+
+        CT_CHECK(v.yxz().equals(core::v(2, 1, 3)));
+        CT_CHECK(v.yzx().equals(core::v(2, 3, 1)));
+        CT_CHECK(v.yxw().equals(core::v(2, 1, 4)));
+        CT_CHECK(v.ywx().equals(core::v(2, 4, 1)));
+        CT_CHECK(v.yzw().equals(core::v(2, 3, 4)));
+        CT_CHECK(v.ywz().equals(core::v(2, 4, 3)));
+
+        CT_CHECK(v.zxy().equals(core::v(3, 1, 2)));
+        CT_CHECK(v.zyx().equals(core::v(3, 2, 1)));
+        CT_CHECK(v.zxw().equals(core::v(3, 1, 4)));
+        CT_CHECK(v.zwx().equals(core::v(3, 4, 1)));
+        CT_CHECK(v.zyw().equals(core::v(3, 2, 4)));
+        CT_CHECK(v.zwy().equals(core::v(3, 4, 2)));
+
+        CT_CHECK(v.wxy().equals(core::v(4, 1, 2)));
+        CT_CHECK(v.wyx().equals(core::v(4, 2, 1)));
+        CT_CHECK(v.wxz().equals(core::v(4, 1, 3)));
+        CT_CHECK(v.wzx().equals(core::v(4, 3, 1)));
+        CT_CHECK(v.wyz().equals(core::v(4, 2, 3)));
+        CT_CHECK(v.wzy().equals(core::v(4, 3, 2)));
+    }
+
+    return 0;
+}
+
 i32 runVecTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
@@ -256,6 +325,8 @@ i32 runVecTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     if (runTest(tInfo, vectorDotProductTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(vectorCrossProductTest);
     if (runTest(tInfo, vectorCrossProductTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(vectorGetterSwizzleTest);
+    if (runTest(tInfo, vectorGetterSwizzleTest) != 0) { ret = -1; }
 
     return ret;
 }
@@ -266,6 +337,7 @@ constexpr i32 runCompiletimeVecTestsSuite() {
     RunTestCompileTime(vectorLengthTest);
     RunTestCompileTime(vectorDotProductTest);
     RunTestCompileTime(vectorCrossProductTest);
+    RunTestCompileTime(vectorGetterSwizzleTest);
 
     return 0;
 }

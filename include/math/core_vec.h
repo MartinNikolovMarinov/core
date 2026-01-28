@@ -9,6 +9,7 @@ namespace core {
 using namespace coretypes;
 
 template<addr_size Dim, typename T> struct vec;
+template<typename ...Args> constexpr auto v(Args... args);
 
 #pragma region Static Vector Operations
 
@@ -294,6 +295,50 @@ struct vec {
     template<addr_size D = Dim, typename std::enable_if<(D > 2), addr_size>::type = 0> constexpr const DataType& b() const { return data[2]; }
     template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr const DataType& w() const { return data[3]; }
     template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr const DataType& a() const { return data[3]; }
+
+    template<addr_size D = Dim, typename std::enable_if<(D > 1), addr_size>::type = 0> constexpr vec<2, DataType> xy() const { return v(data[0], data[1]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 2), addr_size>::type = 0> constexpr vec<2, DataType> xz() const { return v(data[0], data[2]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<2, DataType> xw() const { return v(data[0], data[3]); }
+
+    template<addr_size D = Dim, typename std::enable_if<(D > 1), addr_size>::type = 0> constexpr vec<2, DataType> yx() const { return v(data[1], data[0]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 2), addr_size>::type = 0> constexpr vec<2, DataType> yz() const { return v(data[1], data[2]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<2, DataType> yw() const { return v(data[1], data[3]); }
+
+    template<addr_size D = Dim, typename std::enable_if<(D > 2), addr_size>::type = 0> constexpr vec<2, DataType> zx() const { return v(data[2], data[0]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 2), addr_size>::type = 0> constexpr vec<2, DataType> zy() const { return v(data[2], data[1]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<2, DataType> zw() const { return v(data[2], data[3]); }
+
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<2, DataType> wx() const { return v(data[3], data[0]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<2, DataType> wy() const { return v(data[3], data[1]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<2, DataType> wz() const { return v(data[3], data[2]); }
+
+    template<addr_size D = Dim, typename std::enable_if<(D > 2), addr_size>::type = 0> constexpr vec<3, DataType> xyz() const { return v(data[0], data[1], data[2]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 2), addr_size>::type = 0> constexpr vec<3, DataType> xzy() const { return v(data[0], data[2], data[1]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<3, DataType> xyw() const { return v(data[0], data[1], data[3]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<3, DataType> xwy() const { return v(data[0], data[3], data[1]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<3, DataType> xzw() const { return v(data[0], data[2], data[3]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<3, DataType> xwz() const { return v(data[0], data[3], data[2]); }
+
+    template<addr_size D = Dim, typename std::enable_if<(D > 2), addr_size>::type = 0> constexpr vec<3, DataType> yxz() const { return v(data[1], data[0], data[2]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 2), addr_size>::type = 0> constexpr vec<3, DataType> yzx() const { return v(data[1], data[2], data[0]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<3, DataType> yxw() const { return v(data[1], data[0], data[3]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<3, DataType> ywx() const { return v(data[1], data[3], data[0]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<3, DataType> yzw() const { return v(data[1], data[2], data[3]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<3, DataType> ywz() const { return v(data[1], data[3], data[2]); }
+
+    template<addr_size D = Dim, typename std::enable_if<(D > 2), addr_size>::type = 0> constexpr vec<3, DataType> zxy() const { return v(data[2], data[0], data[1]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 2), addr_size>::type = 0> constexpr vec<3, DataType> zyx() const { return v(data[2], data[1], data[0]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<3, DataType> zxw() const { return v(data[2], data[0], data[3]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<3, DataType> zwx() const { return v(data[2], data[3], data[0]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<3, DataType> zyw() const { return v(data[2], data[1], data[3]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<3, DataType> zwy() const { return v(data[2], data[3], data[1]); }
+
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<3, DataType> wxy() const { return v(data[3], data[0], data[1]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<3, DataType> wyx() const { return v(data[3], data[1], data[0]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<3, DataType> wxz() const { return v(data[3], data[0], data[2]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<3, DataType> wzx() const { return v(data[3], data[2], data[0]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<3, DataType> wyz() const { return v(data[3], data[1], data[2]); }
+    template<addr_size D = Dim, typename std::enable_if<(D > 3), addr_size>::type = 0> constexpr vec<3, DataType> wzy() const { return v(data[3], data[2], data[1]); }
 
     constexpr DataType& operator[](addr_size i) { return data[i]; }
     constexpr const DataType& operator[](addr_size i) const { return data[i]; }

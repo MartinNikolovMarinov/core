@@ -28,13 +28,23 @@ template <typename TKey, typename TVal, AllocatorId AllocId, typename TPredicate
                                                                                                                 const core::HashMap<TKey, TVal, AllocId>& b,
                                                                                                                 TPredicate pred);
 
+template <typename T, typename TPredicate>                                         constexpr inline bool forAny(const T* arr, addr_size len, TPredicate pred);
+template <typename T, AllocatorId AllocId, typename TPredicate>                    inline bool           forAny(const core::ArrList<T, AllocId>& arr, TPredicate pred);
+template <typename T, addr_size N, typename TPredicate>                            constexpr inline bool forAny(const core::ArrStatic<T, N>& arr, TPredicate pred);
+template <typename TKey, typename TVal, AllocatorId AllocId, typename TPredicate>  inline bool           forAny(const core::HashMap<TKey, TVal, AllocId>& a,
+                                                                                                                const core::HashMap<TKey, TVal, AllocId>& b,
+                                                                                                                TPredicate pred);
+
+template <typename T, typename TPredicate> inline constexpr bool compareArraysBy(T* a, T* b, addr_size len, TPredicate pred);
+
 template <typename T, typename TCompare>   inline constexpr void     quickSort(T* arr, addr_size len, TCompare compare);
 template <typename T, typename TCompare>   inline constexpr void     quickSort(core::Memory<T> memory, TCompare compare);
 template <typename T, typename TPredicate> inline constexpr addr_off binarySearch(T* arr, addr_size len, TPredicate pred);
 
-template <typename T, typename TPredicate> inline constexpr bool compareArraysBy(T* a, T* b, addr_size len, TPredicate pred);
+//======================================================================================================================
+// Find
+//======================================================================================================================
 
-// Find element in raw pointer.
 template <typename T, typename TPredicate>
 inline constexpr addr_off find(const T* arr, addr_size len, TPredicate pred) {
     for (addr_off i = 0; i < addr_off(len); ++i) {
@@ -43,21 +53,22 @@ inline constexpr addr_off find(const T* arr, addr_size len, TPredicate pred) {
     }
     return -1;
 }
-// Find element in ArrList.
 template <typename T, AllocatorId AllocId, typename TPredicate>
 inline addr_off find(const ArrList<T, AllocId>& arr, TPredicate pred) {
     return find(arr.data(), arr.len(), pred);
 }
-// Find element in ArrStatic.
 template <typename T, addr_size N, typename TPredicate>
 inline constexpr addr_off find(const ArrStatic<T, N>& arr, TPredicate pred) {
     return find(arr.data(), arr.len(), pred);
 }
-// Find element in Memory.
 template <typename T, typename TPredicate>
 inline constexpr addr_off find(const Memory<T>& memory, TPredicate pred) {
     return find(memory.data(), memory.len(), pred);
 }
+
+//======================================================================================================================
+// Push Unique
+//======================================================================================================================
 
 namespace detail {
 
@@ -130,7 +141,10 @@ inline constexpr void pushUnique(ArrStatic<T, N>& arr, T&& el, TEq eqFn) {
     detail::pushUniqueFreeTmpl<T1, T2, T3>(arr, std::move(el), eqFn);
 }
 
-// Call predicate for each element in raw pointer.
+//======================================================================================================================
+// For All
+//======================================================================================================================
+
 template <typename T, typename TPredicate>
 inline constexpr bool forAll(const T* arr, addr_size len, TPredicate pred) {
     for (addr_size i = 0; i < len; ++i) {
@@ -140,17 +154,14 @@ inline constexpr bool forAll(const T* arr, addr_size len, TPredicate pred) {
     }
     return true;
 }
-// Call predicate for each element in ArrList.
 template <typename T, AllocatorId AllocId, typename TPredicate>
 inline bool forAll(const core::ArrList<T, AllocId>& arr, TPredicate pred) {
     return forAll(arr.data(), arr.len(), pred);
 }
-// Call predicate for each element in ArrStatic.
 template <typename T, addr_size N, typename TPredicate>
 inline constexpr bool forAll(const core::ArrStatic<T, N>& arr, TPredicate pred) {
     return forAll(arr.data(), arr.len(), pred);
 }
-// Call predicate for each element in HashMap.
 template <typename TKey, typename TVal, AllocatorId AllocId, typename TPredicate>
 inline bool forAll(const core::HashMap<TKey, TVal, AllocId>& a,
                    const core::HashMap<TKey, TVal, AllocId>& b,
@@ -165,6 +176,60 @@ inline bool forAll(const core::HashMap<TKey, TVal, AllocId>& a,
     });
     return ret;
 }
+
+//======================================================================================================================
+// For Any
+//======================================================================================================================
+
+template <typename T, typename TPredicate>
+inline constexpr bool forAny(const T* arr, addr_size len, TPredicate pred) {
+    for (addr_size i = 0; i < len; ++i) {
+        if (pred(arr[i], i)) {
+            return true;
+        }
+    }
+    return false;
+}
+template <typename T, AllocatorId AllocId, typename TPredicate>
+inline bool forAny(const core::ArrList<T, AllocId>& arr, TPredicate pred) {
+    return forAll(arr.data(), arr.len(), pred);
+}
+template <typename T, addr_size N, typename TPredicate>
+inline constexpr bool forAny(const core::ArrStatic<T, N>& arr, TPredicate pred) {
+    return forAny(arr.data(), arr.len(), pred);
+}
+template <typename TKey, typename TVal, AllocatorId AllocId, typename TPredicate>
+inline bool forAny(const core::HashMap<TKey, TVal, AllocId>& a,
+                   const core::HashMap<TKey, TVal, AllocId>& b,
+                   TPredicate pred) {
+    bool ret = true;
+    a.entries([&](const auto& key, const auto& val) -> bool {
+        if (!pred(key, val, b)) {
+            ret = true;
+            return true;
+        }
+        return false;
+    });
+    return ret;
+}
+
+//======================================================================================================================
+// Compare Arrays By
+//======================================================================================================================
+
+template <typename T, typename TPredicate>
+inline constexpr bool compareArraysBy(T* a, T* b, addr_size len, TPredicate pred) {
+    for (addr_size i = 0; i < len; i++) {
+        if (!pred(a[i], b[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+//======================================================================================================================
+// Quick Sort
+//======================================================================================================================
 
 namespace detail {
 
@@ -231,6 +296,10 @@ inline constexpr void quickSort(core::Memory<T> memory, TCompare compare) {
     quickSort(memory.data(), memory.len(), compare);
 }
 
+//======================================================================================================================
+// Binary Search
+//======================================================================================================================
+
 namespace detail {
 
 template <typename T, typename TCompare>
@@ -257,16 +326,6 @@ inline constexpr addr_off binarySearchImpl(T* arr, addr_off low, addr_off hi, TC
 template <typename T, typename TCompare>
 inline constexpr addr_off binarySearch(T* arr, addr_size len, TCompare compare) {
     return detail::binarySearchImpl(arr, 0, addr_off(len) - 1, compare);
-}
-
-template <typename T, typename TPredicate>
-inline constexpr bool compareArraysBy(T* a, T* b, addr_size len, TPredicate pred) {
-    for (addr_size i = 0; i < len; i++) {
-        if (!pred(a[i], b[i])) {
-            return false;
-        }
-    }
-    return true;
 }
 
 } // namespace core

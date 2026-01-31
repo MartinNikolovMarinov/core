@@ -46,6 +46,13 @@ struct Bbox2D {
         return ret;
     }
 
+    constexpr void clampTo(T minx, T maxx, T miny, T maxy) {
+        min.x() = core::clamp(min.x(), minx, maxx);
+        min.y() = core::clamp(min.y(), miny, maxy);
+        max.x() = core::clamp(max.x(), minx, maxx);
+        max.y() = core::clamp(max.y(), miny, maxy);
+    }
+
     core::vec2<T> min;
     core::vec2<T> max;
 };

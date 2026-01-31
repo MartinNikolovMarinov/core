@@ -328,19 +328,15 @@ inline void endTestSuiteGroup(const TestSuiteInfo& info, i32 returnCode, u64 sta
     bool useAnsiColors = info.useAnsiColors;
     std::cout << "[SUITE " << detail::passedOrFailedStr(returnCode == 0, useAnsiColors) << "] " << suiteName;
 
-    bool isFirst = true;
     auto end = core::getMonotonicNowNs();
     auto deltaTimeNs = end - start;
 
     if (info.trackTime) {
         char elapsedTimeBuffer[256];
-        if (isFirst) std::cout << " [ ";
-        else std::cout << ", ";
+        std::cout << " [ ";
         std::cout << "time: " << elapsedTimeToStr(elapsedTimeBuffer, deltaTimeNs);
-        isFirst = false;
+        std::cout << " ]";
     }
-
-    if (!isFirst) std::cout << " ]";
 
     std::cout << std::endl;
 }

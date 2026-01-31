@@ -55,7 +55,7 @@ u64 getCPUFrequencyHz() {
     u64 elapsedNs = end - start;
     u64 tscDiff   = tscEnd - tscStart;
 
-    if (elapsedNs == 0) return 0;
+    if (elapsedNs == 0) return 1;
 
     // Calculate frequency in Hz: (tscDiff ticks in elapsedNs nanoseconds).
     frequency = (tscDiff * 1000000000ULL) / elapsedNs;

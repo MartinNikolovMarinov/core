@@ -2,10 +2,6 @@
 
 #include <iostream>
 
-// TODO: Things to do after allocator refactor.
-// 0. Verify arena allocator memory usage statics are correct.
-// 1. Structures that use default allocation should also be tested for memory leaks? (For example the command line parser is not tested)
-
 i32 main() {
     std::cout << "[CORE VERSION] "
               << CORE_VERSION_MAJOR << "."

@@ -5,7 +5,7 @@ macro(core_target_set_default_flags
     is_debug
     save_temporary_files)
 
-    set(common_flags -std=c++20 -pthread -Wno-pragmas) # FIXME: Write a DISABLE_WARNING_IF_SUPPORTED to avoid using no-pragmas !
+    set(common_flags -std=c++20 -pthread -Wno-pragmas)
     set(debug_flags "")
     set(release_flags "")
 

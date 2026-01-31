@@ -223,6 +223,11 @@ core::expected<addr_off, PltErrCode> fileSeek(FileDesc& file, addr_off offset, S
     return addr_off(liNewFilePointer.QuadPart);
 }
 
+expected<bool, PltErrCode> fileExists(const char* path) {
+    Assert(false, "TODO: not implemented yet");
+    return false;
+}
+
 core::expected<PltErrCode> fileStat(const char* path, FileStat& out) {
     WIN32_FILE_ATTRIBUTE_DATA data;
     if (!GetFileAttributesEx(path, GetFileExInfoStandard, &data)) {

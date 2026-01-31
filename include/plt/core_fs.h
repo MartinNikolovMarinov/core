@@ -95,6 +95,7 @@ CORE_API_EXPORT expected<addr_size, PltErrCode> fileRead(FileDesc& file, void* o
 CORE_API_EXPORT expected<PltErrCode>            fileTruncate(const char* path, addr_size length);
 CORE_API_EXPORT expected<PltErrCode>            fileTruncate(FileDesc& file, addr_size length);
 CORE_API_EXPORT expected<addr_off, PltErrCode>  fileSeek(FileDesc& file, addr_off offset, SeekMode mode = SeekMode::Begin);
+CORE_API_EXPORT expected<bool, PltErrCode>      fileExists(const char* path);
 CORE_API_EXPORT expected<PltErrCode>            fileStat(const char* path, FileStat& out);
 CORE_API_EXPORT expected<PltErrCode>            fileStat(FileDesc& file, FileStat& out);
 CORE_API_EXPORT expected<addr_size, PltErrCode> fileSize(FileDesc& file);

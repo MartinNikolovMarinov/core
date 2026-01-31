@@ -233,6 +233,22 @@ core::expected<addr_off, PltErrCode> fileSeek(FileDesc& file, addr_off offset, S
     return addr_off(res);
 }
 
+expected<bool, PltErrCode> fileExists(const char* path) {
+    [[maybe_unused]] FileStat unused;
+
+    auto e = fileStat(path, unused);
+    if (e.hasErr()) {
+        if (e.err() == ENOENT) {
+            return false;
+        }
+        else {
+            return core::unexpected(e.err());
+        }
+    }
+
+    return true;
+}
+
 core::expected<PltErrCode> fileStat(const char* path, FileStat& out) {
     struct stat statbuf;
     i32 res = stat(path, &statbuf);

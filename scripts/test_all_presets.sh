@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# TODO: Set the -Werror option to be more strict with this check.
+
 clean_build_dir() {
     mkdir -p build
     rm -rf build/*

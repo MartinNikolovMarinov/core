@@ -6,7 +6,7 @@
 namespace {
 
 constexpr i32 staticPathBuilderBasicFlow() {
-    core::StaticPathBuilder<25> pb = {};
+    core::StaticPathBuilder<10000> pb = {};
 
     pb.setDirPart("123");
     CT_CHECK(pb.fullPathSv().eq("123/"));
@@ -62,7 +62,7 @@ constexpr i32 staticPathBuilderPartsTest() {
         core::StrView expectedExt;
     };
 
-    TestCase cases[] = {
+    constexpr TestCase cases[] = {
         { "t/tt.txt",              "t/tt.txt"_sv,              "t/"_sv,            "tt.txt"_sv,   "txt"_sv, },
         { "tt/tt/asd.cs",          "tt/tt/asd.cs"_sv,          "tt/tt/"_sv,        "asd.cs"_sv,   "cs"_sv,  },
         { "t/",                    "t/"_sv,                    "t/"_sv,            {},            {},       },
@@ -111,7 +111,7 @@ constexpr i32 staticPathBuilderSetExtPartTest() {
         core::StrView expectedExt;
     };
 
-    TestCase cases[] = {
+    constexpr TestCase cases[] = {
         {
             .input = "t/tt.txt",
             .newExt = "bin",
@@ -179,7 +179,7 @@ constexpr i32 staticPathBuilderDirOpsTest() {
         core::StrView expectedFile;
     };
 
-    TestCase cases[] = {
+    constexpr TestCase cases[] = {
         {
             .dir = "root",
             .append = nullptr,
@@ -251,7 +251,7 @@ constexpr i32 staticPathBuilderResetFilePartTest() {
         core::StrView expectedDir;
     };
 
-    TestCase cases[] = {
+    constexpr TestCase cases[] = {
         {
             .dir = "root",
             .file = "file.txt",

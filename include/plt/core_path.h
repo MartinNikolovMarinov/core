@@ -88,7 +88,7 @@ struct StaticPathBuilder {
     }
     constexpr inline const char* filePart() const {
         addr_off lastSepIdx = core::findLast(buff, len, [](char c, addr_size) { return c == PATH_SEPARATOR; });
-        return buff + lastSepIdx + 1; // This perfectly works without branching!
+        return buff + (lastSepIdx + 1); // This perfectly works without branching!
     }
     constexpr inline core::StrView filePartSv() const {
         addr_off lastSepIdx = core::findLast(buff, len, [](char c, addr_size) { return c == PATH_SEPARATOR; });
@@ -108,7 +108,7 @@ struct StaticPathBuilder {
         addr_size fpLen = addr_size(this->end() - fp);
         addr_off dotRel = core::findLast(fp, fpLen, [](char c, addr_size) { return c == '.'; });
         if (dotRel < 0) return nullptr; // no ext part
-        return fp + dotRel + 1;
+        return fp + (dotRel + 1);
     }
     constexpr inline core::StrView extPartSv() const {
         const char* fp = filePart();
@@ -143,17 +143,20 @@ struct StaticPathBuilder {
 
     constexpr inline void setFilePart(const char* fileName) { return setFilePart(core::sv(fileName)); }
     constexpr inline void setFilePart(core::StrView fileName) {
+        if (fileName.empty()) return;
         char* filep = filePartMutable();
         setPostfixPart(filep, fileName);
     }
 
     constexpr inline void setExtPart(const char* fileName) { return setExtPart(core::sv(fileName)); }
     constexpr inline void setExtPart(core::StrView fileName) {
+        if (fileName.empty()) return;
         char* extp = extPartMutable();
         if (extp == nullptr) {
             Assert(len + 1 < addr_size(TBufferSize), "overflow");
-            buff[len] = '.';
-            extp = buff + len + 1;
+            buff[len++] = '.';
+            buff[len] = '\0';
+            extp = buff + len;
         }
         setPostfixPart(extp, fileName);
     }
@@ -210,7 +213,7 @@ private:
         addr_size newLen = directoryPartLen + postfix.len();
 
         // Need space for '\0'
-        Assert(newLen < addr_size(TBufferSize), "overflow");
+        Assert(newLen + 1 < addr_size(TBufferSize), "overflow");
 
         core::memcopy(ptr, postfix.data(), postfix.len());
         len = newLen;

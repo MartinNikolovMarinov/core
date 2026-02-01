@@ -262,6 +262,7 @@ if(CORE_BUILD_TESTS)
         tests/math/t-transforms.cpp
 
         tests/plt/t-pages.cpp
+        tests/plt/t-path.cpp
         tests/plt/t-plt_err.cpp
         tests/plt/t-stacktrace.cpp
         tests/plt/t-threading.cpp

@@ -72,6 +72,7 @@ i32 runArenaAllocatorTestsSuite(const core::testing::TestSuiteInfo& sInfo);
 
 i32 runPltErrorTestsSuite(const core::testing::TestSuiteInfo& sInfo);
 i32 runPltFileSystemTestsSuite(const core::testing::TestSuiteInfo& sInfo);
+i32 runPltPathTestsSuite(const core::testing::TestSuiteInfo& sInfo);
 i32 runPltPagesTestsSuite(const core::testing::TestSuiteInfo& sInfo);
 i32 runPltStacktraceTestsSuite(const core::testing::TestSuiteInfo& sInfo);
 i32 runPltThreadingTestsSuite(const core::testing::TestSuiteInfo& sInfo);

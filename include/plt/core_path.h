@@ -151,7 +151,9 @@ struct StaticPathBuilder {
     constexpr inline void setExtPart(core::StrView fileName) {
         char* extp = extPartMutable();
         if (extp == nullptr) {
-            extp = filePartMutable();
+            Assert(len + 1 < addr_size(TBufferSize), "overflow");
+            buff[len] = '.';
+            extp = buff + len + 1;
         }
         setPostfixPart(extp, fileName);
     }
@@ -160,6 +162,7 @@ struct StaticPathBuilder {
     // Call setDirPart* before setFilePart* and setExtPart*.
     constexpr inline void setDirPart(const char* dirName) { return setDirPart(core::sv(dirName)); }
     constexpr inline void setDirPart(core::StrView dirName) {
+        if (dirName.empty()) return;
         Assert(dirName.len() + 1 < addr_size(TBufferSize), "overflow");
         char* start = buff;
         len = core::memcopy(start, dirName.data(), dirName.len());
@@ -171,6 +174,7 @@ struct StaticPathBuilder {
     // Call setDirPart* before setFilePart* and setExtPart*.
     constexpr inline void appendToDirPath(const char* dirName) { return appendToDirPath(core::sv(dirName)); }
     constexpr inline void appendToDirPath(core::StrView dirName) {
+        if (dirName.empty()) return;
         core::StrView dp = dirPartSv();
         addr_size newDirLen = dp.len() + dirName.len();
         Assert(newDirLen + 1 < addr_size(TBufferSize), "overflow");

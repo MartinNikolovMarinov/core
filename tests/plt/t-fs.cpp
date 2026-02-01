@@ -216,7 +216,7 @@ i32 tryOpenFileWithMostCommonModeCombinations(const char* path) {
 
 bool createTestDirecotry() {
     TestPathBuilder pb;
-    pb.setDirPath(testDirectory);
+    pb.setDirPart(testDirectory);
 
     auto res = core::dirCreate(pb.fullPath());
     if (res.hasErr()) {
@@ -228,7 +228,7 @@ bool createTestDirecotry() {
 
 bool checkTestDirecotryIsCleanned() {
     TestPathBuilder pb;
-    pb.setDirPath(testDirectory);
+    pb.setDirPart(testDirectory);
 
     auto res = core::dirIsEmpty(pb.fullPath());
     if (res.hasErr()) {
@@ -247,7 +247,7 @@ i32 createAndDeleteFileTest() {
 
     core::memset(pb.buff, char(1), 256);
 
-    pb.setDirPath(testDirectory);
+    pb.setDirPart(testDirectory);
     pb.setFilePart("test.txt");
 
     {
@@ -263,7 +263,7 @@ i32 createAndDeleteFileTest() {
 
 i32 createFilesAndCheckIfTheyExistTest() {
     TestPathBuilder pb;
-    pb.setDirPath(testDirectory);
+    pb.setDirPart(testDirectory);
 
     i32 ret = core::testing::executeTestTable("test case failed at index: ", testNamesTable, [&](auto& c, const char* cErr) {
         pb.resetFilePart();
@@ -301,7 +301,7 @@ i32 createFilesAndCheckIfTheyExistTest() {
 
 i32 checkFileStatsTest() {
     TestPathBuilder pb;
-    pb.setDirPath(testDirectory);
+    pb.setDirPart(testDirectory);
 
     i32 ret = core::testing::executeTestTable("test case failed at index: ", testNamesTable, [&](auto& c, const char* cErr) {
         pb.resetFilePart();
@@ -353,12 +353,12 @@ i32 checkFileStatsTest() {
 
 i32 fileCopyTest() {
     TestPathBuilder pbSrc;
-    pbSrc.setDirPath(testDirectory);
+    pbSrc.setDirPart(testDirectory);
     pbSrc.setFilePart("copy_src.txt");
     const char* srcPath = pbSrc.fullPath();
 
     TestPathBuilder pbDst;
-    pbDst.setDirPath(testDirectory);
+    pbDst.setDirPart(testDirectory);
     pbDst.setFilePart("copy_dst.txt");
     const char* dstPath = pbDst.fullPath();
 
@@ -429,7 +429,7 @@ i32 fileCopyTest() {
 
 i32 fileTruncateAndStatTest() {
     TestPathBuilder pb;
-    pb.setDirPath(testDirectory);
+    pb.setDirPart(testDirectory);
 
     // Truncate via descriptor.
     pb.setFilePart("truncate_fd.txt");
@@ -506,7 +506,7 @@ i32 fileTruncateAndStatTest() {
 
 i32 fileFlushTest() {
     TestPathBuilder pb;
-    pb.setDirPath(testDirectory);
+    pb.setDirPart(testDirectory);
     pb.setFilePart("flush_test.txt");
 
     core::FileDesc writer;
@@ -656,7 +656,7 @@ i32 commonErrorsTest() {
 
 i32 edgeErrorCasesTest() {
     TestPathBuilder pb;
-    pb.setDirPath(testDirectory);
+    pb.setDirPart(testDirectory);
     pb.setFilePart("test.txt");
 
     // Files opened for reading should fail to write
@@ -756,7 +756,7 @@ i32 dirCwdChangeTest() {
     }
 
     TestPathBuilder pb;
-    pb.setDirPath(testDirectory);
+    pb.setDirPart(testDirectory);
     pb.appendToDirPath("cwd_test");
 
     {
@@ -796,7 +796,7 @@ i32 dirCwdChangeTest() {
 
 i32 directoriesCreateMoveAndDeleteTest() {
     TestPathBuilder pb;
-    pb.setDirPath(testDirectory);
+    pb.setDirPart(testDirectory);
 
     i32 ret = core::testing::executeTestTable("test case failed at index: ", testNamesTable, [&](auto& c, const char* cErr) {
         pb.resetFilePart();
@@ -809,7 +809,7 @@ i32 directoriesCreateMoveAndDeleteTest() {
         }
 
         TestPathBuilder moveddpb;
-        moveddpb.setDirPath(testDirectory);
+        moveddpb.setDirPart(testDirectory);
         moveddpb.setFilePart("moved");
 
         // Move It
@@ -841,7 +841,7 @@ i32 directoriesCreateMoveAndDeleteTest() {
 
 i32 mostBasicReadAndWriteTest() {
     TestPathBuilder pb;
-    pb.setDirPath(testDirectory);
+    pb.setDirPart(testDirectory);
     pb.setFilePart("test.txt");
 
     core::FileDesc f;
@@ -883,7 +883,7 @@ template <core::AllocatorId TAllocId>
 i32 basicListDirectoryContentsTest() {
     TestPathBuilder pb;
 
-    pb.setDirPath(testDirectory);
+    pb.setDirPart(testDirectory);
     pb.appendToDirPath("test_directory");
 
     const char* basicFileNames[] = {
@@ -1041,7 +1041,7 @@ i32 readAndWriteEntireFileTest() {
     };
 
     TestPathBuilder pb;
-    pb.setDirPath(testDirectory);
+    pb.setDirPart(testDirectory);
 
     i32 ret = core::testing::executeTestTable("test case failed at index: ", testCases, [&](auto& c, const char* cErr) {
         pb.resetFilePart();
@@ -1103,7 +1103,7 @@ i32 readAndWriteEntireFileTest() {
 
 i32 seekWriteAndReadTest() {
     TestPathBuilder pb;
-    pb.setDirPath(testDirectory);
+    pb.setDirPart(testDirectory);
     pb.setFilePart("test.txt");
 
     core::FileDesc f;

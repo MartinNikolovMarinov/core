@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core_API.h>
+#include <core_algorithms.h>
 #include <core_assert.h>
 #include <core_cstr.h>
 #include <core_mem.h>
@@ -61,68 +62,155 @@ struct CORE_API_EXPORT ImmutablePath {
 
 static_assert(Path<ImmutablePath>, "ImmutablePath does not satisfy Path concept");
 
-// TODO: Write tests for this.
 template<i32 TBufferSize>
 struct StaticPathBuilder {
-    static constexpr char FILE_SEPARATOR = '/';
+    static_assert(TBufferSize > 0);
 
-    char buff[TBufferSize];
-    addr_size dirPathLen;
+    char      buff[TBufferSize];
+    addr_size len;
 
-    StaticPathBuilder() : buff{}, dirPathLen(0) {}
+    constexpr inline const char* end() const { return buff + len; }
+    constexpr inline char*       end()       { return buff + len; }
 
-    void setDirPath(const char* dirPath) { return setDirPath(core::sv(dirPath)); }
-    void setDirPath(core::StrView dirPath) {
-        Assert(TBufferSize > dirPath.len(), "overflow");
-        dirPathLen = core::memcopy(buff, dirPath.data(), dirPath.len());
-        buff[dirPathLen] = '\0';
+    constexpr inline const char* fullPath() const {
+        return buff;
+    }
+    constexpr inline core::StrView fullPathSv() const {
+        return { buff, len };
     }
 
-    void appendToDirPath(const char* dirName) { return appendToDirPath(core::sv(dirName)); }
-    void appendToDirPath(core::StrView dirName) {
-        Assert(TBufferSize > dirPathLen + addr_size(FILE_SEPARATOR) + dirName.len(), "overflow");
-        buff[dirPathLen++] = FILE_SEPARATOR;
-        dirPathLen += core::memcopy(buff + dirPathLen, dirName.data(), dirName.len());
-        buff[dirPathLen] = '\0';
+    //==================================================================================================================
+    // File Part
+    //==================================================================================================================
+
+    constexpr inline char* filePartMutable() {
+        return const_cast<char*>(filePart());
+    }
+    constexpr inline const char* filePart() const {
+        addr_off lastSepIdx = core::findLast(buff, len, [](char c, addr_size) { return c == PATH_SEPARATOR; });
+        return buff + lastSepIdx + 1; // This perfectly works without branching!
+    }
+    constexpr inline core::StrView filePartSv() const {
+        addr_off lastSepIdx = core::findLast(buff, len, [](char c, addr_size) { return c == PATH_SEPARATOR; });
+        addr_size start = addr_size(lastSepIdx + 1);
+        return core::sv(buff + start, len - start);
     }
 
-    constexpr const char* fullPath() const { return buff; }
+    //==================================================================================================================
+    // Ext Part
+    //==================================================================================================================
 
-    const char* fileName() const { return buff + dirPathLen + 1; }
+    constexpr inline char* extPartMutable() {
+        return const_cast<char*>(extPart());
+    }
+    constexpr inline const char* extPart() const {
+        const char* fp = filePart();
+        addr_size fpLen = addr_size(this->end() - fp);
+        addr_off dotRel = core::findLast(fp, fpLen, [](char c, addr_size) { return c == '.'; });
+        if (dotRel < 0) return nullptr; // no ext part
+        return fp + dotRel + 1;
+    }
+    constexpr inline core::StrView extPartSv() const {
+        const char* fp = filePart();
+        addr_size fpLen = addr_size(this->end() - fp);
+        addr_off dotRel = core::findLast(fp, fpLen, [](char c, addr_size) { return c == '.'; });
+        if (dotRel < 0) return {}; // no ext part
+        addr_size startRel = addr_size(dotRel + 1);
+        return core::sv(fp + startRel, fpLen - startRel);
+    }
 
-    char* filePartMutable() { return buff + dirPathLen; }
-    const char* filePart() const { return buff + dirPathLen; }
+    //==================================================================================================================
+    // Dir Part
+    //==================================================================================================================
 
-    const char* extPart() const {
-        const char* start = fileName();
-        const char* end = buff + core::cstrLen(buff);
-        const char* p = end;
-        while (p != start) {
-            if (*(p - 1) == '.') {
-                return p - 1;
-            }
-            --p;
+    constexpr inline char* dirPartMutable() const {
+        return const_cast<char*>(dirPart());
+    }
+    constexpr inline char* dirPart() const {
+        addr_off lastSepIdx = core::findLast(buff, len, [](char c, addr_size) { return c == PATH_SEPARATOR; });
+        if (lastSepIdx < 0) return nullptr;
+        return buff;
+    }
+    constexpr inline core::StrView dirPartSv() const {
+        addr_off lastSepIdx = core::findLast(buff, len, [](char c, addr_size) { return c == PATH_SEPARATOR; });
+        if (lastSepIdx < 0) return {};
+        return {buff, addr_size(lastSepIdx + 1)};
+    }
+
+    //==================================================================================================================
+    // Set Parts
+    //==================================================================================================================
+
+    constexpr inline void setFilePart(const char* fileName) { return setFilePart(core::sv(fileName)); }
+    constexpr inline void setFilePart(core::StrView fileName) {
+        char* filep = filePartMutable();
+        setPostfixPart(filep, fileName);
+    }
+
+    constexpr inline void setExtPart(const char* fileName) { return setExtPart(core::sv(fileName)); }
+    constexpr inline void setExtPart(core::StrView fileName) {
+        char* extp = extPartMutable();
+        if (extp == nullptr) {
+            extp = filePartMutable();
         }
-        return end;
+        setPostfixPart(extp, fileName);
     }
 
-    addr_size filePartLen() { return core::cstrLen(filePartMutable()); }
-
-    void setFilePart(const char* fileName) { return setFilePart(core::sv(fileName)); }
-    void setFilePart(core::StrView fileName) {
-        Assert(TBufferSize > dirPathLen +  addr_size(FILE_SEPARATOR) + fileName.len(), "overflow");
-        filePartMutable()[0] = FILE_SEPARATOR;
-        core::memcopy(filePartMutable() + 1, fileName.data(), fileName.len());
-        filePartMutable()[fileName.len() + 1] = '\0';
+    // NOTE: setDirPart functions will overwrite the file and extension parts.
+    // Call setDirPart* before setFilePart* and setExtPart*.
+    constexpr inline void setDirPart(const char* dirName) { return setDirPart(core::sv(dirName)); }
+    constexpr inline void setDirPart(core::StrView dirName) {
+        Assert(dirName.len() + 1 < addr_size(TBufferSize), "overflow");
+        char* start = buff;
+        len = core::memcopy(start, dirName.data(), dirName.len());
+        buff[len++] = PATH_SEPARATOR;
+        buff[len] = '\0';
     }
 
-    void resetFilePart() {
-        core::memset(filePartMutable(), char(0), filePartLen());
+    // NOTE: appendToDirPath functions will overwrite the file and extension parts.
+    // Call setDirPart* before setFilePart* and setExtPart*.
+    constexpr inline void appendToDirPath(const char* dirName) { return appendToDirPath(core::sv(dirName)); }
+    constexpr inline void appendToDirPath(core::StrView dirName) {
+        core::StrView dp = dirPartSv();
+        addr_size newDirLen = dp.len() + dirName.len();
+        Assert(newDirLen + 1 < addr_size(TBufferSize), "overflow");
+        core::memcopy(buff + dp.len(), dirName.data(), dirName.len());
+        len = newDirLen;
+        buff[len++] = PATH_SEPARATOR;
+        buff[len] = '\0';
     }
 
-    void reset() {
+    //==================================================================================================================
+    // Rest
+    //==================================================================================================================
+
+    constexpr inline void resetFilePart() {
+        const char* fp = filePart();
+        len = addr_size(fp - buff);
+        buff[len] = '\0';
+    }
+
+    constexpr inline void reset() {
         core::memset(buff, char(0), sizeof(buff));
-        dirPathLen = 0;
+        len = 0;
+    }
+
+private:
+    constexpr inline void setPostfixPart(char* ptr, core::StrView postfix) {
+        if (postfix.empty()) return;
+
+        char* start = buff;
+
+        // Compute resulting length
+        addr_size directoryPartLen = addr_size(ptr - start);
+        addr_size newLen = directoryPartLen + postfix.len();
+
+        // Need space for '\0'
+        Assert(newLen < addr_size(TBufferSize), "overflow");
+
+        core::memcopy(ptr, postfix.data(), postfix.len());
+        len = newLen;
+        buff[len] = '\0';
     }
 };
 

@@ -14,6 +14,11 @@ template <typename T, AllocatorId AllocId, typename TPredicate> inline addr_off 
 template <typename T, addr_size N, typename TPredicate>         inline constexpr addr_off find(const ArrStatic<T,  N>& arr, TPredicate pred);
 template <typename T, typename TPredicate>                      inline constexpr addr_off find(const Memory<T>& memory, TPredicate pred);
 
+template <typename T, typename TPredicate>                      inline constexpr addr_off findLast(const T* arr, addr_size len, TPredicate pred);
+template <typename T, AllocatorId AllocId, typename TPredicate> inline addr_off           findLast(const ArrList<T, AllocId>& arr, TPredicate pred);
+template <typename T, addr_size N, typename TPredicate>         inline constexpr addr_off findLast(const ArrStatic<T,  N>& arr, TPredicate pred);
+template <typename T, typename TPredicate>                      inline constexpr addr_off findLast(const Memory<T>& memory, TPredicate pred);
+
 template <typename T, typename TEq>                           inline constexpr void pushUnique(T* arr, addr_size len, const T& el, TEq eqFn);
 template <typename T, typename TEq>                           inline constexpr void pushUnique(T* arr, addr_size len, T&& el, TEq eqFn);
 template <typename T, AllocatorId AllocId, typename TEq>      inline void           pushUnique(ArrList<T, AllocId>& arr, const T& el, TEq eqFn);
@@ -64,6 +69,31 @@ inline constexpr addr_off find(const ArrStatic<T, N>& arr, TPredicate pred) {
 template <typename T, typename TPredicate>
 inline constexpr addr_off find(const Memory<T>& memory, TPredicate pred) {
     return find(memory.data(), memory.len(), pred);
+}
+
+//======================================================================================================================
+// Find Last
+//======================================================================================================================
+
+template <typename T, typename TPredicate>
+inline constexpr addr_off findLast(const T* arr, addr_size len, TPredicate pred) {
+    for (addr_off i = addr_off(len); i >= 0; --i) {
+        auto& v = arr[addr_size(i)];
+        if (pred(v, addr_size(i))) return i;
+    }
+    return -1;
+}
+template <typename T, AllocatorId AllocId, typename TPredicate>
+inline addr_off findLast(const ArrList<T, AllocId>& arr, TPredicate pred) {
+    return findLast(arr.data(), arr.len(), pred);
+}
+template <typename T, addr_size N, typename TPredicate>
+inline constexpr addr_off findLast(const ArrStatic<T, N>& arr, TPredicate pred) {
+    return findLast(arr.data(), arr.len(), pred);
+}
+template <typename T, typename TPredicate>
+inline constexpr addr_off findLast(const Memory<T>& memory, TPredicate pred) {
+    return findLast(memory.data(), memory.len(), pred);
 }
 
 //======================================================================================================================

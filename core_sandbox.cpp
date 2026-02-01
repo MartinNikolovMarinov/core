@@ -107,70 +107,94 @@ enum ProfilePoints {
 //     return ret;
 // }
 
-u8 tag1 = 1;
-u8 tag2 = 2;
+void dump(const char* label, const core::StaticPathBuilder<64>& pb)
+{
+    auto full = pb.fullPathSv();
+    auto file = pb.filePartSv();
+    auto dir = pb.dirPartSv();
 
-i32 main() {
+    logInfo("[{}]", label);
+    logInfo("  full: '{}' ({})", full, full.len());
+    logInfo("  file: '{}' ({})", file, file.len());
+    logInfo("  dir: '{}' ({})", dir, dir.len());
+
+    const auto ext = pb.extPartSv();
+    logInfo("  ext : '{}' ({})", ext, ext.len());
+
+    Assert(dir.len() + file.len() == full.len());
+
+    logInfo("");
+}
+
+i32 main()
+{
     core::initProgramCtx(assertHandler, nullptr);
     defer { core::destroyProgramCtx(); };
 
-    Assert(core::loggerSetTag(tag1, "TAG_1"_sv));
-    Assert(core::loggerSetTag(tag2, "TAG_2"_sv));
+    core::StaticPathBuilder<64> pb = {};
 
-    auto testLogWave = []() {
-        logTrace("Global");
-        logTraceTagged(tag1, "Tag 1");
-        logTraceTagged(tag2, "Tag 2");
+    dump("default", pb);
 
-        logDebug("Global");
-        logDebugTagged(tag1, "Tag 1");
-        logDebugTagged(tag2, "Tag 2");
+    pb.setFilePart("t/tt.txt");
+    dump("file with ext", pb);
 
-        logInfo("Global");
-        logInfoTagged(tag1, "Tag 1");
-        logInfoTagged(tag2, "Tag 2");
+    pb.setExtPart("bin");
+    dump("changed ext via setExtPart", pb);
 
-        logWarn("Global");
-        logWarnTagged(tag1, "Tag 1");
-        logWarnTagged(tag2, "Tag 2");
+    pb.setFilePart("tt/tt/asd.cs");
+    dump("nested + ext", pb);
 
-        logErr("Global");
-        logErrTagged(tag1, "Tag 1");
-        logErrTagged(tag2, "Tag 2");
+    pb.setExtPart("h");
+    dump("short ext", pb);
 
-        logFatal("Global");
-        logFatalTagged(tag1, "Tag 1");
-        logFatalTagged(tag2, "Tag 2");
-    };
+    pb.setFilePart("t/"); // no file and no ext
+    dump("trailing slash", pb);
 
-    core::logDirectStd("\nAll Default:\n\n");
-    testLogWave();
+    pb.setFilePart("noext"); // no ext
+    dump("no extension", pb);
 
-    core::loggerSetLevel(core::LogLevel::L_ERROR, tag1);
-    core::loggerSetLevel(core::LogLevel::L_DEBUG, tag2);
-    core::loggerSetLevel(core::LogLevel::L_TRACE);
+    pb.setFilePart("a."); // ext exists but empty
+    dump("empty extension", pb);
 
-    core::logDirectStd("\nGlobal=Trace, tag1=Error, tag2=Debug:\n\n");
-    testLogWave();
+    pb.setFilePart("/123456"); // leading slash, no ext
+    dump("leading slash", pb);
 
-    core::loggerSetLevel(core::LogLevel::L_TRACE, tag1);
-    core::loggerSetLevel(core::LogLevel::L_TRACE, tag2);
-    core::loggerSetLevel(core::LogLevel::L_WARNING);
+    pb.setFilePart("dir.with.dot/file"); // dot in directory MUST NOT count as ext
+    dump("dot in directory (should be unset)", pb);
 
-    core::logDirectStd("\nGlobal=Warning, tag1=Trace, tag2=Trace:\n\n");
-    testLogWave();
+    pb.setFilePart("dir.with.dot/file.txt");
+    dump("dot in directory + file ext", pb);
 
-    core::loggerMute(true);
+    pb.setFilePart("/");
+    dump("empty file part", pb);
 
-    core::logDirectStd("\nMute:\n\n"); // not even this is printed out
-    testLogWave();
+    pb.setFilePart({});
+    dump("null file part", pb);
 
-    core::loggerMute(false);
+    pb.setFilePart("yoyoy.asd");
+    pb.resetFilePart();
+    dump("reset file part", pb);
 
-    core::loggerSetLevel(core::LogLevel::L_MUTE); // This allows only direcy logging.
+    pb.appendToDirPath("testis/");
+    dump("appended testis", pb);
 
-    core::logDirectStd("\nOnly Direct Logging:\n\n");
-    testLogWave();
+    pb.appendToDirPath("banica/");
+    dump("appended banica", pb);
+
+    pb.setFilePart("yo");
+    dump("yo", pb);
+
+    pb.setDirPart("resetted baby");
+    dump("resetted baby", pb);
+
+    pb.setFilePart("bace");
+    dump("bace", pb);
+
+    pb.setExtPart("jpg");
+    dump("jpg", pb);
+
+    pb.setExtPart("png");
+    dump("png", pb);
 
     return 0;
 }

@@ -87,8 +87,20 @@ struct Memory {
         return ptr + length;
     }
 
-    constexpr T* last() { return end() - 1; }
-    constexpr const T* last() const { return end() - 1; }
+    constexpr T* begin() {
+        Assert(ptr != nullptr, "memory is not initialized");
+        return ptr;
+    }
+    constexpr const T* begin() const {
+        Assert(ptr != nullptr, "memory is not initialized");
+        return ptr;
+    }
+
+    constexpr T& last() { return *(end() - 1); }
+    constexpr const T& last() const { return *(end() - 1); }
+
+    constexpr T& first() { return *(begin()); }
+    constexpr const T& first() const { return *(begin()); }
 
     constexpr bool empty() const { return ptr == nullptr || length == 0; }
 

@@ -5,50 +5,240 @@
 
 namespace {
 
-constexpr i32 staticPathBuilderBasicFlow() {
-    core::StaticPathBuilder<10000> pb = {};
+constexpr i32 staticPathBuilderBasicFlowTest() {
+    core::StaticPathBuilder<128> pb = {};
 
-    pb.setDirPart("123"_sv);
-    CT_CHECK(pb.fullPathSv().eq("123/"));
-    CT_CHECK(pb.dirPartSv().eq("123/"));
-    CT_CHECK(pb.filePartSv().empty());
-    CT_CHECK(pb.extPartSv().empty());
+    {
+        pb.setDirPart("dir"_sv);
+        CT_CHECK(pb.fullPathSv().eq("dir/"_sv));
+        CT_CHECK(pb.dirPartSv().eq("dir/"_sv));
+        CT_CHECK(pb.filePartSv().eq(core::sv("")));
+        CT_CHECK(pb.extPartSv().eq(core::sv()));
 
-    pb.appendToDirPath("456"_sv);
-    CT_CHECK(pb.fullPathSv().eq("123/456/"));
-    CT_CHECK(pb.dirPartSv().eq("123/456/"));
-    CT_CHECK(pb.filePartSv().empty());
-    CT_CHECK(pb.extPartSv().empty());
+        pb.appendToDirPath("nested"_sv);
+        CT_CHECK(pb.fullPathSv().eq("dir/nested/"_sv));
+        CT_CHECK(pb.dirPartSv().eq("dir/nested/"_sv));
+        CT_CHECK(pb.filePartSv().eq(core::sv("")));
+        CT_CHECK(pb.extPartSv().eq(core::sv()));
 
-    pb.appendToDirPath("78"_sv);
-    CT_CHECK(pb.fullPathSv().eq("123/456/78/"));
-    CT_CHECK(pb.dirPartSv().eq("123/456/78/"));
-    CT_CHECK(pb.filePartSv().empty());
-    CT_CHECK(pb.extPartSv().empty());
+        pb.setFilePart("file"_sv);
+        CT_CHECK(pb.fullPathSv().eq("dir/nested/file"_sv));
+        CT_CHECK(pb.dirPartSv().eq("dir/nested/"_sv));
+        CT_CHECK(pb.filePartSv().eq("file"_sv));
+        CT_CHECK(pb.extPartSv().eq(core::sv()));
 
-    pb.setFilePart("910/abcdef"_sv);
-    CT_CHECK(pb.fullPathSv().eq("123/456/78/910/abcdef"));
-    CT_CHECK(pb.dirPartSv().eq("123/456/78/910/"));
-    CT_CHECK(pb.filePartSv().eq("abcdef"));
-    CT_CHECK(pb.extPartSv().empty());
+        pb.setExtPart("ext"_sv);
+        CT_CHECK(pb.fullPathSv().eq("dir/nested/file.ext"_sv));
+        CT_CHECK(pb.dirPartSv().eq("dir/nested/"_sv));
+        CT_CHECK(pb.filePartSv().eq("file.ext"_sv));
+        CT_CHECK(pb.extPartSv().eq("ext"_sv));
 
-    pb.setExtPart("xy"_sv);
-    CT_CHECK(pb.fullPathSv().eq("123/456/78/910/abcdef.xy"));
-    CT_CHECK(pb.dirPartSv().eq("123/456/78/910/"));
-    CT_CHECK(pb.filePartSv().eq("abcdef.xy"));
-    CT_CHECK(pb.extPartSv().eq("xy"));
+        pb.reset();
+        CT_CHECK(pb.fullPathSv().eq(core::sv("")));
+        CT_CHECK(pb.dirPartSv().eq(core::sv()));
+        CT_CHECK(pb.filePartSv().eq(core::sv("")));
+        CT_CHECK(pb.extPartSv().eq(core::sv()));
+        CT_CHECK(pb.extPart() == nullptr);
+    }
 
-    pb.setExtPart("z"_sv);
-    CT_CHECK(pb.fullPathSv().eq("123/456/78/910/abcdef.z"));
-    CT_CHECK(pb.dirPartSv().eq("123/456/78/910/"));
-    CT_CHECK(pb.filePartSv().eq("abcdef.z"));
-    CT_CHECK(pb.extPartSv().eq("z"));
+    {
+        pb.setDirPart("123"_sv);
+        CT_CHECK(pb.fullPathSv().eq("123/"));
+        CT_CHECK(pb.dirPartSv().eq("123/"));
+        CT_CHECK(pb.filePartSv().empty());
+        CT_CHECK(pb.extPartSv().empty());
 
-    pb.setDirPart("newDir"_sv);
-    CT_CHECK(pb.fullPathSv().eq("newDir/"));
-    CT_CHECK(pb.dirPartSv().eq("newDir/"));
-    CT_CHECK(pb.filePartSv().empty());
-    CT_CHECK(pb.extPartSv().empty());
+        pb.appendToDirPath("456"_sv);
+        CT_CHECK(pb.fullPathSv().eq("123/456/"));
+        CT_CHECK(pb.dirPartSv().eq("123/456/"));
+        CT_CHECK(pb.filePartSv().empty());
+        CT_CHECK(pb.extPartSv().empty());
+
+        pb.appendToDirPath("78"_sv);
+        CT_CHECK(pb.fullPathSv().eq("123/456/78/"));
+        CT_CHECK(pb.dirPartSv().eq("123/456/78/"));
+        CT_CHECK(pb.filePartSv().empty());
+        CT_CHECK(pb.extPartSv().empty());
+
+        pb.setFilePart("910/abcdef"_sv);
+        CT_CHECK(pb.fullPathSv().eq("123/456/78/910/abcdef"));
+        CT_CHECK(pb.dirPartSv().eq("123/456/78/910/"));
+        CT_CHECK(pb.filePartSv().eq("abcdef"));
+        CT_CHECK(pb.extPartSv().empty());
+
+        pb.setExtPart("xy"_sv);
+        CT_CHECK(pb.fullPathSv().eq("123/456/78/910/abcdef.xy"));
+        CT_CHECK(pb.dirPartSv().eq("123/456/78/910/"));
+        CT_CHECK(pb.filePartSv().eq("abcdef.xy"));
+        CT_CHECK(pb.extPartSv().eq("xy"));
+
+        pb.setExtPart("z"_sv);
+        CT_CHECK(pb.fullPathSv().eq("123/456/78/910/abcdef.z"));
+        CT_CHECK(pb.dirPartSv().eq("123/456/78/910/"));
+        CT_CHECK(pb.filePartSv().eq("abcdef.z"));
+        CT_CHECK(pb.extPartSv().eq("z"));
+
+        pb.setDirPart("newDir"_sv);
+        CT_CHECK(pb.fullPathSv().eq("newDir/"));
+        CT_CHECK(pb.dirPartSv().eq("newDir/"));
+        CT_CHECK(pb.filePartSv().empty());
+        CT_CHECK(pb.extPartSv().empty());
+    }
+
+    return 0;
+}
+
+constexpr i32 staticPathBuilderSetExtPartFlowTest() {
+    core::StaticPathBuilder<128> pb = {};
+
+    pb.setDirPart("directory"_sv);
+    pb.setFilePart("file"_sv);
+    pb.setExtPart("ext"_sv);
+    CT_CHECK(pb.fullPathSv().eq("directory/file.ext"_sv));
+    CT_CHECK(pb.dirPartSv().eq("directory/"_sv));
+    CT_CHECK(pb.filePartSv().eq("file.ext"_sv));
+    CT_CHECK(pb.extPartSv().eq("ext"_sv));
+
+    pb.setExtPart("ext2"_sv);
+    CT_CHECK(pb.fullPathSv().eq("directory/file.ext2"_sv));
+    CT_CHECK(pb.dirPartSv().eq("directory/"_sv));
+    CT_CHECK(pb.filePartSv().eq("file.ext2"_sv));
+    CT_CHECK(pb.extPartSv().eq("ext2"_sv));
+
+    pb.setFilePart("over"_sv);
+    CT_CHECK(pb.fullPathSv().eq("directory/over"_sv));
+    CT_CHECK(pb.dirPartSv().eq("directory/"_sv));
+    CT_CHECK(pb.filePartSv().eq("over"_sv));
+    CT_CHECK(pb.extPartSv().eq(core::sv()));
+
+    pb.setExtPart("ext3"_sv);
+    CT_CHECK(pb.fullPathSv().eq("directory/over.ext3"_sv));
+    CT_CHECK(pb.dirPartSv().eq("directory/"_sv));
+    CT_CHECK(pb.filePartSv().eq("over.ext3"_sv));
+    CT_CHECK(pb.extPartSv().eq("ext3"_sv));
+
+    pb.setDirPart("dirover"_sv);
+    CT_CHECK(pb.fullPathSv().eq("dirover/"_sv));
+    CT_CHECK(pb.dirPartSv().eq("dirover/"_sv));
+    CT_CHECK(pb.filePartSv().eq(core::sv("")));
+    CT_CHECK(pb.extPartSv().eq(core::sv()));
+
+    pb.resetFilePart();
+    pb.setExtPart("nofileext"_sv);
+    CT_CHECK(pb.fullPathSv().eq("dirover/.nofileext"_sv));
+    CT_CHECK(pb.dirPartSv().eq("dirover/"_sv));
+    CT_CHECK(pb.filePartSv().eq(".nofileext"_sv));
+    CT_CHECK(pb.extPartSv().eq("nofileext"_sv));
+
+    pb.reset();
+    pb.setExtPart("onlyext"_sv);
+    CT_CHECK(pb.fullPathSv().eq(".onlyext"_sv));
+    CT_CHECK(pb.dirPartSv().eq(core::sv()));
+    CT_CHECK(pb.filePartSv().eq(".onlyext"_sv));
+    CT_CHECK(pb.extPartSv().eq("onlyext"_sv));
+
+    pb.reset();
+    pb.setExtPart(""_sv);
+    CT_CHECK(pb.fullPathSv().eq(core::sv("")));
+    CT_CHECK(pb.dirPartSv().eq(core::sv()));
+    CT_CHECK(pb.filePartSv().eq(core::sv("")));
+    CT_CHECK(pb.extPartSv().eq(core::sv()));
+    CT_CHECK(pb.extPart() == nullptr);
+
+    pb.reset();
+    pb.setFilePart("."_sv);
+    pb.setExtPart("."_sv);
+    CT_CHECK(pb.fullPathSv().eq("."_sv));
+    CT_CHECK(pb.dirPartSv().eq(core::sv()));
+    CT_CHECK(pb.filePartSv().eq("."_sv));
+    CT_CHECK(pb.extPartSv().eq(core::sv()));
+
+    return 0;
+}
+
+constexpr i32 staticPathBuilderSetFilePartFlowTest() {
+    core::StaticPathBuilder<128> pb = {};
+
+    pb.setDirPart("test"_sv);
+    pb.setFilePart("example"_sv);
+    CT_CHECK(pb.fullPathSv().eq("test/example"_sv));
+    CT_CHECK(pb.dirPartSv().eq("test/"_sv));
+    CT_CHECK(pb.filePartSv().eq("example"_sv));
+    CT_CHECK(pb.extPartSv().eq(core::sv()));
+
+    pb.setFilePart("change"_sv);
+    CT_CHECK(pb.fullPathSv().eq("test/change"_sv));
+    CT_CHECK(pb.dirPartSv().eq("test/"_sv));
+    CT_CHECK(pb.filePartSv().eq("change"_sv));
+    CT_CHECK(pb.extPartSv().eq(core::sv()));
+
+    pb.reset();
+    pb.setFilePart("no_directory_file"_sv);
+    CT_CHECK(pb.fullPathSv().eq("no_directory_file"_sv));
+    CT_CHECK(pb.dirPartSv().eq(core::sv()));
+    CT_CHECK(pb.filePartSv().eq("no_directory_file"_sv));
+    CT_CHECK(pb.extPartSv().eq(core::sv()));
+
+    pb.setFilePart("k"_sv);
+    CT_CHECK(pb.fullPathSv().eq("k"_sv));
+    CT_CHECK(pb.dirPartSv().eq(core::sv()));
+    CT_CHECK(pb.filePartSv().eq("k"_sv));
+    CT_CHECK(pb.extPartSv().eq(core::sv()));
+
+    pb.resetFilePart();
+    CT_CHECK(pb.fullPathSv().eq(core::sv("")));
+    CT_CHECK(pb.dirPartSv().eq(core::sv()));
+    CT_CHECK(pb.filePartSv().eq(core::sv("")));
+    CT_CHECK(pb.extPartSv().eq(core::sv()));
+    CT_CHECK(pb.extPart() == nullptr);
+
+    pb.setDirPart("dir"_sv);
+    pb.setFilePart("file_name"_sv);
+    pb.resetFilePart();
+    CT_CHECK(pb.fullPathSv().eq("dir/"_sv));
+    CT_CHECK(pb.dirPartSv().eq("dir/"_sv));
+    CT_CHECK(pb.filePartSv().eq(core::sv("")));
+    CT_CHECK(pb.extPartSv().eq(core::sv()));
+
+    return 0;
+}
+
+constexpr i32 staticPathBuilderSetDirPartFlowTest() {
+    core::StaticPathBuilder<128> pb = {};
+
+    pb.setDirPart("testing/this"_sv);
+    CT_CHECK(pb.fullPathSv().eq("testing/this/"_sv));
+    CT_CHECK(pb.dirPartSv().eq("testing/this/"_sv));
+    CT_CHECK(pb.filePartSv().eq(core::sv("")));
+    CT_CHECK(pb.extPartSv().eq(core::sv()));
+
+    pb.reset();
+    pb.setDirPart("testing/this/"_sv);
+    CT_CHECK(pb.fullPathSv().eq("testing/this/"_sv));
+    CT_CHECK(pb.dirPartSv().eq("testing/this/"_sv));
+    CT_CHECK(pb.filePartSv().eq(core::sv("")));
+    CT_CHECK(pb.extPartSv().eq(core::sv()));
+
+    pb.reset();
+    pb.setDirPart("test"_sv);
+    CT_CHECK(pb.fullPathSv().eq("test/"_sv));
+    CT_CHECK(pb.dirPartSv().eq("test/"_sv));
+    CT_CHECK(pb.filePartSv().eq(core::sv("")));
+    CT_CHECK(pb.extPartSv().eq(core::sv()));
+
+    pb.reset();
+    pb.setDirPart(""_sv);
+    CT_CHECK(pb.fullPathSv().eq(core::sv("")));
+    CT_CHECK(pb.dirPartSv().eq(core::sv()));
+    CT_CHECK(pb.filePartSv().eq(core::sv("")));
+    CT_CHECK(pb.extPartSv().eq(core::sv()));
+
+    pb.reset();
+    pb.setDirPart("/"_sv);
+    CT_CHECK(pb.fullPathSv().eq("/"_sv));
+    CT_CHECK(pb.dirPartSv().eq("/"_sv));
+    CT_CHECK(pb.filePartSv().eq(core::sv("")));
+    CT_CHECK(pb.extPartSv().eq(core::sv()));
 
     return 0;
 }
@@ -112,22 +302,22 @@ constexpr i32 staticPathBuilderSetExtPartTest() {
     };
 
     constexpr TestCase cases[] = {
-        // {
-        //     .input = "t/tt.txt",
-        //     .newExt = "bin",
-        //     .expectedFull = core::sv("t/tt.bin"),
-        //     .expectedDir = core::sv("t/"),
-        //     .expectedFile = core::sv("tt.bin"),
-        //     .expectedExt = core::sv("bin")
-        // },
-        // {
-        //     .input = "tt/tt/asd.cs",
-        //     .newExt = "h",
-        //     .expectedFull = core::sv("tt/tt/asd.h"),
-        //     .expectedDir = core::sv("tt/tt/"),
-        //     .expectedFile = core::sv("asd.h"),
-        //     .expectedExt = core::sv("h")
-        // },
+        {
+            .input = "t/tt.txt",
+            .newExt = "bin",
+            .expectedFull = core::sv("t/tt.bin"),
+            .expectedDir = core::sv("t/"),
+            .expectedFile = core::sv("tt.bin"),
+            .expectedExt = core::sv("bin")
+        },
+        {
+            .input = "tt/tt/asd.cs",
+            .newExt = "h",
+            .expectedFull = core::sv("tt/tt/asd.h"),
+            .expectedDir = core::sv("tt/tt/"),
+            .expectedFile = core::sv("asd.h"),
+            .expectedExt = core::sv("h")
+        },
         {
             .input = "a.",
             .newExt = "jpg",
@@ -299,8 +489,17 @@ i32 runPltPathTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     i32 ret = 0;
     TestInfo tInfo = createTestInfo(sInfo);
 
-    tInfo.name = FN_NAME_TO_CPTR(staticPathBuilderBasicFlow);
-    if (runTest(tInfo, staticPathBuilderBasicFlow) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(staticPathBuilderBasicFlowTest);
+    if (runTest(tInfo, staticPathBuilderBasicFlowTest) != 0) { ret = -1; }
+
+    tInfo.name = FN_NAME_TO_CPTR(staticPathBuilderSetExtPartFlowTest);
+    if (runTest(tInfo, staticPathBuilderSetExtPartFlowTest) != 0) { ret = -1; }
+
+    tInfo.name = FN_NAME_TO_CPTR(staticPathBuilderSetFilePartFlowTest);
+    if (runTest(tInfo, staticPathBuilderSetFilePartFlowTest) != 0) { ret = -1; }
+
+    tInfo.name = FN_NAME_TO_CPTR(staticPathBuilderSetDirPartFlowTest);
+    if (runTest(tInfo, staticPathBuilderSetDirPartFlowTest) != 0) { ret = -1; }
 
     tInfo.name = FN_NAME_TO_CPTR(staticPathBuilderPartsTest);
     if (runTest(tInfo, staticPathBuilderPartsTest) != 0) { ret = -1; }
@@ -318,11 +517,14 @@ i32 runPltPathTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
 }
 
 constexpr i32 runCompiletimePltPathTestsSuite() {
-    // RunTestCompileTime(staticPathBuilderBasicFlow);
-    // RunTestCompileTime(staticPathBuilderPartsTest);
-    // RunTestCompileTime(staticPathBuilderSetExtPartTest);
-    // RunTestCompileTime(staticPathBuilderDirOpsTest);
-    // RunTestCompileTime(staticPathBuilderResetFilePartTest);
+    RunTestCompileTime(staticPathBuilderBasicFlowTest);
+    RunTestCompileTime(staticPathBuilderSetExtPartFlowTest);
+    RunTestCompileTime(staticPathBuilderSetFilePartFlowTest);
+    RunTestCompileTime(staticPathBuilderSetDirPartFlowTest);
+    RunTestCompileTime(staticPathBuilderPartsTest);
+    RunTestCompileTime(staticPathBuilderSetExtPartTest);
+    RunTestCompileTime(staticPathBuilderDirOpsTest);
+    RunTestCompileTime(staticPathBuilderResetFilePartTest);
 
     return 0;
 }

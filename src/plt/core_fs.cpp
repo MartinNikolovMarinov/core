@@ -47,7 +47,7 @@ expected<PltErrCode> fileReadEntire(const char* path, core::Memory<u8>& out) {
 }
 
 expected<PltErrCode> fileReadEntire(const char* path, core::Memory<char>& out) {
-    core::Memory<u8> outU8 = core::Memory(reinterpret_cast<u8*>(out.data()), out.len());
+    core::Memory<u8> outU8 = { .ptr = reinterpret_cast<u8*>(out.data()), .length = out.len() };
     return fileReadEntire(path, outU8);
 }
 
@@ -83,7 +83,7 @@ core::expected<PltErrCode> fileWriteEntire(const char* path, const core::Memory<
 }
 
 expected<PltErrCode> fileWriteEntire(const char* path, const Memory<char>& in) {
-    core::Memory<u8> inU8 = core::Memory(reinterpret_cast<u8*>(in.data()), in.len());
+    core::Memory<u8> inU8 = { .ptr = reinterpret_cast<u8*>(in.data()), .length = in.len() };
     return fileWriteEntire(path, inU8);
 }
 

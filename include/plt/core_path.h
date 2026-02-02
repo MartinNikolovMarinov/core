@@ -89,16 +89,18 @@ struct StaticPathBuilder {
         return ret;
     }
 
-    constexpr const char* extPart() const {
+    constexpr const char* extPart() const { 
         return extPartSv().data();
     }
     constexpr inline core::StrView extPartSv() const {
-        const char* fp = filePart();
-        addr_size fpLen = addr_size(buff + len - fp);
-        addr_off dotRel = core::findLast(fp, fpLen, [](char c, addr_size) { return c == '.'; });
+        core::StrView file = filePartSv();
+        if (file.empty()) return {};
+
+        addr_off dotRel = core::findLast(file.data(), file.len(), [](char c, addr_size) { return c == '.'; });
         if (dotRel < 0) return {}; // no ext part
+
         addr_size startRel = addr_size(dotRel + 1);
-        auto ret = core::sv(fp + startRel, fpLen - startRel);
+        auto ret = core::sv(file.data() + startRel, file.len() - startRel);
         return ret;
     }
 
@@ -131,8 +133,10 @@ struct StaticPathBuilder {
 
         assertWriteSize(0, newDirLen + fileLen);
 
+        // Preserve file part if set:
         if (fileLen > 0 && fOff != newFileStart) {
             if (newFileStart > fOff) {
+                // Shift file part right:
                 for (addr_size i = 0; i < fileLen; ++i) {
                     addr_size src = addr_size(fOff) + (fileLen - 1 - i);
                     addr_size dst = addr_size(newFileStart) + (fileLen - 1 - i);
@@ -140,6 +144,7 @@ struct StaticPathBuilder {
                 }
             }
             else {
+                // Shift file part left:
                 for (addr_size i = 0; i < fileLen; ++i) {
                     addr_size src = addr_size(fOff) + i;
                     addr_size dst = addr_size(newFileStart) + i;
@@ -156,11 +161,12 @@ struct StaticPathBuilder {
 
         len = i32(newDirLen + fileLen);
         buff[len] = '\0';
-        
+
         debugClearBufferAfterLen();
         return *this;
     }
 
+    // This one is a bit of an adhoc hack. It overrides the file part !
     constexpr inline StaticPathBuilder& appendToDirPath(core::StrView dirName) {
         setFilePart(dirName);
 

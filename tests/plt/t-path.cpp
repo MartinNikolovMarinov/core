@@ -266,7 +266,7 @@ constexpr i32 staticPathBuilderSetDirPartFlowTest() {
     CT_CHECK(pb.filePartSv().eq("file.ext"_sv));
     CT_CHECK(pb.extPartSv().eq("ext"_sv));
 
-    pb.setDirPart(""_sv);
+    pb.setDirPart(""_sv); // TODO: This should set the dir path to "" instead of doing nothing
     CT_CHECK(pb.fullPathSv().eq("/file.ext"_sv));
     CT_CHECK(pb.dirPartSv().eq("/"_sv));
     CT_CHECK(pb.filePartSv().eq("file.ext"_sv));

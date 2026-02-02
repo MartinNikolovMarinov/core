@@ -71,10 +71,10 @@ struct StaticPathBuilder {
     // Get Parts
     //==================================================================================================================
 
-    constexpr const char* fullPath() const { 
+    constexpr const char* fullPath() const {
         return buff;
     }
-    constexpr core::StrView fullPathSv() const { 
+    constexpr core::StrView fullPathSv() const {
         auto ret = core::sv(buff, addr_size(len));
         return ret;
     }
@@ -89,7 +89,7 @@ struct StaticPathBuilder {
         return ret;
     }
 
-    constexpr const char* extPart() const { 
+    constexpr const char* extPart() const {
         return extPartSv().data();
     }
     constexpr inline core::StrView extPartSv() const {
@@ -102,7 +102,7 @@ struct StaticPathBuilder {
         return ret;
     }
 
-    constexpr const char* dirPart() const { 
+    constexpr const char* dirPart() const {
         return dirPartSv().data();
     }
     constexpr inline core::StrView dirPartSv() const {
@@ -119,13 +119,42 @@ struct StaticPathBuilder {
     constexpr inline StaticPathBuilder& setDirPart(core::StrView directory) {
         if (directory.empty()) return *this;
 
-        assertWriteSize(0, directory.len());
-        
-        len = i32(core::memcopy(buff, directory.data(), directory.len()));
-
-        if (buff[len - 1] != core::PATH_SEPARATOR) {
-            buff[len++] = core::PATH_SEPARATOR;
+        addr_off fOff = fileOff();
+        if (buff[fOff] == core::PATH_SEPARATOR) {
+            fOff++;
         }
+
+        addr_size fileLen = addr_size(len) - addr_size(fOff);
+        bool needsSep = directory.last() != core::PATH_SEPARATOR;
+        addr_size newDirLen = directory.len() + (needsSep ? 1 : 0);
+        addr_off newFileStart = addr_off(newDirLen);
+
+        assertWriteSize(0, newDirLen + fileLen);
+
+        if (fileLen > 0 && fOff != newFileStart) {
+            if (newFileStart > fOff) {
+                for (addr_size i = 0; i < fileLen; ++i) {
+                    addr_size src = addr_size(fOff) + (fileLen - 1 - i);
+                    addr_size dst = addr_size(newFileStart) + (fileLen - 1 - i);
+                    buff[dst] = buff[src];
+                }
+            }
+            else {
+                for (addr_size i = 0; i < fileLen; ++i) {
+                    addr_size src = addr_size(fOff) + i;
+                    addr_size dst = addr_size(newFileStart) + i;
+                    buff[dst] = buff[src];
+                }
+            }
+        }
+
+        core::memcopy(buff, directory.data(), directory.len());
+
+        if (needsSep) {
+            buff[directory.len()] = core::PATH_SEPARATOR;
+        }
+
+        len = i32(newDirLen + fileLen);
         buff[len] = '\0';
         
         debugClearBufferAfterLen();
@@ -134,12 +163,12 @@ struct StaticPathBuilder {
 
     constexpr inline StaticPathBuilder& appendToDirPath(core::StrView dirName) {
         setFilePart(dirName);
-        
+
         if (buff[len - 1] != core::PATH_SEPARATOR) {
             buff[len++] = core::PATH_SEPARATOR;
         }
         buff[len] = '\0';
-        
+
         debugClearBufferAfterLen();
         return *this;
     }
@@ -202,11 +231,11 @@ struct StaticPathBuilder {
                 // This should not be possible, but sanity check it anyway:
                 Panic(fOff < TBufferSize, "[BUG] StaticPathBuilder: buffer overflow.");
             }
-            
+
             len = i32(fOff);
             buff[len] = '\0';
         }
-        
+
         debugClearBufferAfterLen();
     }
 
@@ -222,7 +251,7 @@ private:
         addr_size writeEndOff = start + writeSize;
         // Enforcing +2 because of the null terminator and a possible extra '\' or '.' symbols:
         Panic(writeEndOff + 2 < addr_size(TBufferSize), "StaticPathBuilder: buffer overflow");
-    } 
+    }
 
     constexpr inline addr_off fileOff() const { return const_cast<StaticPathBuilder*>(this)->fileOff(); }
     constexpr inline addr_off fileOff() {
@@ -230,7 +259,7 @@ private:
         if (fOff < 0) return 0;
         return fOff;
     }
- 
+
     constexpr inline addr_off extOff() const { return const_cast<StaticPathBuilder*>(this)->extOff(); }
     constexpr inline addr_off extOff() {
         i32 fOff = i32(fileOff());

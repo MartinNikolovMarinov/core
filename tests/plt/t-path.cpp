@@ -79,10 +79,10 @@ constexpr i32 staticPathBuilderBasicFlowTest() {
         CT_CHECK(pb.extPartSv().eq("z"));
 
         pb.setDirPart("newDir"_sv);
-        CT_CHECK(pb.fullPathSv().eq("newDir/"));
+        CT_CHECK(pb.fullPathSv().eq("newDir/abcdef.z"));
         CT_CHECK(pb.dirPartSv().eq("newDir/"));
-        CT_CHECK(pb.filePartSv().empty());
-        CT_CHECK(pb.extPartSv().empty());
+        CT_CHECK(pb.filePartSv().eq("abcdef.z"));
+        CT_CHECK(pb.extPartSv().eq("z"));
     }
 
     return 0;
@@ -118,10 +118,10 @@ constexpr i32 staticPathBuilderSetExtPartFlowTest() {
     CT_CHECK(pb.extPartSv().eq("ext3"_sv));
 
     pb.setDirPart("dirover"_sv);
-    CT_CHECK(pb.fullPathSv().eq("dirover/"_sv));
+    CT_CHECK(pb.fullPathSv().eq("dirover/over.ext3"_sv));
     CT_CHECK(pb.dirPartSv().eq("dirover/"_sv));
-    CT_CHECK(pb.filePartSv().eq(core::sv("")));
-    CT_CHECK(pb.extPartSv().eq(core::sv()));
+    CT_CHECK(pb.filePartSv().eq("over.ext3"_sv));
+    CT_CHECK(pb.extPartSv().eq("ext3"_sv));
 
     pb.resetFilePart();
     pb.setExtPart("nofileext"_sv);
@@ -239,6 +239,38 @@ constexpr i32 staticPathBuilderSetDirPartFlowTest() {
     CT_CHECK(pb.dirPartSv().eq("/"_sv));
     CT_CHECK(pb.filePartSv().eq(core::sv("")));
     CT_CHECK(pb.extPartSv().eq(core::sv()));
+
+    pb.reset();
+    pb.setFilePart("file.ext"_sv);
+    pb.setDirPart("dir"_sv);
+    CT_CHECK(pb.fullPathSv().eq("dir/file.ext"_sv));
+    CT_CHECK(pb.dirPartSv().eq("dir/"_sv));
+    CT_CHECK(pb.filePartSv().eq("file.ext"_sv));
+    CT_CHECK(pb.extPartSv().eq("ext"_sv));
+
+    pb.setDirPart("much/longer/dir"_sv);
+    CT_CHECK(pb.fullPathSv().eq("much/longer/dir/file.ext"_sv));
+    CT_CHECK(pb.dirPartSv().eq("much/longer/dir/"_sv));
+    CT_CHECK(pb.filePartSv().eq("file.ext"_sv));
+    CT_CHECK(pb.extPartSv().eq("ext"_sv));
+
+    pb.setDirPart("d"_sv);
+    CT_CHECK(pb.fullPathSv().eq("d/file.ext"_sv));
+    CT_CHECK(pb.dirPartSv().eq("d/"_sv));
+    CT_CHECK(pb.filePartSv().eq("file.ext"_sv));
+    CT_CHECK(pb.extPartSv().eq("ext"_sv));
+
+    pb.setDirPart("/"_sv);
+    CT_CHECK(pb.fullPathSv().eq("/file.ext"_sv));
+    CT_CHECK(pb.dirPartSv().eq("/"_sv));
+    CT_CHECK(pb.filePartSv().eq("file.ext"_sv));
+    CT_CHECK(pb.extPartSv().eq("ext"_sv));
+
+    pb.setDirPart(""_sv);
+    CT_CHECK(pb.fullPathSv().eq("/file.ext"_sv));
+    CT_CHECK(pb.dirPartSv().eq("/"_sv));
+    CT_CHECK(pb.filePartSv().eq("file.ext"_sv));
+    CT_CHECK(pb.extPartSv().eq("ext"_sv));
 
     return 0;
 }

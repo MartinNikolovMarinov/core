@@ -216,7 +216,7 @@ i32 tryOpenFileWithMostCommonModeCombinations(const char* path) {
 
 bool createTestDirecotry() {
     TestPathBuilder pb = {};
-    pb.setDirPart(testDirectory);
+    pb.setDirPart(core::sv(testDirectory));
 
     auto res = core::dirCreate(pb.fullPath());
     if (res.hasErr()) {
@@ -228,7 +228,7 @@ bool createTestDirecotry() {
 
 bool checkTestDirecotryIsCleanned() {
     TestPathBuilder pb = {};
-    pb.setDirPart(testDirectory);
+    pb.setDirPart(core::sv(testDirectory));
 
     auto res = core::dirIsEmpty(pb.fullPath());
     if (res.hasErr()) {
@@ -247,8 +247,8 @@ i32 createAndDeleteFileTest() {
 
     core::memset(pb.buff, char(1), 256);
 
-    pb.setDirPart(testDirectory);
-    pb.setFilePart("test.txt");
+    pb.setDirPart(core::sv(testDirectory));
+    pb.setFilePart(core::sv("test.txt"));
 
     {
         auto res = core::fileOpen(pb.fullPath(), core::OpenMode::Create);
@@ -263,11 +263,11 @@ i32 createAndDeleteFileTest() {
 
 i32 createFilesAndCheckIfTheyExistTest() {
     TestPathBuilder pb = {};
-    pb.setDirPart(testDirectory);
+    pb.setDirPart(core::sv(testDirectory));
 
     i32 ret = core::testing::executeTestTable("test case failed at index: ", testNamesTable, [&](auto& c, const char* cErr) {
         pb.resetFilePart();
-        pb.setFilePart(c);
+        pb.setFilePart(core::sv(c));
 
         core::FileDesc f;
 
@@ -301,11 +301,11 @@ i32 createFilesAndCheckIfTheyExistTest() {
 
 i32 checkFileStatsTest() {
     TestPathBuilder pb = {};
-    pb.setDirPart(testDirectory);
+    pb.setDirPart(core::sv(testDirectory));
 
     i32 ret = core::testing::executeTestTable("test case failed at index: ", testNamesTable, [&](auto& c, const char* cErr) {
         pb.resetFilePart();
-        pb.setFilePart(c);
+        pb.setFilePart(core::sv(c));
 
         core::FileDesc f;
 
@@ -353,13 +353,13 @@ i32 checkFileStatsTest() {
 
 i32 fileCopyTest() {
     TestPathBuilder pbSrc;
-    pbSrc.setDirPart(testDirectory);
-    pbSrc.setFilePart("copy_src.txt");
+    pbSrc.setDirPart(core::sv(testDirectory));
+    pbSrc.setFilePart(core::sv("copy_src.txt"));
     const char* srcPath = pbSrc.fullPath();
 
     TestPathBuilder pbDst;
-    pbDst.setDirPart(testDirectory);
-    pbDst.setFilePart("copy_dst.txt");
+    pbDst.setDirPart(core::sv(testDirectory));
+    pbDst.setFilePart(core::sv("copy_dst.txt"));
     const char* dstPath = pbDst.fullPath();
 
     constexpr const char* payload = "copy payload";
@@ -429,10 +429,10 @@ i32 fileCopyTest() {
 
 i32 fileTruncateAndStatTest() {
     TestPathBuilder pb = {};
-    pb.setDirPart(testDirectory);
+    pb.setDirPart(core::sv(testDirectory));
 
     // Truncate via descriptor.
-    pb.setFilePart("truncate_fd.txt");
+    pb.setFilePart(core::sv("truncate_fd.txt"));
 
     core::FileDesc fdTruncate;
     {
@@ -469,7 +469,7 @@ i32 fileTruncateAndStatTest() {
     CT_CHECK(closeAndDeleteFile(std::move(fdTruncate), pb.fullPath()) == 0);
 
     // Truncate via path (shrink then extend).
-    pb.setFilePart("truncate_path.txt");
+    pb.setFilePart(core::sv("truncate_path.txt"));
     {
         auto res = core::fileOpen(pb.fullPath(), core::OpenMode::Write | core::OpenMode::Read | core::OpenMode::Create | core::OpenMode::Truncate);
         CT_CHECK(!res.hasErr());
@@ -506,8 +506,8 @@ i32 fileTruncateAndStatTest() {
 
 i32 fileFlushTest() {
     TestPathBuilder pb = {};
-    pb.setDirPart(testDirectory);
-    pb.setFilePart("flush_test.txt");
+    pb.setDirPart(core::sv(testDirectory));
+    pb.setFilePart(core::sv("flush_test.txt"));
 
     core::FileDesc writer;
     {
@@ -656,8 +656,8 @@ i32 commonErrorsTest() {
 
 i32 edgeErrorCasesTest() {
     TestPathBuilder pb = {};
-    pb.setDirPart(testDirectory);
-    pb.setFilePart("test.txt");
+    pb.setDirPart(core::sv(testDirectory));
+    pb.setFilePart(core::sv("test.txt"));
 
     // Files opened for reading should fail to write
     {
@@ -756,8 +756,8 @@ i32 dirCwdChangeTest() {
     }
 
     TestPathBuilder pb = {};
-    pb.setDirPart(testDirectory);
-    pb.appendToDirPath("cwd_test");
+    pb.setDirPart(core::sv(testDirectory));
+    pb.appendToDirPath("cwd_test"_sv);
 
     {
         auto res = core::dirCreate(pb.fullPath());
@@ -796,11 +796,11 @@ i32 dirCwdChangeTest() {
 
 i32 directoriesCreateMoveAndDeleteTest() {
     TestPathBuilder pb = {};
-    pb.setDirPart(testDirectory);
+    pb.setDirPart(core::sv(testDirectory));
 
     i32 ret = core::testing::executeTestTable("test case failed at index: ", testNamesTable, [&](auto& c, const char* cErr) {
         pb.resetFilePart();
-        pb.setFilePart(c);
+        pb.setFilePart(core::sv(c));
 
         // Create directory
         {
@@ -809,8 +809,8 @@ i32 directoriesCreateMoveAndDeleteTest() {
         }
 
         TestPathBuilder moveddpb;
-        moveddpb.setDirPart(testDirectory);
-        moveddpb.setFilePart("moved");
+        moveddpb.setDirPart(core::sv(testDirectory));
+        moveddpb.setFilePart(core::sv("moved"));
 
         // Move It
         {
@@ -841,8 +841,8 @@ i32 directoriesCreateMoveAndDeleteTest() {
 
 i32 mostBasicReadAndWriteTest() {
     TestPathBuilder pb = {};
-    pb.setDirPart(testDirectory);
-    pb.setFilePart("test.txt");
+    pb.setDirPart(core::sv(testDirectory));
+    pb.setFilePart(core::sv("test.txt"));
 
     core::FileDesc f;
     {
@@ -883,8 +883,8 @@ template <core::AllocatorId TAllocId>
 i32 basicListDirectoryContentsTest() {
     TestPathBuilder pb = {};
 
-    pb.setDirPart(testDirectory);
-    pb.appendToDirPath("test_directory");
+    pb.setDirPart(core::sv(testDirectory));
+    pb.appendToDirPath("test_directory"_sv);
 
     const char* basicFileNames[] = {
         "test0.txt",
@@ -909,7 +909,7 @@ i32 basicListDirectoryContentsTest() {
     {
         for (addr_size i = 0; i < basicFileNamesLen; ++i) {
             pb.resetFilePart();
-            pb.setFilePart(basicFileNames[i]);
+            pb.setFilePart(core::sv(basicFileNames[i]));
 
             core::FileDesc f;
             {
@@ -925,7 +925,7 @@ i32 basicListDirectoryContentsTest() {
 
         for (addr_size i = 0; i < basicDirNamesLen; ++i) {
             pb.resetFilePart();
-            pb.setFilePart(basicDirNames[i]);
+            pb.setFilePart(core::sv(basicDirNames[i]));
 
             auto res = core::dirCreate(pb.fullPath());
             CT_CHECK(!res.hasErr());
@@ -1041,11 +1041,11 @@ i32 readAndWriteEntireFileTest() {
     };
 
     TestPathBuilder pb = {};
-    pb.setDirPart(testDirectory);
+    pb.setDirPart(core::sv(testDirectory));
 
     i32 ret = core::testing::executeTestTable("test case failed at index: ", testCases, [&](auto& c, const char* cErr) {
         pb.resetFilePart();
-        pb.setFilePart(c.path);
+        pb.setFilePart(core::sv(c.path));
 
         core::ArrList<u8, TAllocId> content(core::cstrLen(c.content));
         for (addr_size i = 0; i < core::cstrLen(c.content); ++i) {
@@ -1103,8 +1103,8 @@ i32 readAndWriteEntireFileTest() {
 
 i32 seekWriteAndReadTest() {
     TestPathBuilder pb = {};
-    pb.setDirPart(testDirectory);
-    pb.setFilePart("test.txt");
+    pb.setDirPart(core::sv(testDirectory));
+    pb.setFilePart(core::sv("test.txt"));
 
     core::FileDesc f;
 

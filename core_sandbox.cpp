@@ -107,180 +107,6 @@ enum ProfilePoints {
 //     return ret;
 // }
 
-template <i32 TBufferSize>
-struct StaticPathBuilder {
-    char buff[TBufferSize] = {};
-    i32 len = 0;
-
-    //==================================================================================================================
-    // Get Parts
-    //==================================================================================================================
-
-    constexpr const char* fullPath() const { 
-        return buff;
-    }
-    constexpr core::StrView fullPathSv() const { 
-        auto ret = core::sv(buff, addr_size(len));
-        return ret;
-    }
-
-    constexpr const char* filePart() const {
-        return filePartSv().data();
-    }
-    constexpr core::StrView filePartSv() const {
-        addr_off fOff = fileOff();
-        if (buff[fOff] == core::PATH_SEPARATOR) fOff++;
-        auto ret = core::sv(buff + fOff, addr_size(addr_off(len) - fOff));
-        return ret;
-    }
-
-    constexpr const char* extPart() const { 
-        return extPartSv().data();
-    }
-    constexpr inline core::StrView extPartSv() const {
-        const char* fp = filePart();
-        addr_size fpLen = addr_size(buff + len - fp);
-        addr_off dotRel = core::findLast(fp, fpLen, [](char c, addr_size) { return c == '.'; });
-        if (dotRel < 0) return {}; // no ext part
-        addr_size startRel = addr_size(dotRel + 1);
-        auto ret = core::sv(fp + startRel, fpLen - startRel);
-        return ret;
-    }
-
-    constexpr const char* dirPart() const { 
-        return dirPartSv().data();
-    }
-    constexpr inline core::StrView dirPartSv() const {
-        addr_off lastSepIdx = core::findLast(buff, addr_size(len), [](char c, addr_size) { return c == core::PATH_SEPARATOR; });
-        if (lastSepIdx < 0) return {};
-        auto ret = core::sv(buff, addr_size(lastSepIdx + 1));
-        return ret;
-    }
-
-    //==================================================================================================================
-    // Set Parts
-    //==================================================================================================================
-
-    constexpr inline StaticPathBuilder& setDirPart(core::StrView directory) {
-        if (directory.empty()) return *this;
-
-        assertWriteSize(0, directory.len());
-        
-        len = i32(core::memcopy(buff, directory.data(), directory.len()));
-
-        if (buff[len - 1] != core::PATH_SEPARATOR) {
-            buff[len++] = core::PATH_SEPARATOR;
-        }
-        buff[len] = '\0';
-        
-        debugClearBufferAfterLen();
-        return *this;
-    }
-
-    constexpr inline StaticPathBuilder& setFilePart(core::StrView file) {
-        if (file.empty()) {
-            return *this;
-        }
-
-        addr_off fOff = fileOff();
-
-        assertWriteSize(addr_size(fOff), file.len());
-
-        if (buff[fOff] == core::PATH_SEPARATOR) {
-            fOff++; // Skip the path separator
-        }
-
-        core::memcopy(buff + fOff, file.data(), file.len());
-
-        len = i32(fOff) + i32(file.len());
-        buff[len] = '\0';
-
-        debugClearBufferAfterLen();
-        return *this;
-    }
-
-    constexpr inline StaticPathBuilder& setExtPart(core::StrView ext) {
-        if (ext.empty()) return *this;
-
-        addr_off eOff = extOff();
-
-        assertWriteSize(addr_size(eOff), ext.len());
-
-        // Add an extra dot if input str does not start with it and the current buffer does not end with it:
-        if (ext.first() != '.') {
-            if (buff[eOff] != '.') {
-                buff[eOff] = '.';
-            }
-            eOff++; // skip dot
-        }
-
-        core::memcopy(buff + eOff, ext.data(), ext.len());
-
-        len = i32(eOff) + i32(ext.len());
-        buff[len] = '\0';
-
-        debugClearBufferAfterLen();
-        return *this;
-    }
-
-    //==================================================================================================================
-    // Rest
-    //==================================================================================================================
-
-    constexpr inline void resetFilePart() {
-        addr_off fOff = fileOff();
-        if (fOff >= 0) {
-            if (buff[fOff] == core::PATH_SEPARATOR) {
-                fOff++;
-                // This should not be possible, but sanity check it anyway:
-                Panic(fOff < TBufferSize, "[BUG] StaticPathBuilder: buffer overflow.");
-            }
-            
-            len = i32(fOff);
-            buff[len] = '\0';
-        }
-        
-        debugClearBufferAfterLen();
-    }
-
-    constexpr inline void reset() {
-        len = 0;
-        buff[0] = '\0';
-
-        debugClearBufferAfterLen();
-    }
-
-private:
-    constexpr inline void assertWriteSize(addr_size start, addr_size writeSize) {
-        addr_size writeEndOff = start + writeSize;
-        // Enforcing +2 because of the null terminator and a possible extra '\' or '.' symbols:
-        Panic(writeEndOff + 2 < addr_size(TBufferSize), "StaticPathBuilder: buffer overflow");
-    } 
-
-    constexpr inline addr_off fileOff() const { return const_cast<StaticPathBuilder*>(this)->fileOff(); }
-    constexpr inline addr_off fileOff() {
-        addr_off fOff = core::findLast(buff, addr_size(len), [](char x, addr_size) { return x == core::PATH_SEPARATOR; });
-        if (fOff < 0) return 0;
-        return fOff;
-    }
- 
-    constexpr inline addr_off extOff() const { return const_cast<StaticPathBuilder*>(this)->extOff(); }
-    constexpr inline addr_off extOff() {
-        addr_off fOff = fileOff();
-        if (fOff == 0) return 0;
-        addr_size fileLen = addr_size(len - i32(fOff) - 1);
-        addr_off eOff = core::findLast(buff + fOff, fileLen, [](char x, addr_size) { return x == '.'; });
-        if (eOff < 0) return len;
-        return eOff + fOff;
-    }
-
-    constexpr inline void debugClearBufferAfterLen() {
-#if CORE_DEBUG
-        core::memset(buff + len + 1, '-', addr_size(TBufferSize - len - 1));
-#endif
-    }
-};
-
 template <typename T>
 void dump(const char* label, const T& pb)
 {
@@ -296,28 +122,24 @@ void dump(const char* label, const T& pb)
     const auto ext = pb.extPartSv();
     logInfo("  ext : '{}' ({})", ext, ext.len());
 
-    Assert(dir.len() + file.len() == full.len());
+    Assert(dir.len() + file.len() == full.len(), "DirLen + FileLen should be equal to FullLen");
 
     logInfo("");
 }
 
-i32 main()
-{
-    core::initProgramCtx(assertHandler, nullptr);
-    defer { core::destroyProgramCtx(); };
-
+void testBasicSetup() {
     StaticPathBuilder<64> pb = {};
 
     pb.setDirPart("dir"_sv);
     dump("added dir", pb);
+    pb.appendToDirPath("nested"_sv);
+    dump("append dir", pb);
     pb.setFilePart("file"_sv);
     dump("added file", pb);
     pb.setExtPart("ext"_sv);
     dump("added ext", pb);
     pb.reset();
     dump("after rest", pb);
-
-    return 0;
 }
 
 void testSetExtPartTest() {
@@ -327,53 +149,44 @@ void testSetExtPartTest() {
     pb.setFilePart("file"_sv);
     pb.setExtPart("ext"_sv);
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("All 3 set", pb);
 
     pb.setExtPart("ext2"_sv);
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("Change ext part", pb);
 
     pb.setFilePart("over"_sv);
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("Override file part", pb);
 
     pb.setExtPart("ext3"_sv);
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("Change ext part", pb);
 
     pb.setDirPart("dirover"_sv);
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("Override directory part", pb);
 
     pb.resetFilePart();
     pb.setExtPart("nofileext"_sv);
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("Set ext without file part", pb);
 
     pb.reset();
     pb.setExtPart("onlyext"_sv);
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("Set ext part only", pb);
 
     pb.reset();
     pb.setExtPart(""_sv);
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("Nothing", pb);
 
     pb.reset();
     pb.setFilePart("."_sv);
     pb.setExtPart("."_sv);
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("Ext part is a dot", pb);
 
     pb.reset();
 }
@@ -384,37 +197,31 @@ void testSetFilePartTest() {
     pb.setDirPart("test"_sv);
     pb.setFilePart("example"_sv);
     
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("Dir part and file part", pb);
     
     pb.setFilePart("change"_sv);
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("change file part", pb);
     
     pb.reset();
 
     pb.setFilePart("no_directory_file"_sv);
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("reset and set only file part", pb);
 
     pb.setFilePart("k"_sv);
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("set to short file part", pb);
 
     pb.resetFilePart();
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("reset file part", pb);
 
     pb.setDirPart("dir"_sv);
     pb.setFilePart("file_name"_sv);
     pb.resetFilePart();
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("set both and reset file part", pb);
 
     pb.reset();
 }
@@ -424,31 +231,38 @@ void testSetDirPartTest() {
 
     pb.setDirPart("testing/this"_sv);
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("dir part with 2 components NO slash at the end", pb);
     pb.reset();
 
     pb.setDirPart("testing/this/"_sv);
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("dir part with 2 components with slash at the end", pb);
     pb.reset();
 
     pb.setDirPart("test"_sv);
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("dir part 1 component NO slash at the end", pb);
     pb.reset();
 
     pb.setDirPart(""_sv);
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("empty dir part", pb);
     pb.reset();
 
     pb.setDirPart("/"_sv);
 
-    logInfo("Full Path SV: {}", pb.fullPathSv());
-    logInfo("Full Path: {}", pb.fullPath());
+    dump("root dir part", pb);
     pb.reset();
+}
+
+i32 main() {
+    core::initProgramCtx(assertHandler, nullptr);
+    defer { core::destroyProgramCtx(); };
+
+    // testBasicSetup();
+    // testSetExtPartTest();
+    // testSetFilePartTest();
+    // testSetDirPartTest();
+
+    return 0;
 }

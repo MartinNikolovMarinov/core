@@ -49,6 +49,7 @@ core::expected<PltErrCode> dirDeleteRec(const char* path) {
                 StrBuilder<TAllocatorId> newDirName = curr.copy();
                 newDirName.append(PATH_SEPARATOR);
                 newDirName.append(core::sv(entry.name));
+                // newDirName.append('\0'); // TODO: [BUG] Investigate why this creates a bug.
                 _dirNames.push(std::move(newDirName));
             }
             else {
@@ -57,6 +58,7 @@ core::expected<PltErrCode> dirDeleteRec(const char* path) {
                 _fileNameBufferSb.append(curr.view());
                 _fileNameBufferSb.append(PATH_SEPARATOR);
                 _fileNameBufferSb.append(core::sv(entry.name));
+                _fileNameBufferSb.append('\0');
                 const char* fullFilePath = _fileNameBufferSb.view().data();
                 if (auto dres = fileDelete(fullFilePath); dres.hasErr()) {
                     _errCode = std::move(dres.err());

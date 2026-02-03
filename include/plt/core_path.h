@@ -89,7 +89,7 @@ struct StaticPathBuilder {
         return ret;
     }
 
-    constexpr const char* extPart() const { 
+    constexpr const char* extPart() const {
         return extPartSv().data();
     }
     constexpr inline core::StrView extPartSv() const {
@@ -168,11 +168,35 @@ struct StaticPathBuilder {
 
     // This one is a bit of an adhoc hack. It overrides the file part !
     constexpr inline StaticPathBuilder& appendToDirPath(core::StrView dirName) {
-        setFilePart(dirName);
+        if (dirName.empty()) return *this;
 
-        if (buff[len - 1] != core::PATH_SEPARATOR) {
-            buff[len++] = core::PATH_SEPARATOR;
+        addr_off fOff = fileOff();
+        if (buff[fOff] == core::PATH_SEPARATOR) {
+            fOff++;
         }
+
+        addr_size dirPrefixLen = addr_size(fOff);
+        addr_size fileLen = addr_size(len) - dirPrefixLen;
+        bool needsSep = dirName.last() != core::PATH_SEPARATOR;
+        addr_size insertLen = dirName.len() + (needsSep ? 1 : 0);
+        addr_off newFileStart = addr_off(dirPrefixLen + insertLen);
+
+        assertWriteSize(0, addr_size(len) + insertLen);
+
+        if (fileLen > 0 && insertLen > 0) {
+            for (addr_size i = 0; i < fileLen; ++i) {
+                addr_size src = dirPrefixLen + (fileLen - 1 - i);
+                addr_size dst = addr_size(newFileStart) + (fileLen - 1 - i);
+                buff[dst] = buff[src];
+            }
+        }
+
+        core::memcopy(buff + dirPrefixLen, dirName.data(), dirName.len());
+        if (needsSep) {
+            buff[dirPrefixLen + dirName.len()] = core::PATH_SEPARATOR;
+        }
+
+        len += i32(insertLen);
         buff[len] = '\0';
 
         debugClearBufferAfterLen();
@@ -223,6 +247,18 @@ struct StaticPathBuilder {
 
         debugClearBufferAfterLen();
         return *this;
+    }
+
+    constexpr inline void resetExtPart() {
+        addr_off eOff = extOff();
+        if (eOff >= len) {
+            return; // no extension to reset
+        }
+
+        len = i32(eOff);
+        buff[len] = '\0';
+
+        debugClearBufferAfterLen();
     }
 
     //==================================================================================================================

@@ -241,6 +241,32 @@ constexpr i32 staticPathBuilderSetDirPartFlowTest() {
     CT_CHECK(pb.extPartSv().eq(core::sv()));
 
     pb.reset();
+    pb.setDirPart("base"_sv);
+    pb.setFilePart("file.txt"_sv);
+    pb.appendToDirPath("child"_sv);
+    CT_CHECK(pb.fullPathSv().eq("base/child/file.txt"_sv));
+    CT_CHECK(pb.dirPartSv().eq("base/child/"_sv));
+    CT_CHECK(pb.filePartSv().eq("file.txt"_sv));
+    CT_CHECK(pb.extPartSv().eq("txt"_sv));
+
+    pb.reset();
+    pb.setFilePart("file.txt"_sv);
+    pb.appendToDirPath("child"_sv);
+    CT_CHECK(pb.fullPathSv().eq("child/file.txt"_sv));
+    CT_CHECK(pb.dirPartSv().eq("child/"_sv));
+    CT_CHECK(pb.filePartSv().eq("file.txt"_sv));
+    CT_CHECK(pb.extPartSv().eq("txt"_sv));
+
+    pb.reset();
+    pb.setDirPart("/"_sv);
+    pb.setFilePart("file.txt"_sv);
+    pb.appendToDirPath("child"_sv);
+    CT_CHECK(pb.fullPathSv().eq("/child/file.txt"_sv));
+    CT_CHECK(pb.dirPartSv().eq("/child/"_sv));
+    CT_CHECK(pb.filePartSv().eq("file.txt"_sv));
+    CT_CHECK(pb.extPartSv().eq("txt"_sv));
+
+    pb.reset();
     pb.setFilePart("file.ext"_sv);
     pb.setDirPart("dir"_sv);
     CT_CHECK(pb.fullPathSv().eq("dir/file.ext"_sv));
@@ -513,6 +539,51 @@ constexpr i32 staticPathBuilderResetFilePartTest() {
     return 0;
 }
 
+constexpr i32 staticPathBuilderResetExtPartTest() {
+    struct TestCase {
+        const char* input;
+        core::StrView expectedFull;
+        core::StrView expectedDir;
+        core::StrView expectedFile;
+        core::StrView expectedExt;
+    };
+
+    constexpr TestCase cases[] = {
+        { "file.ext",               "file"_sv,               {},                 "file"_sv,       {},          },
+        { "file",                   "file"_sv,               {},                 "file"_sv,       {},          },
+        { "file.",                  "file"_sv,               {},                 "file"_sv,       {},          },
+        { ".ext",                   {},                      {},                 {},              {},          },
+        { "dir.with.dot/file.txt",  "dir.with.dot/file"_sv,  "dir.with.dot/"_sv, "file"_sv,       {},          },
+        { "dir/file.tar.gz",        "dir/file.tar"_sv,       "dir/"_sv,          "file.tar"_sv,   "tar"_sv,    },
+        { "dir/.ext",               "dir/"_sv,               "dir/"_sv,          {},              {},          },
+        { "dir/.hidden.ext",        "dir/.hidden"_sv,        "dir/"_sv,          ".hidden"_sv,    "hidden"_sv, },
+        { "dir/",                   "dir/"_sv,              "dir/"_sv,           {},              {},          },
+        { nullptr,                  {},                      {},                 {},              {},          },
+    };
+
+    i32 ret = core::testing::executeTestTable("StaticPathBuilder resetExtPart test failed at: ", cases,
+        [](const auto& tc, const char* cErr) {
+            core::StaticPathBuilder<128> pb = {};
+            pb.setFilePart(core::sv(tc.input));
+            pb.resetExtPart();
+
+            core::StrView full = pb.fullPathSv();
+            core::StrView dir = pb.dirPartSv();
+            core::StrView file = pb.filePartSv();
+            core::StrView ext = pb.extPartSv();
+
+            CT_CHECK(full.eq(tc.expectedFull), cErr);
+            CT_CHECK(dir.eq(tc.expectedDir), cErr);
+            CT_CHECK(file.eq(tc.expectedFile), cErr);
+            CT_CHECK(ext.eq(tc.expectedExt), cErr);
+
+            return 0;
+        });
+    CT_CHECK(ret == 0);
+
+    return 0;
+}
+
 } // namespace
 
 i32 runPltPathTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
@@ -545,6 +616,9 @@ i32 runPltPathTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     tInfo.name = FN_NAME_TO_CPTR(staticPathBuilderResetFilePartTest);
     if (runTest(tInfo, staticPathBuilderResetFilePartTest) != 0) { ret = -1; }
 
+    tInfo.name = FN_NAME_TO_CPTR(staticPathBuilderResetExtPartTest);
+    if (runTest(tInfo, staticPathBuilderResetExtPartTest) != 0) { ret = -1; }
+
     return ret;
 }
 
@@ -557,6 +631,7 @@ constexpr i32 runCompiletimePltPathTestsSuite() {
     RunTestCompileTime(staticPathBuilderSetExtPartTest);
     RunTestCompileTime(staticPathBuilderDirOpsTest);
     RunTestCompileTime(staticPathBuilderResetFilePartTest);
+    RunTestCompileTime(staticPathBuilderResetExtPartTest);
 
     return 0;
 }

@@ -1,8 +1,10 @@
 #pragma once
 
 #include <core_arr.h>
+#include <core_assert_fmt.h>
 #include <core_traits.h>
 #include <core_types.h>
+
 #include <math/core_math.h>
 #include <math/core_matrix.h>
 #include <math/core_vec.h>
@@ -11,7 +13,39 @@ namespace core {
 
 using namespace coretypes;
 
+//======================================================================================================================
+// Forward Declarations
+//======================================================================================================================
+
+template<addr_size Dim, typename T> constexpr vec<Dim, T> translate(const vec<Dim, T>& v, const vec<Dim, T>& t);
+template<typename T>                constexpr mat4<T>     translate(const mat4<T>& m, const vec3<T>& t);
+
+template<addr_size Dim, typename T> constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& s);
+template<addr_size Dim, typename T> constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& axis, const vec<Dim, T>& s);
+template<typename T>                constexpr mat4<T>     scale(const mat4<T>& m, const vec3<T>& s);
+
+template<typename TFloat>           constexpr vec2<TFloat> skewX(const vec2<TFloat>& v, TFloat tanAngle);
+template<typename TFloat>           constexpr vec2<TFloat> skewY(const vec2<TFloat>& v, TFloat tanAngle);
+template<typename TFloat>           inline vec2<TFloat>    skewX(const vec2<TFloat>& v, core::radians angle);
+template<typename TFloat>           inline vec2<TFloat>    skewY(const vec2<TFloat>& v, core::radians angle);
+
+template<addr_size Dim, typename T> constexpr vec<Dim, T> sheer(const vec<Dim, T>& v, const vec<Dim, T>& s);
+
+template<typename TFloat>           inline vec2<TFloat>   rotate(const vec2<TFloat>& v, const vec2<TFloat>& origin, core::radians angle);
+template<typename TFloat>           inline vec2<TFloat>   rotateRight(const vec2<TFloat>& v, const vec2<TFloat>& origin, core::radians angle);
+
+template<typename TFloat>           inline mat4<TFloat>   rotate(const mat4<TFloat>& m, const vec3<TFloat>& a, core::radians angle);
+template<typename TFloat>           inline mat4<TFloat>   rotateRight(const mat4<TFloat>& v, const vec3<TFloat>& axis, core::radians angle);
+template<typename TFloat>           inline mat4<TFloat>   rotateX(const mat4<TFloat>& m, core::radians angle);
+template<typename TFloat>           inline mat4<TFloat>   rotateXRight(const mat4<TFloat>& m, core::radians angle);
+template<typename TFloat>           inline mat4<TFloat>   rotateY(const mat4<TFloat>& m, core::radians angle);
+template<typename TFloat>           inline mat4<TFloat>   rotateYRight(const mat4<TFloat>& m, core::radians angle);
+template<typename TFloat>           inline mat4<TFloat>   rotateZ(const mat4<TFloat>& m, core::radians angle);
+template<typename TFloat>           inline mat4<TFloat>   rotateZRight(const mat4<TFloat>& m, core::radians angle);
+
+//======================================================================================================================
 // Translate
+//======================================================================================================================
 
 template<addr_size Dim, typename T>
 constexpr vec<Dim, T> translate(const vec<Dim, T>& v, const vec<Dim, T>& t) {
@@ -25,20 +59,21 @@ constexpr vec<Dim, T> translate(const vec<Dim, T>& v, const vec<Dim, T>& t) {
 template<typename T>
 constexpr mat4<T> translate(const mat4<T>& m, const vec3<T>& t) {
     mat4<T> ret = m;
-    ret[3][0] += t[0];
-    ret[3][1] += t[1];
-    ret[3][2] += t[2];
+    // Post-multiply by translation matrix: ret = m * T
+    ret[3][0] = m[0][0] * t[0] + m[1][0] * t[1] + m[2][0] * t[2] + m[3][0];
+    ret[3][1] = m[0][1] * t[0] + m[1][1] * t[1] + m[2][1] * t[2] + m[3][1];
+    ret[3][2] = m[0][2] * t[0] + m[1][2] * t[1] + m[2][2] * t[2] + m[3][2];
+    ret[3][3] = m[0][3] * t[0] + m[1][3] * t[1] + m[2][3] * t[2] + m[3][3];
     return ret;
 }
 
+//======================================================================================================================
 // Scale
+//======================================================================================================================
 
 template<addr_size Dim, typename T>
 constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& s) {
-    vec<Dim, T> ret = {};
-    for (addr_size i = 0; i < v.dimensions(); ++i) {
-        ret[i] = v[i] * s[i];
-    }
+    auto ret = v * s;
     return ret;
 }
 
@@ -54,13 +89,52 @@ constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& axis, const
 template<typename T>
 constexpr mat4<T> scale(const mat4<T>& m, const vec3<T>& s) {
     auto ret = m;
-    ret[0][0] *= s[0]; ret[0][1] *= s[0]; ret[0][2] *= s[0];
-    ret[1][0] *= s[1]; ret[1][1] *= s[1]; ret[1][2] *= s[1];
-    ret[2][0] *= s[2]; ret[2][1] *= s[2]; ret[2][2] *= s[2];
+    // Post-multiply by scale matrix: ret = m * S
+    ret[0][0] *= s[0]; ret[0][1] *= s[0]; ret[0][2] *= s[0]; ret[0][3] *= s[0];
+    ret[1][0] *= s[1]; ret[1][1] *= s[1]; ret[1][2] *= s[1]; ret[1][3] *= s[1];
+    ret[2][0] *= s[2]; ret[2][1] *= s[2]; ret[2][2] *= s[2]; ret[2][3] *= s[2];
     return ret;
 }
 
+//======================================================================================================================
+// Sheer/Skew
+//======================================================================================================================
+
+template<typename TFloat>
+constexpr vec2<TFloat> skewX(const vec2<TFloat>& v, TFloat tanAngle) {
+    static_assert(core::is_float_v<TFloat>, "type must be floating point");
+    vec2<TFloat> ret = v;
+    ret.x() = ret.x() + tanAngle * ret.y();
+    return ret;
+}
+
+template<typename TFloat>
+constexpr vec2<TFloat> skewY(const vec2<TFloat>& v, TFloat tanAngle) {
+    static_assert(core::is_float_v<TFloat>, "type must be floating point");
+    vec2<TFloat> ret = v;
+    ret.y() = ret.y() + tanAngle * ret.x();
+    return ret;
+}
+
+template<typename TFloat>
+inline vec2<TFloat> skewX(const vec2<TFloat>& v, core::radians angle) {
+    static_assert(core::is_float_v<TFloat>, "type must be floating point");
+    // Note: skew from angle uses tan(angle). Around 90deg + k*180deg tan grows unbounded;
+    // call sites should clamp or guard near singularities (common threshold is |cos(angle)| <= 1e-6 for f32).
+    return skewX(v, TFloat(core::tan(f32(angle))));
+}
+
+template<typename TFloat>
+inline vec2<TFloat> skewY(const vec2<TFloat>& v, core::radians angle) {
+    static_assert(core::is_float_v<TFloat>, "type must be floating point");
+    // Note: skew from angle uses tan(angle). Around 90deg + k*180deg tan grows unbounded;
+    // call sites should clamp or guard near singularities (common threshold is |cos(angle)| <= 1e-6 for f32).
+    return skewY(v, TFloat(core::tan(f32(angle))));
+}
+
+//======================================================================================================================
 // Rotate 2D
+//======================================================================================================================
 
 template<typename TFloat>
 inline vec2<TFloat> rotate(const vec2<TFloat>& v, const vec2<TFloat>& origin, core::radians angle) {
@@ -80,7 +154,9 @@ inline vec2<TFloat> rotateRight(const vec2<TFloat>& v, const vec2<TFloat>& origi
     return rotate(v, origin, angle);
 }
 
+//======================================================================================================================
 // Rotate 3D
+//======================================================================================================================
 
 template<typename TFloat>
 inline mat4<TFloat> rotate(const mat4<TFloat>& m, const vec3<TFloat>& a, core::radians angle) {
@@ -89,6 +165,14 @@ inline mat4<TFloat> rotate(const mat4<TFloat>& m, const vec3<TFloat>& a, core::r
     TFloat c = core::cos(f32(angle));
     TFloat s = core::sin(f32(angle));
     TFloat t = TFloat(1) - c;
+
+#if CORE_DEBUG
+    // Degenerate axis: rotation is undefined, treat as no-op.
+    f64 axisLenSq = core::vlengthsq(a);
+    if (core::safeEq(axisLenSq, 0.0, 1e-12)) {
+        AssertFmt(false, "Degenerate axis {:f.10}", axisLenSq);
+    }
+#endif
 
     vec3<TFloat> axis = a.norm(); // I could assume that the axis is always normalized to avoid this call.
 
@@ -109,7 +193,7 @@ inline mat4<TFloat> rotate(const mat4<TFloat>& m, const vec3<TFloat>& a, core::r
           0,   0,   0, 1
     );
 
-    auto ret = r * m;
+    auto ret = m * r;
     return ret;
 }
 
@@ -133,7 +217,7 @@ inline mat4<TFloat> rotateX(const mat4<TFloat>& m, core::radians angle) {
         0, 0, 0, 1
     );
 
-    auto ret = r * m;
+    auto ret = m * r;
     return ret;
 }
 
@@ -157,7 +241,7 @@ inline mat4<TFloat> rotateY(const mat4<TFloat>& m, core::radians angle) {
         0, 0, 0, 1
     );
 
-    auto ret = r * m;
+    auto ret = m * r;
     return ret;
 }
 
@@ -181,7 +265,7 @@ inline mat4<TFloat> rotateZ(const mat4<TFloat>& m, core::radians angle) {
         0, 0, 0, 1
     );
 
-    auto ret = r * m;
+    auto ret = m * r;
     return ret;
 }
 

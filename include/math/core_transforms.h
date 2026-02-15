@@ -18,10 +18,12 @@ using namespace coretypes;
 //======================================================================================================================
 
 template<addr_size Dim, typename T> constexpr vec<Dim, T> translate(const vec<Dim, T>& v, const vec<Dim, T>& t);
+template<typename T>                constexpr mat3<T>     translate(const mat3<T>& m, const vec2<T>& t);
 template<typename T>                constexpr mat4<T>     translate(const mat4<T>& m, const vec3<T>& t);
 
 template<addr_size Dim, typename T> constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& s);
-template<addr_size Dim, typename T> constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& axis, const vec<Dim, T>& s);
+template<addr_size Dim, typename T> constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& pivot, const vec<Dim, T>& s);
+template<typename T>                constexpr mat3<T>     scale(const mat3<T>& m, const vec2<T>& s);
 template<typename T>                constexpr mat4<T>     scale(const mat4<T>& m, const vec3<T>& s);
 
 template<typename TFloat>           constexpr vec2<TFloat> skewX(const vec2<TFloat>& v, TFloat tanAngle);
@@ -49,6 +51,12 @@ template<typename TFloat>           inline mat4<TFloat>   rotateZRight(const mat
 
 template<addr_size Dim, typename T>
 constexpr vec<Dim, T> translate(const vec<Dim, T>& v, const vec<Dim, T>& t) {
+    // Vector translation in Cartesian space:
+    //
+    // v' = v + t
+    //
+    // Expanded per component:
+    // v'_i = v_i + t_i
     vec<Dim, T> ret = {};
     for (addr_size i = 0; i < v.dimensions(); ++i) {
         ret[i] = v[i] + t[i];
@@ -57,13 +65,44 @@ constexpr vec<Dim, T> translate(const vec<Dim, T>& v, const vec<Dim, T>& t) {
 }
 
 template<typename T>
+constexpr mat3<T> translate(const mat3<T>& m, const vec2<T>& t) {
+    mat3<T> ret = m;
+    // 2D homogeneous translation (column-major, column vectors):
+    //
+    // T(tx, ty) =
+    // [ 1  0  tx ]
+    // [ 0  1  ty ]
+    // [ 0  0   1 ]
+    //
+    // Composition uses post-multiply: ret = m * T.
+    // In this storage layout translation lives in column 2.
+    // Expanded column update:
+    // ret.col2 = m.col0 * tx + m.col1 * ty + m.col2
+    ret[2][0] = m[0][0] * t.x() + m[1][0] * t.y() + m[2][0];
+    ret[2][1] = m[0][1] * t.x() + m[1][1] * t.y() + m[2][1];
+    ret[2][2] = m[0][2] * t.x() + m[1][2] * t.y() + m[2][2];
+    return ret;
+}
+
+template<typename T>
 constexpr mat4<T> translate(const mat4<T>& m, const vec3<T>& t) {
     mat4<T> ret = m;
-    // Post-multiply by translation matrix: ret = m * T
-    ret[3][0] = m[0][0] * t[0] + m[1][0] * t[1] + m[2][0] * t[2] + m[3][0];
-    ret[3][1] = m[0][1] * t[0] + m[1][1] * t[1] + m[2][1] * t[2] + m[3][1];
-    ret[3][2] = m[0][2] * t[0] + m[1][2] * t[1] + m[2][2] * t[2] + m[3][2];
-    ret[3][3] = m[0][3] * t[0] + m[1][3] * t[1] + m[2][3] * t[2] + m[3][3];
+    // 3D homogeneous translation (column-major, column vectors):
+    //
+    // T(tx, ty, tz) =
+    // [ 1  0  0  tx ]
+    // [ 0  1  0  ty ]
+    // [ 0  0  1  tz ]
+    // [ 0  0  0   1 ]
+    //
+    // Composition uses post-multiply: ret = m * T.
+    // In this storage layout translation lives in column 3.
+    // Expanded column update:
+    // ret.col3 = m.col0 * tx + m.col1 * ty + m.col2 * tz + m.col3
+    ret[3][0] = m[0][0] * t.x() + m[1][0] * t.y() + m[2][0] * t.z() + m[3][0];
+    ret[3][1] = m[0][1] * t.x() + m[1][1] * t.y() + m[2][1] * t.z() + m[3][1];
+    ret[3][2] = m[0][2] * t.x() + m[1][2] * t.y() + m[2][2] * t.z() + m[3][2];
+    ret[3][3] = m[0][3] * t.x() + m[1][3] * t.y() + m[2][3] * t.z() + m[3][3];
     return ret;
 }
 
@@ -73,26 +112,80 @@ constexpr mat4<T> translate(const mat4<T>& m, const vec3<T>& t) {
 
 template<addr_size Dim, typename T>
 constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& s) {
+    // Vector scaling in Cartesian space:
+    //
+    // v' = v * s
+    //
+    // Expanded per component:
+    // v'_i = v_i * s
     auto ret = v * s;
     return ret;
 }
 
 template<addr_size Dim, typename T>
-constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& axis, const vec<Dim, T>& s) {
+constexpr vec<Dim, T> scale(const vec<Dim, T>& v, const vec<Dim, T>& pivot, const vec<Dim, T>& s) {
+    // Vector scaling around an arbitrary pivot (anchor) in Cartesian space:
+    //
+    // v' = pivot + (v - pivot) * s
+    //
+    // Interpretation:
+    // 1) move v into pivot-relative coordinates: (v - pivot)
+    // 2) scale component-wise by s
+    // 3) move back by adding pivot
+    //
+    // Expanded per component:
+    // v'_i = pivot_i + (v_i - pivot_i) * s_i
+    //
+    // Useful for "scale around point P" behavior:
+    // - s = 1 keeps that axis unchanged
+    // - s = 0 collapses that axis to pivot on that component
+    // - negative factors mirror around pivot on that component
     vec<Dim, T> ret = {};
     for (addr_size i = 0; i < v.dimensions(); ++i) {
-        ret[i] = axis[i] + (v[i] - axis[i]) * s[i];
+        ret[i] = pivot[i] + (v[i] - pivot[i]) * s[i];
     }
+    return ret;
+}
+
+template<typename T> constexpr mat3<T> scale(const mat3<T>& m, const vec2<T>& s) {
+    auto ret = m;
+    // 2D homogeneous scaling (column-major, column vectors):
+    //
+    // S(sx, sy) =
+    // [ sx  0   0 ]
+    // [ 0   sy  0 ]
+    // [ 0   0   1 ]
+    //
+    // Composition uses post-multiply: ret = m * S.
+    // In this storage layout, post-multiplying by S scales whole columns:
+    // ret.col0 = m.col0 * sx
+    // ret.col1 = m.col1 * sy
+    // ret.col2 = m.col2
+    ret[0][0] *= s.x(); ret[0][1] *= s.x(); ret[0][2] *= s.x();
+    ret[1][0] *= s.y(); ret[1][1] *= s.y(); ret[1][2] *= s.y();
     return ret;
 }
 
 template<typename T>
 constexpr mat4<T> scale(const mat4<T>& m, const vec3<T>& s) {
     auto ret = m;
-    // Post-multiply by scale matrix: ret = m * S
-    ret[0][0] *= s[0]; ret[0][1] *= s[0]; ret[0][2] *= s[0]; ret[0][3] *= s[0];
-    ret[1][0] *= s[1]; ret[1][1] *= s[1]; ret[1][2] *= s[1]; ret[1][3] *= s[1];
-    ret[2][0] *= s[2]; ret[2][1] *= s[2]; ret[2][2] *= s[2]; ret[2][3] *= s[2];
+    // 3D homogeneous scaling (column-major, column vectors):
+    //
+    // S(sx, sy, sz) =
+    // [ sx  0   0   0 ]
+    // [ 0   sy  0   0 ]
+    // [ 0   0   sz  0 ]
+    // [ 0   0   0   1 ]
+    //
+    // Composition uses post-multiply: ret = m * S.
+    // In this storage layout, post-multiplying by S scales whole columns:
+    // ret.col0 = m.col0 * sx
+    // ret.col1 = m.col1 * sy
+    // ret.col2 = m.col2 * sz
+    // ret.col3 = m.col3
+    ret[0][0] *= s.x(); ret[0][1] *= s.x(); ret[0][2] *= s.x(); ret[0][3] *= s.x();
+    ret[1][0] *= s.y(); ret[1][1] *= s.y(); ret[1][2] *= s.y(); ret[1][3] *= s.y();
+    ret[2][0] *= s.z(); ret[2][1] *= s.z(); ret[2][2] *= s.z(); ret[2][3] *= s.z();
     return ret;
 }
 

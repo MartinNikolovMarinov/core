@@ -27,9 +27,14 @@ template<typename T>                constexpr mat3<T>     scale(const mat3<T>& m
 template<typename T>                constexpr mat4<T>     scale(const mat4<T>& m, const vec3<T>& s);
 
 template<typename TFloat>           constexpr vec2<TFloat> skewX(const vec2<TFloat>& v, TFloat tanAngle);
+template<typename TFloat>           inline    vec2<TFloat> skewX(const vec2<TFloat>& v, core::radians angle);
+template<typename TFloat>           constexpr mat3<TFloat> skewX(const mat3<TFloat>& m, TFloat tanAngle);
+template<typename TFloat>           inline    mat3<TFloat> skewX(const mat3<TFloat>& m, core::radians angle);
+
 template<typename TFloat>           constexpr vec2<TFloat> skewY(const vec2<TFloat>& v, TFloat tanAngle);
-template<typename TFloat>           inline vec2<TFloat>    skewX(const vec2<TFloat>& v, core::radians angle);
-template<typename TFloat>           inline vec2<TFloat>    skewY(const vec2<TFloat>& v, core::radians angle);
+template<typename TFloat>           inline    vec2<TFloat> skewY(const vec2<TFloat>& v, core::radians angle);
+template<typename TFloat>           constexpr mat3<TFloat> skewY(const mat3<TFloat>& m, TFloat tanAngle);
+template<typename TFloat>           inline    mat3<TFloat> skewY(const mat3<TFloat>& m, core::radians angle);
 
 template<addr_size Dim, typename T> constexpr vec<Dim, T> sheer(const vec<Dim, T>& v, const vec<Dim, T>& s);
 
@@ -70,9 +75,9 @@ constexpr mat3<T> translate(const mat3<T>& m, const vec2<T>& t) {
     // 2D homogeneous translation (column-major, column vectors):
     //
     // T(tx, ty) =
-    // [ 1  0  tx ]
-    // [ 0  1  ty ]
-    // [ 0  0   1 ]
+    // [ 1  0  0 ]
+    // [ 0  1  0 ]
+    // [ tx ty 1 ]
     //
     // Composition uses post-multiply: ret = m * T.
     // In this storage layout translation lives in column 2.
@@ -90,10 +95,10 @@ constexpr mat4<T> translate(const mat4<T>& m, const vec3<T>& t) {
     // 3D homogeneous translation (column-major, column vectors):
     //
     // T(tx, ty, tz) =
-    // [ 1  0  0  tx ]
-    // [ 0  1  0  ty ]
-    // [ 0  0  1  tz ]
-    // [ 0  0  0   1 ]
+    // [ 1   0   0   0 ]
+    // [ 0   1   0   0 ]
+    // [ 0   0   1   0 ]
+    // [ tx  ty  tz  1 ]
     //
     // Composition uses post-multiply: ret = m * T.
     // In this storage layout translation lives in column 3.
@@ -201,13 +206,6 @@ constexpr vec2<TFloat> skewX(const vec2<TFloat>& v, TFloat tanAngle) {
     return ret;
 }
 
-template<typename TFloat>
-constexpr vec2<TFloat> skewY(const vec2<TFloat>& v, TFloat tanAngle) {
-    static_assert(core::is_float_v<TFloat>, "type must be floating point");
-    vec2<TFloat> ret = v;
-    ret.y() = ret.y() + tanAngle * ret.x();
-    return ret;
-}
 
 template<typename TFloat>
 inline vec2<TFloat> skewX(const vec2<TFloat>& v, core::radians angle) {
@@ -218,11 +216,81 @@ inline vec2<TFloat> skewX(const vec2<TFloat>& v, core::radians angle) {
 }
 
 template<typename TFloat>
+constexpr mat3<TFloat> skewX(const mat3<TFloat>& m, TFloat tanAngle) {
+    static_assert(core::is_float_v<TFloat>, "type must be floating point");
+    auto ret = m;
+    // 2D homogeneous skew along X (column-major, column vectors):
+    //
+    // Sx(a) =
+    // [ 1  0  0 ]
+    // [ a  1  0 ]
+    // [ 0  0  1 ]
+    //
+    // where a = tanAngle.
+    //
+    // Composition uses post-multiply: ret = m * Sx(a).
+    // In this storage layout, post-multiplying by Sx updates column 1:
+    //
+    // ret.col0 = m.col0
+    // ret.col1 = m.col0 * a + m.col1
+    // ret.col2 = m.col2
+    ret[1][0] += m[0][0] * tanAngle;
+    ret[1][1] += m[0][1] * tanAngle;
+    ret[1][2] += m[0][2] * tanAngle;
+    return ret;
+}
+
+template<typename TFloat>
+inline mat3<TFloat> skewX(const mat3<TFloat>& m, core::radians angle) {
+    static_assert(core::is_float_v<TFloat>, "type must be floating point");
+    return skewX(m, TFloat(core::tan(f32(angle))));
+}
+
+template<typename TFloat>
+constexpr vec2<TFloat> skewY(const vec2<TFloat>& v, TFloat tanAngle) {
+    static_assert(core::is_float_v<TFloat>, "type must be floating point");
+    vec2<TFloat> ret = v;
+    ret.y() = ret.y() + tanAngle * ret.x();
+    return ret;
+}
+
+template<typename TFloat>
 inline vec2<TFloat> skewY(const vec2<TFloat>& v, core::radians angle) {
     static_assert(core::is_float_v<TFloat>, "type must be floating point");
     // Note: skew from angle uses tan(angle). Around 90deg + k*180deg tan grows unbounded;
     // call sites should clamp or guard near singularities (common threshold is |cos(angle)| <= 1e-6 for f32).
     return skewY(v, TFloat(core::tan(f32(angle))));
+}
+
+template<typename TFloat>
+constexpr mat3<TFloat> skewY(const mat3<TFloat>& m, TFloat tanAngle) {
+    static_assert(core::is_float_v<TFloat>, "type must be floating point");
+    auto ret = m;
+    // 2D homogeneous skew along Y (column-major, column vectors):
+    //
+    // Sy(a) =
+    // [ 1  a  0 ]
+    // [ 0  1  0 ]
+    // [ 0  0  1 ]
+    //
+    // where a = tanAngle.
+    //
+    // Composition uses post-multiply: ret = m * Sy(a).
+    // In this storage layout, post-multiplying by Sy updates column 0:
+    //
+    // ret.col0 = m.col0 + m.col1 * a
+    // ret.col1 = m.col1
+    // ret.col2 = m.col2
+    ret[0][0] += m[1][0] * tanAngle;
+    ret[0][1] += m[1][1] * tanAngle;
+    ret[0][2] += m[1][2] * tanAngle;
+    return ret;
+}
+
+template<typename TFloat>
+inline mat3<TFloat> skewY(const mat3<TFloat>& m, core::radians angle) {
+    static_assert(core::is_float_v<TFloat>, "type must be floating point");
+    return skewY(m, TFloat(core::tan(f32(angle))));
 }
 
 //======================================================================================================================

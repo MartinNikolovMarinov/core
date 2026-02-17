@@ -513,7 +513,7 @@ template<typename TVec, typename TVec2>
 constexpr TVec v_conv(const TVec2& v) {
     TVec ret;
     for (addr_size i = 0; i < TVec2::dimensions(); i++) {
-        ret[i] = static_cast<typename TVec2::DataType>(v[i]);
+        ret[i] = static_cast<typename TVec::DataType>(v[i]);
     }
     return ret;
 }

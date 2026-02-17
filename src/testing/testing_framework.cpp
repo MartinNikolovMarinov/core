@@ -14,38 +14,38 @@ char* elapsedTimeToStr(char out[ELAPSED_TIME_TO_STR_BUFFER_SIZE], u64 deltaTimeN
         u32 minutes = u32((deltaTimeNs % core::CORE_HOUR) / core::CORE_MINUTE);
         u32 seconds = u32((deltaTimeNs % core::CORE_MINUTE) / core::CORE_SECOND);
         u64 milliseconds = (deltaTimeNs % core::CORE_SECOND) / core::CORE_MILLISECOND;
-        core::Unpack(core::format(out, kBufferSize,
-                                  "{02:}h {02:}m {02:}s {}ms",
-                                  hours, minutes, seconds, milliseconds));
+        Unpack(core::format(out, kBufferSize,
+            "{02:}h {02:}m {02:}s {}ms",
+            hours, minutes, seconds, milliseconds));
     }
     else if (deltaTimeNs >= core::CORE_MINUTE) {
         u32 minutes = u32(deltaTimeNs / core::CORE_MINUTE);
         u32 seconds = u32((deltaTimeNs % core::CORE_MINUTE) / core::CORE_SECOND);
         u64 milliseconds = (deltaTimeNs % core::CORE_SECOND) / core::CORE_MILLISECOND;
-        core::Unpack(core::format(out, kBufferSize,
-                                  "{02:}m {02:}s {}ms",
-                                  minutes, seconds, milliseconds));
+        Unpack(core::format(out, kBufferSize,
+            "{02:}m {02:}s {}ms",
+            minutes, seconds, milliseconds));
     }
     else if (deltaTimeNs >= core::CORE_SECOND) {
         u32 seconds = u32(deltaTimeNs / core::CORE_SECOND);
         u64 milliseconds = (deltaTimeNs % core::CORE_SECOND) / core::CORE_MILLISECOND;
-        core::Unpack(core::format(out, kBufferSize,
-                                  "{02:}s {}ms",
-                                  seconds, milliseconds));
+        Unpack(core::format(out, kBufferSize,
+            "{02:}s {}ms",
+            seconds, milliseconds));
     }
     else if (deltaTimeNs >= core::CORE_MILLISECOND) {
         u64 milliseconds = deltaTimeNs / core::CORE_MILLISECOND;
         u64 microseconds = (deltaTimeNs % core::CORE_MILLISECOND) / core::CORE_MICROSECOND;
         u64 nanoseconds = deltaTimeNs % core::CORE_MICROSECOND;
-        core::Unpack(core::format(out, kBufferSize,
-                                  "{}ms {}us {}ns",
-                                  milliseconds, microseconds, nanoseconds));
+        Unpack(core::format(out, kBufferSize,
+            "{}ms {}us {}ns",
+            milliseconds, microseconds, nanoseconds));
     }
     else {
         u64 nanoseconds = deltaTimeNs;
-        core::Unpack(core::format(out, kBufferSize,
-                                  "{}ns",
-                                  nanoseconds));
+        Unpack(core::format(out, kBufferSize,
+            "{}ns",
+            nanoseconds));
     }
 
     return out;
@@ -58,18 +58,18 @@ char* memoryUsedToStr(char out[MEMORY_USED_TO_STR_BUFFER_SIZE], addr_size deltaM
 
     if (deltaMemory >= 1024 * 1024 * 1024) {
         f64 gb = f64(deltaMemory) / (1024.0 * 1024.0 * 1024.0);
-        core::Unpack(core::format(out, kBufferSize, "{:f.2} GB", gb));
+        Unpack(core::format(out, kBufferSize, "{:f.2} GB", gb));
     }
     else if (deltaMemory >= 1024 * 1024) {
         f64 mb = f64(deltaMemory) / (1024.0 * 1024.0);
-        core::Unpack(core::format(out, kBufferSize, "{:f.2} MB", mb));
+        Unpack(core::format(out, kBufferSize, "{:f.2} MB", mb));
     }
     else if (deltaMemory >= 1024) {
         f64 kb = f64(deltaMemory) / 1024.0;
-        core::Unpack(core::format(out, kBufferSize, "{:f.2} KB", kb));
+        Unpack(core::format(out, kBufferSize, "{:f.2} KB", kb));
     }
     else {
-        core::Unpack(core::format(out, kBufferSize, "{:f.2} B", f64(deltaMemory)));
+        Unpack(core::format(out, kBufferSize, "{:f.2} B", f64(deltaMemory)));
     }
 
     return out;

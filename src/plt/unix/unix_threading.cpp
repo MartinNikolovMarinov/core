@@ -4,6 +4,7 @@
 #include <core_cstr.h>
 #include <core_exec_ctx.h>
 #include <core_system_checks.h>
+#include <core_cstr_format.h>
 
 #include <unistd.h>
 #include <signal.h>

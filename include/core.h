@@ -14,6 +14,7 @@
 #include "core_cstr_conv.h"
 #include "core_cstr_format.h"
 #include "core_cstr.h"
+#include "core_enum.h"
 #include "core_exec_ctx.h"
 #include "core_expected.h"
 #include "core_hash_map.h"

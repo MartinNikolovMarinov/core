@@ -101,26 +101,18 @@ private:
     TErr m_err;
 };
 
-template <typename T, typename TErr, typename... Args>
-constexpr inline T&& Unpack(expected<T, TErr>&& expr, [[maybe_unused]] const char* msg, [[maybe_unused]] Args... args) {
-    if constexpr (sizeof...(Args) > 0) {
-        PanicFmt(!expr.hasErr(), msg, args...);
-    }
-    else {
-        Panic(!expr.hasErr(), msg);
-    }
+#ifndef Unpack
+    #define Unpack(expr)                                                                             \
+        ([&]() {                                                                                     \
+            auto CORE_NAME_CONCAT(__coreUnpackValueAtLine_, __LINE__) = (expr);                      \
+            Panic2(!CORE_NAME_CONCAT(__coreUnpackValueAtLine_, __LINE__).hasErr(), "Unpack failed"); \
+            return std::move(CORE_NAME_CONCAT(__coreUnpackValueAtLine_, __LINE__).value());          \
+        }())
+#endif
 
-    return std::move(expr.value());
-}
-
-template <typename TErr, typename... Args>
-constexpr inline void Expect(expected<TErr>&& expr, [[maybe_unused]] const char* msg, [[maybe_unused]] Args... args) {
-    if constexpr (sizeof...(Args) > 0) {
-        PanicFmt(!expr.hasErr(), msg, args...);
-    }
-    else {
-        Panic(!expr.hasErr(), msg);
-    }
-}
+#ifndef Expect
+    #define Expect(expr)                         \
+        Panic2(!(expr).hasErr(), "Expect failed");
+#endif
 
 } // namespace core

@@ -102,12 +102,14 @@ private:
 };
 
 #ifndef Unpack
-    #define Unpack(expr)                                                                             \
-        ([&]() {                                                                                     \
-            auto CORE_NAME_CONCAT(__coreUnpackValueAtLine_, __LINE__) = (expr);                      \
-            Panic2(!CORE_NAME_CONCAT(__coreUnpackValueAtLine_, __LINE__).hasErr(), "Unpack failed"); \
-            return std::move(CORE_NAME_CONCAT(__coreUnpackValueAtLine_, __LINE__).value());          \
-        }())
+    #define Unpack(expr)                                                                    \
+      ([&]() {                                                                              \
+          using __ExprT = decltype((expr));                                                 \
+          static_assert(!std::is_lvalue_reference_v<__ExprT>, "Unpack needs an rvalue");    \
+          auto&& __exp = (expr);                                                            \
+          Panic2(!__exp.hasErr(), "Unpack failed");                                         \
+          return std::move(__exp.value());                                                  \
+      }())
 #endif
 
 #ifndef Expect

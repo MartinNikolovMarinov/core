@@ -3,7 +3,7 @@
 #include <thread>
 
 i32 getNumberOfCoresTest() {
-    i32 n = core::Unpack(core::threadingGetNumCores());
+    i32 n = Unpack(core::threadingGetNumCores());
     CT_CHECK(n > 0);
     u32 stdN = std::thread::hardware_concurrency();
     CT_CHECK(u32(n) == stdN);
@@ -11,7 +11,7 @@ i32 getNumberOfCoresTest() {
 }
 
 i32 threadSleepFor5msTest() {
-    core::Expect(core::threadingSleep(5));
+    Expect(core::threadingSleep(5));
     return 0;
 }
 

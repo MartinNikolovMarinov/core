@@ -42,6 +42,8 @@ constexpr expected<i32, FormatError> format(char* out, i32 outLen, const char* f
                     volatile i32* __forceCrash = nullptr;                                                  \
                     [[maybe_unused]] i32 __ignored = *__forceCrash;                                        \
                 }                                                                                          \
+                                                                                                           \
+                CORE_UNREACHABLE;                                                                          \
             }
     #endif
 #else

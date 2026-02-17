@@ -9,7 +9,7 @@ constexpr i32 expectedBasicCaseTest() {
     CT_CHECK(e1.hasValue());
     CT_CHECK(!e1.hasErr());
     CT_CHECK(e1.value() == 10);
-    auto v = core::Unpack(std::move(e1));
+    auto v = Unpack(std::move(e1));
     CT_CHECK(v == 10);
 
     core::expected<i32, const char*> e2(core::unexpected("bad"));
@@ -19,12 +19,12 @@ constexpr i32 expectedBasicCaseTest() {
 
     core::expected<i32> e3;
     CT_CHECK(!e3.hasErr());
-    core::Expect(std::move(e3)); // should not crash!
+    Expect(std::move(e3)); // should not crash!
 
     core::expected<i32> e4(core::unexpected(7));
     CT_CHECK(e4.hasErr());
     CT_CHECK(e4.err() == 7);
-    // core::Expect(std::move(e4)); // will crash!
+    // Expect(std::move(e4)); // will crash!
 
     auto e5 = std::move(e4);
     CT_CHECK(e5.hasErr());
@@ -59,7 +59,7 @@ i32 expectedWithDestructor() {
 
             {
                 // After this move, e1 will still call its destructor, but the value will have been moved.
-                auto v = core::Unpack(std::move(e1));
+                auto v = Unpack(std::move(e1));
                 CT_CHECK(v.a == 90);
                 CT_CHECK(CT::moveCtorCalled() == 1);
                 CT_CHECK(CT::copyCtorCalled() == 0);
@@ -126,7 +126,7 @@ constexpr i32 expectedWithSameTypeTest() {
     CT_CHECK(e1.hasValue());
     CT_CHECK(!e1.hasErr());
     CT_CHECK(e1.value() == 10);
-    CT_CHECK(core::Unpack(std::move(e1)) == 10);
+    CT_CHECK(Unpack(std::move(e1)) == 10);
 
     struct TestStruct {
         u64 a;
@@ -157,7 +157,7 @@ constexpr i32 expectedUsedInAFunctionTest() {
         else             return v + 2;
     };
 
-    CT_CHECK(core::Unpack(f(5)) == 5 + 2);
+    CT_CHECK(Unpack(f(5)) == 5 + 2);
     CT_CHECK(f(0).hasErr());
     CT_CHECK(core::memcmp(f(0).err(), core::cstrLen(f(0).err()), errMsg2, core::cstrLen(errMsg2)) == 0);
     CT_CHECK(f(-1).hasErr());

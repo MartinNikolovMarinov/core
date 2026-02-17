@@ -29,6 +29,8 @@ CORE_API_EXPORT void forceCrash();
                 else {                                                                        \
                     core::forceCrash();                                                       \
                 }                                                                             \
+                                                                                              \
+                CORE_UNREACHABLE;                                                             \
             }
     #endif
 #else
@@ -48,6 +50,7 @@ CORE_API_EXPORT void forceCrash();
         #define Panic2(expr, msg)                               \
             if (!(expr)) {                                      \
                 core::forceCrash();                             \
+                CORE_UNREACHABLE;                               \
             }
     #endif
 #endif

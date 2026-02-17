@@ -43,7 +43,7 @@ void verify(u32 x, u32 to) {
                 }
             }
 
-            gn = core::Unpack(core::floatToCstr(f, gbuf, BUFF_LEN));
+            gn = Unpack(core::floatToCstr(f, gbuf, BUFF_LEN));
             gbuf[gn] = '\0';
 
             if (!core::isinf(f)) {
@@ -119,7 +119,7 @@ void verify(u32 x, u32 to) {
 i32 verifyRyuAlgorithm(const core::testing::TestSuiteInfo& sInfo) {
     auto& actx = *sInfo.actx;
 
-    i32 coresN = core::Unpack(core::threadingGetNumCores());
+    i32 coresN = Unpack(core::threadingGetNumCores());
 
     auto threads = core::ArrList<core::Thread>(addr_size(coresN));
 
@@ -143,7 +143,7 @@ i32 verifyRyuAlgorithm(const core::testing::TestSuiteInfo& sInfo) {
 
     for (i32 i = 0; i < i32(coresN); i++) {
         core::Thread& t = threads[addr_size(i)];
-        core::Expect(core::threadInit(t));
+        Expect(core::threadInit(t));
 
         TArgs* tArgs = reinterpret_cast<TArgs*>(actx.alloc(1, sizeof(TArgs)));
         x += dx;

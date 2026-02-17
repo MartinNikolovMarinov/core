@@ -147,7 +147,7 @@ constexpr i32 toExponentNotationTest() {
         i32 ret = core::testing::executeTestTable("test case failed for f32 at index: ", cases, [](auto& c, const char* cErr) {
             constexpr u32 BUFF_LEN = 64;
             char gotBuf[BUFF_LEN];
-            u32 gotN = core::Unpack(core::floatToCstr(c.input, gotBuf, BUFF_LEN));
+            u32 gotN = Unpack(core::floatToCstr(c.input, gotBuf, BUFF_LEN));
             gotBuf[gotN] = '\0';
 
             i32 cmpResult = core::memcmp(gotBuf, gotN, c.expected, core::cstrLen(c.expected));
@@ -308,7 +308,7 @@ constexpr i32 toExponentNotationTest() {
         i32 ret = core::testing::executeTestTable("test case failed for f64 at index: ", cases, [](auto& c, const char* cErr) {
             constexpr u32 BUFF_LEN = 64;
             char gotBuf[BUFF_LEN];
-            u32 gotN = core::Unpack(core::floatToCstr(c.input, gotBuf, BUFF_LEN));
+            u32 gotN = Unpack(core::floatToCstr(c.input, gotBuf, BUFF_LEN));
             gotBuf[gotN] = '\0';
 
             i32 cmpResult = core::memcmp(gotBuf, gotN, c.expected, core::cstrLen(c.expected));
@@ -525,7 +525,7 @@ constexpr i32 toFixedNotationTest() {
     i32 ret = core::testing::executeTestTable("test case failed for f64 at index: ", cases, [&](auto& c, const char* cErr) {
         core::memset(gotBuf, char(9), BUFF_LEN);
 
-        u32 gotN = core::Unpack(core::floatToFixedCstr(c.input, c.precision, gotBuf, BUFF_LEN));
+        u32 gotN = Unpack(core::floatToFixedCstr(c.input, c.precision, gotBuf, BUFF_LEN));
         gotBuf[gotN] = '\0';
 
         i32 cmpResult = core::memcmp(gotBuf, gotN, c.expected, core::cstrLen(c.expected));
@@ -548,7 +548,7 @@ i32 toFixedNotationAllPowersOf10Test() {
 
     for (auto tc : g_allPowersOf10) {
         core::memset(gotBuf, char(9), BUFF_LEN);
-        u32 gotN = core::Unpack(core::floatToFixedCstr(tc.value, tc.precision, gotBuf, BUFF_LEN));
+        u32 gotN = Unpack(core::floatToFixedCstr(tc.value, tc.precision, gotBuf, BUFF_LEN));
         gotBuf[gotN] = '\0';
         i32 cmpResult = core::memcmp(gotBuf, gotN, tc.expectedStr, core::cstrLen(tc.expectedStr));
         CT_CHECK(cmpResult == 0);
@@ -566,7 +566,7 @@ i32 toFixedNotationAllBinaryExponentsTest() {
 
     for (auto tc : g_allBinaryExponents) {
         core::memset(gotBuf, char(9), BUFF_LEN);
-        u32 gotN = core::Unpack(core::floatToFixedCstr(tc.value, tc.precision, gotBuf, BUFF_LEN));
+        u32 gotN = Unpack(core::floatToFixedCstr(tc.value, tc.precision, gotBuf, BUFF_LEN));
         gotBuf[gotN] = '\0';
         i32 cmpResult = core::memcmp(gotBuf, gotN, tc.expectedStr, core::cstrLen(tc.expectedStr));
         CT_CHECK(cmpResult == 0);
@@ -610,7 +610,7 @@ constexpr i32 toSpecialValuesTest() {
         i32 ret = core::testing::executeTestTable("test case failed for f32 at index: ", cases, [](auto& c, const char* cErr) {
             constexpr u32 BUFF_LEN = 64;
             char gotBuf[BUFF_LEN];
-            u32 gotN = core::Unpack(core::floatToCstr(c.input, gotBuf, BUFF_LEN));
+            u32 gotN = Unpack(core::floatToCstr(c.input, gotBuf, BUFF_LEN));
             gotBuf[gotN] = '\0';
 
             i32 cmpResult = core::memcmp(gotBuf, gotN, c.expected, core::cstrLen(c.expected));
@@ -657,7 +657,7 @@ constexpr i32 toSpecialValuesTest() {
         i32 ret = core::testing::executeTestTable("test case failed for f64 at index: ", cases, [](auto& c, const char* cErr) {
             constexpr u32 BUFF_LEN = 64;
             char gotBuf[BUFF_LEN];
-            u32 gotN = core::Unpack(core::floatToCstr(c.input, gotBuf, BUFF_LEN));
+            u32 gotN = Unpack(core::floatToCstr(c.input, gotBuf, BUFF_LEN));
             gotBuf[gotN] = '\0';
 
             i32 cmpResult = core::memcmp(gotBuf, gotN, c.expected, core::cstrLen(c.expected));
@@ -726,7 +726,7 @@ constexpr i32 toSpecialValuesTest() {
         i32 ret = core::testing::executeTestTable("test case failed for fixed f64 at index: ", cases, [](auto& c, const char* cErr) {
             constexpr u32 BUFF_LEN = 64;
             char gotBuf[BUFF_LEN];
-            u32 gotN = core::Unpack(core::floatToFixedCstr(c.input, c.precision, gotBuf, BUFF_LEN));
+            u32 gotN = Unpack(core::floatToFixedCstr(c.input, c.precision, gotBuf, BUFF_LEN));
             gotBuf[gotN] = '\0';
 
             i32 cmpResult = core::memcmp(gotBuf, gotN, c.expected, core::cstrLen(c.expected));

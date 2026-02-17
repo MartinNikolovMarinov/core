@@ -122,11 +122,23 @@ struct StaticPathBuilder {
         if (directory.empty()) return *this;
 
         addr_off fOff = fileOff();
+        if (fOff < 0 || fOff > len) {
+            // Convince gcc's -Warray-bounds:
+            Panic(false, "[BUG] StaticPathBuilder: invalid file offset.");
+            return *this;
+        }
+
         if (buff[fOff] == core::PATH_SEPARATOR) {
             fOff++;
         }
 
-        addr_size fileLen = addr_size(len) - addr_size(fOff);
+        if (fOff < 0 || fOff > len) {
+            // Convince gcc's -Warray-bounds:
+            Panic(false, "[BUG] StaticPathBuilder: invalid file offset after separator.");
+            return *this;
+        }
+
+        addr_size fileLen = addr_size(addr_off(len) - fOff);
         bool needsSep = directory.last() != core::PATH_SEPARATOR;
         addr_size newDirLen = directory.len() + (needsSep ? 1 : 0);
         addr_off newFileStart = addr_off(newDirLen);
@@ -267,11 +279,21 @@ struct StaticPathBuilder {
 
     constexpr inline void resetFilePart() {
         addr_off fOff = fileOff();
+
         if (fOff >= 0) {
+            if (fOff >= TBufferSize) {
+                // Convince gcc's -Warray-bounds:
+                Panic(false, "[BUG] StaticPathBuilder: file offset is out of buffer range.");
+                return;
+            }
+
             if (buff[fOff] == core::PATH_SEPARATOR) {
                 fOff++;
-                // This should not be possible, but sanity check it anyway:
-                Panic(fOff < TBufferSize, "[BUG] StaticPathBuilder: buffer overflow.");
+                if (fOff >= TBufferSize) {
+                    // Convince gcc's -Warray-bounds:
+                    Panic(false, "[BUG] StaticPathBuilder: file offset is out of buffer range.");
+                    return;
+                }
             }
 
             len = i32(fOff);

@@ -68,11 +68,11 @@ using namespace coretypes;
 #pragma once
 
 // Define a portable-ish PACKED_STRUCT macro -- TODO: Write some compile-time tests for these!
-#if defined(_MSC_VER)
+#if COMPILER_MSVC == 1
     #define PACK_PUSH __pragma(pack(push, 1))
     #define PACK_POP    __pragma(pack(pop))
     #define PACKED
-#elif defined(__clang__) || defined(__GNUC__)
+#elif COMPILER_GCC == 1 || COMPILER_CLANG == 1
     #define PACK_PUSH
     #define PACK_POP
     #define PACKED __attribute__((packed))
@@ -80,6 +80,14 @@ using namespace coretypes;
     #define PACK_PUSH
     #define PACK_POP
     #define PACKED
+#endif
+
+#if COMPILER_GCC == 1 || COMPILER_CLANG == 1
+    #define CORE_UNREACHABLE __builtin_unreachable()
+#elif defined(COMPILER_MSVC)
+    #define CORE_UNREACHABLE __assume(false)
+#else
+    #define CORE_UNREACHABLE do {} while (0)
 #endif
 
 } // namespace core

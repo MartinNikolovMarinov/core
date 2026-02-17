@@ -77,7 +77,7 @@ inline constexpr addr_off find(const Memory<T>& memory, TPredicate pred) {
 
 template <typename T, typename TPredicate>
 inline constexpr addr_off findLast(const T* arr, addr_size len, TPredicate pred) {
-    for (addr_off i = addr_off(len); i >= 0; --i) {
+    for (addr_off i = addr_off(len) - 1; i >= 0; --i) {
         auto& v = arr[addr_size(i)];
         if (pred(v, addr_size(i))) return i;
     }

@@ -6,6 +6,8 @@
 namespace core {
 
 u64 getUnixTimestampNowMs() {
+    // NOTE: GetSystemTimePreciseAsFileTime can be used here for finner granularity, incase microseconds precision is
+    //      needed, but that is slower than GetSystemTimeAsFileTime so keep in mind the tradeoff.
     FILETIME ft;
     GetSystemTimeAsFileTime(&ft);
 

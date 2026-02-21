@@ -62,47 +62,95 @@
         }                                                                                         \
     }
 
-// Declares constexpr operators that expose an enum’s integral value and enable direct comparison between the enum type
-// and an integer type. The integer type must be implicitly convertible to/from the enum’s underlying type for the
-// comparisons to be well-formed. Provides unary + for value extraction and symmetric comparisons (==, !=, <, <=, >,
-// >=).
-#define CORE_ENUM_DECLARE_INT_OPS(enumType, underlyingType)         \
-    constexpr underlyingType operator+(enumType value) {            \
-        return static_cast<underlyingType>(value);                  \
-    }                                                               \
-    constexpr bool operator==(enumType lhs, underlyingType rhs) {   \
-        return static_cast<underlyingType>(lhs) == rhs;             \
-    }                                                               \
-    constexpr bool operator==(underlyingType lhs, enumType rhs) {   \
-        return lhs == static_cast<underlyingType>(rhs);             \
-    }                                                               \
-    constexpr bool operator!=(enumType lhs, underlyingType rhs) {   \
-        return static_cast<underlyingType>(lhs) != rhs;             \
-    }                                                               \
-    constexpr bool operator!=(underlyingType lhs, enumType rhs) {   \
-        return lhs != static_cast<underlyingType>(rhs);             \
-    }                                                               \
-    constexpr bool operator<(enumType lhs, underlyingType rhs) {    \
-        return static_cast<underlyingType>(lhs) < rhs;              \
-    }                                                               \
-    constexpr bool operator<(underlyingType lhs, enumType rhs) {    \
-        return lhs < static_cast<underlyingType>(rhs);              \
-    }                                                               \
-    constexpr bool operator<=(enumType lhs, underlyingType rhs) {   \
-        return static_cast<underlyingType>(lhs) <= rhs;             \
-    }                                                               \
-    constexpr bool operator<=(underlyingType lhs, enumType rhs) {   \
-        return lhs <= static_cast<underlyingType>(rhs);             \
-    }                                                               \
-    constexpr bool operator>(enumType lhs, underlyingType rhs) {    \
-        return static_cast<underlyingType>(lhs) > rhs;              \
-    }                                                               \
-    constexpr bool operator>(underlyingType lhs, enumType rhs) {    \
-        return lhs > static_cast<underlyingType>(rhs);              \
-    }                                                               \
-    constexpr bool operator>=(enumType lhs, underlyingType rhs) {   \
-        return static_cast<underlyingType>(lhs) >= rhs;             \
-    }                                                               \
-    constexpr bool operator>=(underlyingType lhs, enumType rhs) {   \
-        return lhs >= static_cast<underlyingType>(rhs);             \
+#define CORE_ENUM_DECLARE_INT_OPS(enumType, underlyingType)                    \
+    constexpr underlyingType operator+(enumType value) {                       \
+        return underlyingType(value);                                          \
+    }                                                                          \
+                                                                               \
+    /* bitwise ops: enum <op> underlyingType and underlyingType <op> enum */   \
+    constexpr bool operator==(enumType lhs, underlyingType rhs) {              \
+        return underlyingType(lhs) == rhs;                                     \
+    }                                                                          \
+    constexpr bool operator==(underlyingType lhs, enumType rhs) {              \
+        return lhs == underlyingType(rhs);                                     \
+    }                                                                          \
+    constexpr bool operator!=(enumType lhs, underlyingType rhs) {              \
+        return underlyingType(lhs) != rhs;                                     \
+    }                                                                          \
+    constexpr bool operator!=(underlyingType lhs, enumType rhs) {              \
+        return lhs != underlyingType(rhs);                                     \
+    }                                                                          \
+    constexpr bool operator<(enumType lhs, underlyingType rhs) {               \
+        return underlyingType(lhs) < rhs;                                      \
+    }                                                                          \
+    constexpr bool operator<(underlyingType lhs, enumType rhs) {               \
+        return lhs < underlyingType(rhs);                                      \
+    }                                                                          \
+    constexpr bool operator<=(enumType lhs, underlyingType rhs) {              \
+        return underlyingType(lhs) <= rhs;                                     \
+    }                                                                          \
+    constexpr bool operator<=(underlyingType lhs, enumType rhs) {              \
+        return lhs <= underlyingType(rhs);                                     \
+    }                                                                          \
+    constexpr bool operator>(enumType lhs, underlyingType rhs) {               \
+        return underlyingType(lhs) > rhs;                                      \
+    }                                                                          \
+    constexpr bool operator>(underlyingType lhs, enumType rhs) {               \
+        return lhs > underlyingType(rhs);                                      \
+    }                                                                          \
+    constexpr bool operator>=(enumType lhs, underlyingType rhs) {              \
+        return underlyingType(lhs) >= rhs;                                     \
+    }                                                                          \
+    constexpr bool operator>=(underlyingType lhs, enumType rhs) {              \
+        return lhs >= underlyingType(rhs);                                     \
+    }                                                                          \
+                                                                               \
+    /* bitwise ops: enum <op> enum */                                          \
+    constexpr enumType operator~(enumType v) {                                 \
+        return enumType(                                                       \
+            underlyingType(~underlyingType(v)));                               \
+    }                                                                          \
+    constexpr enumType operator|(enumType a, enumType b) {                     \
+        return enumType(                                                       \
+            underlyingType(a) | underlyingType(b));                            \
+    }                                                                          \
+    constexpr enumType operator&(enumType a, enumType b) {                     \
+        return enumType(                                                       \
+            underlyingType(a) & underlyingType(b));                            \
+    }                                                                          \
+    constexpr enumType operator^(enumType a, enumType b) {                     \
+        return enumType(                                                       \
+            underlyingType(a) ^ underlyingType(b));                            \
+    }                                                                          \
+    constexpr enumType& operator|=(enumType& a, enumType b) {                  \
+        a = (a | b);                                                           \
+        return a;                                                              \
+    }                                                                          \
+    constexpr enumType& operator&=(enumType& a, enumType b) {                  \
+        a = (a & b);                                                           \
+        return a;                                                              \
+    }                                                                          \
+    constexpr enumType& operator^=(enumType& a, enumType b) {                  \
+        a = (a ^ b);                                                           \
+        return a;                                                              \
+    }                                                                          \
+                                                                               \
+    /* bitwise ops: enum <op> underlyingType */                                \
+    constexpr underlyingType operator|(enumType a, underlyingType b) {         \
+        return underlyingType(a) | b;                                          \
+    }                                                                          \
+    constexpr underlyingType operator|(underlyingType a, enumType b) {         \
+        return a | underlyingType(b);                                          \
+    }                                                                          \
+    constexpr underlyingType operator&(enumType a, underlyingType b) {         \
+        return underlyingType(a) & b;                                          \
+    }                                                                          \
+    constexpr underlyingType operator&(underlyingType a, enumType b) {         \
+        return a & underlyingType(b);                                          \
+    }                                                                          \
+    constexpr underlyingType operator^(enumType a, underlyingType b) {         \
+        return underlyingType(a) ^ b;                                          \
+    }                                                                          \
+    constexpr underlyingType operator^(underlyingType a, enumType b) {         \
+        return a ^ underlyingType(b);                                          \
     }

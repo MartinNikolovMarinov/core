@@ -229,8 +229,6 @@ bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, co
             break;
     }
 
-    // TODO: The logger needs a unix timestamp.
-
     // Print Message
     if (mode == LogSpecialMode::SECTION_TITLE) {
         printHandler(" "_sv);

@@ -13,8 +13,22 @@
  *   The original implementation and details are available at: https://github.com/ulfjack/ryu
  *   The original code is also used to verify this implementation.
  *
+ *   Time formatting utilities (ISO-8601 UTC) rely on the civil-date conversion algorithm by Howard Hinnant
+ *   (“civil_from_days”), which converts Unix day counts to Gregorian calendar dates using a branch-light,
+ *   constant-time formulation.
+ *
+ * REFERENCES:
+ *   Ryu algorithm:
+ *     Ulf Adams, “Ryū: Fast Float-to-String Conversion”, PLDI 2018
+ *     https://github.com/ulfjack/ryu
+ *
+ *   Civil date algorithms:
+ *     Howard Hinnant — Date Algorithms
+ *     https://howardhinnant.github.io/date_algorithms.html
+ *
  * CREDIT:
- *   Ulf Adams and contributors.
+ *   Ulf Adams and contributors (Ryu)
+ *   Howard Hinnant (civil date algorithms)
  */
 
 #pragma once
@@ -127,6 +141,35 @@ template <typename TFloat> constexpr core::expected<TFloat, ConversionError> cst
                            constexpr core::expected<u32, ConversionError>    floatToCstr(f32 n, char* out, u32 olen);
                            constexpr core::expected<u32, ConversionError>    floatToCstr(f64 n, char* out, u32 olen);
                            constexpr core::expected<u32, ConversionError>    floatToFixedCstr(f64 n, u32 precision, char* out, u32 olen);
+
+/**
+ * @brief Converts a Unix timestamp to a UTC 8601 C string. Checks for overflows and empty input.
+ *
+ * @param tsMs - The Unix timestamp to convert.
+ * @param out - The output c string buffer.
+ * @param olen - Length of the output buffer.
+ *
+ * @return ok or parse error.
+*/
+constexpr core::expected<u32, ConversionError> timeToIsoUtc8601Cstr(u64 tsMs, char* out, addr_size olen);
+
+/**
+ * @brief Converts a Unix timestamp to a UTC ISO-8601 C string using a cached prefix.
+ *
+ * Reuses the formatted date/time prefix for timestamps within the same second
+ * to avoid repeated calendar conversions. Performs the same validation and
+ * overflow checks as the non-cached variant.
+ *
+ * @note [PERFORMACE] By rough estimations caching can be around 15% percent faster than the uncached version for
+ *       repead calls in a close enough timeframe.
+ *
+ * @param tsMs - The Unix timestamp to convert.
+ * @param out - The output c string buffer.
+ * @param olen - Length of the output buffer.
+ *
+ * @return ok or parse error.
+*/
+inline core::expected<u32, ConversionError> timeToIsoUtc8601CstrCached(u64 tsMs, char* out, addr_size olen);
 
 namespace detail {
 
@@ -328,7 +371,9 @@ constexpr core::expected<u32, ConversionError> intToBinary(i16 v, char* out, add
 constexpr core::expected<u32, ConversionError> intToBinary(i32 v, char* out, addr_size olen, u32 binLen)  { return detail::intToBinary(v, out, olen, binLen); }
 constexpr core::expected<u32, ConversionError> intToBinary(i64 v, char* out, addr_size olen, u32 binLen)  { return detail::intToBinary(v, out, olen, binLen); }
 
-#pragma region Cptr to float
+//======================================================================================================================
+// C string to Float and Float to C string
+//======================================================================================================================
 
 namespace detail {
 
@@ -6688,7 +6733,119 @@ constexpr core::expected<u32, ConversionError> floatToFixedCstr(f64 n, u32 preci
     return detail::float64ToFixedCstr(n, precision, out, olen);
 }
 
-#pragma endregion
+//======================================================================================================================
+// Unix timestamp to ISO 8601 UTC
+//======================================================================================================================
+
+namespace detail {
+
+constexpr void put2(char*& p, u32 v) {
+    *p++ = char('0' + (v / 10u));
+    *p++ = char('0' + (v % 10u));
+}
+constexpr void put3(char*& p, u32 v) {
+    *p++ = char('0' + ((v / 100u) % 10u));
+    *p++ = char('0' + ((v / 10u)  % 10u));
+    *p++ = char('0' + (v % 10u));
+}
+constexpr void put4(char*& p, u32 v) {
+    *p++ = char('0' + ((v / 1000u) % 10u));
+    *p++ = char('0' + ((v / 100u)  % 10u));
+    *p++ = char('0' + ((v / 10u)   % 10u));
+    *p++ = char('0' + (v % 10u));
+}
+
+// Formats "YYYY-MM-DDTHH:MM:SS." (20 chars) from Unix seconds since epoch (UTC).
+// The out parameter better have 20 chars to write !
+constexpr char* formatIsoUtcPrefixFromSeconds(u64 unixSeconds, char* out) {
+    u64 daysU = unixSeconds / 86400ull;
+    u64 sodU  = unixSeconds % 86400ull;
+
+    u32 hh = u32(sodU / 3600ull);
+    u32 mm = u32((sodU % 3600ull) / 60ull);
+    u32 ss = u32(sodU % 60ull);
+
+    // Civil-from-days. Input: days since 1970-01-01.
+    i64 z = i64(daysU) + 719468;
+    i64 era = (z >= 0 ? z : z - 146096) / 146097;
+    u32 doe = u32(z - era * 146097);                                   // [0, 146096]
+    u32 yoe = (doe - doe/1460 + doe/36524 - doe/146096) / 365;         // [0, 399]
+    i64 y = i64(yoe) + era * 400;
+    u32 doy = doe - (365*yoe + yoe/4 - yoe/100);                       // [0, 365]
+    u32 mp = (5*doy + 2) / 153;                                        // [0, 11]
+    u32 d  = doy - (153*mp + 2)/5 + 1;                                 // [1, 31]
+    u32 m  = mp + (mp < 10 ? 3 : u32(3 - 12));                         // [1, 12]
+    y += (m <= 2);
+
+    u32 year = u32(y);
+    u32 mon  = m;
+    u32 day  = d;
+
+    put4(out, year); *out++ = '-';
+    put2(out, mon);  *out++ = '-';
+    put2(out, day);  *out++ = 'T';
+    put2(out, hh);   *out++ = ':';
+    put2(out, mm);   *out++ = ':';
+    put2(out, ss);   *out++ = '.';
+
+    return out;
+}
+
+} // namespace detail
+
+constexpr core::expected<u32, ConversionError> timeToIsoUtc8601Cstr(u64 tsMs, char* out, addr_size olen) {
+    if (!out) {
+        return core::unexpected(ConversionError::InputEmpty);
+    }
+
+    constexpr addr_size kLen = 25;
+    if (olen < kLen) {
+        return core::unexpected(ConversionError::OutputBufferTooSmall);
+    }
+
+    u64 sec = tsMs / 1000ull;
+    u32 ms = u32(tsMs % 1000ull);
+
+    out = detail::formatIsoUtcPrefixFromSeconds(sec, out);
+
+    detail::put3(out, ms);
+    *out++ = 'Z';
+    *out = '\0';
+
+    return kLen;
+}
+
+inline core::expected<u32, ConversionError> timeToIsoUtc8601CstrCached(u64 tsMs, char* out, addr_size olen) {
+    if (!out) {
+        return core::unexpected(ConversionError::InputEmpty);
+    }
+
+    constexpr addr_size kLen = 25;
+    if (olen < kLen) {
+        return core::unexpected(ConversionError::OutputBufferTooSmall);
+    }
+
+    u64 sec = tsMs / 1000ull;
+    u32 ms = u32(tsMs % 1000ull);
+
+    constexpr addr_size CACHED_PREFIX_SIZE = 20;
+    thread_local u64  cachedSec = core::limitMax<u64>();
+    thread_local char cachedPrefix[CACHED_PREFIX_SIZE]{};
+
+    if (sec != cachedSec) {
+        cachedSec = sec;
+        detail::formatIsoUtcPrefixFromSeconds(sec, cachedPrefix);
+    }
+
+    core::memcopy(out, cachedPrefix, CACHED_PREFIX_SIZE);
+
+    char* p = out + 20;
+    detail::put3(p, ms);
+    *p++ = 'Z';
+    *p = '\0';
+
+    return kLen;
+}
 
 } // namespace core
 

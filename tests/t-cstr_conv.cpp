@@ -853,6 +853,92 @@ constexpr i32 intToBinaryErrorTest() {
     return 0;
 }
 
+constexpr i32 timeToIsoUtc8601CstrTest() {
+    {
+        struct TestCase {
+            u64 tsMs;
+            const char* expected;
+        };
+
+        constexpr TestCase cases[] = {
+            { 0ull, "1970-01-01T00:00:00.000Z" },
+            { 1ull, "1970-01-01T00:00:00.001Z" },
+            { 999ull, "1970-01-01T00:00:00.999Z" },
+            { 1000ull, "1970-01-01T00:00:01.000Z" },
+            { 86400000ull, "1970-01-02T00:00:00.000Z" },
+            { 951782400000ull, "2000-02-29T00:00:00.000Z" },
+            { 1582934400123ull, "2020-02-29T00:00:00.123Z" },
+            { 1582934400456ull, "2020-02-29T00:00:00.456Z" },
+            { 253402300799999ull, "9999-12-31T23:59:59.999Z" },
+        };
+
+        i32 ret = core::testing::executeTestTable("timeToIsoUtc8601Cstr test case failed at index: ", cases, [](auto& c, const char* cErr) {
+            char direct[25] = {};
+
+            auto directRes = core::timeToIsoUtc8601Cstr(c.tsMs, direct, CORE_C_ARRLEN(direct));
+
+            CT_CHECK(directRes.hasValue(), cErr);
+            CT_CHECK(core::memcmp(direct, core::cstrLen(direct), c.expected, core::cstrLen(c.expected)) == 0, cErr);
+
+            IS_NOT_CONST_EVALUATED {
+                char cached[25] = {};
+                auto cachedRes = core::timeToIsoUtc8601CstrCached(c.tsMs, cached, CORE_C_ARRLEN(cached));
+
+                CT_CHECK(cachedRes.hasValue(), cErr);
+                CT_CHECK(directRes.value() == cachedRes.value(), cErr);
+                CT_CHECK(core::memcmp(direct, core::cstrLen(direct), cached, core::cstrLen(cached)) == 0, cErr);
+            }
+
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
+    return 0;
+}
+
+constexpr i32 timeToIsoUtc8601CstrErrorsTest() {
+    using ConversionError = core::ConversionError;
+
+    {
+        struct TestCase {
+            bool nullOut;
+            addr_size olen;
+            ConversionError expectedErr;
+        };
+
+        constexpr TestCase cases[] = {
+            { true, 32, ConversionError::InputEmpty },
+            { false, 0, ConversionError::OutputBufferTooSmall },
+            { false, 24, ConversionError::OutputBufferTooSmall },
+        };
+
+        i32 ret = core::testing::executeTestTable("timeToIsoUtc8601Cstr error test case failed at index: ", cases, [](auto& c, const char* cErr) {
+            char direct[32] = {};
+            char* outA = c.nullOut ? nullptr : direct;
+
+            auto directRes = core::timeToIsoUtc8601Cstr(0ull, outA, c.olen);
+
+            CT_CHECK(directRes.hasErr(), cErr);
+            CT_CHECK(directRes.err() == c.expectedErr, cErr);
+
+            IS_NOT_CONST_EVALUATED {
+                char cached[32] = {};
+                char* outB = c.nullOut ? nullptr : cached;
+                auto cachedRes = core::timeToIsoUtc8601CstrCached(0ull, outB, c.olen);
+
+                CT_CHECK(cachedRes.hasErr(), cErr);
+                CT_CHECK(cachedRes.err() == c.expectedErr, cErr);
+            }
+
+            return 0;
+        });
+        CT_CHECK(ret == 0);
+    }
+
+    return 0;
+}
+
 i32 runCstrConvTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
@@ -873,6 +959,10 @@ i32 runCstrConvTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     if (runTest(tInfo, intToBinaryTest) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(intToBinaryErrorTest);
     if (runTest(tInfo, intToBinaryErrorTest) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(timeToIsoUtc8601CstrTest);
+    if (runTest(tInfo, timeToIsoUtc8601CstrTest) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(timeToIsoUtc8601CstrErrorsTest);
+    if (runTest(tInfo, timeToIsoUtc8601CstrErrorsTest) != 0) { return -1; }
 
     return 0;
 }
@@ -884,6 +974,8 @@ constexpr i32 runCompiletimeCstrConvTestsSuite() {
     RunTestCompileTime(intToHexErrorsTest);
     RunTestCompileTime(intToBinaryTest);
     RunTestCompileTime(intToBinaryErrorTest);
+    RunTestCompileTime(timeToIsoUtc8601CstrTest);
+    RunTestCompileTime(timeToIsoUtc8601CstrErrorsTest);
 
     return 0;
 }

@@ -109,6 +109,25 @@ i32 onOomArenaAllocatorTest() {
     return 0;
 }
 
+i32 arenaAllocatorReallocPreservesOverlappingBytesTest() {
+    core::StdArenaAllocator allocator(64);
+    defer { allocator.clear(); };
+
+    u8* data = static_cast<u8*>(allocator.alloc(2, 8));
+    CT_CHECK(data != nullptr);
+    for (addr_size i = 0; i < 16; ++i) {
+        data[i] = u8(i + 1);
+    }
+
+    u8* reallocated = static_cast<u8*>(allocator.realloc(data, 4, 4, 2, 8));
+    CT_CHECK(reallocated != nullptr);
+    for (addr_size i = 0; i < 16; ++i) {
+        CT_CHECK(reallocated[i] == u8(i + 1));
+    }
+
+    return 0;
+}
+
 i32 runArenaAllocatorTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
@@ -122,6 +141,8 @@ i32 runArenaAllocatorTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     if (runTest(tInfo, arenaAllocatorMoveTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(onOomArenaAllocatorTest);
     if (runTest(tInfo, onOomArenaAllocatorTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(arenaAllocatorReallocPreservesOverlappingBytesTest);
+    if (runTest(tInfo, arenaAllocatorReallocPreservesOverlappingBytesTest) != 0) { ret = -1; }
 
     return ret;
 }

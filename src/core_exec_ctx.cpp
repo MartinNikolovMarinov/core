@@ -22,6 +22,7 @@ void zeroOutAllocatorContext(AllocatorContext& actx) {
     actx.nameFn = nullptr;
     actx.allocFn = nullptr;
     actx.callocFn = nullptr;
+    actx.reallocFn = nullptr;
     actx.freeFn = nullptr;
     actx.clearFn = nullptr;
     actx.totalMemoryAllocatedFn = nullptr;
@@ -42,6 +43,7 @@ AllocatorContext::AllocatorContext(AllocatorContext&& other) {
     nameFn = other.nameFn;
     allocFn = other.allocFn;
     callocFn = other.callocFn;
+    reallocFn = other.reallocFn;
     freeFn = other.freeFn;
     clearFn = other.clearFn;
     totalMemoryAllocatedFn = other.totalMemoryAllocatedFn;
@@ -57,6 +59,7 @@ AllocatorContext& AllocatorContext::operator=(AllocatorContext&& other) {
     nameFn = other.nameFn;
     allocFn = other.allocFn;
     callocFn = other.callocFn;
+    reallocFn = other.reallocFn;
     freeFn = other.freeFn;
     clearFn = other.clearFn;
     totalMemoryAllocatedFn = other.totalMemoryAllocatedFn;
@@ -80,6 +83,10 @@ void* AllocatorContext::alloc(addr_size count, addr_size size) {
 
 void* AllocatorContext::zeroAlloc(addr_size count, addr_size size) {
     return callocFn(allocatorData, count, size);
+}
+
+void* AllocatorContext::reallocate(void* ptr, addr_size newCount, addr_size newSize, addr_size oldCount, addr_size oldSize) {
+    return reallocFn(allocatorData, ptr, newCount, newSize, oldCount, oldSize);
 }
 
 void AllocatorContext::free(void* ptr, addr_size count, addr_size size) {

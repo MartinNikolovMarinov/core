@@ -2,6 +2,8 @@
 #include <core_assert.h>
 #include <core_mem.h>
 
+#include <math/core_math.h>
+
 namespace core {
 
 namespace {
@@ -40,6 +42,18 @@ inline void* _calloc(void** currentAddr, const void* startAddr, addr_size cap, c
         addr_size effectiveSize = count * size;
         effectiveSize = core::align(effectiveSize);
         core::memset(reinterpret_cast<u8*>(ret), u8(0), effectiveSize);
+    }
+    return ret;
+}
+
+inline void* _recalloc(void** currentAddr, const void* startAddr, addr_size cap, const OOMHandlerFn oomHandler,
+                       const void* data, addr_size newCount, addr_size newSize, addr_size oldCount, addr_size oldSize) {
+    void* ret = _alloc(currentAddr, startAddr, cap, oomHandler, newCount, newSize);
+    addr_size newByteLen = newCount * newSize;
+    addr_size oldByteLen = oldCount * oldSize;
+    addr_size copyLen = core::core_min(newByteLen, oldByteLen);
+    if (ret && copyLen > 0) {
+        core::memcopy(reinterpret_cast<u8*>(ret), reinterpret_cast<const u8*>(data), copyLen);
     }
     return ret;
 }
@@ -84,6 +98,10 @@ void* BumpAllocator::calloc(addr_size count, addr_size size) {
     return _calloc(&m_currentAddr, m_startAddr, m_cap, oomHandler, count, size);
 }
 
+void* BumpAllocator::realloc(void* ptr, addr_size newCount, addr_size newSize, addr_size oldCount, addr_size oldSize) {
+    return _recalloc(&m_currentAddr, m_startAddr, m_cap, oomHandler, ptr, newCount, newSize, oldCount, oldSize);
+}
+
 void BumpAllocator::free(void*, addr_size, addr_size) {}
 
 void BumpAllocator::clear() {
@@ -120,6 +138,10 @@ void* ThreadLocalBumpAllocator::alloc(addr_size count, addr_size size) {
 
 void* ThreadLocalBumpAllocator::calloc(addr_size count, addr_size size) {
     return _calloc(&tl_currentAddr, tl_startAddr, tl_capacity, oomHandler, count, size);
+}
+
+void* ThreadLocalBumpAllocator::realloc(void* ptr, addr_size newCount, addr_size newSize, addr_size oldCount, addr_size oldSize) {
+    return _recalloc(&tl_currentAddr, tl_startAddr, tl_capacity, oomHandler, ptr, newCount, newSize, oldCount, oldSize);
 }
 
 void ThreadLocalBumpAllocator::free(void*, addr_size, addr_size) {}

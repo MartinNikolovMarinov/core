@@ -22,6 +22,7 @@ constexpr AllocatorId DEFAULT_ALLOCATOR_ID = 0;
 
 using AllocateFn             = void *(*)(void* allocatorData, addr_size count, addr_size size);
 using ZeroAllocateFn         = void *(*)(void* allocatorData, addr_size count, addr_size size);
+using ReAllocateFn           = void *(*)(void* allocatorData, void* ptr, addr_size newCount, addr_size newSize, addr_size oldCount, addr_size oldSize);
 using FreeFn                 = void (*)(void* allocatorData, void *ptr, addr_size count, addr_size size);
 using ClearFn                = void (*)(void* allocatorData);
 using TotalMemoryAllocatedFn = addr_size (*)(void* allocatorData);
@@ -33,6 +34,7 @@ using CanDetectLeaksFn       = bool (*)(void* allocatorData);
 struct CORE_API_EXPORT AllocatorContext {
     AllocateFn allocFn;
     ZeroAllocateFn callocFn;
+    ReAllocateFn reallocFn;
     FreeFn freeFn;
     ClearFn clearFn;
     TotalMemoryAllocatedFn totalMemoryAllocatedFn;
@@ -54,6 +56,7 @@ struct CORE_API_EXPORT AllocatorContext {
 
     void* alloc(addr_size count, addr_size size);
     void* zeroAlloc(addr_size count, addr_size size);
+    void* reallocate(void* ptr, addr_size newCount, addr_size newSize, addr_size oldCount, addr_size oldSize);
     void free(void* ptr, addr_size count, addr_size size);
     void clear();
     addr_size totalMemoryAllocated();
@@ -85,6 +88,10 @@ AllocatorContext createAllocatorCtx(TAllocator* allocator) {
     ctx.callocFn = [](void* allocatorData, core::addr_size count, core::addr_size size) -> void* {
         auto& a = *reinterpret_cast<TAllocator*>(allocatorData);
         return a.calloc(count, size);
+    };
+    ctx.reallocFn = [](void* allocatorData, void* ptr, addr_size newCount, addr_size newSize, addr_size oldCount, addr_size oldSize) -> void* {
+        auto& a = *reinterpret_cast<TAllocator*>(allocatorData);
+        return a.realloc(ptr, newCount, newSize, oldCount, oldSize);
     };
     ctx.freeFn = [](void* allocatorData, void* ptr, core::addr_size count, core::addr_size size) {
         auto& a = *reinterpret_cast<TAllocator*>(allocatorData);

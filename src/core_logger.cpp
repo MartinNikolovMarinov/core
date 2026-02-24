@@ -69,7 +69,7 @@ bool loggerInit(const LoggerCreateInfo& createInfo) {
 
     auto& actx = core::getAllocator(createInfo.allocatorId);
     void* initialBuffer = actx.alloc(LOGGER_INITIAL_MEMORY_SIZE, sizeof(char));
-    state.loggerMemory = { reinterpret_cast<char*>(initialBuffer), LOGGER_INITIAL_MEMORY_SIZE };
+    state.loggerMemory = { .mem = { reinterpret_cast<char*>(initialBuffer), LOGGER_INITIAL_MEMORY_SIZE }, .at = 0 };
 
     state.tagTranslationTable[0][0] = 'R'; // mark as reserved.
 
@@ -86,7 +86,7 @@ void loggerDestroy() {
         return;
     }
 
-    core::memoryFree(std::move(state.loggerMemory), state.allocatorId);
+    state.loggerMemory.freeWith(state.allocatorId);
 
     // reset the state:
     state = getDefaultLoggerState();

@@ -21,15 +21,6 @@ using namespace coretypes;
 
 template <typename T> struct Memory;
 
-template <typename T> void memoryFree(Memory<T>&& mem, AllocatorId allocatorId);
-template <typename T> void memoryFree(Memory<T>&& mem, AllocatorContext& actx);
-template <typename T> [[nodiscard]] Memory<T> memoryReallocate(Memory<T>&& mem, addr_size count, AllocatorId allocatorId);
-template <typename T> [[nodiscard]] Memory<T> memoryReallocate(Memory<T>&& mem, addr_size count, AllocatorContext& actx);
-template <typename T> [[nodiscard]] Memory<T> memorySet(Memory<T>& mem, addr_size i, T&& v, AllocatorId allocatorId);
-template <typename T> [[nodiscard]] Memory<T> memorySet(Memory<T>& mem, addr_size i, T&& v, AllocatorContext& actx);
-template <typename T> [[nodiscard]] Memory<T> memoryZeroAllocate(addr_size count, AllocatorId allocatorId);
-template <typename T> [[nodiscard]] Memory<T> memoryZeroAllocate(addr_size count, AllocatorContext& actx);
-
 template <typename T> inline    addr_size imemcopy(T* dest, const T* src, addr_size len);
 template <typename T> constexpr addr_size cmemcopy(T* dest, const T* src, addr_size len);
 template <typename T> constexpr addr_size memcopy(T* dest, const T* src, addr_size len);
@@ -71,9 +62,9 @@ struct Memory {
     constexpr T& operator[](i32 idx) const { return ptr[idx]; }
     constexpr T& operator[](size_type idx) const { return ptr[idx]; }
     constexpr T& atUnsafe(i32 idx) const { return ptr[idx]; }
-    constexpr T* atUnsafe(size_type idx) const { return ptr + idx; }
-    constexpr T& at(i32 idx) const { return at(addr_size(idx)); }
-    constexpr T* at(size_type idx) const {
+    constexpr T& atUnsafe(size_type idx) const { return ptr[idx]; }
+    constexpr T& at(i32 idx) const { return at(size_type(idx)); }
+    constexpr T& at(size_type idx) const {
         Assert(idx < length, "Index out of range");
         return atUnsafe(idx);
     }
@@ -104,16 +95,21 @@ struct Memory {
 
     constexpr bool empty() const { return ptr == nullptr || length == 0; }
 
+    constexpr void clear() {
+        ptr = nullptr;
+        length = 0;
+    }
+
     constexpr bool eq(const Memory& other) const {
         bool areEqual = other.length == length && this->cmp(other) == 0;
         return areEqual;
     }
-    constexpr bool eq(const char* other, addr_size olen) const {
+    constexpr bool eq(const char* other, size_type olen) const {
         bool areEqual = olen == length && this->cmp(other, olen) == 0;
         return areEqual;
     }
     constexpr bool eq(const char* other) const {
-        addr_size olen = core::cstrLen(other);
+        size_type olen = core::cstrLen(other);
         bool areEqual = olen == length && this->cmp(other, olen) == 0;
         return areEqual;
     }
@@ -121,7 +117,7 @@ struct Memory {
     constexpr i32 cmp(const Memory& other) const {
         return core::memcmp<T>(ptr, length, other.ptr, other.length);
     }
-    constexpr i32 cmp(const char* other, addr_size olen) const {
+    constexpr i32 cmp(const char* other, size_type olen) const {
         return core::memcmp<T>(ptr, length, other, olen);
     }
 
@@ -136,7 +132,7 @@ struct Memory {
 
     constexpr Memory slice(size_type offset) {
         Assert(offset < length, "offset for slice outside memory boundary");
-        return Memory(ptr + offset, length - offset);
+        return { ptr + offset, length - offset };
     }
 
     constexpr Memory slice(size_type offset, size_type slen) {
@@ -144,143 +140,132 @@ struct Memory {
         Assert(offset < length, "offset for slice outside memory boundary");
         Assert(slen <= length, "slen for slice outside memory boundary");
         Assert(offset + slen <= length, "slice outside memory boundary");
-        return Memory(ptr + offset, slen);
+        return { ptr + offset, slen };
+    }
+
+    constexpr void setRange(size_type from, size_type to, T&& v) {
+        addr_off n = addr_off(to) - addr_off(from);
+        Assert(n > 0, "from and to must be in the range (from < to)");
+        Assert(from < len(), "range is outside valid memory");
+        Assert(to <= len(), "range is outside valid memory");
+
+        core::memset(ptr + from, v, n);
     }
 };
 
 static_assert(std::is_trivial_v<Memory<i32>>, "Memory must be a trivial type.");
 
-/**
- * \brief
- * Allocates a memory block using the specified allocator. The allocated memory is zeroed-out.
- */
-template <typename T>
-[[nodiscard]] core::Memory<T> memoryZeroAllocate(addr_size count, core::AllocatorId allocatorId) {
-    auto& actx = core::getAllocator(allocatorId);
-    return memoryZeroAllocate<T>(count, actx);
-}
-template <typename T>
-[[nodiscard]] core::Memory<T> memoryZeroAllocate(addr_size count, core::AllocatorContext& actx) {
-    auto fileMemory = core::Memory<T> (
-        reinterpret_cast<T*>(actx.zeroAlloc(count, sizeof(T))),
-        count
-    );
-    return fileMemory;
-}
+template<typename T>
+struct BufferedMemory {
+    using size_type = addr_size;
 
-/**
- * \brief
- * Frees the given memory block using the specified allocator.
- *
- * This function deallocates the memory pointed to by `mem.ptr`, using the allocator associated with `allocatorId`.
- * It then nulls the pointer and resets the length to 0.
- *
- * \warning
- * - The allocator must be the same one used to allocate the memory, or the behavior is VERY undefined.
- * - Use only with types that are trivially destructible (no destructors are invoked).
- */
-template <typename T>
-void memoryFree(core::Memory<T>&& mem, core::AllocatorId allocatorId) {
-    static_assert(std::is_trivially_destructible_v<T>, "T should be trivially destructible");
-
-    auto& actx = core::getAllocator(allocatorId);
-    memoryFree(std::move(mem), actx);
-}
-template <typename T>
-void memoryFree(core::Memory<T>&& mem, core::AllocatorContext& actx) {
-    static_assert(std::is_trivially_destructible_v<T>, "T should be trivially destructible");
-
-    if (mem.empty()) return;
-    actx.free(mem.data(), mem.len(), sizeof(T));
-    mem.ptr = nullptr;
-    mem.length = 0;
-}
-
-/**
- * \brief
- * Reallocates a memory block to a new buffer holding `count` elements using the given allocator.
- *
- * Allocates a new zero-initialized buffer of type `T[count]`, copies the contents from the original block,
- * and frees the original memory using the same allocator. Leaves `mem` null and empty.
- *
- * \param mem         The source memory block (rvalue reference).
- * \param count       The number of elements to allocate in the new block.
- * \param allocatorId The allocator to use for the new allocation and for freeing the old one.
- *
- * \return A new Memory<T> object owning the newly allocated memory.
- *
- * \warning
- * - `count` must be greater than or equal to `mem.len()`, otherwise this is a logic error.
- * - The allocator must be the same one used to allocate the memory, or the behavior is VERY undefined.
- * - Use only with types that are trivially copyable (copied via memcpy, destructors not invoked).
- */
-template <typename T>
-[[nodiscard]] Memory<T> memoryReallocate(core::Memory<T>&& mem, addr_size count, core::AllocatorId allocatorId) {
     static_assert(std::is_trivially_copyable_v<T>, "T should be trivially copyable");
 
-    auto& actx = core::getAllocator(allocatorId);
-    return memoryReallocate(std::move(mem), count, actx);
-}
-template <typename T>
-[[nodiscard]] Memory<T> memoryReallocate(core::Memory<T>&& mem, addr_size count, core::AllocatorContext& actx) {
-    static_assert(std::is_trivially_copyable_v<T>, "T should be trivially copyable");
+    Memory<T> mem;
+    addr_size at;
 
-    Assert(count >= mem.len(), "Trying to shrink with memoryMove is not advisable!");
+    constexpr size_type cap() { return mem.len(); }
 
-    if (count == 0) return mem;
+    constexpr operator bool() const { return mem.ptr != nullptr; }
 
-    core::Memory<T> ret;
-    ret.ptr = reinterpret_cast<T*>(actx.zeroAlloc(count, sizeof(T)));
-    ret.length = count;
+    constexpr T& operator[](i32 idx) const { return mem[idx]; }
+    constexpr T& operator[](size_type idx) const { return mem[idx]; }
 
-    core::memcopy(ret.ptr, mem.data(),mem.len());
-
-    memoryFree(std::move(mem), actx);
-
-    return ret;
-}
-
-/**
- * \brief
- * Sets the element at index `i` to `v`, expanding the backing buffer as needed using `allocatorId`.
- *
- * If `i` is beyond the current length, the buffer is grown (doubling strategy) to fit `i`, reusing
- * `memoryReallocate` for allocation and copying.
- *
- * \param mem         The memory block to write into. Ownership may be transferred if reallocation occurs.
- * \param i           Index to set.
- * \param v           Value to write at index `i`.
- * \param allocatorId The allocator used when growing the buffer.
- *
- * \return A Memory<T> pointing to the (potentially reallocated) buffer with the value written.
- *
- * \warning
- * - The allocator must match the one that owns `mem`, otherwise behavior is undefined.
- * - Only trivially copyable types are supported.
- */
-template <typename T>
-[[nodiscard]] Memory<T> memorySet(core::Memory<T>& mem, addr_size i, T&& v, core::AllocatorId allocatorId) {
-    static_assert(std::is_trivially_copyable_v<T>, "T should be trivially copyable");
-
-    auto& actx = core::getAllocator(allocatorId);
-    return memorySet(mem, i, std::move(v), actx);
-}
-template <typename T>
-[[nodiscard]] Memory<T> memorySet(core::Memory<T>& mem, addr_size i, T&& v, core::AllocatorContext& actx) {
-    static_assert(std::is_trivially_copyable_v<T>, "T should be trivially copyable");
-
-    if (i >= mem.len()) {
-        addr_size newLen = mem.len() == 0 ? 1 : mem.len();
-        while (i >= newLen) {
-            newLen *= 2;
-        }
-
-        mem = memoryReallocate(std::move(mem), newLen, actx);
+    constexpr T* end() {
+        Assert(mem.ptr != nullptr, "memory is not initialized");
+        return mem.ptr + at;
+    }
+    constexpr const T* end() const {
+        Assert(mem.ptr != nullptr, "memory is not initialized");
+        return mem.ptr + at;
     }
 
-    mem[i] = std::move(v);
-    return mem;
-}
+    constexpr T* begin() {
+        Assert(mem.ptr != nullptr, "memory is not initialized");
+        return mem.ptr;
+    }
+    constexpr const T* begin() const {
+        Assert(mem.ptr != nullptr, "memory is not initialized");
+        return mem.ptr;
+    }
+
+    constexpr T& last() { return *(end() - 1); }
+    constexpr const T& last() const { return *(end() - 1); }
+
+    constexpr T& first() { return *(begin()); }
+    constexpr const T& first() const { return *(begin()); }
+
+    constexpr bool empty() const { return mem.ptr == nullptr || at == 0; }
+
+    inline void append(T&& x, core::AllocatorId allocatorId) {
+        auto& actx = core::getAllocator(allocatorId);
+        append(std::move(x), actx);
+    }
+    constexpr void append(T&& x, core::AllocatorContext& actx) {
+        if (at >= cap()) {
+            size_type newCap = cap() == 0 ? 1 : cap();
+            if (at >= newCap) {
+                newCap *= 2;
+            }
+
+            reallocWith(newCap, actx);
+        }
+
+        mem.ptr[at] = std::move(x);
+        at++;
+    }
+
+    constexpr void removeUnordered(size_type i) {
+        Assert(i < at, "index out of range");
+        Assert(!mem.empty(), "[BUG] this should never happen");
+        core::swap(mem[i], mem[at - 1]);
+        at--;
+    }
+
+    inline void allocWith(size_type count, core::AllocatorId allocatorId) {
+        auto& actx = core::getAllocator(allocatorId);
+        allocWith(count, actx);
+    }
+    constexpr void allocWith(size_type count, core::AllocatorContext& actx) {
+        mem.ptr = reinterpret_cast<T*>(actx.alloc(count, sizeof(T)));
+        mem.length = count;
+        at = 0;
+    }
+
+    inline void callocWith(size_type count, core::AllocatorId allocatorId) {
+        auto& actx = core::getAllocator(allocatorId);
+        callocWith(count, actx);
+    }
+    constexpr void callocWith(size_type count, core::AllocatorContext& actx) {
+        mem.ptr = reinterpret_cast<T*>(actx.zeroAlloc(count, sizeof(T)));
+        mem.length = count;
+        at = 0;
+    }
+
+    inline void reallocWith(size_type count, core::AllocatorId allocatorId) {
+        auto& actx = core::getAllocator(allocatorId);
+        reallocWith(count, actx);
+    }
+    constexpr void reallocWith(size_type count, core::AllocatorContext& actx) {
+        if (count == 0) return;
+
+        mem.ptr = reinterpret_cast<T*>(actx.reallocate(mem.ptr, count, sizeof(T), mem.length, sizeof(T)));
+        mem.length = count;
+    }
+
+    inline void freeWith(core::AllocatorId allocatorId) {
+        auto& actx = core::getAllocator(allocatorId);
+        freeWith(actx);
+    }
+    constexpr void freeWith(core::AllocatorContext& actx) {
+        if (mem.empty()) return;
+        actx.free(mem.ptr, mem.length, sizeof(T));
+        mem.clear();
+        at = 0;
+    }
+};
+
+static_assert(std::is_trivial_v<BufferedMemory<i32>>, "BufferedMemory must be a trivial type.");
 
 #pragma region Mem Copy ------------------------------------------------------------------------------------------------
 

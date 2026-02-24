@@ -430,7 +430,7 @@ constexpr i32 memoryTests() {
         CT_CHECK(m.len() == N);
         for (addr_size i = 0; i < N; i++) {
             CT_CHECK(m[i] == arr[i]);
-            CT_CHECK(m.at(i) != nullptr && *m.at(i) == arr[i]);
+            CT_CHECK(m.at(i) == arr[i]);
         }
     }
 
@@ -580,71 +580,36 @@ i32 memoryTestsEdgeCases() {
 }
 
 template <core::AllocatorId TAllocId>
-i32 runMemoryAllocationTest() {
-    constexpr addr_size N = 512;
-    core::Memory<u8> container[N] = {};
-    core::Memory<u8> reallocated[N] = {};
+i32 runBufferedMemoryBasicFlowTest() {
+    core::BufferedMemory<u8> bm;
+    bm.allocWith(5, TAllocId);
+    CT_CHECK(bm.cap() == 5);
+    CT_CHECK(bm.at == 0);
 
-    // Initially allocate everything
-    for (addr_size i = 0; i < N; i++) {
-        auto m = core::memoryZeroAllocate<u8>(i + 1, TAllocId);
-        container[i] = m;
+    // Append up to capacity
+    for (addr_size i = 0; i < 5; i++) {
+        bm.append(u8(i), TAllocId);
     }
+    CT_CHECK(bm.cap() == 5);
+    CT_CHECK(bm.at == 5);
 
-    // Reallocated everything from the container
-    for (addr_size i = 0; i < N; i++) {
-        reallocated[i] = core::memoryReallocate(std::move(container[i]), container[i].len() * 2, TAllocId);
+    // Verify iterators work
+    addr_size i = 0;
+    for (auto x : bm) {
+        CT_CHECK(x == i++);
     }
+    CT_CHECK(i == bm.at);
 
-    // Everything that was moved should be cleared to zero
-    for (addr_size i = 0; i < N; i++) {
-        CT_CHECK(container[i].data() == nullptr);
-        CT_CHECK(container[i].len() == 0);
-    }
+    // Append past capacity and trigger resize
+    bm.append(u8(6), TAllocId);
+    CT_CHECK(bm.at == 6);
+    CT_CHECK(bm.last() == 6);
+    CT_CHECK(bm.cap() > 5);
 
-    // Free everything
-    for (addr_size i = 0; i < N; i++) {
-        core::memoryFree(std::move(reallocated[i]), TAllocId);
-    }
-
-    // Everything that was moved freed should be cleared to zero
-    for (addr_size i = 0; i < N; i++) {
-        CT_CHECK(reallocated[i].data() == nullptr);
-        CT_CHECK(reallocated[i].len() == 0);
-    }
-
-    // Reallocating uninitialized should do nothing
-    {
-        core::Memory<u8> uninitialized = {};
-        auto reallocatedUninitialized = core::memoryReallocate(std::move(uninitialized), 0, TAllocId);
-        CT_CHECK(reallocatedUninitialized.data() == uninitialized.data());
-        CT_CHECK(reallocatedUninitialized.data() == nullptr);
-    }
-
-    // Memory set grow and preserve data.
-    {
-        core::Memory<u8> mem = {};
-        mem = core::memorySet(mem, 0, u8(123), TAllocId);
-        CT_CHECK(mem.len() == 1);
-        CT_CHECK(mem[0] == 123);
-
-        u8* prevPtr = mem.data();
-        mem = core::memorySet(mem, 0, u8(45), TAllocId);
-        CT_CHECK(mem.data() == prevPtr);
-        CT_CHECK(mem.len() == 1);
-        CT_CHECK(mem[0] == 45);
-
-        mem = core::memorySet(mem, 5, u8(7), TAllocId);
-        CT_CHECK(mem.data() != prevPtr); // pointer is no longer valid
-        CT_CHECK(mem.len() == 8);
-        CT_CHECK(mem[0] == 45);
-        CT_CHECK(mem[5] == 7);
-        for (addr_size idx = 1; idx < mem.len(); idx++) {
-            if (idx == 5) continue;
-            CT_CHECK(mem[idx] == 0);
-        }
-        core::memoryFree(std::move(mem), TAllocId);
-    }
+    // Free
+    bm.freeWith(TAllocId);
+    CT_CHECK(bm.at == 0);
+    CT_CHECK(bm.mem.empty());
 
     return 0;
 }
@@ -657,8 +622,8 @@ i32 runDynamicMemoryTests(const core::testing::TestSuiteInfo& sInfo) {
 
     defer { core::getAllocator(TAllocId).clear(); };
 
-    tInfo.name = FN_NAME_TO_CPTR(runMemoryAllocationTest);
-    if (runTest(tInfo, runMemoryAllocationTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(runBufferedMemoryBasicFlowTest);
+    if (runTest(tInfo, runBufferedMemoryBasicFlowTest<TAllocId>) != 0) { return -1; }
 
     return 0;
 }

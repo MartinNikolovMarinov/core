@@ -21,6 +21,7 @@ template <typename T>
 concept AllocatorConcept = requires(T a) {
     { a.alloc(std::declval<addr_size>(), std::declval<addr_size>()) } -> core::same_as<void*>;
     { a.calloc(std::declval<addr_size>(), std::declval<addr_size>()) } -> core::same_as<void*>;
+    { a.realloc(std::declval<void*>(), std::declval<addr_size>(), std::declval<addr_size>(), std::declval<addr_size>(), std::declval<addr_size>()) } -> core::same_as<void*>;
     { a.clear() };
     { a.free(std::declval<void*>(), std::declval<addr_size>(), std::declval<addr_size>()) };
     { a.totalMemoryAllocated() } -> core::same_as<addr_size>;
@@ -51,6 +52,7 @@ struct CORE_API_EXPORT StdAllocator {
 
     void* alloc(addr_size count, addr_size size);
     void* calloc(addr_size count, addr_size size);
+    void* realloc(void* ptr, addr_size newCount, addr_size newSize, addr_size oldCount, addr_size oldSize);
     void free(void* ptr, addr_size count, addr_size size);
     void clear(); // does nothing
     addr_size totalMemoryAllocated(); // always returns 0
@@ -76,6 +78,7 @@ struct StdStatsAllocator {
 
     CORE_API_EXPORT void* alloc(addr_size count, addr_size size);
     CORE_API_EXPORT void* calloc(addr_size count, addr_size size);
+    CORE_API_EXPORT void* realloc(void* ptr, addr_size newCount, addr_size newSize, addr_size oldCount, addr_size oldSize);
     CORE_API_EXPORT void free(void* ptr, addr_size count, addr_size size);
     CORE_API_EXPORT void clear();
     CORE_API_EXPORT addr_size totalMemoryAllocated();
@@ -108,6 +111,7 @@ struct CORE_API_EXPORT BumpAllocator {
 
     void* alloc(addr_size count, addr_size size);
     void* calloc(addr_size count, addr_size size);
+    void* realloc(void* ptr, addr_size newCount, addr_size newSize, addr_size oldCount, addr_size oldSize);
     void free(void* ptr, addr_size count, addr_size size); // does nothing
     void clear();
     addr_size totalMemoryAllocated(); // same as inUseMemory
@@ -144,6 +148,7 @@ struct CORE_API_EXPORT ThreadLocalBumpAllocator {
 
     void* alloc(addr_size count, addr_size size);
     void* calloc(addr_size count, addr_size size);
+    void* realloc(void* ptr, addr_size newCount, addr_size newSize, addr_size oldCount, addr_size oldSize);
     void free(void* ptr, addr_size count, addr_size size); // does nothing
     void clear();
     addr_size totalMemoryAllocated(); // same as inUseMemory
@@ -177,6 +182,7 @@ struct CORE_API_EXPORT StdArenaAllocator {
 
     void* alloc(addr_size count, addr_size size);
     void* calloc(addr_size count, addr_size size);
+    void* realloc(void* ptr, addr_size newCount, addr_size newSize, addr_size oldCount, addr_size oldSize);
     void free(void* ptr, addr_size count, addr_size size); // does nothing
     void clear();
     addr_size totalMemoryAllocated();
@@ -215,6 +221,7 @@ struct CORE_API_EXPORT ThreadLocalStdArenaAllocator {
 
     void* alloc(addr_size count, addr_size size);
     void* calloc(addr_size count, addr_size size);
+    void* realloc(void* ptr, addr_size newCount, addr_size newSize, addr_size oldCount, addr_size oldSize);
     void free(void* ptr, addr_size count, addr_size size); // does nothing
     void clear();
     addr_size totalMemoryAllocated();

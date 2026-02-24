@@ -3,6 +3,8 @@
 #include <core_macros.h>
 #include <core_mem.h>
 
+#include <math/core_math.h>
+
 #include <cstdlib>
 
 namespace core {
@@ -84,6 +86,19 @@ inline void* _calloc(ArenaBlock** blocks, addr_size* blockCount, const addr_size
     return ret;
 }
 
+inline void* _realloc(ArenaBlock** blocks, addr_size* blockCount, const addr_size blockSize,
+                     const OOMHandlerFn oomHandler,
+                     const void* data, addr_size newCount, addr_size newSize, addr_size oldCount, addr_size oldSize) {
+    void* ret = _alloc(blocks, blockCount, blockSize, oomHandler, newSize, newCount);
+    addr_size newByteLen = newCount * newSize;
+    addr_size oldByteLen = oldCount * oldSize;
+    addr_size copyLen = core::core_min(newByteLen, oldByteLen);
+    if (ret && copyLen > 0) {
+        core::memcopy(reinterpret_cast<u8*>(ret), reinterpret_cast<const u8*>(data), copyLen);
+    }
+    return ret;
+}
+
 inline void _clear(ArenaBlock* blocks, addr_size blockCount) {
     if (blocks == nullptr || blockCount == 0) {
         return;
@@ -148,6 +163,10 @@ void* StdArenaAllocator::calloc(addr_size count, addr_size size) {
     return _calloc(&m_blocks, &m_blockCount, m_blockSize, oomHandler, size, count);
 }
 
+void* StdArenaAllocator::realloc(void* ptr, addr_size newCount, addr_size newSize, addr_size oldCount, addr_size oldSize) {
+    return _realloc(&m_blocks, &m_blockCount, m_blockSize, oomHandler, ptr, newCount, newSize, oldCount, oldSize);
+}
+
 void StdArenaAllocator::free(void*, addr_size, addr_size) {}
 
 void StdArenaAllocator::clear() {
@@ -192,6 +211,10 @@ void* ThreadLocalStdArenaAllocator::alloc(addr_size count, addr_size size) {
 
 void* ThreadLocalStdArenaAllocator::calloc(addr_size count, addr_size size) {
     return _calloc(&tl_blocks, &tl_blockCount, tl_blockSize, oomHandler, size, count);
+}
+
+void* ThreadLocalStdArenaAllocator::realloc(void* ptr, addr_size newCount, addr_size newSize, addr_size oldCount, addr_size oldSize) {
+    return _realloc(&tl_blocks, &tl_blockCount, tl_blockSize, oomHandler, ptr, newCount, newSize, oldCount, oldSize);
 }
 
 void ThreadLocalStdArenaAllocator::free(void*, addr_size, addr_size) {}

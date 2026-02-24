@@ -8,7 +8,7 @@ namespace core {
 StdAllocator::StdAllocator() : oomHandler(getDefaultOOMHandler()) {}
 
 void* StdAllocator::alloc(addr_size count, addr_size size) {
-    Panic(count > 0 && size > 0, "Invalid allocation size");
+    Assert(count > 0 && size > 0, "Invalid Arguments");
 
     void* ret = std::malloc(count * size);
     if (ret == nullptr && oomHandler) {
@@ -19,7 +19,7 @@ void* StdAllocator::alloc(addr_size count, addr_size size) {
 }
 
 void* StdAllocator::calloc(addr_size count, addr_size size) {
-    Panic(count > 0 && size > 0, "Invalid zero allocation size");
+    Assert(count > 0 && size > 0, "Invalid Arguments");
 
     void* ret = std::calloc(count, size);
     if (ret == nullptr && oomHandler) {
@@ -30,9 +30,20 @@ void* StdAllocator::calloc(addr_size count, addr_size size) {
 }
 
 void StdAllocator::free(void* ptr, addr_size count, addr_size size) {
-    Panic(count > 0 && size > 0, "Invalid free size"); // Check this always.
+    Assert(count > 0 && size > 0, "Invalid Arguments");
 
     std::free(ptr);
+}
+
+void* StdAllocator::realloc(void* ptr, addr_size newCount, addr_size newSize, addr_size, addr_size) {
+    Assert(newCount > 0 && newSize > 0, "Invalid Argument");
+
+    void* ret = std::realloc(ptr, newCount * newSize);
+    if (ret == nullptr && oomHandler) {
+        oomHandler();
+        return nullptr;
+    }
+    return ret;
 }
 
 void StdAllocator::clear() {}

@@ -86,6 +86,36 @@ i32 onOOMStdStatsAllocatorTest() {
     return 0;
 }
 
+i32 stdStatsAllocatorReallocAccountingTest() {
+    core::StdStatsAllocator allocator;
+
+    u8* data = static_cast<u8*>(allocator.alloc(1, sizeof(u8)));
+    CT_CHECK(data != nullptr);
+    CT_CHECK(allocator.inUseMemory() == 8);
+    CT_CHECK(allocator.totalMemoryAllocated() == 8);
+
+    data = static_cast<u8*>(allocator.realloc(data, 2, sizeof(u8), 1, sizeof(u8)));
+    CT_CHECK(data != nullptr);
+    CT_CHECK(allocator.inUseMemory() == 8);
+    CT_CHECK(allocator.totalMemoryAllocated() == 8);
+
+    data = static_cast<u8*>(allocator.realloc(data, 17, sizeof(u8), 2, sizeof(u8)));
+    CT_CHECK(data != nullptr);
+    CT_CHECK(allocator.inUseMemory() == 24);
+    CT_CHECK(allocator.totalMemoryAllocated() == 24);
+
+    data = static_cast<u8*>(allocator.realloc(data, 3, sizeof(u8), 17, sizeof(u8)));
+    CT_CHECK(data != nullptr);
+    CT_CHECK(allocator.inUseMemory() == 8);
+    CT_CHECK(allocator.totalMemoryAllocated() == 24);
+
+    allocator.free(data, 3, sizeof(u8));
+    CT_CHECK(allocator.inUseMemory() == 0);
+    CT_CHECK(allocator.totalMemoryAllocated() == 24);
+
+    return 0;
+}
+
 i32 runStdStatsAllocatorTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
@@ -99,6 +129,8 @@ i32 runStdStatsAllocatorTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     if (runTest(tInfo, stdStatsAllocatorMoveTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(onOOMStdStatsAllocatorTest);
     if (runTest(tInfo, onOOMStdStatsAllocatorTest) != 0) { ret = -1; }
+    tInfo.name = FN_NAME_TO_CPTR(stdStatsAllocatorReallocAccountingTest);
+    if (runTest(tInfo, stdStatsAllocatorReallocAccountingTest) != 0) { ret = -1; }
 
     return ret;
 }

@@ -17,7 +17,7 @@ StdStatsAllocator::StdStatsAllocator(StdStatsAllocator&& other) {
 }
 
 void* StdStatsAllocator::alloc(addr_size count, addr_size size) {
-    Panic(count > 0 && size > 0, "Invalid allocation size");
+    Assert(count > 0 && size > 0, "Invalid Argument");
 
     addr_size effectiveSize = count * size;
     void* ret = std::malloc(effectiveSize);
@@ -33,7 +33,7 @@ void* StdStatsAllocator::alloc(addr_size count, addr_size size) {
 }
 
 void* StdStatsAllocator::calloc(addr_size count, addr_size size) {
-    Panic(count > 0 && size > 0, "Invalid zero allocation size");
+    Assert(count > 0 && size > 0, "Invalid Argument");
 
     void* ret = std::calloc(count, size);
 
@@ -48,8 +48,38 @@ void* StdStatsAllocator::calloc(addr_size count, addr_size size) {
     return ret;
 }
 
+void* StdStatsAllocator::realloc(
+    void* ptr,
+    addr_size newCount, addr_size newSize,
+    addr_size oldCount, addr_size oldSize
+) {
+    Assert(newCount > 0 && newSize > 0, "Invalid Argument");
+
+    addr_size newSizeBytes = newCount * newSize;
+    void* ret = std::realloc(ptr, newSizeBytes);
+    if (ret == nullptr && oomHandler) {
+        oomHandler();
+        return nullptr;
+    }
+
+    addr_size effectiveOldSize = core::align(oldCount * oldSize);
+    addr_size effectiveNewSize = core::align(newSizeBytes);
+
+    if (effectiveNewSize > effectiveOldSize) {
+        addr_size effectiveDiff = effectiveNewSize - effectiveOldSize;
+        m_totalMemoryAllocated.fetch_add(effectiveDiff);
+        m_inUseMemory.fetch_add(effectiveDiff);
+    }
+    else if (effectiveOldSize > effectiveNewSize) {
+        addr_size effectiveDiff = effectiveOldSize - effectiveNewSize;
+        m_inUseMemory.fetch_sub(effectiveDiff);
+    }
+
+    return ret;
+}
+
 void StdStatsAllocator::free(void* ptr, addr_size count, addr_size size) {
-    Panic(count > 0 && size > 0, "Invalid free size");
+    Assert(count > 0 && size > 0, "Invalid Argument");
 
     addr_size effectiveSize = core::align(count * size);
     m_inUseMemory.fetch_sub(effectiveSize);

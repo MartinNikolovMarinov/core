@@ -48,16 +48,16 @@ constexpr addr_size MAX_NUMBER_OF_TAGS = 20;
 constexpr addr_size MAX_TAG_LEN = 32;
 
 struct LoggerState {
-    PrintFunction      printHandler;
-    bool               useAnsi;
-    LogLevel           minimumLogLevel;
-    LogLevel           logLevelPerTag[MAX_NUMBER_OF_TAGS];
-    bool               muted;
-    core::Memory<char> loggerMemory;
-    char               tagTranslationTable[MAX_NUMBER_OF_TAGS][MAX_TAG_LEN]; // NOTE: idx=0 is reserved.
-    i32                tagTranslationTableCount;
-    AllocatorId        allocatorId;
-    bool               isInitialized;
+    PrintFunction              printHandler;
+    bool                       useAnsi;
+    LogLevel                   minimumLogLevel;
+    LogLevel                   logLevelPerTag[MAX_NUMBER_OF_TAGS];
+    bool                       muted;
+    core::BufferedMemory<char> loggerMemory;
+    char                       tagTranslationTable[MAX_NUMBER_OF_TAGS][MAX_TAG_LEN]; // NOTE: idx=0 is reserved.
+    i32                        tagTranslationTableCount;
+    AllocatorId                allocatorId;
+    bool                       isInitialized;
 
     constexpr core::StrView getSectionSeparator() {
         return useAnsi ?
@@ -111,27 +111,23 @@ bool logDirectStd(const char* fmt, Args... args) {
 
     i32 written = 0;
     while (true) {
-        auto fmtRes = core::format(state.loggerMemory, fmt, args...);
+        auto fmtRes = core::format(state.loggerMemory.mem, fmt, args...);
         if (!fmtRes.hasErr()) {
             written = fmtRes.value();
             break;
         }
         else if (fmtRes.err() == FormatError::OUT_BUFFER_OVERFLOW) {
-            state.loggerMemory = memoryReallocate(
-                std::move(state.loggerMemory),
-                state.loggerMemory.len() * 2,
-                state.allocatorId
-            );
+            state.loggerMemory.reallocWith(state.loggerMemory.cap() * 2, state.allocatorId);
         }
         else {
             Panic(false, core::formatErrorToCStr(fmtRes.err()));
             return false;
         }
     }
-    state.loggerMemory[addr_size(written)] = '\0';
+    state.loggerMemory.mem[addr_size(written)] = '\0';
 
     // Finally print successfully:
-    state.printHandler(core::sv(state.loggerMemory.data(), state.loggerMemory.len()));
+    state.printHandler(core::sv(state.loggerMemory.mem.data(), addr_size(written)));
     return true;
 }
 
@@ -155,30 +151,26 @@ bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, co
         if (level < logLevelPerTag[tag]) return false;
     }
 
-    state.loggerMemory[0] = '\0';
+    state.loggerMemory.mem[0] = '\0';
 
     // Write until successfull or out of memory.
     i32 written;
     {
         while (true) {
-            auto fmtRes = core::format(state.loggerMemory, fmt, args...);
+            auto fmtRes = core::format(state.loggerMemory.mem, fmt, args...);
             if (!fmtRes.hasErr()) {
                 written = fmtRes.value();
                 break;
             }
             else if (fmtRes.err() == FormatError::OUT_BUFFER_OVERFLOW) {
-                state.loggerMemory = memoryReallocate(
-                    std::move(state.loggerMemory),
-                    state.loggerMemory.len() * 2,
-                    allocatorId
-                );
+                state.loggerMemory.reallocWith(state.loggerMemory.cap() * 2, allocatorId);
             }
             else {
                 Panic(false, core::formatErrorToCStr(fmtRes.err()));
                 return false;
             }
         }
-        state.loggerMemory[addr_size(written)] = '\0';
+        state.loggerMemory.mem[addr_size(written)] = '\0';
     }
 
     if (mode == LogSpecialMode::SECTION_TITLE) {
@@ -232,7 +224,7 @@ bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, co
     // Print Message
     if (mode == LogSpecialMode::SECTION_TITLE) {
         printHandler(" "_sv);
-        printHandler(core::sv(state.loggerMemory.data(), addr_size(written)));
+        printHandler(core::sv(state.loggerMemory.mem.data(), addr_size(written)));
         printHandler("\n"_sv);
         printHandler(state.getSectionSeparator());
         printHandler("\n"_sv);
@@ -241,7 +233,7 @@ bool __log(u8 tag, LogLevel level, LogSpecialMode mode, const char* funcName, co
         printHandler(" _fn_("_sv);
         printHandler(core::sv(funcName));
         printHandler("): "_sv);
-        printHandler(core::sv(state.loggerMemory.data(), addr_size(written)));
+        printHandler(core::sv(state.loggerMemory.mem.data(), addr_size(written)));
         printHandler("\n"_sv);
     }
 

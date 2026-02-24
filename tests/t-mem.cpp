@@ -757,6 +757,102 @@ i32 runBufferedMemoryAppendAllPathsTest() {
 }
 
 template <core::AllocatorId TAllocId>
+i32 runBufferedMemoryReallocTableTest() {
+    auto& actx = core::getAllocator(TAllocId);
+
+    struct ReallocCase {
+        addr_size initialCap;
+        addr_size initialAt;
+        addr_size targetCap;
+        bool allocWithIdOverload;
+        bool useAllocatorIdOverload;
+        bool freeWithIdOverload;
+        addr_size expectedCap;
+    };
+
+    constexpr ReallocCase cases[] = {
+        // count == 0 early return, zero-init state
+        { 0, 0, 0, false, false, false, 0 },
+        { 0, 0, 0, false, true,  true,  0 },
+
+        // first allocation through reallocWith from zero-init state
+        { 0, 0, 1, false, false, false, 1 },
+        { 0, 0, 1, false, true,  true,  1 },
+
+        // count == 0 early return on non-empty state
+        { 3, 2, 0, false, false, false, 3 },
+        { 3, 2, 0, true,  true,  true,  3 },
+
+        // regular grow path
+        { 3, 2, 6, false, false, false, 6 },
+        { 3, 2, 6, true,  true,  true,  6 },
+
+        // regular shrink path (valid: shrink to at)
+        { 6, 2, 2, false, false, false, 2 },
+        { 6, 2, 2, true,  true,  true,  2 },
+
+        // same-size realloc path
+        { 4, 2, 4, false, false, false, 4 },
+        { 4, 2, 4, true,  true,  true,  4 },
+    };
+
+    i32 ret = core::testing::executeTestTable("realloc table case failed at index: ", cases, [&](auto& c, const char* cErr) {
+        core::BufferedMemory<u8> bm{};
+
+        if (c.initialCap > 0) {
+            if (c.allocWithIdOverload) {
+                bm.allocWith(c.initialCap, TAllocId);
+            }
+            else {
+                bm.allocWith(c.initialCap, actx);
+            }
+        }
+
+        bm.at = c.initialAt;
+
+        // Fill the valid prefix with a simple deterministic pattern.
+        // Using the index directly keeps the setup obvious and readable.
+        u8 expectedPrefix[8] = {};
+        for (addr_size i = 0; i < c.initialAt; ++i) {
+            u8 value = u8(i);
+            bm.mem[i] = value;
+            expectedPrefix[i] = value;
+        }
+
+        if (c.useAllocatorIdOverload) {
+            bm.reallocWith(c.targetCap, TAllocId);
+        }
+        else {
+            bm.reallocWith(c.targetCap, actx);
+        }
+
+        CT_CHECK(bm.cap() == c.expectedCap, cErr);
+        if (c.expectedCap > 0) CT_CHECK(bm.mem.ptr != nullptr, cErr);
+        CT_CHECK(bm.at == c.initialAt, cErr);
+
+        // Realloc must preserve all bytes in the active prefix.
+        for (addr_size i = 0; i < c.initialAt; ++i) {
+            CT_CHECK(bm.mem[i] == expectedPrefix[i], cErr);
+        }
+
+        if (c.freeWithIdOverload) {
+            bm.freeWith(TAllocId);
+        }
+        else {
+            bm.freeWith(actx);
+        }
+        CT_CHECK(bm.mem.ptr == nullptr, cErr);
+        CT_CHECK(bm.mem.length == 0, cErr);
+        CT_CHECK(bm.at == 0, cErr);
+
+        return 0;
+    }, 4);
+    CT_CHECK(ret == 0);
+
+    return 0;
+}
+
+template <core::AllocatorId TAllocId>
 i32 runDynamicMemoryTests(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
@@ -768,6 +864,8 @@ i32 runDynamicMemoryTests(const core::testing::TestSuiteInfo& sInfo) {
     if (runTest(tInfo, runBufferedMemoryBasicFlowTest<TAllocId>) != 0) { return -1; }
     tInfo.name = FN_NAME_TO_CPTR(runBufferedMemoryAppendAllPathsTest);
     if (runTest(tInfo, runBufferedMemoryAppendAllPathsTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(runBufferedMemoryReallocTableTest);
+    if (runTest(tInfo, runBufferedMemoryReallocTableTest<TAllocId>) != 0) { return -1; }
 
     return 0;
 }

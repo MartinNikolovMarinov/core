@@ -248,6 +248,7 @@ struct BufferedMemory {
 
         mem.ptr = reinterpret_cast<T*>(actx.reallocate(mem.ptr, count, sizeof(T), mem.length, sizeof(T)));
         mem.length = count;
+        at = core::core_min(at, mem.length);
     }
 
     inline void freeWith(core::AllocatorId allocatorId) {
@@ -393,11 +394,7 @@ template <typename T> constexpr i32 memcmp(const T* a, addr_size lena, const T* 
 }
 
 template <typename T, typename CmpFn> constexpr i32 memcmp(const T* a, addr_size lena, const T* b, addr_size lenb, CmpFn cmpFn) {
-    IS_CONST_EVALUATED {
-        return cmemcmp<T, CmpFn>(a, lena, b, lenb, cmpFn);
-    }
-
-    return imemcmp(a, lena, b, lenb);
+    return cmemcmp(a, lena, b, lenb, cmpFn);
 }
 
 template <typename T> constexpr i32 memcmp(const T* a, const T* b, addr_size len) {

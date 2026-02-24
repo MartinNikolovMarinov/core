@@ -20,6 +20,7 @@ namespace core {
 using namespace coretypes;
 
 template <typename T> struct Memory;
+template <typename T> struct BufferedMemory;
 
 template <typename T> inline    addr_size imemcopy(T* dest, const T* src, addr_size len);
 template <typename T> constexpr addr_size cmemcopy(T* dest, const T* src, addr_size len);
@@ -143,13 +144,9 @@ struct Memory {
         return { ptr + offset, slen };
     }
 
-    constexpr void setRange(size_type from, size_type to, T&& v) {
-        addr_off n = addr_off(to) - addr_off(from);
-        Assert(n > 0, "from and to must be in the range (from < to)");
-        Assert(from < len(), "range is outside valid memory");
-        Assert(to <= len(), "range is outside valid memory");
-
-        core::memset(ptr + from, v, n);
+    constexpr void setRange(size_type from, size_type _len, T&& v) {
+        Assert(from + _len <= length, "selected range is outside memory boundary");
+        core::memset(ptr + from, v, addr_size(_len));
     }
 };
 
@@ -382,6 +379,13 @@ template <typename T> constexpr i32 memcmp(const T* a, addr_size lena, const T* 
     IS_CONST_EVALUATED {
         if constexpr (sizeof(T) == sizeof(u8)) {
             return cmemcmpBytes(a, lena, b, lenb);
+        }
+        else if constexpr (std::is_integral_v<T>) {
+            return cmemcmp(a, lena, b, lenb, [](const T& x, const T& y) -> i32 {
+                if (x > y)      return 1;
+                else if (x < y) return -1;
+                else            return 0;
+            });
         }
     }
 

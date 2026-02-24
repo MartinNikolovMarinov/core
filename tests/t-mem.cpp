@@ -421,7 +421,7 @@ i32 ptrAdvanceTest() {
     return 0;
 }
 
-constexpr i32 memoryTests() {
+constexpr i32 memoryTest() {
     // Test basic functions
     {
         i32 arr[] = {1, 2, 3, 4, 5};
@@ -521,7 +521,7 @@ constexpr i32 memoryTests() {
         CT_CHECK(!m.contains(5));
     }
 
-    // Test slice()
+    // Test slice() has correct addresses from the original array
     {
         i32 arr[] = { 10, 20, 30, 40, 50 };
         core::Memory<i32> mem(arr, CORE_C_ARRLEN(arr));
@@ -549,6 +549,48 @@ constexpr i32 memoryTests() {
         auto empty = mem.slice(0, 0);
         CT_CHECK(empty.data() == nullptr);
         CT_CHECK(empty.len() == 0);
+    }
+
+    // Test setRange()
+    {
+        struct TestCase {
+            addr_size from;
+            addr_size to;
+            i32 x;
+            i32 expected[5];
+        };
+
+        TestCase cases[] = {
+            { 0, 1, 1, { 1, 0, 0, 0, 0 } },
+            { 0, 2, 1, { 1, 1, 0, 0, 0 } },
+            { 0, 3, 1, { 1, 1, 1, 0, 0 } },
+            { 0, 4, 1, { 1, 1, 1, 1, 0 } },
+            { 0, 5, 1, { 1, 1, 1, 1, 1 } },
+
+            { 1, 1, 1, { 0, 1, 0, 0, 0 } },
+            { 1, 2, 1, { 0, 1, 1, 0, 0 } },
+            { 1, 3, 1, { 0, 1, 1, 1, 0 } },
+            { 1, 4, 1, { 0, 1, 1, 1, 1 } },
+
+            { 2, 1, 1, { 0, 0, 1, 0, 0 } },
+            { 2, 2, 1, { 0, 0, 1, 1, 0 } },
+            { 2, 3, 1, { 0, 0, 1, 1, 1 } },
+
+            { 3, 1, 1, { 0, 0, 0, 1, 0 } },
+            { 3, 2, 1, { 0, 0, 0, 1, 1 } },
+
+            { 4, 1, 1, { 0, 0, 0, 0, 1 } },
+        };
+
+        i32 ret = core::testing::executeTestTable("setRange test case failed at index: ", cases, [&](TestCase& c, const char* cErr) {
+            constexpr addr_size INPUT_LEN = 5;
+            i32 input[INPUT_LEN] = {};
+            core::Memory<i32> m = { .ptr = input, .length = INPUT_LEN };
+            m.setRange(c.from, c.to, i32(c.x));
+            CT_CHECK(core::memcmp(m.data(), c.expected, m.len()) == 0, cErr);
+            return 0;
+        });
+        CT_CHECK(ret == 0);
     }
 
     return 0;
@@ -615,6 +657,106 @@ i32 runBufferedMemoryBasicFlowTest() {
 }
 
 template <core::AllocatorId TAllocId>
+i32 runBufferedMemoryAppendAllPathsTest() {
+    auto& actx = core::getAllocator(TAllocId);
+    core::BufferedMemory<u8> bm{};
+
+    // Empty/default state and idempotent free path.
+    CT_CHECK(!bm);
+    CT_CHECK(bm.empty());
+    bm.freeWith(actx);
+    CT_CHECK(bm.mem.ptr == nullptr);
+    CT_CHECK(bm.mem.length == 0);
+    CT_CHECK(bm.at == 0);
+
+    // append(): cap == 0 path (first allocation).
+    bm.append(u8(10), actx);
+    CT_CHECK(bm);
+    CT_CHECK(!bm.empty());
+    CT_CHECK(bm.cap() == 1);
+    CT_CHECK(bm.at == 1);
+    CT_CHECK(bm.first() == 10);
+    CT_CHECK(bm.last() == 10);
+    CT_CHECK(*(bm.end() - 1) == 10);
+    CT_CHECK(addr_size(bm.end() - bm.begin()) == bm.at);
+
+    // append(): cap > 0 and full path (reallocation + grow).
+    bm.append(u8(20), actx);
+    CT_CHECK(bm.cap() >= 2);
+    CT_CHECK(bm.at == 2);
+    CT_CHECK(bm[0] == 10);
+    CT_CHECK(bm[addr_size(1)] == 20);
+
+    bm.append(u8(30), actx); // grow again (2 -> 4)
+    CT_CHECK(bm.cap() >= 4);
+    CT_CHECK(bm.at == 3);
+    CT_CHECK(bm[0] == 10);
+    CT_CHECK(bm[1] == 20);
+    CT_CHECK(bm[2] == 30);
+
+    // removeUnordered(): valid index path.
+    bm.removeUnordered(1);
+    CT_CHECK(bm.at == 2);
+    CT_CHECK(bm[0] == 10);
+    CT_CHECK((bm[1] == 30 || bm[1] == 20)); // unordered remove can swap.
+
+    // freeWith(): non-empty path + clear state.
+    bm.freeWith(actx);
+    CT_CHECK(bm.mem.ptr == nullptr);
+    CT_CHECK(bm.mem.length == 0);
+    CT_CHECK(bm.at == 0);
+    CT_CHECK(!bm);
+    CT_CHECK(bm.empty());
+
+    // allocWith() via AllocatorId overload.
+    bm.allocWith(3, TAllocId);
+    CT_CHECK(bm.cap() == 3);
+    CT_CHECK(bm.at == 0);
+    bm.append(u8(1), TAllocId);
+    bm.append(u8(2), TAllocId);
+    bm.append(u8(3), TAllocId); // no-grow append path.
+    CT_CHECK(bm.cap() == 3);
+    CT_CHECK(bm.at == 3);
+    CT_CHECK(bm.first() == 1);
+    CT_CHECK(bm.last() == 3);
+
+    // reallocWith(): count == 0 early-return path.
+    addr_size capBefore = bm.cap();
+    bm.reallocWith(0, actx);
+    CT_CHECK(bm.cap() == capBefore);
+    CT_CHECK(bm.at == 3);
+
+    // reallocWith() via AllocatorId overload (actual resize path).
+    bm.reallocWith(6, TAllocId);
+    CT_CHECK(bm.cap() == 6);
+    CT_CHECK(bm.at == 3);
+    CT_CHECK(bm[0] == 1);
+    CT_CHECK(bm[1] == 2);
+    CT_CHECK(bm[2] == 3);
+    bm.freeWith(TAllocId);
+    CT_CHECK(bm.mem.ptr == nullptr);
+    CT_CHECK(bm.mem.length == 0);
+    CT_CHECK(bm.at == 0);
+
+    // callocWith() path and append via context without growth.
+    bm.callocWith(4, actx);
+    CT_CHECK(bm.cap() == 4);
+    CT_CHECK(bm.at == 0);
+    for (addr_size i = 0; i < bm.cap(); i++) {
+        CT_CHECK(bm.mem[i] == 0);
+    }
+    bm.append(u8(9), actx);
+    bm.append(u8(8), actx);
+    CT_CHECK(bm.at == 2);
+    CT_CHECK(bm.first() == 9);
+    CT_CHECK(bm.last() == 8);
+    bm.freeWith(actx);
+    CT_CHECK(bm.empty());
+
+    return 0;
+}
+
+template <core::AllocatorId TAllocId>
 i32 runDynamicMemoryTests(const core::testing::TestSuiteInfo& sInfo) {
     using namespace core::testing;
 
@@ -624,6 +766,8 @@ i32 runDynamicMemoryTests(const core::testing::TestSuiteInfo& sInfo) {
 
     tInfo.name = FN_NAME_TO_CPTR(runBufferedMemoryBasicFlowTest);
     if (runTest(tInfo, runBufferedMemoryBasicFlowTest<TAllocId>) != 0) { return -1; }
+    tInfo.name = FN_NAME_TO_CPTR(runBufferedMemoryAppendAllPathsTest);
+    if (runTest(tInfo, runBufferedMemoryAppendAllPathsTest<TAllocId>) != 0) { return -1; }
 
     return 0;
 }
@@ -657,7 +801,7 @@ i32 runMemTestsSuite(const core::testing::TestSuiteInfo& sInfo) {
     tInfo.name = FN_NAME_TO_CPTR(ptrAdvanceTest);
     if (runTest(tInfo, ptrAdvanceTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(memoryTests);
-    if (runTest(tInfo, memoryTests) != 0) { ret = -1; }
+    if (runTest(tInfo, memoryTest) != 0) { ret = -1; }
     tInfo.name = FN_NAME_TO_CPTR(memoryTestsEdgeCases);
     if (runTest(tInfo, memoryTestsEdgeCases) != 0) { ret = -1; }
 
@@ -686,6 +830,7 @@ constexpr i32 runCompiletimeMemTestsSuite() {
     RunTestCompileTime(memcmpWithCStrs);
     RunTestCompileTime(memcmpTest);
     RunTestCompileTime(appendTest);
+    RunTestCompileTime(memoryTest);
 
     return 0;
 }

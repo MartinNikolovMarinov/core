@@ -20,10 +20,10 @@ namespace core {
 
 namespace {
 
-u64 seedU64;
-u32 seedU32;
-const char alphaChars[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const u32 alphaCharsLen = sizeof(alphaChars) - 1; // alphaChars includes terminating '\0'
+thread_local u64 seedU64 = 0;
+thread_local u32 seedU32 = 0;
+constexpr const char alphaChars[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+constexpr u32 alphaCharsLen = sizeof(alphaChars) - 1; // alphaChars includes terminating '\0'
 
 u64 xorShift64(u64 state) {
     state ^= state << 13;

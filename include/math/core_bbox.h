@@ -19,21 +19,21 @@ struct Bbox2D {
 
     constexpr core::vec2<T> center() const { return (min + max) / 2; }
 
-    constexpr void center(f32& x, f32 &y) const {
+    constexpr void center(T& x, T &y) const {
         core::vec2<T> c = center();
         x = c.x();
         y = c.y();
     }
 
-    constexpr f32 width() const {
+    constexpr T width() const {
         return max.x() - min.x();
     }
 
-    constexpr f32 height() const {
+    constexpr T height() const {
         return max.y() - min.y();
     }
 
-    constexpr bool isInside(f32 x, f32 y) const {
+    constexpr bool isInside(T x, T y) const {
         return x >= min.x() && x <= max.x() && y >= min.y() && y <= max.y();
     }
 
@@ -51,6 +51,10 @@ struct Bbox2D {
         min.y() = core::clamp(min.y(), miny, maxy);
         max.x() = core::clamp(max.x(), minx, maxx);
         max.y() = core::clamp(max.y(), miny, maxy);
+    }
+
+    constexpr void clampTo(const Bbox2D& other) {
+        clampTo(other.min.x(), other.max.x(), other.min.y(), other.max.y());
     }
 
     core::vec2<T> min;
@@ -86,7 +90,7 @@ constexpr BBoxIntersectionResult bboxIntersectionWithLine(const Bbox2D<f32>& bbo
         return res;
     }
 
-    f32 tMin = core::limitMin<f32>();
+    f32 tMin = -core::limitMax<f32>();
     f32 tMax = core::limitMax<f32>();
 
     if (dir.x() != 0) {

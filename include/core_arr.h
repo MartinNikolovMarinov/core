@@ -52,7 +52,7 @@ inline void convArrList(To& to, From&& from) {
     to.reset(&castData, toLen, toCap);
 }
 
-#define CORE_C_ARRLEN(x) sizeof(x) / sizeof(x[0])
+#define CORE_C_ARRLEN(x) (sizeof(x) / sizeof(x[0]))
 
 template <typename T, AllocatorId TAllocId>
 struct ArrList {
@@ -297,7 +297,7 @@ struct ArrList {
                         static_assert(std::is_copy_constructible_v<T>);
                         new (&m_data[i]) T(m_data[i + 1]);
                     }
-                    m_data[i].~T();
+                    m_data[i + 1].~T();
                 }
             }
         }
@@ -324,6 +324,7 @@ struct ArrList {
             }
             else {
                 for (size_type i = from; i < to; i++) {
+                    m_data[i].~T();
                     new (&m_data[i]) T(val);
                 }
             }
@@ -366,12 +367,7 @@ struct ArrStatic {
     constexpr ArrStatic(ArrStatic&& other) = default;
     constexpr ArrStatic(size_type len, const T& v) : m_len(len) {
         for (size_type i = 0; i < m_len; i++) {
-            if constexpr (std::is_move_constructible_v<T>) {
-                m_data[i] = std::move(v);
-            }
-            else {
-                m_data[i] = T(v);
-            }
+            m_data[i] = v;
         }
     }
 
@@ -392,8 +388,12 @@ struct ArrStatic {
 
     constexpr value_type&       at(size_type idx)               { return m_data[idx]; }
     constexpr const value_type& at(size_type idx)         const { return m_data[idx]; }
+    constexpr value_type&       at(i32 idx)                     { return m_data[size_type(idx)]; }
+    constexpr const value_type& at(i32 idx)               const { return m_data[size_type(idx)]; }
     constexpr value_type&       operator[](size_type idx)       { return at(idx); }
     constexpr const value_type& operator[](size_type idx) const { return at(idx); }
+    constexpr value_type&       operator[](i32 idx)             { return at(idx); }
+    constexpr const value_type& operator[](i32 idx)       const { return at(idx); }
 
     constexpr value_type&       first()       { return at(0); }
     constexpr const value_type& first() const { return at(0); }

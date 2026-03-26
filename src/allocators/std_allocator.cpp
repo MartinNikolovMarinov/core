@@ -29,9 +29,7 @@ void* StdAllocator::calloc(addr_size count, addr_size size) {
     return ret;
 }
 
-void StdAllocator::free(void* ptr, addr_size count, addr_size size) {
-    Assert(count > 0 && size > 0, "Invalid Arguments");
-
+void StdAllocator::free(void* ptr, addr_size, addr_size) {
     std::free(ptr);
 }
 

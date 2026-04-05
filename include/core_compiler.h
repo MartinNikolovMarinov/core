@@ -46,6 +46,7 @@
     #define DISABLE_CLANG_WARNING(w) _QUOTED_PRAGMA(clang diagnostic ignored #w)
     #define PRAGMA_COMPILER_MESSAGE(x) _QUOTED_PRAGMA(message #x)
     #define PRAGMA_WARNING_SUPPRESS_ALL \
+    	_Pragma("clang diagnostic push") \
         _Pragma("clang diagnostic ignored \"-Weverything\"")
 #endif
 

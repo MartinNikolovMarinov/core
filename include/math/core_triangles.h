@@ -48,7 +48,7 @@ Bbox2D<T> calcTriangleBBox(T ax, T ay, T bx, T by, T cx, T cy) {
     T maxx = core::core_max(core::core_max(ax, bx), cx);
     T maxy = core::core_max(core::core_max(ay, by), cy);
 
-    Bbox2D<T> bbox (core::v(minx, miny), core::v(maxx, maxy));
+    Bbox2D<T> bbox (core::v(minx, miny), core::v(maxx + 1, maxy + 1));
     return bbox;
 }
 

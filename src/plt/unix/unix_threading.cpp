@@ -8,6 +8,7 @@
 
 #include <unistd.h>
 #include <signal.h>
+#include <errno.h>
 
 namespace core {
 

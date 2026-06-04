@@ -34,7 +34,7 @@ struct Bbox2D {
     }
 
     constexpr bool isInside(T x, T y) const {
-        return x >= min.x() && x <= max.x() && y >= min.y() && y <= max.y();
+        return x >= min.x() && x < max.x() && y >= min.y() && y < max.y();
     }
 
     constexpr bool isInside(const core::vec2<T>& x) const {
